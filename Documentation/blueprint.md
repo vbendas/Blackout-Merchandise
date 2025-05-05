@@ -1,7 +1,7 @@
 # Merch From Blueprint
 
 ## 1. Vision & Core Concept
-Merch From is a conversational commerce platform where artists, bands, and creators can launch and manage merchandise stores through natural conversation with AI, while Merch From handles in-house printing and fulfillment. The platform eliminates traditional dashboards in favor of an intuitive chat-based interface with voice interaction.
+Merch From is a conversational commerce platform where artists, bands, and creators can launch and manage merchandise stores through natural conversation with AI, while Merch From handles in-house printing and fulfillment. Merch From also supports bulk merchandise orders alongside individual sales. Creators can order 50+ units through the same conversational interface, with AI automatically calculating production costs based on design complexity and order volume.The platform eliminates traditional dashboards in favor of an intuitive chat-based interface with voice interaction.
 
 ## 2. Brand Identity
 - **Mission Statement**: "We help artists, brands, and companies design, source, and sell premium quality merchandise."
@@ -18,7 +18,7 @@ Merch From is a conversational commerce platform where artists, bands, and creat
 - **Backend**: Supabase (Database, Auth, Storage)
 - **AI Layer**: OpenAI API for conversation and text-to-speech
 - **Voice Interface**: OpenAI for voice interaction
-- **Image Processing**: Fabric.js for mockups (running on AWS Lambda)
+- **Image Processing**: Fabric.js for mockups and a hybrid AI system (GPT-4 Vision + computer vision) for design evaluation (running on AWS Lambda)
 - **Image Storage**: Amazon S3 for mockup storage
 - **Deployment**: Vercel
 
@@ -55,6 +55,16 @@ Once accepted, every creator receives:
 - All platform features, integrations, and analytics
 - No upfront costs for using Merch From's fulfillment
 
+### 5.1 Bulk Order Service
+How It Works:
+1. Users initiate bulk orders via voice/text: "Get quote for 500 black hoodies with this logo"
+2. AI analyzes the design using OpenCV color detection:
+   - Identifies required screen printing colors from preset palette
+   - Flags complex designs exceeding 8 colors for spot colour/process printing
+3. Instant quote generated based on:
+   - Color count
+   - Order volume discounts
+
 ## 6. Pricing Structure
 
 ### Standard Products (Premium Fulfillment)
@@ -71,6 +81,17 @@ Once accepted, every creator receives:
 - Flexible pricing with platform minimums
 - Store owner manages stock levels and shipping
 
+### Bulk Order Pricing Factors
+- **Color Complexity**: Base price + €0.75/item per color beyond 2
+- **Volume Discounts**:
+  - 5% off for orders over 100 units
+  - 10% off for orders over 200 units
+  - 15% off for orders over 250 units
+  - 20% off for orders over 500 units
+  - 25% off for orders over 1,000 units
+  - 30% off for orders over 5,000 units
+- **Rush Production**: Optional 25% surcharge for 7-day turnaround
+
 ## 7. Future Expansion Opportunities
 
 ### Decentralized Fulfillment Network
@@ -84,6 +105,13 @@ To deepen integration into the creator ecosystem, we will pursue partnerships wi
 - Bandcamp – Ideal for independent musicians seeking a seamless merch integration alongside music sales
 - SoundCloud – Offers potential for custom merch drops and support for emerging artists
 - Patreon – Enables exclusive merchandise for supporter tiers, boosting creator revenue
+
+### Bulk Order Enhancements
+- **AI-Powered Print Optimization**: Auto-separate designs into spot colors
+- **Regional Fulfillment**: Split large orders across decentralized network partners
+- **Bulk Sample Kits**: AI-curated material swatches based on design needs
+
+*This update integrates bulk ordering as a natural extension of the existing platform while maintaining the voice-first philosophy. The color analysis system remains invisible to users but fundamentally improves cost estimation accuracy.*
 
 ## 8. Development & Analytics
 
