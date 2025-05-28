@@ -1,0 +1,126 @@
+# Merch From – Cost Simulation Document
+
+## 📊 Scenario Overview
+
+**Platform:** Merch From – AI-powered conversational commerce for creators
+
+**Scale Simulated:**
+- 100 shops
+- 20 products per shop
+- 1,000 customers per shop/month
+- 100 products sold per shop/month
+- 10 conversational (AI/TTS) interactions per product creation
+- 100 additional management interactions per shop/month
+- 95% of AI interactions use cheapest models; 5% use advanced models (e.g., GPT-4)
+- All interactions include TTS/Speech-to-Text
+
+**Infrastructure Stack:**
+- Bubble.io
+- Algolia
+- OpenAI
+- OpenRouter.ai
+- Supabase
+- Vercel
+- Fabric.js
+
+## 💰 Cost Breakdown
+
+### 1. Algolia (Search Engine)
+
+| Item | Usage Estimate | Unit Price | Monthly Cost |
+|------|---------------|------------|--------------|
+| Search Operations | 100 shops × 1,000 customers × 10 = 1,000,000 | $0.50 per 1,000 requests | $500 |
+| Records Stored | 100 shops × 20 = 2,000 products | $0.40 per 1,000 records | $0.80 |
+| **Total Algolia** | | | **$500.80** |
+
+### 2. Bubble.io (App Platform)
+
+| Item | Usage Estimate | Unit Price | Monthly Cost |
+|------|---------------|------------|--------------|
+| Team Plan | 50M workload units included | $399/month | $399 |
+| WU Overage | 16.5M extra WU estimated | $0.50 per 1M WU | $8.25 |
+| **Total Bubble.io** | | | **$407.25** |
+
+### 3. AI Services (OpenAI & OpenRouter.ai)
+
+#### 3.1 Text-to-Speech (TTS) – OpenAI API
+
+| Item | Usage Estimate | Unit Price | Monthly Cost |
+|------|---------------|------------|--------------|
+| TTS Characters | 30,000 interactions × 500 chars = 15M | $15 per 1M chars | $225 |
+
+#### 3.2 Speech-to-Text (Whisper) – OpenAI API
+
+| Item | Usage Estimate | Unit Price | Monthly Cost |
+|------|---------------|------------|--------------|
+| Minutes Processed | 30,000 interactions × 1 min = 30,000 min | $0.006 per min | $180 |
+
+#### 3.3 Conversational AI
+
+| Model | Usage Estimate | Unit Price | Monthly Cost |
+|-------|---------------|------------|--------------|
+| GPT-4 (5% complex) | 1,500 × 2,000 tokens = 3M tokens | $8 per 1M output tokens | $24 |
+| GPT-3.5 (95% simple) | 28,500 × 1,000 tokens = 28.5M tokens | $0.40 per 1M input tokens | $11.40 |
+| OpenRouter.ai (fallback, 20% of simple) | 6,000 × 1,000 tokens = 6M tokens | $0.50 per 1M tokens | $3 |
+| **Total AI Services** | | | **$443.40** |
+
+### 4. Infrastructure
+
+| Item | Usage Estimate | Unit Price | Monthly Cost |
+|------|---------------|------------|--------------|
+| Supabase (DB/Auth) | Pro plan, 10GB, 100K API calls | $25/month | $25 |
+| Vercel (Hosting) | Pro plan, 2 seats | $40/month | $40 |
+| Fabric.js | Open-source (client-side) | $0 | $0 |
+| **Total Infrastructure** | | | **$65** |
+
+## 📈 Total Monthly Costs
+
+| Component | Monthly Cost |
+|-----------|--------------|
+| Algolia | $500.80 |
+| Bubble.io | $407.25 |
+| AI Services | $443.40 |
+| Infrastructure | $65 |
+| **Total** | **$1,416.45** |
+
+## 💵 Revenue & Profit Estimate
+
+| Metric | Value |
+|--------|-------|
+| Total Products Sold | 100 shops × 100 = 10,000/month |
+| Average Profit/Product | €8 |
+| Total Monthly Profit | €80,000 (~$85,600) |
+| Net Profit (After Costs) | $85,600 - $1,416.45 = **$84,183.55** |
+
+## 🔍 AI Model & API Cost Details
+
+| Service | Model/Plan | Price Reference (May 2025) |
+|---------|------------|----------------------------|
+| OpenAI TTS | TTS API | $15 per 1M chars |
+| OpenAI Whisper | Speech-to-Text | $0.006 per minute |
+| OpenAI GPT-4 | Conversational | $8 per 1M output tokens |
+| OpenAI GPT-3.5 | Conversational | $0.40 per 1M input tokens |
+| OpenRouter.ai | API (fallback) | $0.50 per 1M tokens (simple models) |
+
+## 💡 Notes & Optimization Tips
+
+- **Algolia:** Costs scale with search volume; enterprise deals may reduce price at scale
+- **Bubble.io:** Workload units can be optimized by batching and caching
+- **AI:** Use OpenRouter.ai or similar for the majority of simple tasks to minimize costs
+- **Supabase/Vercel:** Costs are predictable at this scale; monitor for spikes as you grow
+- **Profitability:** Even with aggressive usage, operational costs represent less than 2% of projected revenue
+
+## 📊 Visual Cost Breakdown
+
+| Component | % of Total Monthly Cost |
+|-----------|-------------------------|
+| Algolia | 35% |
+| Bubble.io | 29% |
+| AI Services | 31% |
+| Infrastructure | 5% |
+
+## 📝 Summary
+
+- All major platform, AI, and infrastructure costs are covered by a healthy profit margin
+- The scenario is highly scalable and cost-optimized, with room for further savings via model mix and workflow efficiency
+- This breakdown can be used for business planning, investor decks, or operational monitoring
