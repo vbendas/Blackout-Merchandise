@@ -78,7 +78,40 @@ Your goal: Hunt down problems and deliver happiness.
 
 ---
 
-## 4. Interaction Routing (The "Handoff")
+## 4. Voice Design (Character Voices)
+
+Each Cat-Suite agent has a distinct voice synthesized via **Mistral Voxtral TTS** using zero-shot voice cloning (3-5 second reference sample).
+
+| Agent | Voice Characteristics | Accent | Reference Sample Needed |
+|-------|----------------------|--------|------------------------|
+| **Leopoldo** | Deep, confident, warm. Slightly raspy. Authoritative but friendly. | São Paulo Brazilian Portuguese | 3-5s of confident male speech |
+| **Francisca** | Higher pitch, expressive, dramatic. Slightly demanding tone. Articulate. | Porto European Portuguese | 3-5s of expressive female speech |
+| **Antônia** | Light, energetic, melodic. Fast-paced, optimistic cadence. | Dublin Irish English | 3-5s of upbeat female speech |
+
+### Voice Pipeline
+```
+User speaks → Voxtral Transcribe 2 (STT, sub-200ms)
+            → Mistral Large (LLM + agent personality prompt)
+            → Voxtral TTS (character voice via cloned reference)
+            → User hears agent speaking in character voice
+```
+
+### Two Voice Modes in CatChat
+| Mode | Trigger | Behavior |
+|------|---------|----------|
+| **Speak-to-Text** | Hold mic button (🎤) | One-shot: speak → transcript → text/audio reply |
+| **Talk** | Click talk button (🗣️) | Continuous: back-and-forth conversation, agent speaks in character voice |
+
+### Expression Sync
+Voice output should trigger avatar expression changes:
+- **Speaking:** `speaking_a` / `speaking_b` (cycle every 500ms during TTS playback)
+- **Thinking:** `thinking` (during LLM processing)
+- **Happy:** `happy` (positive responses)
+- **Confused:** `confused` (clarification needed)
+
+---
+
+## 5. Interaction Routing (The "Handoff")
 
 **Scenario:** User says "I love the shirt, how much profit do I make?"
 1. **Leopoldo** receives msg.

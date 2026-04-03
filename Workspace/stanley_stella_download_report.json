@@ -1,0 +1,939 @@
+{
+  "total_products_attempted": 20,
+  "total_images_attempted": 388,
+  "success_count": 103,
+  "error_count": 273,
+  "skipped_count": 12,
+  "total_size_mb": 4.280412673950195,
+  "successful_downloads": [
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaker_STTU263/packshot/PFM0_STTU263_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU263_C001.jpg",
+      "size": 10607,
+      "sku": "STTU263",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaker_STTU263/packshot/PBM0_STTU263_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU263_C001.jpg",
+      "size": 9895,
+      "sku": "STTU263",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaker_STTU263/packshot/PFM0_STTU263_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU263_C002.jpg",
+      "size": 15353,
+      "sku": "STTU263",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaker_STTU263/packshot/PBM0_STTU263_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU263_C002.jpg",
+      "size": 14343,
+      "sku": "STTU263",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaker_STTU263/studio/SBM0_STTU263_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU263_C001.jpg",
+      "size": 45136,
+      "sku": "STTU263",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaker_STTU263/studio/SFM0_STTU263_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STTU263_C001.jpg",
+      "size": 37923,
+      "sku": "STTU263",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaker_STTU263/studio/SBM0_STTU263_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU263_C002.jpg",
+      "size": 47433,
+      "sku": "STTU263",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaker_STTU263/studio/SFM0_STTU263_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STTU263_C002.jpg",
+      "size": 44982,
+      "sku": "STTU263",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Etta_STTW264/packshot/PFM0_STTW264_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTW264_C001.jpg",
+      "size": 9713,
+      "sku": "STTW264",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Etta_STTW264/packshot/PBM0_STTW264_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTW264_C001.jpg",
+      "size": 9327,
+      "sku": "STTW264",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Etta_STTW264/packshot/PFM0_STTW264_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTW264_C002.jpg",
+      "size": 18191,
+      "sku": "STTW264",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Etta_STTW264/packshot/PBM0_STTW264_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTW264_C002.jpg",
+      "size": 16540,
+      "sku": "STTW264",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Thinker_STSU269/packshot/PFM0_STSU269_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSU269_C001.jpg",
+      "size": 11911,
+      "sku": "STSU269",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Thinker_STSU269/packshot/PBM0_STSU269_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSU269_C001.jpg",
+      "size": 11944,
+      "sku": "STSU269",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Thinker_STSU269/studio/SBM0_STSU269_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STSU269_C001.jpg",
+      "size": 36790,
+      "sku": "STSU269",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Thinker_STSU269/studio/SFM0_STSU269_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STSU269_C001.jpg",
+      "size": 35101,
+      "sku": "STSU269",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Thinker_STSU269/packshot/PBM0_STSU269_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSU269_C002.jpg",
+      "size": 26299,
+      "sku": "STSU269",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Thinker_STSU269/packshot/PFM0_STSU269_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSU269_C002.jpg",
+      "size": 33630,
+      "sku": "STSU269",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Thinker_STSU269/studio/SBM0_STSU269_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STSU269_C002.jpg",
+      "size": 45699,
+      "sku": "STSU269",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Thinker_STSU269/studio/SFM0_STSU269_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STSU269_C002.jpg",
+      "size": 38724,
+      "sku": "STSU269",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Thinker_STSU269/packshot/PFM0_STSU269_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSU269_C004.jpg",
+      "size": 59158,
+      "sku": "STSU269",
+      "type": "packshot",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Thinker_STSU269/packshot/PBM0_STSU269_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSU269_C004.jpg",
+      "size": 62908,
+      "sku": "STSU269",
+      "type": "packshot",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Thinker_STSU269/studio/SBM0_STSU269_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STSU269_C004.jpg",
+      "size": 56440,
+      "sku": "STSU269",
+      "type": "studio",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Thinker_STSU269/studio/SFM0_STSU269_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STSU269_C004.jpg",
+      "size": 43654,
+      "sku": "STSU269",
+      "type": "studio",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Thinker_STSW254/packshot/PFM0_STSW254_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSW254_C002.jpg",
+      "size": 29574,
+      "sku": "STSW254",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Thinker_STSW254/packshot/PBM0_STSW254_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSW254_C002.jpg",
+      "size": 26894,
+      "sku": "STSW254",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Thinker_STSW254/packshot/PBM0_STSW254_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSW254_C001.jpg",
+      "size": 18608,
+      "sku": "STSW254",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Thinker_STSW254/packshot/PFM0_STSW254_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSW254_C001.jpg",
+      "size": 18765,
+      "sku": "STSW254",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Thinker_STSW254/packshot/PBM0_STSW254_C005.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSW254_C005.jpg",
+      "size": 23874,
+      "sku": "STSW254",
+      "type": "packshot",
+      "color": "Heather Grey"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Thinker_STSW254/packshot/PFM0_STSW254_C005.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSW254_C005.jpg",
+      "size": 24608,
+      "sku": "STSW254",
+      "type": "packshot",
+      "color": "Heather Grey"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Thinker_STSW254/packshot/PBM0_STSW254_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSW254_C004.jpg",
+      "size": 38711,
+      "sku": "STSW254",
+      "type": "packshot",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Thinker_STSW254/packshot/PFM0_STSW254_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSW254_C004.jpg",
+      "size": 39703,
+      "sku": "STSW254",
+      "type": "packshot",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Gamechanger_STSU257/packshot/PFM0_STSU257_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSU257_C001.jpg",
+      "size": 17975,
+      "sku": "STSU257",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Gamechanger_STSU257/packshot/PFM0_STSU257_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSU257_C002.jpg",
+      "size": 34703,
+      "sku": "STSU257",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Gamechanger_STSU257/studio/SBM0_STSU257_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STSU257_C001.jpg",
+      "size": 34915,
+      "sku": "STSU257",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Gamechanger_STSU257/packshot/PBM0_STSU257_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSU257_C001.jpg",
+      "size": 12870,
+      "sku": "STSU257",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Gamechanger_STSU257/studio/SFM0_STSU257_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STSU257_C001.jpg",
+      "size": 37422,
+      "sku": "STSU257",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Gamechanger_STSU257/studio/SFM0_STSU257_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STSU257_C002.jpg",
+      "size": 33153,
+      "sku": "STSU257",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Gamechanger_STSU257/packshot/PBM0_STSU257_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSU257_C002.jpg",
+      "size": 31718,
+      "sku": "STSU257",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Gamechanger_STSU257/studio/SBM0_STSU257_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STSU257_C002.jpg",
+      "size": 33915,
+      "sku": "STSU257",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Gamechanger_STSU257/packshot/PBM0_STSU257_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSU257_C004.jpg",
+      "size": 66277,
+      "sku": "STSU257",
+      "type": "packshot",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Gamechanger_STSU257/studio/SFM0_STSU257_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STSU257_C004.jpg",
+      "size": 43976,
+      "sku": "STSU257",
+      "type": "studio",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Gamechanger_STSU257/packshot/PFM0_STSU257_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSU257_C004.jpg",
+      "size": 64255,
+      "sku": "STSU257",
+      "type": "packshot",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Gamechanger_STSW268/packshot/PBM0_STSW268_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSW268_C001.jpg",
+      "size": 15589,
+      "sku": "STSW268",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Gamechanger_STSU257/studio/SBM0_STSU257_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STSU257_C004.jpg",
+      "size": 65578,
+      "sku": "STSU257",
+      "type": "studio",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Gamechanger_STSW268/packshot/PFM0_STSW268_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSW268_C001.jpg",
+      "size": 24196,
+      "sku": "STSW268",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Gamechanger_STSW268/packshot/PFM0_STSW268_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSW268_C002.jpg",
+      "size": 19141,
+      "sku": "STSW268",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Gamechanger_STSW268/packshot/PBM0_STSW268_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSW268_C002.jpg",
+      "size": 14358,
+      "sku": "STSW268",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Gamechanger_STSW268/packshot/PBM0_STSW268_C005.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSW268_C005.jpg",
+      "size": 24741,
+      "sku": "STSW268",
+      "type": "packshot",
+      "color": "Heather Grey"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Gamechanger_STSW268/packshot/PFM0_STSW268_C005.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSW268_C005.jpg",
+      "size": 31730,
+      "sku": "STSW268",
+      "type": "packshot",
+      "color": "Heather Grey"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Gamechanger_STSW268/packshot/PFM0_STSW268_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSW268_C004.jpg",
+      "size": 61198,
+      "sku": "STSW268",
+      "type": "packshot",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Stella Gamechanger_STSW268/packshot/PBM0_STSW268_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSW268_C004.jpg",
+      "size": 57936,
+      "sku": "STSW268",
+      "type": "packshot",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Trailer 2.0_STSU253/packshot/PFM0_STSU253_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSU253_C001.jpg",
+      "size": 19035,
+      "sku": "STSU253",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Trailer 2.0_STSU253/packshot/PBM0_STSU253_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSU253_C001.jpg",
+      "size": 13290,
+      "sku": "STSU253",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Trailer 2.0_STSU253/studio/SFM0_STSU253_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STSU253_C001.jpg",
+      "size": 35687,
+      "sku": "STSU253",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Trailer 2.0_STSU253/packshot/PFM0_STSU253_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STSU253_C002.jpg",
+      "size": 18102,
+      "sku": "STSU253",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Trailer 2.0_STSU253/studio/SBM0_STSU253_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STSU253_C001.jpg",
+      "size": 32377,
+      "sku": "STSU253",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Trailer 2.0_STSU253/packshot/PBM0_STSU253_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STSU253_C002.jpg",
+      "size": 15022,
+      "sku": "STSU253",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Trailer 2.0_STSU253/studio/SFM0_STSU253_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STSU253_C002.jpg",
+      "size": 32946,
+      "sku": "STSU253",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Trailer 2.0_STSU253/studio/SBM0_STSU253_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STSU253_C002.jpg",
+      "size": 36469,
+      "sku": "STSU253",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0_STTU169/packshot/PFM0_STTU169_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU169_C001.jpg",
+      "size": 14133,
+      "sku": "STTU169",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0_STTU169/studio/SFM0_STTU169_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STTU169_C001.jpg",
+      "size": 127827,
+      "sku": "STTU169",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0_STTU169/packshot/PBM0_STTU169_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU169_C001.jpg",
+      "size": 13096,
+      "sku": "STTU169",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0_STTU169/studio/SBM0_STTU169_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU169_C001.jpg",
+      "size": 109375,
+      "sku": "STTU169",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0 Long Sleeve_STTU199/packshot/PFM0_STTU199_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU199_C001.jpg",
+      "size": 18032,
+      "sku": "STTU199",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0 Long Sleeve_STTU199/studio/SFM0_STTU199_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STTU199_C001.jpg",
+      "size": 87683,
+      "sku": "STTU199",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0 Long Sleeve_STTU199/packshot/PFM0_STTU199_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU199_C002.jpg",
+      "size": 41986,
+      "sku": "STTU199",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0 Long Sleeve_STTU199/studio/SBM0_STTU199_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU199_C002.jpg",
+      "size": 70595,
+      "sku": "STTU199",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0 Long Sleeve_STTU199/studio/SBM0_STTU199_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU199_C001.jpg",
+      "size": 79893,
+      "sku": "STTU199",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0 Long Sleeve_STTU199/packshot/PBM0_STTU199_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU199_C002.jpg",
+      "size": 41060,
+      "sku": "STTU199",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0 Long Sleeve_STTU199/studio/SFM0_STTU199_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STTU199_C002.jpg",
+      "size": 66598,
+      "sku": "STTU199",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0 Long Sleeve_STTU199/packshot/PBM0_STTU199_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU199_C001.jpg",
+      "size": 16742,
+      "sku": "STTU199",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0 Long Sleeve_STTU199/studio/SFM0_STTU199_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STTU199_C004.jpg",
+      "size": 115622,
+      "sku": "STTU199",
+      "type": "studio",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0 Long Sleeve_STTU199/studio/SBM0_STTU199_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU199_C004.jpg",
+      "size": 112790,
+      "sku": "STTU199",
+      "type": "studio",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0 Long Sleeve_STTU199/packshot/PFM0_STTU199_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU199_C004.jpg",
+      "size": 47348,
+      "sku": "STTU199",
+      "type": "packshot",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Creator 2.0 Long Sleeve_STTU199/packshot/PBM0_STTU199_C004.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU199_C004.jpg",
+      "size": 46576,
+      "sku": "STTU199",
+      "type": "packshot",
+      "color": "Natural Raw"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Crafter_STTU170/packshot/PFM0_STTU170_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU170_C001.jpg",
+      "size": 17139,
+      "sku": "STTU170",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Crafter_STTU170/packshot/PFM0_STTU170_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU170_C002.jpg",
+      "size": 38769,
+      "sku": "STTU170",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Crafter_STTU170/studio/SBM0_STTU170_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU170_C001.jpg",
+      "size": 105839,
+      "sku": "STTU170",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Crafter_STTU170/packshot/PBM0_STTU170_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU170_C001.jpg",
+      "size": 12766,
+      "sku": "STTU170",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Crafter_STTU170/studio/SFM0_STTU170_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STTU170_C002.jpg",
+      "size": 85402,
+      "sku": "STTU170",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Crafter_STTU170/packshot/PBM0_STTU170_C005.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU170_C005.jpg",
+      "size": 38039,
+      "sku": "STTU170",
+      "type": "packshot",
+      "color": "Heather Grey"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Crafter_STTU170/packshot/PBM0_STTU170_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU170_C002.jpg",
+      "size": 36143,
+      "sku": "STTU170",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Crafter_STTU170/packshot/PFM0_STTU170_C005.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU170_C005.jpg",
+      "size": 29831,
+      "sku": "STTU170",
+      "type": "packshot",
+      "color": "Heather Grey"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Crafter_STTU170/studio/SFM0_STTU170_C005.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STTU170_C005.jpg",
+      "size": 119476,
+      "sku": "STTU170",
+      "type": "studio",
+      "color": "Heather Grey"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Crafter_STTU170/studio/SBM0_STTU170_C005.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU170_C005.jpg",
+      "size": 92726,
+      "sku": "STTU170",
+      "type": "studio",
+      "color": "Heather Grey"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Crafter_STTU170/studio/SBM0_STTU170_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU170_C002.jpg",
+      "size": 104176,
+      "sku": "STTU170",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Sparker 2.0_STTU171/packshot/PFM0_STTU171_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU171_C001.jpg",
+      "size": 12740,
+      "sku": "STTU171",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Sparker 2.0_STTU171/studio/SFM0_STTU171_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STTU171_C002.jpg",
+      "size": 91109,
+      "sku": "STTU171",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Sparker 2.0_STTU171/packshot/PBM0_STTU171_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU171_C001.jpg",
+      "size": 12511,
+      "sku": "STTU171",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Sparker 2.0_STTU171/studio/SBM0_STTU171_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU171_C001.jpg",
+      "size": 90979,
+      "sku": "STTU171",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Sparker 2.0_STTU171/packshot/PFM0_STTU171_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU171_C002.jpg",
+      "size": 34776,
+      "sku": "STTU171",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Sparker 2.0_STTU171/packshot/PBM0_STTU171_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU171_C002.jpg",
+      "size": 34061,
+      "sku": "STTU171",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Sparker 2.0_STTU171/studio/SBM0_STTU171_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU171_C002.jpg",
+      "size": 96514,
+      "sku": "STTU171",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Sparker 2.0_STTU171/studio/SFM0_STTU171_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STTU171_C001.jpg",
+      "size": 104765,
+      "sku": "STTU171",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaster 2.0_STTU959/packshot/PBM0_STTU959_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU959_C001.jpg",
+      "size": 11035,
+      "sku": "STTU959",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaster 2.0_STTU959/studio/SFM0_STTU959_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STTU959_C001.jpg",
+      "size": 68895,
+      "sku": "STTU959",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaster 2.0_STTU959/packshot/PFM0_STTU959_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU959_C002.jpg",
+      "size": 38301,
+      "sku": "STTU959",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaster 2.0_STTU959/packshot/PBM0_STTU959_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PBM0_STTU959_C002.jpg",
+      "size": 34510,
+      "sku": "STTU959",
+      "type": "packshot",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaster 2.0_STTU959/studio/SBM0_STTU959_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU959_C001.jpg",
+      "size": 59038,
+      "sku": "STTU959",
+      "type": "studio",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaster 2.0_STTU959/packshot/PFM0_STTU959_C001.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/PFM0_STTU959_C001.jpg",
+      "size": 83729,
+      "sku": "STTU959",
+      "type": "packshot",
+      "color": "Black"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaster 2.0_STTU959/studio/SFM0_STTU959_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SFM0_STTU959_C002.jpg",
+      "size": 67323,
+      "sku": "STTU959",
+      "type": "studio",
+      "color": "White"
+    },
+    {
+      "status": "success",
+      "file": "Stanley Stella/Blaster 2.0_STTU959/studio/SBM0_STTU959_C002.jpg",
+      "url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,w_1200,f_auto,q_auto/v1/TechnicalNames/SBM0_STTU959_C002.jpg",
+      "size": 67378,
+      "sku": "STTU959",
+      "type": "studio",
+      "color": "White"
+    }
+  ],
+  "folder_structure": "Stanley Stella/{ProductName}_{SKU}/{packshot|studio}/",
+  "note": "Limited to first 20 products for testing"
+}

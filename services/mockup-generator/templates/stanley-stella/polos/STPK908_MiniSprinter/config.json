@@ -1,0 +1,108 @@
+{
+  "sku": "STPK908",
+  "name": "Mini Sprinter",
+  "category": "polos",
+  "description": "Classic polo shirt with premium finish",
+  "fabric_type": "cotton",
+  "gsm": 220,
+  "fit": "Medium Fit",
+  "sizes": [
+    "3-4",
+    "5-6",
+    "7-8",
+    "9-10",
+    "11-12",
+    "12-13"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 180,
+      "y": 200,
+      "width": 460,
+      "height": 520,
+      "max_width": 360,
+      "max_height": 420
+    },
+    "center": {
+      "x": 230,
+      "y": 270,
+      "width": 360,
+      "height": 420,
+      "max_width": 310,
+      "max_height": 370
+    }
+  },
+  "safe_zone": {
+    "x": 210,
+    "y": 230,
+    "width": 400,
+    "height": 440
+  },
+  "colors": {
+    "C250": {
+      "name": "Heather Grey",
+      "hex": "#9CA3AF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C001": {
+      "name": "White",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C727": {
+      "name": "French Navy",
+      "hex": "#000080",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C004": {
+      "name": "Red",
+      "hex": "#FF0000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C054": {
+      "name": "Natural Raw",
+      "hex": "#F5F5DC",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C232": {
+      "name": "Sky Blue",
+      "hex": "#87CEEB",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C230": {
+      "name": "Royal Blue",
+      "hex": "#4169E1",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C036": {
+      "name": "Glazed Green",
+      "hex": "#228B22",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "sku": "STSB919",
+  "name": "Baby Cruiser",
+  "category": "sweatshirts",
+  "description": "Medium-weight crewneck sweatshirt for layering",
+  "fabric_type": "cotton",
+  "gsm": 280,
+  "fit": "Medium Fit",
+  "sizes": [
+    "6-12m",
+    "12-18m",
+    "18-24m",
+    "24-36m"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 180,
+      "y": 200,
+      "width": 520,
+      "height": 620,
+      "max_width": 420,
+      "max_height": 520
+    },
+    "center": {
+      "x": 230,
+      "y": 270,
+      "width": 420,
+      "height": 520,
+      "max_width": 370,
+      "max_height": 470
+    }
+  },
+  "safe_zone": {
+    "x": 210,
+    "y": 230,
+    "width": 460,
+    "height": 540
+  },
+  "colors": {
+    "C054": {
+      "name": "Natural Raw",
+      "hex": "#F5F5DC",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C727": {
+      "name": "French Navy",
+      "hex": "#000080",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C078": {
+      "name": "Butter",
+      "hex": "#F9E4B7",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C250": {
+      "name": "Heather Grey",
+      "hex": "#9CA3AF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    }
+  }
+}

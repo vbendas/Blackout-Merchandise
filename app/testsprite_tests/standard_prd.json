@@ -1,0 +1,448 @@
+{
+  "meta": {
+    "project": "Merch From",
+    "date": "2025-12-30",
+    "prepared_by": "Victor Teixeira Bendas"
+  },
+  "product_overview": "Merch From is an AI-powered conversational commerce platform designed specifically for artists, bands, and creators to design, produce, and sell premium quality, ethically sourced merchandise without upfront costs. Leveraging unique AI agents—Leopoldo, Francisca, and Antônia—the platform offers guided merch design, store management via chat, and in-house production control, enabling artists to focus on brand experience while ensuring quality and sustainability.",
+  "core_goals": [
+    "Enable artists to easily create and sell premium, ethical merchandise without upfront inventory risk.",
+    "Leverage AI-driven conversational interfaces to simplify store management and design workflows.",
+    "Deliver superior product quality via in-house production and expert screen printing standards.",
+    "Build a proprietary dataset for AI training to offer unique print-ready design capabilities and competitive advantage.",
+    "Establish transparent and equitable revenue and profit-sharing models for the core team.",
+    "Validate product-market fit through a high-touch invite-only onboarding and pre-launch campaign.",
+    "Achieve operational scalability with seamless integration of bulk orders, inventory tracking, and fulfillment management.",
+    "Develop a robust AI-powered storefront customization system to empower artists' brand expression.",
+    "Create a Merch Coins marketing system to drive organic growth and enhance artist-customer engagement.",
+    "Ensure platform security, reliability, and regulatory compliance through best practices and auditing."
+  ],
+  "key_features": [
+    "AI-Powered Multi-Agent System: Leopoldo (sales/operations), Francisca (design), and Antônia (support) manage the entire artist journey conversationally.",
+    "Advanced AI Artwork Generation Pipeline with Flux 2 Flex, Qwen background removal, and Real-ESRGAN upscaling for high-quality print-ready designs.",
+    "Visual Editor for manual storefront customization with drag-and-drop and AI-assisted theme generation via v0 API.",
+    "Branded Storefronts with artist-specific slugs, product catalogs, and isolated product visibility.",
+    "Seamless Stripe integration for express checkout using biometrics, Apple/Google Pay, and automatic payout to artists.",
+    "Bulk Order Quote Calculator and automated pricing with volume discounts and rush order options.",
+    "Merch Coins System: Platform and artist-specific currency for rewards, promotions, and customer discounts.",
+    "Comprehensive print validation: DPI, color separation, bleed area auto-generation, and multi-format export including PNG and vector PDFs.",
+    "Universal Halftone Standard ensuring perfect brand consistency between DTG/DTF and screen printing.",
+    "Cloudinary-based dynamic product mockups and viral social media card generation.",
+    "Expert Dataset Curator Panel to build the world's highest-quality screen printing dataset for AI fine-tuning.",
+    "Invite-Only Waitlist with Deepgram Voice Interview for filtering and VIP intercept.",
+    "Robust Profit-Sharing and Equal Wage Model with transparent SEPA transfers and administrative workflows.",
+    "Decentralized fulfillment and partnership network roadmap for international scale.",
+    "AI Store Designer with conversational store customization, theme versioning, and Pro tier monetization.",
+    "Advanced monitoring and fallback chains to ensure reliability and cost management.",
+    "Comprehensive data logging and async background processing for AI training and operational insights."
+  ],
+  "user_flow_summary": [
+    "Artist lands on the landing page, hears the AI host Leopoldo, and applies via a voice-to-voice interview capturing passion and audience size.",
+    "Upon approval, artist receives a personalized invite to join the platform's invite-only beta.",
+    "Artist uses the Visual Editor to customize storefront appearance manually or uses AI-driven theme customization.",
+    "Artist interacts with Francisca to generate, refine, and approve merch designs conversationally, receiving print-ready mockups instantly.",
+    "Artist creates product listings with AI-generated or uploaded artwork and sets retail prices transparently.",
+    "Customers browse artist storefronts and place direct orders or bulk order requests.",
+    "Leopoldo manages pricing optimization and order confirmation with instant express checkout via Stripe and biometrics.",
+    "Antônia handles order tracking, shipping notifications, and customer support via chat and automated emails.",
+    "Completed orders trigger Stripe webhooks that automatically fulfill and log order data, triggering inventory adjustments.",
+    "Artists and customers can use Merch Coins in checkouts to redeem discounts or participate in campaigns.",
+    "Platform provides analytics dashboards, coin distribution tools, and marketing resources to artists for growth.",
+    "Advanced AI Store Designer enables artists to iteratively customize store themes with conversational refinement.",
+    "The platform manages producer operations flow, quality assurance, and coordinates partner network for scaling."
+  ],
+  "validation_criteria": [
+    "End-to-end authentication flow with biometric passkeys and Clerk integration functioning correctly.",
+    "Voice-to-text transcription (Whisper) achieves >95% accuracy in user conversations.",
+    "AI conversational agents respond accurately with fallback chains, and AI artwork generation has >95% success rate with <5s latency.",
+    "Design category selection and refinement workflows operate smoothly with history preservation.",
+    "Print validation system correctly enforces DPI, color count, size, and bleed requirements.",
+    "Branded storefronts load under 1 second, and product visibility is artist-specific and secure.",
+    "Stripe payment integration accepts payments, creates sessions, and triggers fulfillments without errors.",
+    "Bulk order quote generation and pricing logic accurately reflect volume and color complexity.",
+    "Merch Coins allocation, distribution, redemption, and expiry are operational with >60% distribution and >40% redemption rates.",
+    "Expert dataset annotations are collected regularly with quality metrics exceeding 4.0 average scores.",
+    "System maintains 99.9% uptime with zero critical errors and proper error monitoring (Sentry).",
+    "Users experience UI transitions and micro-interactions smoothly with minimal lag.",
+    "Data logging and async processing pipelines store interaction and scoring data reliably.",
+    "Invite-only onboarding effectively segments users and VIP intercepts trigger as specified.",
+    "Profit sharing calculations align with net profits and equal wage policy, with regulatory compliance verified.",
+    "Cloudinary mockups and social media cards generate dynamically without delays.",
+    "Security practices like API key storage, RLS, encryption, and rate limiting pass internal audits."
+  ],
+  "code_summary": {
+    "tech_stack": [
+      "TypeScript",
+      "Next.js 16",
+      "Convex",
+      "Clerk",
+      "Stripe",
+      "Bun"
+    ],
+    "features": [
+      {
+        "name": "Stripe Checkout Session",
+        "description": "Creates a Stripe checkout session for purchasing a product. Requires authentication. Returns the checkout URL.",
+        "files": [
+          "convex/stripe.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/stripe/createCheckoutSession": {
+              "post": {
+                "summary": "Create Stripe Checkout Session",
+                "operationId": "createCheckoutSession",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "required": [
+                          "priceId",
+                          "artistId"
+                        ],
+                        "properties": {
+                          "priceId": {
+                            "type": "string",
+                            "description": "Stripe Price ID"
+                          },
+                          "artistId": {
+                            "type": "string",
+                            "description": "Artist Clerk ID for payout tracking"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Returns checkout session URL"
+                  },
+                  "401": {
+                    "description": "Unauthenticated"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Stripe Webhook Handler",
+        "description": "HTTP endpoint that receives Stripe webhook events (checkout.session.completed) and triggers order fulfillment.",
+        "files": [
+          "convex/stripe.ts",
+          "convex/http.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/stripe": {
+              "post": {
+                "summary": "Stripe Webhook Endpoint",
+                "operationId": "handleStripeWebhook",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Webhook processed successfully"
+                  },
+                  "400": {
+                    "description": "Missing signature or verification failed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "List Products by Store",
+        "description": "Query to list all active products for a given store slug.",
+        "files": [
+          "convex/products.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/products/listByStore": {
+              "get": {
+                "summary": "List products by store slug",
+                "operationId": "listByStore",
+                "parameters": [
+                  {
+                    "name": "storeSlug",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Array of product objects"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Get Product by ID",
+        "description": "Query to retrieve a single product by its Convex document ID.",
+        "files": [
+          "convex/products.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/products/getById": {
+              "get": {
+                "summary": "Get product by ID",
+                "operationId": "getById",
+                "parameters": [
+                  {
+                    "name": "productId",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Product object or null"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Create Product",
+        "description": "Mutation to create a new product in a store. Requires authentication.",
+        "files": [
+          "convex/products.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/products/create": {
+              "post": {
+                "summary": "Create a new product",
+                "operationId": "createProduct",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "required": [
+                          "storeSlug",
+                          "name",
+                          "description",
+                          "baseCost",
+                          "retailPrice",
+                          "mockupUrl"
+                        ],
+                        "properties": {
+                          "storeSlug": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "baseCost": {
+                            "type": "number"
+                          },
+                          "retailPrice": {
+                            "type": "number"
+                          },
+                          "mockupUrl": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Returns product ID"
+                  },
+                  "401": {
+                    "description": "Unauthorized"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Fulfill Order (Internal)",
+        "description": "Internal mutation called by Stripe webhook to create an order record after successful payment.",
+        "files": [
+          "convex/orders.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/orders/fulfillOrder": {
+              "post": {
+                "summary": "Fulfill order after Stripe payment",
+                "operationId": "fulfillOrder",
+                "x-internal": true,
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "required": [
+                          "stripeSessionId",
+                          "amount",
+                          "customerId",
+                          "artistId"
+                        ],
+                        "properties": {
+                          "stripeSessionId": {
+                            "type": "string"
+                          },
+                          "amount": {
+                            "type": "number"
+                          },
+                          "customerId": {
+                            "type": "string"
+                          },
+                          "artistId": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Order created"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Upsert User (Internal)",
+        "description": "Internal mutation to create or update a user record when synced from Clerk webhook.",
+        "files": [
+          "convex/users.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/users/upsertUser": {
+              "post": {
+                "summary": "Create or update user from Clerk",
+                "operationId": "upsertUser",
+                "x-internal": true,
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "required": [
+                          "clerkId",
+                          "email",
+                          "displayName",
+                          "role"
+                        ],
+                        "properties": {
+                          "clerkId": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "displayName": {
+                            "type": "string"
+                          },
+                          "imageUrl": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "artist",
+                              "customer",
+                              "admin"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "User synced"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Clerk Webhook Handler",
+        "description": "HTTP endpoint that receives Clerk webhook events (user.created, user.updated) and syncs user data to Convex.",
+        "files": [
+          "convex/http.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "paths": {
+            "/clerk": {
+              "post": {
+                "summary": "Clerk Webhook Endpoint",
+                "operationId": "clerkWebhook",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Webhook processed"
+                  },
+                  "400": {
+                    "description": "Invalid payload"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

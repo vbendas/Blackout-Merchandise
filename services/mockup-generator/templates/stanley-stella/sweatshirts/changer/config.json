@@ -1,0 +1,43 @@
+{
+  "sku": "STSU812_CHANGER_HEATHER",
+  "name": "Changer - Heather",
+  "category": "sweatshirts",
+  "description": "Medium-weight crewneck sweatshirt for layering",
+  "fabric_type": "cotton",
+  "gsm": 180,
+  "fit": "Medium Fit",
+  "sizes": [
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 180,
+      "y": 200,
+      "width": 520,
+      "height": 620,
+      "max_width": 420,
+      "max_height": 520
+    },
+    "center": {
+      "x": 230,
+      "y": 270,
+      "width": 420,
+      "height": 520,
+      "max_width": 370,
+      "max_height": 470
+    }
+  },
+  "safe_zone": {
+    "x": 210,
+    "y": 230,
+    "width": 460,
+    "height": 540
+  },
+  "colors": {}
+}

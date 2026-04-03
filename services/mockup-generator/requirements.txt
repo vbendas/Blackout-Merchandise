@@ -1,0 +1,27 @@
+# Mockup Generation Service - Python Dependencies
+# FastAPI and server
+fastapi==0.115.0
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+
+# Image processing
+pillow==11.1.0
+numpy==1.26.4
+opencv-python==4.11.0.86
+scikit-image==0.25.0
+
+# HTTP client for Cloudinary
+httpx==0.28.1
+
+# Configuration and utilities
+python-dotenv==1.0.1
+pydantic==2.10.0
+pydantic-settings==2.7.0
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.25.0
+httpx==0.28.1
+
+# Logging
+structlog==25.1.0

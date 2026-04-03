@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1769090667487,
+      "tag": "0000_flaky_rogue",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1769433879582,
+      "tag": "0001_medical_gorilla_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769530974460,
+      "tag": "0002_add_waitlist_interview_and_product_blanks",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1769768400000,
+      "tag": "0003_indexes_and_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1769875200000,
+      "tag": "0004_webhook_idempotency",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1779484800000,
+      "tag": "0005_shop_customizations",
+      "breakpoints": true
+    }
+  ]
+}

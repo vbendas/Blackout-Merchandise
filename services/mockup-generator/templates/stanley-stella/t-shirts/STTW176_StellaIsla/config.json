@@ -1,0 +1,124 @@
+{
+  "sku": "STTW176",
+  "name": "Stella Isla",
+  "category": "t-shirts",
+  "description": "Premium cotton t-shirt for everyday wear",
+  "fabric_type": "cotton",
+  "gsm": 155,
+  "fit": "Medium Fit",
+  "sizes": [
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 150,
+      "y": 180,
+      "width": 500,
+      "height": 600,
+      "max_width": 400,
+      "max_height": 500
+    },
+    "center": {
+      "x": 200,
+      "y": 250,
+      "width": 400,
+      "height": 500,
+      "max_width": 350,
+      "max_height": 450
+    }
+  },
+  "safe_zone": {
+    "x": 180,
+    "y": 200,
+    "width": 440,
+    "height": 500
+  },
+  "colors": {
+    "C727": {
+      "name": "French Navy",
+      "hex": "#000080",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C223": {
+      "name": "Color C223",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C005": {
+      "name": "Color C005",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C054": {
+      "name": "Natural Raw",
+      "hex": "#F5F5DC",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C078": {
+      "name": "Butter",
+      "hex": "#F9E4B7",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C001": {
+      "name": "White",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C149": {
+      "name": "Blue Soul",
+      "hex": "#6699CC",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C002": {
+      "name": "Black",
+      "hex": "#000000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C250": {
+      "name": "Heather Grey",
+      "hex": "#9CA3AF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C702": {
+      "name": "Stargazer",
+      "hex": "#E6E6FA",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "sku": "STBU576",
+  "name": "Mover Vintage",
+  "category": "pants",
+  "description": "Comfortable pants for everyday wear",
+  "fabric_type": "cotton",
+  "gsm": 300,
+  "fit": "Medium Fit",
+  "sizes": [
+    "XXS",
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "3XL"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 180,
+      "y": 200,
+      "width": 440,
+      "height": 500,
+      "max_width": 350,
+      "max_height": 400
+    },
+    "center": {
+      "x": 200,
+      "y": 250,
+      "width": 400,
+      "height": 450,
+      "max_width": 320,
+      "max_height": 380
+    }
+  },
+  "safe_zone": {
+    "x": 200,
+    "y": 230,
+    "width": 400,
+    "height": 420
+  },
+  "colors": {
+    "C140": {
+      "name": "G. Dyed Black Rock",
+      "hex": "#1C1C1C",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C102": {
+      "name": "G. Dyed Hydro",
+      "hex": "#00CED1",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C109": {
+      "name": "G. Dyed Khaki",
+      "hex": "#C3B091",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    }
+  }
+}

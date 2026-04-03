@@ -1,0 +1,171 @@
+{
+  "total_products": 1,
+  "aw25_products": 1,
+  "collection_info": {
+    "1": {
+      "aw25_indicators": [
+        "aw25",
+        "AW25",
+        "AW25",
+        "AW25",
+        "aw25",
+        "AW25",
+        "AW25",
+        "AW25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25"
+      ],
+      "season_info": [
+        [
+          "collection",
+          "AW25"
+        ],
+        [
+          "collection",
+          "AW25"
+        ],
+        [
+          "collection",
+          "aw25"
+        ]
+      ]
+    },
+    "2": {
+      "aw25_indicators": [
+        "aw25",
+        "AW25",
+        "AW25",
+        "AW25",
+        "aw25",
+        "AW25",
+        "AW25",
+        "AW25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25"
+      ],
+      "season_info": [
+        [
+          "collection",
+          "AW25"
+        ],
+        [
+          "collection",
+          "AW25"
+        ],
+        [
+          "collection",
+          "aw25"
+        ]
+      ]
+    },
+    "3": {
+      "aw25_indicators": [
+        "aw25",
+        "AW25",
+        "AW25",
+        "AW25",
+        "aw25",
+        "AW25",
+        "AW25",
+        "AW25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25"
+      ],
+      "season_info": [
+        [
+          "collection",
+          "AW25"
+        ],
+        [
+          "collection",
+          "AW25"
+        ],
+        [
+          "collection",
+          "aw25"
+        ]
+      ]
+    },
+    "4": {
+      "aw25_indicators": [
+        "aw25",
+        "AW25",
+        "AW25",
+        "AW25",
+        "aw25",
+        "AW25",
+        "AW25",
+        "AW25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25",
+        "aw25"
+      ],
+      "season_info": [
+        [
+          "collection",
+          "AW25"
+        ],
+        [
+          "collection",
+          "AW25"
+        ],
+        [
+          "collection",
+          "aw25"
+        ]
+      ]
+    }
+  },
+  "products": [
+    {
+      "name": "HYPSTER",
+      "sku": "STTU258",
+      "url": "https://stanleystella.com/en-eu/hypster-sttu258",
+      "product_type": "T-SHIRT",
+      "colors": [
+        "GROUNDED BEIGE"
+      ],
+      "color": "GROUNDED BEIGE",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight_gsm": 180,
+      "fit": null,
+      "gender": "UNISEX",
+      "image_url": "https://res.cloudinary.com/www-stanleystella-com/image/upload/c_lpad,dpr_2.0,f_auto,h_495,q_auto,w_396/v1/TechnicalNames/SFM0_STTU258_C152.jpg?_i=AB",
+      "is_aw25": true,
+      "page": 1,
+      "collection": "AW25"
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+                 Product Name      SKU  Price
+0                Mid Tote Bag  STAU116   3.50
+1            Shopping bag 2.0  STAU117   6.16
+2                    Tote Bag  STAU760   3.92
+3                     Gym Bag  STAU763   5.74
+4                 Pencil Case  STAU764   3.29
+5            Fisherman Beanie  STAU771   7.07
+6                  Rib Beanie  STAU772   6.93
+7              Light Tote Bag  STAU773   2.16
+8                     Hip Bag  STAU891   9.73
+9                  Duffle Bag  STAU892  14.84
+10                 Bucket Hat  STAU893   7.28
+11               Baby Tumbler  STBB187   9.73
+12                Mini Bolter  STBK102  11.90
+13                 Jammer Dry  STBU157  29.12
+14                  Mover 2.0  STBU185  22.12
+15                Trainer 2.0  STBU186  16.45
+16                     Needer  STBU274  18.20
+17              Mover Vintage  STBU576  27.44
+18                Boarder Dry  STBU944  19.74
+19         Stanley Discoverer  STJM158  59.30
+20         Stanley Discoverer  STJM158  49.42
+21          Stanley Navigator  STJM167  45.50
+22          Stanley Navigator  STJM167  54.60
+23        Stanley Voyager 2.0  STJM188  57.12
+24        Stanley Voyager 2.0  STJM188  47.60
+25        Stanley Climber 2.0  STJM189  32.06
+26        Stanley Climber 2.0  STJM189  38.47
+27       Stanley Trail Blazer  STJM235  41.83
+28       Stanley Trail Blazer  STJM235  34.86
+29             Stanley Guider  STJM238  25.03
+30             Stanley Guider  STJM238  20.86
+31            Stanley Quester  STJM240  21.67
+32            Stanley Quester  STJM240  18.06
+33                    Trekker  STJU242  34.86
+34                    Brooker  STJU248  41.65
+35                      Liner  STJU249  35.70
+36               Puffer Gilet  STJU250  41.86
+37                 Bomber 2.0  STJU251  46.13
+38                    Coacher  STJU833  27.58
+39                    Speeder  STJU834  33.18
+40                     Puffer  STJU840  66.64
+41              Padded Parker  STJU841  55.86
+42                   Commuter  STJU846  33.52
+43                   Commuter  STJU846  27.93
+44          Stella Discoverer  STJW159  49.42
+45           Stella Navigator  STJW166  45.36
+46         Stella Climber 2.0  STJW190  32.06
+47         Stella Voyager 2.0  STJW191  47.60
+48        Stella Trail Blazer  STJW236  34.86
+49              Stella Guider  STJW239  20.86
+50             Stella Quester  STJW241  18.06
+51              Mini Sprinter  STPK908   9.17
+52            Stanley Coaster  STPM224  10.08
+53            Stanley Coaster  STPM224   8.40
+54               Prepster 2.0  STPU222  12.39
+55               Prepster 2.0  STPU222  15.19
+56   Prepster 2.0 Long Sleeve  STPU223  14.21
+57            Coaster Vintage  STPU252  11.48
+58             Stella Coaster  STPW977   8.40
+59             Baby Connector  STSB105  11.62
+60               Baby Cruiser  STSB919  11.27
+61               Baby Changer  STSB920   9.52
+62           Mini Cruiser 2.0  STSK180  15.40
+63           Mini Changer 2.0  STSK181  12.74
+64        Mini Cultivator 2.0  STSK182  18.34
+65             Mini Mover 2.0  STSK183  14.98
+66                     Archer  STSU011  20.93
+67             Archer Vintage  STSU040  27.72
+68                     Chaser  STSU077  20.86
+69            Matcher Vintage  STSU085  22.75
+70                Drummer 2.0  STSU168  19.32
+71                Drummer 2.0  STSU168  18.06
+72                Cruiser 2.0  STSU177  22.33
+73                Cruiser 2.0  STSU177  26.18
+74                Changer 2.0  STSU178  17.15
+75                Changer 2.0  STSU178  19.88
+76             Cultivator 2.0  STSU179  25.90
+77             Cultivator 2.0  STSU179  29.96
+78                     Knoxer  STSU201  26.46
+79                    Striker  STSU202  33.60
+80                Trucker 2.0  STSU204  21.00
+81                Trucker 2.0  STSU204  25.20
+82                      Mixer  STSU205  21.35
+83                      Mixer  STSU205  25.62
+84              Connector 2.0  STSU207  23.94
+85                 Radder 2.0  STSU208  20.86
+86                Slammer 2.0  STSU209  26.46
+87         Radder 2.0 Vintage  STSU210  24.64
+88        Slammer 2.0 vintage  STSU211  31.78
+89                    Sounder  STSU229  20.86
+90                Trailer 2.0  STSU253  21.21
+91                Trailer 2.0  STSU253  25.45
+92                      Ryler  STSU255  20.86
+93                     Voicer  STSU256  25.20
+94                Gamechanger  STSU257  26.18
+95                Gamechanger  STSU257  22.33
+96                      Astor  STSU261  32.20
+97                    Thinker  STSU269  19.88
+98                    Thinker  STSU269  17.15
+99                 Miller Dry  STSU795  28.84
+100                Cooper Dry  STSU797  33.18
+101                Ledger Dry  STSU798  25.97
+102                   Matcher  STSU799  16.17
+103                RE-Cruiser  STSU800  22.33
+104                    Roller  STSU868  17.18
+105                    Roller  STSU868  14.28
+106             Hygger Sherpa  STSU956  43.96
+107               Stella Alma  STSW212  16.10
+108               Stella Nora  STSW213  20.86
+109                Stella Ida  STSW214  23.10
+110              Stella Clara  STSW217  15.26
+111             Stella Paloma  STSW218  22.12
+112            Stella Thinker  STSW254  17.15
+113             Stella Lianna  STSW262  20.30
+114        Stella Gamechanger  STSW268  22.33
+115              Baby Creator  STTB918   3.92
+116          Mini Creator 2.0  STTK184   4.06
+117         Stanley Presenter  STTM562   7.49
+118           Stanley Stancer  STTM961   5.25
+119        Freestyler Vintage  STTU073  12.53
+120                     Asher  STTU078  12.18
+121               Creator 2.0  STTU169   5.53
+122               Creator 2.0  STTU169   6.72
+123                   Crafter  STTU170   4.62
+124                   Crafter  STTU170   5.53
+125               Sparker 2.0  STTU171   8.82
+126   Creator 2.0 Long Sleeve  STTU199   9.24
+127   Creator 2.0 Long Sleeve  STTU199   7.70
+128    Freestyler Long Sleeve  STTU200  13.30
+129                   Hypster  STTU258   8.40
+130                    Blaker  STTU263   8.12
+131                    Rocker  STTU758   4.86
+132                    Rocker  STTU758   3.89
+133                RE-Creator  STTU787   5.53
+134                Freestyler  STTU788  11.13
+135               Blaster 2.0  STTU959   9.17
+136                   Breezer  STTU964   5.46
+137           Crafter Vintage  STTU976   7.84
+138      Stella Expresser 2.0  STTW079   4.62
+139           Stella Collider  STTW089   7.70
+140              Stella Muser  STTW172   5.53
+141             Stella Serena  STTW173   4.62
+142               Stella Ella  STTW174   5.46
+143               Stella Nova  STTW175   6.16
+144               Stella Isla  STTW176   5.04
+145  Stella Muser Long Sleeve  STTW219   7.70
+146               Stella Raya  STTW259   7.00
+147               Stella Etta  STTW264   6.30
+148                Stella Mia  STTW962   4.76
+149                Stella Ava  STTW963   4.90
+150                 Baby Body  STUB103   5.32
+151       Stanley Denim Shirt  STWM967  26.53
+152       Stanley Denim Shirt  STWM967  22.12
+153      Stanley Oxford Shirt  STWM968  26.04
+154      Stanley Oxford Shirt  STWM968  21.70
+155      Stanley Styler Shirt  STWM969  25.20
+156      Stanley Styler Shirt  STWM969  21.00
+157              Worker Shirt  STWU975  25.06
+158             Stella Harper  STWW270  21.00
+159        Stella Denim Shirt  STWW970  22.12
+160       Stella Oxford Shirt  STWW971  21.70
+161       Stella Styler Shirt  STWW973  21.00
+
+Total unique products with prices: 162

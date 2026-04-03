@@ -1,0 +1,60 @@
+{
+  "fabric_types": {
+    "cotton": {
+      "gsm_range": [170, 220],
+      "texture": "cotton_weave",
+      "blend_mode": "multiply",
+      "opacity": 0.15,
+      "ink_absorption": 0.1
+    },
+    "cotton_light": {
+      "gsm_range": [130, 170],
+      "texture": "cotton_light",
+      "blend_mode": "multiply",
+      "opacity": 0.1,
+      "ink_absorption": 0.05
+    },
+    "cotton_heavy": {
+      "gsm_range": [220, 280],
+      "texture": "cotton_heavy",
+      "blend_mode": "multiply",
+      "opacity": 0.18,
+      "ink_absorption": 0.12
+    },
+    "french_terry": {
+      "gsm_range": [280, 350],
+      "texture": "french_terry",
+      "blend_mode": "multiply",
+      "opacity": 0.2,
+      "ink_absorption": 0.15
+    },
+    "fleece": {
+      "gsm_range": [350, 500],
+      "texture": "fleece",
+      "blend_mode": "multiply",
+      "opacity": 0.25,
+      "ink_absorption": 0.2
+    },
+    "polyester": {
+      "gsm_range": [0, 300],
+      "texture": "polyester_smooth",
+      "blend_mode": "overlay",
+      "opacity": 0.08,
+      "ink_absorption": 0.02
+    },
+    "tri-blend": {
+      "gsm_range": [150, 250],
+      "texture": "tri-blend",
+      "blend_mode": "multiply",
+      "opacity": 0.12,
+      "ink_absorption": 0.08
+    }
+  },
+  
+  "default": {
+    "texture": "cotton_weave",
+    "blend_mode": "multiply",
+    "opacity": 0.15,
+    "ink_absorption": 0.1
+  }
+}

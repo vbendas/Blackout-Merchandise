@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [[ "$(pwd)" == *"/app"* ]]; then
+  cd app && bun run verify
+elif [[ "$(pwd)" == *"/mainpage"* ]]; then
+  cd mainpage && npm run verify
+else
+  chmod +x verify.sh && ./verify.sh
+fi

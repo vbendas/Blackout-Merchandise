@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MerchFrom App
+
+Main application with AI-powered Cat-Suite brand ambassadors, e-commerce, and workspace features.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+# Install dependencies (uses Bun)
+bun install
+
+# Copy environment file
+cp .env.example .env.local
+
+# Run development server
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---------|-------------|
+| `bun dev` | Start dev server |
+| `bun build` | Production build |
+| `bun lint` | ESLint check |
+| `bun typecheck` | TypeScript check |
+| `bun test:unit` | Unit tests (Vitest) |
+| `bun test:e2e` | E2E tests (Playwright) |
 
-## Learn More
+## Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework:** Next.js 16 (App Router)
+- **React:** 19
+- **Styling:** Tailwind CSS v4
+- **UI:** HeroUI, shadcn/ui, Catalyst UI
+- **Database:** PostgreSQL via Drizzle ORM
+- **Auth:** Clerk
+- **Payments:** Stripe
+- **AI:** MiniMax M2-her, MiniMax Speech 2.6
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment Variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Required in `.env.local`:
 
-## Deploy on Vercel
+```
+DATABASE_URL=postgresql://...
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+MINIMAX_API_KEY=...
+MINIMAX_GROUP_ID=...
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+See `.env.example` for full list.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── api/           # API routes
+│   │   ├── ai/        # AI chat, voice
+│   │   ├── data-rights/  # GDPR endpoints
+│   │   └── webhooks/  # Stripe, Clerk
+│   └── app/           # Protected pages
+│       ├── workspace/
+│       ├── workshop/
+│       └── showroom/
+├── components/        # React components
+├── hooks/             # Custom hooks
+├── lib/               # Utilities
+│   ├── ai/            # AI provider, responses
+│   └── db/            # DB operations
+└── types/             # TypeScript types
+```
+
+## API Routes
+
+- `POST /api/ai/chat` - AI conversation (MiniMax M2-her)
+- `POST /api/ai/voice` - Voice processing (MiniMax Speech)
+- `GET /api/data-rights/access` - GDPR data export
+- `DELETE /api/data-rights/deletion` - GDPR data deletion
+- `GET /api/data-rights/portability` - GDPR data portability
+- `POST /api/waitlist` - Waitlist signup
+- `GET /api/waitlist/stats` - Signup analytics
+
+## Development Notes
+
+- Uses Bun as package manager
+- Strict TypeScript mode
+- ESLint with React hooks rules
+- Vitest for unit tests
+- Playwright for E2E tests

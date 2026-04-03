@@ -1,0 +1,136 @@
+{
+  "sku": "STSU269",
+  "name": "Thinker",
+  "category": "sweatshirts",
+  "description": "Medium-weight crewneck sweatshirt for layering",
+  "fabric_type": "cotton",
+  "gsm": 350,
+  "fit": "Medium Fit",
+  "sizes": [
+    "XXS",
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "3XL",
+    "4XL",
+    "5XL"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 180,
+      "y": 200,
+      "width": 520,
+      "height": 620,
+      "max_width": 420,
+      "max_height": 520
+    },
+    "center": {
+      "x": 230,
+      "y": 270,
+      "width": 420,
+      "height": 520,
+      "max_width": 370,
+      "max_height": 470
+    }
+  },
+  "safe_zone": {
+    "x": 210,
+    "y": 230,
+    "width": 460,
+    "height": 540
+  },
+  "colors": {
+    "C054": {
+      "name": "Natural Raw",
+      "hex": "#F5F5DC",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C004": {
+      "name": "Red",
+      "hex": "#FF0000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C727": {
+      "name": "French Navy",
+      "hex": "#000080",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C253": {
+      "name": "Anthracite",
+      "hex": "#383838",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C001": {
+      "name": "White",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C250": {
+      "name": "Heather Grey",
+      "hex": "#9CA3AF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C244": {
+      "name": "Burgundy",
+      "hex": "#800020",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C002": {
+      "name": "Black",
+      "hex": "#000000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C702": {
+      "name": "Stargazer",
+      "hex": "#E6E6FA",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C036": {
+      "name": "Glazed Green",
+      "hex": "#228B22",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C088": {
+      "name": "Worker Blue",
+      "hex": "#4682B4",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    }
+  }
+}

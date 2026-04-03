@@ -39,90 +39,119 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  
+  --animate-spotlight: spotlight 2s ease .75s 1 forwards;
+  --animate-avatar-glow: avatar-glow 3s ease-in-out infinite;
+  
+  @keyframes spotlight {
+    0% {
+      opacity: 0;
+      transform: translate(-72%, -62%) scale(0.5);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%,-40%) scale(1);
+    }
+  }
+  
+  @keyframes avatar-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1), 0 0 40px rgba(161, 161, 170, 0.05);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.15), 0 0 60px rgba(161, 161, 170, 0.08);
+    }
+  }
 }
 
 :root {
-  --radius: 0.5rem;
-  
-  /* Ink & Void Palette */
-  /* Background: White */
-  --background: oklch(1 0 0);
-  /* Foreground: Ink Black */
-  --foreground: oklch(0.145 0 0); /* zinc-950 equivalent */
+  --radius: 0.375rem; /* Lyra: Sharper, more boxy */
+
+  /* Luxury Monochrome Palette */
+  /* Background: Off-White / Paper */
+  --background: oklch(0.985 0 0);
+  /* Foreground: Deep Black */
+  --foreground: oklch(0.145 0 0);
 
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
-  
+
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  
-  /* Primary: Rose-600 (Action color) */
-  --primary: oklch(0.577 0.245 27.325); 
-  --primary-foreground: oklch(1 0 0);
-  
-  --secondary: oklch(0.97 0 0); /* zinc-50 */
+
+  /* Primary: Deep Black (Luxury Brand Standard) */
+  --primary: oklch(0.145 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+
+  --secondary: oklch(0.97 0 0); /* Zinc-50 */
   --secondary-foreground: oklch(0.205 0 0);
-  
+
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  
+
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  
-  --destructive: oklch(0.577 0.245 27.325);
+
+  /* Recording Red - Action states (PRD 1.10) */
+  --recording: #e11d48;
+
+  --destructive: oklch(0.577 0.245 27.325); /* Keep Red for errors */
   --destructive-foreground: oklch(0.985 0 0);
 
-  --border: oklch(0.922 0 0); /* zinc-200 */
+  --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.577 0.245 27.325); /* Focus ring = primary */
-  
-  /* Sidebar uses same palette */
+  --ring: oklch(0.145 0 0);
+
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary: oklch(0.145 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-accent-foreground: oklch(0.145 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 }
 
 .dark {
-  /* Inverse for Dark Mode */
-  --background: oklch(0.145 0 0); /* zinc-950 */
-  --foreground: oklch(0.985 0 0); /* white */
-  
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  
-  --primary: oklch(0.985 0 0); /* White primary in dark mode for contrast */
-  --primary-foreground: oklch(0.145 0 0);
-  
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.985 0 0);
-  
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Luxury Dark Mode - Adjusted to PRD Spec (Zinc-950 Base) */
+  --background: #09090b; /* Zinc-950 (Deepest Charcoal) */
+  --foreground: #ffffff; /* Stark White */
+
+  --card: #18181b; /* Zinc-900 (Softer than base) */
+  --card-foreground: #ffffff;
+
+  --popover: #09090b;
+  --popover-foreground: #ffffff;
+
+  /* Primary: Stark White */
+  --primary: #ffffff;
+  --primary-foreground: #09090b;
+
+  --secondary: #27272a; /* Zinc-800 */
+  --secondary-foreground: #ffffff;
+
+  --muted: #27272a; /* Zinc-800 */
+  --muted-foreground: #a1a1aa; /* Zinc-400 */
+
+  --accent: #27272a; /* Zinc-800 */
+  --accent-foreground: #ffffff;
+
+  /* Recording Red - Action/Active states */
+  --recording: #e11d48;
+
+  --destructive: oklch(0.5 0.2 25);
+  --border: #27272a; /* Zinc-800 */
+  --input: #27272a;
+  --ring: #e4e4e7; /* Zinc-200 */
+
+  --sidebar: #09090b; /* Match Background */
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #09090b;
+  --sidebar-accent: #18181b;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #27272a;
+  --sidebar-ring: #e4e4e7;
 }
 
 @layer base {
@@ -132,4 +161,125 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom minimalist scrollbar for dark theme */
+.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #18181b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
+
+/* Firefox scrollbar */
+.dark * {
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 #18181b;
+}
+
+.custom-scrollbar__content {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.custom-scrollbar__buttons {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.custom-scrollbar__button {
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.custom-scrollbar__button:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.custom-scrollbar__button:active {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.custom-scrollbar:hover .custom-scrollbar__button {
+  opacity: 1;
+}
+
+.custom-scrollbar__button--up {
+  border-radius: 0 4px 0 0;
+}
+
+.custom-scrollbar__button--down {
+  border-radius: 0 0 4px 0;
+}
+
+/* Hide scrollbar buttons on mobile/touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .custom-scrollbar__buttons {
+    display: none;
+  }
+}
+
+/* Hide scrollbar buttons when content doesn't need scrolling */
+.custom-scrollbar:not(:hover) .custom-scrollbar__buttons {
+  opacity: 0;
+}
+
+/* Prevent scrollbar from being hidden when content is shorter than container */
+.custom-scrollbar__content {
+  min-height: 100%;
+}
+
+/* Dark mode scrollbar button styling */
+.dark .custom-scrollbar__button {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .custom-scrollbar__button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark .custom-scrollbar__button:active {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Light mode scrollbar button styling */
+.light .custom-scrollbar__button {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.light .custom-scrollbar__button:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.light .custom-scrollbar__button:active {
+  background-color: rgba(0, 0, 0, 0.3);
 }

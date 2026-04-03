@@ -1,0 +1,273 @@
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  price: number;
+  colors: Array<{ name: string; hex: string }>;
+  sizes: string[];
+  fit: string;
+  imageUrls: string[];
+}
+
+const placeholderImages: Record<string, string[]> = {
+  'T-Shirts': [
+    'https://placehold.co/600x800/1a1a1a/ffffff?text=T-Shirt+Front',
+    'https://placehold.co/600x800/2a2a2a/ffffff?text=T-Shirt+Back',
+    'https://placehold.co/600x800/3a3a3a/ffffff?text=T-Shirt+Detail',
+  ],
+  Hoodies: [
+    'https://placehold.co/600x800/1e293b/ffffff?text=Hoodie+Front',
+    'https://placehold.co/600x800/334155/ffffff?text=Hoodie+Back',
+    'https://placehold.co/600x800/475569/ffffff?text=Hoodie+Detail',
+  ],
+  Jackets: [
+    'https://placehold.co/600x800/0f172a/ffffff?text=Jacket+Front',
+    'https://placehold.co/600x800/1e293b/ffffff?text=Jacket+Back',
+    'https://placehold.co/600x800/334155/ffffff?text=Jacket+Detail',
+  ],
+  Accessories: [
+    'https://placehold.co/600x800/262626/ffffff?text=Accessory',
+    'https://placehold.co/600x800/404040/ffffff?text=Accessory+Detail',
+  ],
+};
+
+export const products: Product[] = [
+  {
+    id: '1',
+    name: 'T-Shirt Oversized Black',
+    description: 'Premium cotton oversized t-shirt',
+    category: 'T-Shirts',
+    price: 29.99,
+    colors: [
+      { name: 'Black', hex: '#000000' },
+      { name: 'White', hex: '#FFFFFF' },
+      { name: 'Navy', hex: '#1e3a8a' },
+    ],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    fit: 'Oversized',
+    imageUrls: placeholderImages['T-Shirts'],
+  },
+  {
+    id: '2',
+    name: 'Hoodie Zipup Blue',
+    description: 'Classic zip-up hoodie',
+    category: 'Hoodies',
+    price: 59.99,
+    colors: [
+      { name: 'Blue', hex: '#3b82f6' },
+      { name: 'Black', hex: '#000000' },
+      { name: 'Grey', hex: '#6b7280' },
+    ],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    fit: 'Regular',
+    imageUrls: placeholderImages['Hoodies'],
+  },
+  {
+    id: '3',
+    name: 'Jacket Windbreaker',
+    description: 'Lightweight windproof jacket',
+    category: 'Jackets',
+    price: 89.99,
+    colors: [
+      { name: 'Navy', hex: '#1e3a8a' },
+      { name: 'Black', hex: '#000000' },
+      { name: 'Green', hex: '#16a34a' },
+    ],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    fit: 'Regular',
+    imageUrls: placeholderImages['Jackets'],
+  },
+  {
+    id: '4',
+    name: 'Cap Classic',
+    description: 'Adjustable baseball cap',
+    category: 'Accessories',
+    price: 19.99,
+    colors: [
+      { name: 'Black', hex: '#000000' },
+      { name: 'White', hex: '#FFFFFF' },
+      { name: 'Red', hex: '#dc2626' },
+    ],
+    sizes: ['One Size'],
+    fit: 'Regular',
+    imageUrls: placeholderImages['Accessories'],
+  },
+  {
+    id: '5',
+    name: 'T-Shirt Slim Fit',
+    description: 'Premium cotton slim fit t-shirt',
+    category: 'T-Shirts',
+    price: 24.99,
+    colors: [
+      { name: 'White', hex: '#FFFFFF' },
+      { name: 'Black', hex: '#000000' },
+      { name: 'Navy', hex: '#1e3a8a' },
+    ],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    fit: 'Slim',
+    imageUrls: placeholderImages['T-Shirts'],
+  },
+  {
+    id: '6',
+    name: 'Hoodie Pullover',
+    description: 'Classic pullover hoodie',
+    category: 'Hoodies',
+    price: 54.99,
+    colors: [
+      { name: 'Grey', hex: '#6b7280' },
+      { name: 'Black', hex: '#000000' },
+      { name: 'Navy', hex: '#1e3a8a' },
+    ],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    fit: 'Relaxed',
+    imageUrls: placeholderImages['Hoodies'],
+  },
+  {
+    id: '7',
+    name: 'Jacket Denim',
+    description: 'Classic denim jacket',
+    category: 'Jackets',
+    price: 79.99,
+    colors: [
+      { name: 'Blue', hex: '#3b82f6' },
+      { name: 'Black', hex: '#000000' },
+    ],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    fit: 'Regular',
+    imageUrls: placeholderImages['Jackets'],
+  },
+  {
+    id: '8',
+    name: 'Tote Bag',
+    description: 'Canvas tote bag with handles',
+    category: 'Accessories',
+    price: 14.99,
+    colors: [
+      { name: 'Natural', hex: '#f5f5dc' },
+      { name: 'Black', hex: '#000000' },
+    ],
+    sizes: ['One Size'],
+    fit: 'Regular',
+    imageUrls: placeholderImages['Accessories'],
+  },
+  {
+    id: '9',
+    name: 'T-Shirt Oversized White',
+    description: 'Premium cotton oversized t-shirt in white',
+    category: 'T-Shirts',
+    price: 29.99,
+    colors: [
+      { name: 'White', hex: '#FFFFFF' },
+      { name: 'Black', hex: '#000000' },
+      { name: 'Grey', hex: '#6b7280' },
+    ],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    fit: 'Oversized',
+    imageUrls: placeholderImages['T-Shirts'],
+  },
+  {
+    id: '10',
+    name: 'Hoodie Crop Top',
+    description: 'Trendy cropped hoodie for women',
+    category: 'Hoodies',
+    price: 49.99,
+    colors: [
+      { name: 'Pink', hex: '#ec4899' },
+      { name: 'Black', hex: '#000000' },
+      { name: 'White', hex: '#FFFFFF' },
+    ],
+    sizes: ['XS', 'S', 'M', 'L'],
+    fit: 'Relaxed',
+    imageUrls: placeholderImages['Hoodies'],
+  },
+  {
+    id: '11',
+    name: 'Bomber Jacket',
+    description: 'Classic bomber jacket with ribbed cuffs',
+    category: 'Jackets',
+    price: 99.99,
+    colors: [
+      { name: 'Black', hex: '#000000' },
+      { name: 'Navy', hex: '#1e3a8a' },
+      { name: 'Olive', hex: '#3f6212' },
+    ],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    fit: 'Regular',
+    imageUrls: placeholderImages['Jackets'],
+  },
+  {
+    id: '12',
+    name: 'Beanie Winter',
+    description: 'Warm knit beanie for cold weather',
+    category: 'Accessories',
+    price: 24.99,
+    colors: [
+      { name: 'Black', hex: '#000000' },
+      { name: 'Grey', hex: '#6b7280' },
+      { name: 'Navy', hex: '#1e3a8a' },
+    ],
+    sizes: ['One Size'],
+    fit: 'Regular',
+    imageUrls: placeholderImages['Accessories'],
+  },
+  {
+    id: '13',
+    name: 'T-Shirt Vintage Wash',
+    description: 'Vintage washed cotton t-shirt',
+    category: 'T-Shirts',
+    price: 34.99,
+    colors: [
+      { name: 'Washed Black', hex: '#262626' },
+      { name: 'Washed Blue', hex: '#475569' },
+      { name: 'Washed Green', hex: '#3f6212' },
+    ],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    fit: 'Relaxed',
+    imageUrls: placeholderImages['T-Shirts'],
+  },
+  {
+    id: '14',
+    name: 'Hoodie Tech Fleece',
+    description: 'Modern tech fleece hoodie',
+    category: 'Hoodies',
+    price: 69.99,
+    colors: [
+      { name: 'Black', hex: '#000000' },
+      { name: 'Grey', hex: '#6b7280' },
+    ],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    fit: 'Regular',
+    imageUrls: placeholderImages['Hoodies'],
+  },
+  {
+    id: '15',
+    name: 'Parka Winter Coat',
+    description: 'Heavy winter parka with hood',
+    category: 'Jackets',
+    price: 149.99,
+    colors: [
+      { name: 'Black', hex: '#000000' },
+      { name: 'Olive', hex: '#3f6212' },
+      { name: 'Navy', hex: '#1e3a8a' },
+    ],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    fit: 'Regular',
+    imageUrls: placeholderImages['Jackets'],
+  },
+  {
+    id: '16',
+    name: 'Backpack Classic',
+    description: 'Durable canvas backpack',
+    category: 'Accessories',
+    price: 44.99,
+    colors: [
+      { name: 'Black', hex: '#000000' },
+      { name: 'Brown', hex: '#92400e' },
+      { name: 'Navy', hex: '#1e3a8a' },
+    ],
+    sizes: ['One Size'],
+    fit: 'Regular',
+    imageUrls: placeholderImages['Accessories'],
+  },
+];

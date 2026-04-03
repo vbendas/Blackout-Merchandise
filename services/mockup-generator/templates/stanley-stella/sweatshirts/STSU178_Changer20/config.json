@@ -1,0 +1,408 @@
+{
+  "sku": "STSU178",
+  "name": "Changer 2.0",
+  "category": "sweatshirts",
+  "description": "Medium-weight crewneck sweatshirt for layering",
+  "fabric_type": "cotton",
+  "gsm": 350,
+  "fit": "Medium Fit",
+  "sizes": [
+    "XXS",
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "3XL",
+    "4XL",
+    "5XL"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 180,
+      "y": 200,
+      "width": 520,
+      "height": 620,
+      "max_width": 420,
+      "max_height": 520
+    },
+    "center": {
+      "x": 230,
+      "y": 270,
+      "width": 420,
+      "height": 520,
+      "max_width": 370,
+      "max_height": 470
+    }
+  },
+  "safe_zone": {
+    "x": 210,
+    "y": 230,
+    "width": 460,
+    "height": 540
+  },
+  "colors": {
+    "C358": {
+      "name": "Color C358",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C036": {
+      "name": "Glazed Green",
+      "hex": "#228B22",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C730": {
+      "name": "Heritage Brown",
+      "hex": "#8B7355",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C136": {
+      "name": "Color C136",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C142": {
+      "name": "Color C142",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C143": {
+      "name": "Red Brown",
+      "hex": "#8B4513",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C651": {
+      "name": "Dark Heather Grey",
+      "hex": "#4A4A4A",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C731": {
+      "name": "Heather Haze",
+      "hex": "#9BB0C1",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C727": {
+      "name": "French Navy",
+      "hex": "#000080",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C223": {
+      "name": "Color C223",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C005": {
+      "name": "Color C005",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C004": {
+      "name": "Red",
+      "hex": "#FF0000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C054": {
+      "name": "Natural Raw",
+      "hex": "#F5F5DC",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C018": {
+      "name": "Color C018",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C028": {
+      "name": "Desert Dust",
+      "hex": "#EDC9AF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C144": {
+      "name": "Color C144",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C145": {
+      "name": "Bubble Pink",
+      "hex": "#FFB6C1",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C001": {
+      "name": "White",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C149": {
+      "name": "Blue Soul",
+      "hex": "#6699CC",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C253": {
+      "name": "Anthracite",
+      "hex": "#383838",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C735": {
+      "name": "Color C735",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C053": {
+      "name": "Desert Dust",
+      "hex": "#EDC9AF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C147": {
+      "name": "Eco-Heather",
+      "hex": "#9CB4A8",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C146": {
+      "name": "Cool Heather Grey",
+      "hex": "#8D99AE",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C002": {
+      "name": "Black",
+      "hex": "#000000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C250": {
+      "name": "Heather Grey",
+      "hex": "#9CA3AF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C244": {
+      "name": "Burgundy",
+      "hex": "#800020",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C155": {
+      "name": "Color C155",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C357": {
+      "name": "Pool Blue",
+      "hex": "#00CED1",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C702": {
+      "name": "Stargazer",
+      "hex": "#E6E6FA",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C112": {
+      "name": "Color C112",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C728": {
+      "name": "Color C728",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C156": {
+      "name": "Color C156",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C355": {
+      "name": "Color C355",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C715": {
+      "name": "Color C715",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C729": {
+      "name": "Mindful Blue",
+      "hex": "#778899",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C063": {
+      "name": "Lavender",
+      "hex": "#E6E6FA",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C088": {
+      "name": "Worker Blue",
+      "hex": "#4682B4",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C089": {
+      "name": "Aloe",
+      "hex": "#ACB78E",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C116": {
+      "name": "Color C116",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C150": {
+      "name": "Color C150",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C048": {
+      "name": "Color C048",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C151": {
+      "name": "Color C151",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C129": {
+      "name": "Bubble Pink",
+      "hex": "#FFB6C1",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C101": {
+      "name": "Fraiche Peche",
+      "hex": "#FFDAB9",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    }
+  }
+}

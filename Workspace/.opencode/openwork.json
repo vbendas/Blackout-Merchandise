@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "workspace": {
+    "name": "Workspace",
+    "createdAt": 1769284033241,
+    "preset": "starter"
+  },
+  "authorizedRoots": [
+    "/Users/victorbendas/Documents/GitHub/Merch-From/Workspace"
+  ]
+}

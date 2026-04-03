@@ -1,0 +1,43 @@
+{
+  "sku": "STSU824_CULTOR_BLACK",
+  "name": "Cultor - Black",
+  "category": "hoodies",
+  "description": "Heavyweight hoodie for ultimate comfort",
+  "fabric_type": "cotton",
+  "gsm": 180,
+  "fit": "Medium Fit",
+  "sizes": [
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 200,
+      "y": 220,
+      "width": 500,
+      "height": 580,
+      "max_width": 400,
+      "max_height": 480
+    },
+    "center": {
+      "x": 250,
+      "y": 290,
+      "width": 400,
+      "height": 480,
+      "max_width": 350,
+      "max_height": 430
+    }
+  },
+  "safe_zone": {
+    "x": 230,
+    "y": 250,
+    "width": 440,
+    "height": 500
+  },
+  "colors": {}
+}

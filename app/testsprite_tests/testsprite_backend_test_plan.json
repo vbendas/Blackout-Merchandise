@@ -1,0 +1,42 @@
+[
+  {
+    "id": "TC001",
+    "title": "create_stripe_checkout_session",
+    "description": "Test the creation of a Stripe checkout session with valid priceId and artistId, ensuring the session URL is returned and authentication is required."
+  },
+  {
+    "id": "TC002",
+    "title": "handle_stripe_webhook_events",
+    "description": "Verify the Stripe webhook endpoint correctly processes checkout.session.completed events, triggers order fulfillment, and handles signature verification failures."
+  },
+  {
+    "id": "TC003",
+    "title": "list_products_by_store_slug",
+    "description": "Ensure the API returns all active products for a given store slug and handles cases where the store slug does not exist or has no products."
+  },
+  {
+    "id": "TC004",
+    "title": "get_product_by_id",
+    "description": "Test retrieval of a single product by its Convex document ID, including cases where the product ID is invalid or does not exist."
+  },
+  {
+    "id": "TC005",
+    "title": "create_new_product_with_authentication",
+    "description": "Validate the creation of a new product with all required fields, ensuring authentication is enforced and the product ID is returned upon success."
+  },
+  {
+    "id": "TC006",
+    "title": "fulfill_order_after_stripe_payment",
+    "description": "Test the internal mutation that creates an order record after successful Stripe payment, verifying required fields and correct order creation."
+  },
+  {
+    "id": "TC007",
+    "title": "upsert_user_from_clerk_webhook",
+    "description": "Verify the internal mutation that creates or updates a user record from Clerk webhook data, ensuring all required user fields are handled correctly."
+  },
+  {
+    "id": "TC008",
+    "title": "process_clerk_webhook_events",
+    "description": "Test the Clerk webhook HTTP endpoint for handling user.created and user.updated events, validating payload processing and error handling for invalid payloads."
+  }
+]

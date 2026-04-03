@@ -1,0 +1,102 @@
+{
+  "sku": "STTU073",
+  "name": "Freestyler Vintage",
+  "category": "t-shirts",
+  "description": "Premium cotton t-shirt for everyday wear",
+  "fabric_type": "cotton",
+  "gsm": 240,
+  "fit": "Relaxed Fit",
+  "sizes": [
+    "XXS",
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "3XL"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 150,
+      "y": 180,
+      "width": 500,
+      "height": 600,
+      "max_width": 400,
+      "max_height": 500
+    },
+    "center": {
+      "x": 200,
+      "y": 250,
+      "width": 400,
+      "height": 500,
+      "max_width": 350,
+      "max_height": 450
+    }
+  },
+  "safe_zone": {
+    "x": 180,
+    "y": 200,
+    "width": 440,
+    "height": 500
+  },
+  "colors": {
+    "C733": {
+      "name": "G. Dyed Latte",
+      "hex": "#C4A484",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C158": {
+      "name": "G. Dyed Blue Grey",
+      "hex": "#778899",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C732": {
+      "name": "G. Dyed Blue Stone",
+      "hex": "#6A5ACD",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C161": {
+      "name": "G. Dyed Purple Love",
+      "hex": "#8B008B",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C162": {
+      "name": "G. Dyed Anthracite",
+      "hex": "#383838",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C157": {
+      "name": "G. Dyed Misty Grey",
+      "hex": "#A9A9A9",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C140": {
+      "name": "G. Dyed Black Rock",
+      "hex": "#1C1C1C",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    }
+  }
+}

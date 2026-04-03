@@ -1,0 +1,43 @@
+{
+  "sku": "STTU755_CREATOR_BLACK",
+  "name": "Creator - Black",
+  "category": "t-shirts",
+  "description": "Premium cotton t-shirt for everyday wear",
+  "fabric_type": "cotton",
+  "gsm": 180,
+  "fit": "Medium Fit",
+  "sizes": [
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 150,
+      "y": 180,
+      "width": 500,
+      "height": 600,
+      "max_width": 400,
+      "max_height": 500
+    },
+    "center": {
+      "x": 200,
+      "y": 250,
+      "width": 400,
+      "height": 500,
+      "max_width": 350,
+      "max_height": 450
+    }
+  },
+  "safe_zone": {
+    "x": 180,
+    "y": 200,
+    "width": 440,
+    "height": 500
+  },
+  "colors": {}
+}

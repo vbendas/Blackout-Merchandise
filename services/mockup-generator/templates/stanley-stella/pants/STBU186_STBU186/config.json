@@ -1,0 +1,92 @@
+{
+  "sku": "STBU186",
+  "name": "STBU186",
+  "category": "pants",
+  "description": "Comfortable pants for everyday wear",
+  "fabric_type": "cotton",
+  "gsm": 180,
+  "fit": "Medium Fit",
+  "sizes": [
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 180,
+      "y": 200,
+      "width": 440,
+      "height": 500,
+      "max_width": 350,
+      "max_height": 400
+    },
+    "center": {
+      "x": 200,
+      "y": 250,
+      "width": 400,
+      "height": 450,
+      "max_width": 320,
+      "max_height": 380
+    }
+  },
+  "safe_zone": {
+    "x": 200,
+    "y": 230,
+    "width": 400,
+    "height": 420
+  },
+  "colors": {
+    "C004": {
+      "name": "Red",
+      "hex": "#FF0000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C060": {
+      "name": "Teal Monstera",
+      "hex": "#008080",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C002": {
+      "name": "Black",
+      "hex": "#000000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C054": {
+      "name": "Natural Raw",
+      "hex": "#F5F5DC",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C727": {
+      "name": "French Navy",
+      "hex": "#000080",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C250": {
+      "name": "Heather Grey",
+      "hex": "#9CA3AF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    }
+  }
+}

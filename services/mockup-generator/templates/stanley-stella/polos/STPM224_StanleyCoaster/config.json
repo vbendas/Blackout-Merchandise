@@ -1,0 +1,190 @@
+{
+  "sku": "STPM224",
+  "name": "Stanley Coaster",
+  "category": "polos",
+  "description": "Classic polo shirt with premium finish",
+  "fabric_type": "cotton",
+  "gsm": 185,
+  "fit": "Fitted",
+  "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "3XL",
+    "4XL",
+    "5XL"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 180,
+      "y": 200,
+      "width": 460,
+      "height": 520,
+      "max_width": 360,
+      "max_height": 420
+    },
+    "center": {
+      "x": 230,
+      "y": 270,
+      "width": 360,
+      "height": 420,
+      "max_width": 310,
+      "max_height": 370
+    }
+  },
+  "safe_zone": {
+    "x": 210,
+    "y": 230,
+    "width": 400,
+    "height": 440
+  },
+  "colors": {
+    "C223": {
+      "name": "Color C223",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C715": {
+      "name": "Color C715",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C710": {
+      "name": "Ocean Depth",
+      "hex": "#003366",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C230": {
+      "name": "Royal Blue",
+      "hex": "#4169E1",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C224": {
+      "name": "Bottle Green",
+      "hex": "#006400",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C151": {
+      "name": "Color C151",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C232": {
+      "name": "Sky Blue",
+      "hex": "#87CEEB",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C137": {
+      "name": "Powder Pink",
+      "hex": "#FFCCE5",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C724": {
+      "name": "Caribbean Blue",
+      "hex": "#00BFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C004": {
+      "name": "Red",
+      "hex": "#FF0000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C054": {
+      "name": "Natural Raw",
+      "hex": "#F5F5DC",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C727": {
+      "name": "French Navy",
+      "hex": "#000080",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C005": {
+      "name": "Color C005",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C001": {
+      "name": "White",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C253": {
+      "name": "Anthracite",
+      "hex": "#383838",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C002": {
+      "name": "Black",
+      "hex": "#000000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C244": {
+      "name": "Burgundy",
+      "hex": "#800020",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C250": {
+      "name": "Heather Grey",
+      "hex": "#9CA3AF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    }
+  }
+}

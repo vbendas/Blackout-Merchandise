@@ -1,0 +1,55 @@
+{
+  "sku": "STAU763",
+  "name": "Gym Bag",
+  "category": "bags",
+  "description": "Durable bag for everyday use",
+  "fabric_type": "cotton",
+  "gsm": 300,
+  "fit": "Not Applicable",
+  "sizes": [
+    "one size"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "center": {
+      "x": 100,
+      "y": 80,
+      "width": 600,
+      "height": 500,
+      "max_width": 500,
+      "max_height": 400
+    }
+  },
+  "safe_zone": {
+    "x": 120,
+    "y": 100,
+    "width": 560,
+    "height": 460
+  },
+  "colors": {
+    "C007": {
+      "name": "Natural",
+      "hex": "#FAF0E6",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C250": {
+      "name": "Heather Grey",
+      "hex": "#9CA3AF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C002": {
+      "name": "Black",
+      "hex": "#000000",
+      "available": true,
+      "has_front": true,
+      "has_back": false,
+      "has_detail": false
+    }
+  }
+}

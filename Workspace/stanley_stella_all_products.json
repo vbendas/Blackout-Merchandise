@@ -1,0 +1,830 @@
+[
+  {
+    "sku": "STTU258",
+    "page": 1,
+    "position": 1,
+    "url": "https://stanleystella.com/static/version1768816224/frontend/StanleyStella/default/en_IE/css/styles.css"
+  },
+  {
+    "sku": "STTW259",
+    "page": 1,
+    "position": 2,
+    "url": "https://stanleystella.com/en-eu/collection/collection"
+  },
+  {
+    "sku": "STTU263",
+    "page": 1,
+    "position": 3,
+    "url": "https://stanleystella.com/en-eu/collection/collection?p=2"
+  },
+  {
+    "sku": "STTW264",
+    "page": 1,
+    "position": 4,
+    "url": "https://stanleystella.com/media/favicon/default/favicon-32x32.png"
+  },
+  {
+    "sku": "STWW270",
+    "page": 1,
+    "position": 5,
+    "url": "https://stanleystella.com/media/favicon/default/favicon-32x32.png"
+  },
+  {
+    "sku": "STSU256",
+    "page": 1,
+    "position": 6,
+    "url": "https://stanleystella.com/choose-country-region"
+  },
+  {
+    "sku": "STSU255",
+    "page": 1,
+    "position": 7,
+    "url": "https://stanleystella.com/de-de/collection/collection"
+  },
+  {
+    "sku": "STSU269",
+    "page": 1,
+    "position": 8,
+    "url": "https://stanleystella.com/de-eu/collection/collection"
+  },
+  {
+    "sku": "STSW254",
+    "page": 1,
+    "position": 9,
+    "url": "https://stanleystella.com/en-be/collection/collection"
+  },
+  {
+    "sku": "STSU257",
+    "page": 1,
+    "position": 10,
+    "url": "https://stanleystella.com/en-de/collection/collection"
+  },
+  {
+    "sku": "STSW268",
+    "page": 1,
+    "position": 11,
+    "url": "https://stanleystella.com/en-es/collection/collection"
+  },
+  {
+    "sku": "STSU261",
+    "page": 1,
+    "position": 12,
+    "url": "https://stanleystella.com/en-eu/collection/collection"
+  },
+  {
+    "sku": "STSW262",
+    "page": 1,
+    "position": 13,
+    "url": "https://stanleystella.com/en-fr/collection/collection"
+  },
+  {
+    "sku": "STSU253",
+    "page": 1,
+    "position": 14,
+    "url": "https://stanleystella.com/en-gb/collection/collection"
+  },
+  {
+    "sku": "STTU169",
+    "page": 1,
+    "position": 15,
+    "url": "https://stanleystella.com/en-it/collection/collection"
+  },
+  {
+    "sku": "STTU199",
+    "page": 1,
+    "position": 16,
+    "url": "https://stanleystella.com/en-nl/collection/collection"
+  },
+  {
+    "sku": "STTU170",
+    "page": 1,
+    "position": 17,
+    "url": "https://stanleystella.com/en-pl/collection/collection"
+  },
+  {
+    "sku": "STTU976",
+    "page": 1,
+    "position": 18,
+    "url": "https://stanleystella.com/es-es/catalogo/collection"
+  },
+  {
+    "sku": "STTU171",
+    "page": 1,
+    "position": 19,
+    "url": "https://stanleystella.com/es-eu/collection/collection"
+  },
+  {
+    "sku": "STTU959",
+    "page": 1,
+    "position": 20,
+    "url": "https://stanleystella.com/fr-be/collection/collection"
+  },
+  {
+    "sku": "STTU964",
+    "page": 1,
+    "position": 21,
+    "url": "https://stanleystella.com/fr-eu/collection/collection"
+  },
+  {
+    "sku": "STTU078",
+    "page": 1,
+    "position": 22,
+    "url": "https://stanleystella.com/fr-fr/collection/collection"
+  },
+  {
+    "sku": "STTU788",
+    "page": 1,
+    "position": 23,
+    "url": "https://stanleystella.com/it-eu/collection/collection"
+  },
+  {
+    "sku": "STTU073",
+    "page": 1,
+    "position": 24,
+    "url": "https://stanleystella.com/it-it/collezione/collection"
+  },
+  {
+    "sku": "STTU200",
+    "page": 1,
+    "position": 25,
+    "url": "https://stanleystella.com/nl-be/collectie/collection"
+  },
+  {
+    "sku": "STTU787",
+    "page": 1,
+    "position": 26,
+    "url": "https://stanleystella.com/nl-eu/collection/collection"
+  },
+  {
+    "sku": "STTU758",
+    "page": 1,
+    "position": 27,
+    "url": "https://stanleystella.com/nl-nl/collectie/collection"
+  },
+  {
+    "sku": "STTW079",
+    "page": 1,
+    "position": 28,
+    "url": "https://stanleystella.com/pl-eu/collection/collection"
+  },
+  {
+    "sku": "STTW172",
+    "page": 1,
+    "position": 29,
+    "url": "https://stanleystella.com/pl-pl/collection/collection"
+  },
+  {
+    "sku": "STTW219",
+    "page": 1,
+    "position": 30,
+    "url": "https://stanleystella.com/en-eu/bu"
+  },
+  {
+    "sku": "STTW963",
+    "page": 1,
+    "position": 31,
+    "url": "https://stanleystella.com/en-eu/dealers"
+  },
+  {
+    "sku": "STTW089",
+    "page": 1,
+    "position": 32,
+    "url": "https://stanleystella.com/en-eu/customer/account/forgotpassword/"
+  },
+  {
+    "sku": "STTW174",
+    "page": 1,
+    "position": 33,
+    "url": "https://stanleystella.com/bu"
+  },
+  {
+    "sku": "STTW176",
+    "page": 1,
+    "position": 34,
+    "url": "https://stanleystella.com/en-eu/"
+  },
+  {
+    "sku": "STTW962",
+    "page": 1,
+    "position": 35,
+    "url": "https://stanleystella.com/en-eu/collection/collection"
+  },
+  {
+    "sku": "STTW175",
+    "page": 1,
+    "position": 36,
+    "url": "https://stanleystella.com/en-eu/collection/collection/tees"
+  },
+  {
+    "sku": "STPU223",
+    "page": 2,
+    "position": 1,
+    "url": "https://stanleystella.com/static/version1768816224/frontend/StanleyStella/default/en_IE/css/styles.css"
+  },
+  {
+    "sku": "STPU252",
+    "page": 2,
+    "position": 2,
+    "url": "https://stanleystella.com/en-eu/collection/collection?p=2"
+  },
+  {
+    "sku": "STPW977",
+    "page": 2,
+    "position": 3,
+    "url": "https://stanleystella.com/en-eu/collection/collection"
+  },
+  {
+    "sku": "STPM224",
+    "page": 2,
+    "position": 4,
+    "url": "https://stanleystella.com/en-eu/collection/collection?p=3"
+  },
+  {
+    "sku": "STSU177",
+    "page": 2,
+    "position": 5,
+    "url": "https://stanleystella.com/media/favicon/default/favicon-32x32.png"
+  },
+  {
+    "sku": "STSU800",
+    "page": 2,
+    "position": 6,
+    "url": "https://stanleystella.com/media/favicon/default/favicon-32x32.png"
+  },
+  {
+    "sku": "STSU178",
+    "page": 2,
+    "position": 7,
+    "url": "https://stanleystella.com/choose-country-region"
+  },
+  {
+    "sku": "STSU168",
+    "page": 2,
+    "position": 8,
+    "url": "https://stanleystella.com/de-de/collection/collection"
+  },
+  {
+    "sku": "STSU207",
+    "page": 2,
+    "position": 9,
+    "url": "https://stanleystella.com/de-eu/collection/collection"
+  },
+  {
+    "sku": "STSU179",
+    "page": 2,
+    "position": 10,
+    "url": "https://stanleystella.com/en-be/collection/collection"
+  },
+  {
+    "sku": "STSU208",
+    "page": 2,
+    "position": 11,
+    "url": "https://stanleystella.com/en-de/collection/collection"
+  },
+  {
+    "sku": "STSU210",
+    "page": 2,
+    "position": 12,
+    "url": "https://stanleystella.com/en-es/collection/collection"
+  },
+  {
+    "sku": "STSU209",
+    "page": 2,
+    "position": 13,
+    "url": "https://stanleystella.com/en-eu/collection/collection?p=2"
+  },
+  {
+    "sku": "STSU211",
+    "page": 2,
+    "position": 14,
+    "url": "https://stanleystella.com/en-fr/collection/collection"
+  },
+  {
+    "sku": "STSU077",
+    "page": 2,
+    "position": 15,
+    "url": "https://stanleystella.com/en-gb/collection/collection"
+  },
+  {
+    "sku": "STSU202",
+    "page": 2,
+    "position": 16,
+    "url": "https://stanleystella.com/en-it/collection/collection"
+  },
+  {
+    "sku": "STSU797",
+    "page": 2,
+    "position": 17,
+    "url": "https://stanleystella.com/en-nl/collection/collection"
+  },
+  {
+    "sku": "STSU229",
+    "page": 2,
+    "position": 18,
+    "url": "https://stanleystella.com/en-pl/collection/collection"
+  },
+  {
+    "sku": "STSU040",
+    "page": 2,
+    "position": 19,
+    "url": "https://stanleystella.com/es-es/catalogo/collection"
+  },
+  {
+    "sku": "STSU795",
+    "page": 2,
+    "position": 20,
+    "url": "https://stanleystella.com/es-eu/collection/collection"
+  },
+  {
+    "sku": "STSU205",
+    "page": 2,
+    "position": 21,
+    "url": "https://stanleystella.com/fr-be/collection/collection"
+  },
+  {
+    "sku": "STSU868",
+    "page": 2,
+    "position": 22,
+    "url": "https://stanleystella.com/fr-eu/collection/collection"
+  },
+  {
+    "sku": "STSU799",
+    "page": 2,
+    "position": 23,
+    "url": "https://stanleystella.com/fr-fr/collection/collection"
+  },
+  {
+    "sku": "STSU085",
+    "page": 2,
+    "position": 24,
+    "url": "https://stanleystella.com/it-eu/collection/collection"
+  },
+  {
+    "sku": "STSU201",
+    "page": 2,
+    "position": 25,
+    "url": "https://stanleystella.com/it-it/collezione/collection"
+  },
+  {
+    "sku": "STSU798",
+    "page": 2,
+    "position": 26,
+    "url": "https://stanleystella.com/nl-be/collectie/collection"
+  },
+  {
+    "sku": "STSU204",
+    "page": 2,
+    "position": 27,
+    "url": "https://stanleystella.com/nl-eu/collection/collection"
+  },
+  {
+    "sku": "STSW212",
+    "page": 2,
+    "position": 28,
+    "url": "https://stanleystella.com/nl-nl/collectie/collection"
+  },
+  {
+    "sku": "STSW217",
+    "page": 2,
+    "position": 29,
+    "url": "https://stanleystella.com/pl-eu/collection/collection"
+  },
+  {
+    "sku": "STSW214",
+    "page": 2,
+    "position": 30,
+    "url": "https://stanleystella.com/pl-pl/collection/collection"
+  },
+  {
+    "sku": "STSW213",
+    "page": 2,
+    "position": 31,
+    "url": "https://stanleystella.com/en-eu/bu"
+  },
+  {
+    "sku": "STSW218",
+    "page": 2,
+    "position": 32,
+    "url": "https://stanleystella.com/en-eu/dealers"
+  },
+  {
+    "sku": "STSU956",
+    "page": 2,
+    "position": 33,
+    "url": "https://stanleystella.com/en-eu/customer/account/forgotpassword/"
+  },
+  {
+    "sku": "STBU185",
+    "page": 2,
+    "position": 34,
+    "url": "https://stanleystella.com/bu"
+  },
+  {
+    "sku": "STBU576",
+    "page": 2,
+    "position": 35,
+    "url": "https://stanleystella.com/en-eu/"
+  },
+  {
+    "sku": "STBU944",
+    "page": 2,
+    "position": 36,
+    "url": "https://stanleystella.com/en-eu/collection/collection"
+  },
+  {
+    "sku": "STWM968",
+    "page": 3,
+    "position": 1,
+    "url": "https://stanleystella.com/static/version1768816224/frontend/StanleyStella/default/en_IE/css/styles.css"
+  },
+  {
+    "sku": "STWM969",
+    "page": 3,
+    "position": 2,
+    "url": "https://stanleystella.com/en-eu/collection/collection?p=3"
+  },
+  {
+    "sku": "STWW970",
+    "page": 3,
+    "position": 3,
+    "url": "https://stanleystella.com/en-eu/collection/collection?p=2"
+  },
+  {
+    "sku": "STWW971",
+    "page": 3,
+    "position": 4,
+    "url": "https://stanleystella.com/en-eu/collection/collection?p=4"
+  },
+  {
+    "sku": "STWW973",
+    "page": 3,
+    "position": 5,
+    "url": "https://stanleystella.com/media/favicon/default/favicon-32x32.png"
+  },
+  {
+    "sku": "STJM189",
+    "page": 3,
+    "position": 6,
+    "url": "https://stanleystella.com/media/favicon/default/favicon-32x32.png"
+  },
+  {
+    "sku": "STJW190",
+    "page": 3,
+    "position": 7,
+    "url": "https://stanleystella.com/choose-country-region"
+  },
+  {
+    "sku": "STJM188",
+    "page": 3,
+    "position": 8,
+    "url": "https://stanleystella.com/de-de/collection/collection"
+  },
+  {
+    "sku": "STJW191",
+    "page": 3,
+    "position": 9,
+    "url": "https://stanleystella.com/de-eu/collection/collection"
+  },
+  {
+    "sku": "STJU251",
+    "page": 3,
+    "position": 10,
+    "url": "https://stanleystella.com/en-be/collection/collection"
+  },
+  {
+    "sku": "STJU242",
+    "page": 3,
+    "position": 11,
+    "url": "https://stanleystella.com/en-de/collection/collection"
+  },
+  {
+    "sku": "STJM158",
+    "page": 3,
+    "position": 12,
+    "url": "https://stanleystella.com/en-es/collection/collection"
+  },
+  {
+    "sku": "STJW159",
+    "page": 3,
+    "position": 13,
+    "url": "https://stanleystella.com/en-eu/collection/collection?p=3"
+  },
+  {
+    "sku": "STJM167",
+    "page": 3,
+    "position": 14,
+    "url": "https://stanleystella.com/en-fr/collection/collection"
+  },
+  {
+    "sku": "STJU846",
+    "page": 3,
+    "position": 15,
+    "url": "https://stanleystella.com/en-gb/collection/collection"
+  },
+  {
+    "sku": "STJU834",
+    "page": 3,
+    "position": 16,
+    "url": "https://stanleystella.com/en-it/collection/collection"
+  },
+  {
+    "sku": "STJU833",
+    "page": 3,
+    "position": 17,
+    "url": "https://stanleystella.com/en-nl/collection/collection"
+  },
+  {
+    "sku": "STJM238",
+    "page": 3,
+    "position": 18,
+    "url": "https://stanleystella.com/en-pl/collection/collection"
+  },
+  {
+    "sku": "STJW239",
+    "page": 3,
+    "position": 19,
+    "url": "https://stanleystella.com/es-es/catalogo/collection"
+  },
+  {
+    "sku": "STJW241",
+    "page": 3,
+    "position": 20,
+    "url": "https://stanleystella.com/es-eu/collection/collection"
+  },
+  {
+    "sku": "STJM240",
+    "page": 3,
+    "position": 21,
+    "url": "https://stanleystella.com/fr-be/collection/collection"
+  },
+  {
+    "sku": "STJM235",
+    "page": 3,
+    "position": 22,
+    "url": "https://stanleystella.com/fr-eu/collection/collection"
+  },
+  {
+    "sku": "STJW236",
+    "page": 3,
+    "position": 23,
+    "url": "https://stanleystella.com/fr-fr/collection/collection"
+  },
+  {
+    "sku": "STJW166",
+    "page": 3,
+    "position": 24,
+    "url": "https://stanleystella.com/it-eu/collection/collection"
+  },
+  {
+    "sku": "STJU248",
+    "page": 3,
+    "position": 25,
+    "url": "https://stanleystella.com/it-it/collezione/collection"
+  },
+  {
+    "sku": "STJU249",
+    "page": 3,
+    "position": 26,
+    "url": "https://stanleystella.com/nl-be/collectie/collection"
+  },
+  {
+    "sku": "STJU841",
+    "page": 3,
+    "position": 27,
+    "url": "https://stanleystella.com/nl-eu/collection/collection"
+  },
+  {
+    "sku": "STJU840",
+    "page": 3,
+    "position": 28,
+    "url": "https://stanleystella.com/nl-nl/collectie/collection"
+  },
+  {
+    "sku": "STJU250",
+    "page": 3,
+    "position": 29,
+    "url": "https://stanleystella.com/pl-eu/collection/collection"
+  },
+  {
+    "sku": "STAU117",
+    "page": 3,
+    "position": 30,
+    "url": "https://stanleystella.com/pl-pl/collection/collection"
+  },
+  {
+    "sku": "STAU773",
+    "page": 3,
+    "position": 31,
+    "url": "https://stanleystella.com/en-eu/bu"
+  },
+  {
+    "sku": "STAU116",
+    "page": 3,
+    "position": 32,
+    "url": "https://stanleystella.com/en-eu/dealers"
+  },
+  {
+    "sku": "STAU760",
+    "page": 3,
+    "position": 33,
+    "url": "https://stanleystella.com/en-eu/customer/account/forgotpassword/"
+  },
+  {
+    "sku": "STAU892",
+    "page": 3,
+    "position": 34,
+    "url": "https://stanleystella.com/bu"
+  },
+  {
+    "sku": "STAU763",
+    "page": 3,
+    "position": 35,
+    "url": "https://stanleystella.com/en-eu/"
+  },
+  {
+    "sku": "STAU891",
+    "page": 3,
+    "position": 36,
+    "url": "https://stanleystella.com/en-eu/collection/collection"
+  },
+  {
+    "sku": "STTK184",
+    "page": 4,
+    "position": 1,
+    "url": "https://stanleystella.com/static/version1768816224/frontend/StanleyStella/default/en_IE/css/styles.css"
+  },
+  {
+    "sku": "STPK908",
+    "page": 4,
+    "position": 2,
+    "url": "https://stanleystella.com/en-eu/collection/collection?p=4"
+  },
+  {
+    "sku": "STSK181",
+    "page": 4,
+    "position": 3,
+    "url": "https://stanleystella.com/en-eu/collection/collection?p=3"
+  },
+  {
+    "sku": "STSK180",
+    "page": 4,
+    "position": 4,
+    "url": "https://stanleystella.com/media/favicon/default/favicon-32x32.png"
+  },
+  {
+    "sku": "STSK182",
+    "page": 4,
+    "position": 5,
+    "url": "https://stanleystella.com/media/favicon/default/favicon-32x32.png"
+  },
+  {
+    "sku": "STBK102",
+    "page": 4,
+    "position": 6,
+    "url": "https://stanleystella.com/choose-country-region"
+  },
+  {
+    "sku": "STSK183",
+    "page": 4,
+    "position": 7,
+    "url": "https://stanleystella.com/de-de/collection/collection"
+  },
+  {
+    "sku": "STUB103",
+    "page": 4,
+    "position": 8,
+    "url": "https://stanleystella.com/de-eu/collection/collection"
+  },
+  {
+    "sku": "STTB918",
+    "page": 4,
+    "position": 9,
+    "url": "https://stanleystella.com/en-be/collection/collection"
+  },
+  {
+    "sku": "STSB920",
+    "page": 4,
+    "position": 10,
+    "url": "https://stanleystella.com/en-de/collection/collection"
+  },
+  {
+    "sku": "STSB105",
+    "page": 4,
+    "position": 11,
+    "url": "https://stanleystella.com/en-es/collection/collection"
+  },
+  {
+    "sku": "STSB919",
+    "page": 4,
+    "position": 12,
+    "url": "https://stanleystella.com/en-eu/collection/collection?p=4"
+  },
+  {
+    "sku": "STBB187",
+    "page": 4,
+    "position": 13,
+    "url": "https://stanleystella.com/en-fr/collection/collection"
+  },
+  {
+    "sku": "STAU029",
+    "page": 4,
+    "position": 14,
+    "url": "https://stanleystella.com/en-gb/collection/collection"
+  },
+  {
+    "sku": "STSU011",
+    "page": 4,
+    "position": 15,
+    "url": "https://stanleystella.com/en-it/collection/collection"
+  },
+  {
+    "sku": "STJM836",
+    "page": 4,
+    "position": 16,
+    "url": "https://stanleystella.com/en-nl/collection/collection"
+  },
+  {
+    "sku": "STJW838",
+    "page": 4,
+    "position": 17,
+    "url": "https://stanleystella.com/en-pl/collection/collection"
+  },
+  {
+    "sku": "STJM837",
+    "page": 4,
+    "position": 18,
+    "url": "https://stanleystella.com/es-es/catalogo/collection"
+  },
+  {
+    "sku": "STJW839",
+    "page": 4,
+    "position": 19,
+    "url": "https://stanleystella.com/es-eu/collection/collection"
+  },
+  {
+    "sku": "STJW899",
+    "page": 4,
+    "position": 20,
+    "url": "https://stanleystella.com/fr-be/collection/collection"
+  },
+  {
+    "sku": "STJW897",
+    "page": 4,
+    "position": 21,
+    "url": "https://stanleystella.com/fr-eu/collection/collection"
+  },
+  {
+    "sku": "STJM898",
+    "page": 4,
+    "position": 22,
+    "url": "https://stanleystella.com/fr-fr/collection/collection"
+  },
+  {
+    "sku": "STJM889",
+    "page": 4,
+    "position": 23,
+    "url": "https://stanleystella.com/it-eu/collection/collection"
+  },
+  {
+    "sku": "STTU815",
+    "page": 4,
+    "position": 24,
+    "url": "https://stanleystella.com/it-it/collezione/collection"
+  },
+  {
+    "sku": "STJU845",
+    "page": 4,
+    "position": 25,
+    "url": "https://stanleystella.com/nl-be/collectie/collection"
+  },
+  {
+    "sku": "STBU070",
+    "page": 4,
+    "position": 26,
+    "url": "https://stanleystella.com/nl-eu/collection/collection"
+  },
+  {
+    "sku": "STAU762",
+    "page": 4,
+    "position": 27,
+    "url": "https://stanleystella.com/nl-nl/collectie/collection"
+  },
+  {
+    "sku": "STSU824",
+    "page": 4,
+    "position": 28,
+    "url": "https://stanleystella.com/pl-eu/collection/collection"
+  },
+  {
+    "sku": "STSU856",
+    "page": 4,
+    "position": 29,
+    "url": "https://stanleystella.com/pl-pl/collection/collection"
+  },
+  {
+    "sku": "STSU857",
+    "page": 4,
+    "position": 30,
+    "url": "https://stanleystella.com/en-eu/bu"
+  }
+]

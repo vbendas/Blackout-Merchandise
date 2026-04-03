@@ -2,43 +2,88 @@
 
   ---
 
-  ## Executive Summary
+## Development Status (Feb 19, 2026)
+  
+**Current Phase:** 3.5-3.6 (App Enhancement) — ~80% Complete
+  
+**Just Completed:**
+- ✅ UI polish: X button positioning, overflow clipping fixes
+- ✅ Functional icons: Session History & Notifications panels now responsive
+- ✅ Global rebranding: "Design Studio" → "Merch Studio" across all UI
+- ✅ Code cleanup: Removed legacy ViewMode state management system
+- ✅ **NEW:** Campaign Management with MCP integration (Phase 4b)
+  
+**Next Up:**
+- Phase 4: Backend Core (Neon + Clerk + Drizzle) — Ready to begin Feb 9
+- Phase 4b: Campaign Management (Meta/TikTok Ads MCP) — After Phase 4 core
+- Phase 5: AI Integration (Real LLM/image models)
+- Phase 6: Commerce (Stripe payments & orders)
+  
+  **Full Roadmap:** See `/Documentation/02-Roadmap/Roadmap.md`
 
-  > **One-liner:** Merch From is the AI-powered merch platform for artists who care about quality. Premium blanks, zero upfront costs, conversational commerce.
+  ---
 
-  ### The Opportunity
-  | Metric | Value |
-  |--------|-------|
-  | **TAM** | $340B (Global Licensed Merchandise) |
-  | **SAM** | $12B (European Creator Merch) |
-  | **SOM (Year 1-3)** | $50M (0.4% market capture) |
+  ## 0. Executive Quick Reference
 
-  ### The Ask
-  | Investment | Equity | Runway |
-  |------------|--------|--------|
-  | **€300,000** | 16-18% | 24 months to profitability |
+  > **Purpose:** At-a-glance overview for investors and team members.
+  > **For detailed sections:** See references below to dive deeper.
 
-  ### Why Now
-  - **200M+ creators** worldwide lack premium merch solutions
-  - **70%+ Gen Z/Millennials** prefer ethical/sustainable products
-  - **No competitor** combines AI design + premium production + ethical sourcing
-  - **Existing POD platforms** (Printful, Redbubble) prioritize volume over quality
+  ### At-a-Glance Summary
+  - **One-liner:** AI-powered premium merch platform for artists who care about quality
+  - **Market:** $12B European Creator Merch, $50M SOM target
+  - **Ask:** €300K for 16-18% equity, 24 months runway
+  - **Key Differentiators:** Cat-Suite AI, in-house production, ethical-first
 
-  ### Why This Founder
-  | Advantage | Proof |
-  |-----------|-------|
-  | **Craft Mastery** | 9 years screen printing, €113K owned equipment, Meta/Google clients |
-  | **Technical Execution** | Computer Engineering degree, AI MBA, multi-agent systems built |
-  | **Growth Marketing** | 12 years, $1.2M+ budgets, led 40+ person teams at Google/Pinterest |
-  | **AI Industry Insider** | Data annotation specialist (Outlier, Telus), AI Quality Specialist (Spider.cloud) |
+  ### Cat-Suite Roles
+  | Agent | Role | Primary Function |
+  |--------|------|---------------------|
+  | Leopoldo | Onboarding & Admin | Account setup, pricing, bulk orders |
+  | Francisca | Catalog & Design | Product curation, design creation |
+  | Antonia | Operations & Support | Shipping, returns, first-tier support |
 
-  ### Key Differentiators
-  1. **Cat-Suite AI Agents** — Leopoldo, Francisca, Antonia guide the entire artist journey
-  2. **In-House Production** — Own facility in Portugal, €113K equipment, quality control
-  3. **Zero Risk Model** — Artists pay nothing upfront, only when products sell
-  4. **Ethical First** — Vegan, fair-trade, organic blanks as standard (not premium add-on)
-  5. **Pantone Precision** — Magna Colours IM6 system ensures exact brand color matching (rare in POD)
-  6. **Proprietary Dataset** — Building world's only expert-scored screen print AI training data
+  ### Competitive Positioning
+  | Feature | Merch From | Fyul (Printful+Printify) | Gelato |
+  |---------|-----------|-------------------------|--------|
+  | AI Design | ✅ Cat-Suite | ❌ 3D Design Maker (not AI) | ❌ B2B only |
+  | Voice Interface | ✅ Mistral Voxtral (Real-Time Voice-to-Voice) | ❌ | ❌ |
+  | In-House Production | ✅ Portugal | ⚠️ Outsourced network | ⚠️ Partner network |
+  | Premium Default | ✅ Ethical standard | ⚠️ Add-on tier | ⚠️ Varies |
+  | Founder Credentials | 9 years craft + CS degree + AI MBA | See Section 1.5 |
+  | Competitive Analysis | See Section 1.9 for full comparison and threat scenarios |
+
+  > **For detailed founder profile, see Section 1.5**
+  > **For full competitive analysis, see Section 1.9**
+  > **For AI agent details, see Section 1.10**
+  > **For customer validation framework, see [./03-Evaluations/Customer-Validation-Framework.md](./03-Evaluations/Customer-Validation-Framework.md)**
+
+  ---
+
+  ---
+
+  ## 1. Executive Summary
+  
+  > **Purpose:** Concise investor overview. For detailed breakdowns, see **Section 0: Executive Quick Reference**.
+  
+  ### At-a-Glance
+  - **One-liner:** AI-powered premium merch platform for artists who care about quality
+  - **Market:** $12B European Creator Merch, $50M SOM target
+  - **Ask:** €300K for 16-18% equity, 24 months runway
+  - **Founder Summary:** 9 years craft + CS degree + AI MBA = triple-threat founder
+  - **Key Differentiators:** Cat-Suite AI, in-house production, ethical-first
+  
+  > **See Section 0 for:** Cat-Suite roles, competitive positioning, founder credentials, customer validation framework
+
+  ### Brand Voice & Slogans
+  > **Tone:** Aggressive, bold, unapologetic. We don't beg for customers — we curate them.
+
+  **Primary CTA Slogans:**
+  - *"Your fans wear your art. Why dress them in garbage?"*
+  - *"We don't work with everyone. But if you care about craft, we want to talk."*
+
+  **Supporting Taglines:**
+  - *"Buy Less, Buy Better."*
+  - *"Premium quality. Zero upfront costs. No compromises."*
+  - *"If you know, you know."*
 
   ### Milestones (24 Months)
   | Month | Milestone |
@@ -158,6 +203,7 @@
   - **Development Tools:** Git/GitHub, NPM, Agile, AI-assisted coding
   - **Automation:** N8n, Zapier, Google Apps Script
   - **Data & Analytics:** Tableau, SQL, NoSQL, custom dashboard development
+  - **Integration Tools:** **MCPO** (Model Context Protocol to OpenAPI) for future Social Commerce agent integration
   - **AI/ML:** Professional data annotation specialist (Outlier.ai, Micro1.ai, Telus Digital), AI Quality Specialist (Spider.cloud), MBA in AI & Automation, RAG systems, LLM training, advanced AI testing & failure analysis, corporate AI implementation (Chiliz)
 
   **Strategic AI Industry Positioning (2024-Present):**
@@ -363,6 +409,94 @@
 
   ## 1.6 The Expert Network (Team)
 
+  ### 1.6.1 Founder Dependency & Delegation Strategy
+
+  **The Challenge:**
+  Merch From's success depends on Victor's unique triple-threat expertise (craft + tech + marketing). This creates a single point of failure risk.
+
+  **Mitigation Measures:**
+
+  #### **1. SOP Documentation Library**
+  **Goal:** Document every process so it can be executed by others.
+
+  **Content:**
+  - **Production SOPs:** 9 years of documented processes (video + text)
+    - Screen printing workflow (coating, exposure, printing, curing)
+    - DTG/DTF workflow (pretreatment, printing, finishing)
+    - Quality control checkpoints
+    - Equipment maintenance schedules
+    - Troubleshooting guides
+
+  - **Platform SOPs:**
+    - Artist onboarding workflow
+    - Order fulfillment process
+    - Customer support protocols
+    - Financial reconciliation procedures
+    - Marketing campaign execution
+
+  **Delivery:** Complete by Month 6, accessible via internal wiki.
+
+  #### **2. AI Training for Production**
+  **Goal:** Create custom AI assistant to guide production team.
+
+  **Implementation:**
+  - **Training Data:** 500+ documented production scenarios
+  - **AI Model:** Fine-tuned Llama 3.1 8B (self-hosted)
+  - **Use Cases:**
+    - "How do I fix registration issues on the Anatol press?"
+    - "What's the correct cure temperature for Magna inks?"
+    - "How to troubleshoot DTG banding?"
+    - "Screen reclaiming step-by-step guide"
+
+  **Benefit:** Production manager can get instant expert guidance without Victor's constant availability.
+
+  #### **3. Brazilian Agency Partnership**
+  
+  > **Note:** Detailed in Section 1.5 (Strategic Outsourcing Partner) above. Summary:
+  - **Human-in-the-Loop Design Desk:** Dedicated designer (Brazilian agency)
+  - **Responsibilities:** Handle "Francisca" support tickets, fix AI designs, finalize art files
+  - **Cost:** €1,500-2,000/month (3x efficiency vs EU)
+
+  #### **4. Production Manager Hiring**
+  **Goal:** Delegate production operations by Month 7-8.
+
+  **Profile:**
+  - **Location:** Portugal (local hire, lower cost)
+  - **Experience:** 3-5 years screen printing/DTG experience
+  - **Training:** Victor provides 2-week intensive training
+  - **Responsibilities:**
+    - Daily production oversight
+    - Quality control
+    - Equipment maintenance
+    - Staff management (future)
+    - Inventory management
+
+  **Cost:** €1,400/month (equal wage model) + profit-sharing.
+
+  #### **5. Expert Panel Support**
+  **Goal:** Quality validation without Victor's daily involvement.
+
+  **Process:**
+  - **Weekly Review:** Expert panel scores 10% of production samples
+  - **Feedback Loop:** Annotated improvements sent to production team
+  - **Training Data:** Every review improves the AI assistant
+  - **Escalation:** Complex issues routed to panel for resolution
+
+  **Benefit:** Maintains premium quality standard without founder micromanagement.
+
+  #### **6. Internal Tools Development**
+  **Goal:** Build systems that reduce manual work.
+
+  **Tools:**
+  - **Production Dashboard:** Real-time order tracking, capacity planning
+  - **Quality Control App:** Mobile app for QC checkpoints
+  - **Inventory Management:** Automated reorder alerts
+  - **Financial Dashboard:** Real-time P&L, cost tracking
+
+  **Timeline:** Build incrementally during Phase 4-6.
+
+  ---
+
   ### EXPERT DATASET CURATOR PANEL (AI Training)
 
   **Building the World's Only Expert-Scored Screen Print Dataset**
@@ -516,7 +650,7 @@
   | Solution Component | How It Works |
   |-------------------|--------------|
   | **AI Store Management** | Leopoldo & Francisca handle the "business"—adding products, setting prices, and managing orders via chat. No dashboard needed. |
-  | **Visual Appearance Editor** | A dedicated drag-and-drop **Visual Editor** (shadcn/ui) allows artists to manually build their store pages. **Strictly manual control**—artists upload their own banners/media. No AI interference in the site design. |
+  | **Visual Appearance Editor** | A dedicated drag-and-drop **Visual Editor** (HeroUI) allows artists to manually build their store pages. **Strictly manual control**—artists upload their own banners/media. No AI interference in the site design. |
   | **AI Merch Design** | Cat-Suite agents (Francisca) assist **exclusively with product design** (t-shirts, hoodies)—creating art, refining mockups, and ensuring print-readiness. |
   | **Curated Quality** | Premium organic/fair-trade blanks + in-house production = higher standard than Redbubble/Printful. |
   | **Zero Upfront Cost** | Artists only pay when products sell (deducted from sale price). No MOQs, no inventory risk. |
@@ -527,44 +661,45 @@
 
   ## 1.9 Competitive Analysis
 
-  ### Direct Competitors (Print-on-Demand Platforms)
-
-  | Feature | **Merch From** | Printful | Printify | Redbubble | Spring (Teespring) | SPOD |
-  |---------|----------------|----------|----------|-----------|-------------------|------|
-  | **Store Builder** | ✅ **Visual Editor** (Manual Drag & Drop) | ❌ Complex dashboard | ❌ Complex dashboard | ⚠️ Basic templates | ⚠️ Limited | ❌ Complex |
-  | **AI Merch Design** | ✅ Full Cat-Suite (Francisca) | ❌ None | ❌ None | ❌ None | ❌ None | ❌ None |
-  | **Voice Interface** | ✅ Whisper integration | ❌ | ❌ | ❌ | ❌ | ❌ |
-  | **Blank Quality** | ✅ Premium organic, fair-trade | ⚠️ Standard | ⚠️ Varies by provider | ⚠️ Low-mid | ⚠️ Standard | ⚠️ Standard |
-  | **Ethical/Vegan Default** | ✅ Yes (core value) | ⚠️ Optional upgrade | ⚠️ Provider dependent | ❌ No | ❌ No | ⚠️ Limited |
-  | **In-House Production** | ✅ Own facility (Portugal) | ❌ Outsourced network | ❌ 100+ providers | ❌ Outsourced | ❌ Outsourced | ✅ Own facilities |
-  | **Quality Control** | ✅ Direct oversight | ⚠️ Varies | ⚠️ Varies greatly | ❌ Inconsistent | ⚠️ Varies | ✅ Good |
-  | **Screen Printing** | ✅ Specialty (8-20+ colors) | ⚠️ Basic | ⚠️ Provider dependent | ❌ DTG only | ❌ DTG only | ⚠️ Limited |
-  | **Bulk Orders (50+)** | ✅ Core offering | ⚠️ Available | ⚠️ Limited | ❌ No | ⚠️ Limited | ✅ Yes |
-  | **Artist Margin (Typical)** | 40-60% | 20-35% | 20-40% | 10-20% | 15-30% | 25-40% |
-  | **Onboarding UX** | ✅ Conversational + Visual | ❌ Complex dashboard | ❌ Complex dashboard | ⚠️ Simple but limited | ⚠️ Wizard-based | ❌ Complex |
-  | **Target Audience** | Premium artists, ethical brands | Volume sellers | Budget-conscious | Casual/hobbyist | Influencers | Volume sellers |
-
-  ### Why Existing Platforms Fail Artists
-
-  **Printful / Printify:**
-  - Complex dashboards require technical skills
-  - Quality varies across their outsourced network
-  - No design assistance—artists need existing assets
-  - Premium blanks cost extra, not default
-  - No screen printing expertise
-
-  **Redbubble / Spring:**
-  - Race-to-the-bottom pricing compresses artist margins
-  - Generic, mass-market feel doesn't match premium artist brands
-  - No bulk order support for touring artists
-  - Quality complaints common in reviews
-  - No ethical/sustainable positioning
-
-  **SPOD (Spreadshirt POD):**
-  - Good quality but no AI assistance
-  - Traditional dashboard UX, not conversational
-  - No ethical/vegan focus
-  - Limited customization
+   ### Direct Competitors (Print-on-Demand Platforms)
+   
+   | Feature | **Merch From** | Fyul (Printful+Printify) | Redbubble | Spring (Teespring) | SPOD |
+   |---------|----------------|-------------------------|-----------|-------------------|------|
+   | **Store Builder** | ✅ **Visual Editor** (Manual Drag & Drop) | ❌ Complex dashboard | ❌ Complex dashboard | ⚠️ Basic templates | ⚠️ Limited | ❌ Complex |
+   | **AI Merch Design** | ✅ Full Cat-Suite (Francisca) | ❌ 3D Design Maker (not AI) | ❌ None | ❌ None | ❌ None | ❌ None |
+   | **Voice Interface** | ✅ **Mistral Voxtral** (Real-Time Voice-to-Voice + Conversation Mode) | ❌ | ❌ | ❌ | ❌ | ❌ |
+   | **Blank Quality** | ✅ Premium organic, fair-trade | ⚠️ Standard | ⚠️ Low-mid | ⚠️ Standard | ⚠️ Standard | ⚠️ Standard |
+   | **Ethical/Vegan Default** | ✅ Yes (core value) | ⚠️ Optional upgrade | ⚠️ Provider dependent | ❌ No | ❌ No | ⚠️ Limited |
+   | **In-House Production** | ✅ Own facility (Portugal) | ❌ Outsourced network | ❌ Outsourced | ❌ Outsourced | ❌ Outsourced | ✅ Own facilities |
+   | **Quality Control** | ✅ Direct oversight | ⚠️ Varies | ⚠️ Varies | ❌ Inconsistent | ⚠️ Varies | ✅ Good |
+   | **Screen Printing** | ✅ Specialty (8-20+ colors) | ⚠️ Basic | ⚠️ Provider dependent | ❌ DTG only | ❌ DTG only | ⚠️ Limited |
+   | **Bulk Orders (50+)** | ✅ Core offering | ⚠️ Available | ⚠️ Limited | ❌ No | ⚠️ Limited | ✅ Yes |
+   | **Artist Margin (Typical)** | 40-60% | 20-35% | 20-40% | 10-20% | 15-30% | 25-40% |
+   | **Onboarding UX** | ✅ Conversational + Visual | ❌ Complex dashboard | ❌ Complex dashboard | ⚠️ Simple but limited | ⚠️ Wizard-based | ❌ Complex |
+   | **Target Audience** | Premium artists, ethical brands | Volume sellers | Budget-conscious | Casual/hobbyist | Influencers | Volume sellers |
+   
+   ### Why Existing Platforms Fail Artists
+   
+   **Fyul (Printful + Printify Merger):**
+   - Complex dashboards require technical skills
+   - Quality varies across their outsourced network
+   - No design assistance—artists need existing assets
+   - Premium blanks cost extra, not default
+   - No screen printing expertise
+   - **Competitive Gap:** Design Maker is 3D mockup tool, NOT conversational AI
+   
+   **Redbubble / Spring:**
+   - Race-to-the-bottom pricing compresses artist margins
+   - Generic, mass-market feel doesn't match premium artist brands
+   - No bulk order support for touring artists
+   - Quality complaints common in reviews
+   - No ethical/sustainable positioning
+   
+   **SPOD (Spreadshirt POD):**
+   - Good quality but no AI assistance
+   - Traditional dashboard UX, not conversational
+   - No ethical/vegan focus
+   - Limited customization
 
   ### Merch From's Unfair Advantages
 
@@ -593,14 +728,89 @@
 
   > **For independent artists and ethical brands** who want premium merchandise without the complexity, **Merch From** is the **AI-powered conversational commerce platform** that **designs, produces, and fulfills in-house with zero upfront cost**. Unlike Printful or Redbubble which outsource production and offer generic quality, **we combine owned manufacturing, expert screen printing, and a unique AI personality to deliver merch that actually matches your brand's values.**
 
-  ### AI Safety Nets (Hallucination Mitigation)
-  We prioritize customer satisfaction over AI autonomy. To mitigate "hallucinations" or unprintable designs:
-  1.  **Expert Scoring Loop:** The AI pre-scores its own designs for "Printability" using the expert-trained model. Low scores trigger a "Francisca suggests edits" flow rather than showing the user a bad design.
-  2.  **Human-in-the-Loop Routing:** Users have an explicit "Ask a Human Designer" option if they feel stuck or frustrated.
-  3.  **Frustration Detection:** If the AI detects negative sentiment or repeated rejections, the case is automatically routed to a human designer for review.
-  4.  **Failure-as-Data:** Every "failed" interaction or rejected design is anonymized and fed back into the training data to improve the model, effectively turning operational friction into a competitive moat.
-
-  ---
+   ### AI Safety Nets (Hallucination Mitigation)
+   We prioritize customer satisfaction over AI autonomy. To mitigate "hallucinations" or unprintable designs:
+   1.  **Expert Scoring Loop:** The AI pre-scores its own designs for "Printability" using expert-trained model. Low scores trigger a "Francisca suggests edits" flow rather than showing the user a bad design.
+   2.  **Human-in-the-Loop Routing:** Users have an explicit "Ask a Human Designer" option if they feel stuck or frustrated.
+   3.  **Frustration Detection:** If the AI detects negative sentiment or repeated rejections, the case is automatically routed to a human designer for review.
+   4.  **Failure-as-Data:** Every "failed" interaction or rejected design is anonymized and fed back into the training data to improve the model, effectively turning operational friction into a competitive moat.
+   
+   ---
+   
+   ---
+   
+   ## 1.9.1 Competitive Threat Analysis
+   
+   > **Research Status:** Updated January 23, 2026 based on current competitive landscape
+   
+   ### The Fyul Merger Reality (November 2024)
+   
+   **What Happened:** Printful + Printify merged into **Fyul**
+   
+   | Metric | Value | Implication |
+   |---------|--------|-------------|
+   | **Employees** | 2,000+ | Can execute fast with deep pockets |
+   | **Funding** | $184M+ combined | Significant R&D budget |
+   | **Valuation** | $1B+ | Can acquire competitors or innovate rapidly |
+   | **AI Focus** | Blog content + 3D mockups | Wrong direction for conversational AI |
+   
+   **Strategic Impact:** Fyul is now the dominant POD platform with resources to build AI features quickly. Our 12-18 month window for conversational AI advantage is REAL but time-limited.
+   
+   ### Fyul Response Scenarios (6-18 Month Horizon)
+   
+   | Threat Level | Scenario | Our Counter-Strategy |
+   |--------------|-----------|---------------------|
+   | **HIGH** | Add AI Design Assistant (ChatGPT wrapper) | Counter: **Expert-scored dataset** (6,600+ student validation from Expert) vs. generic LLM |
+   | **HIGH** | Launch "Fyul Conversational" brand | Counter: **Cat-Suite personalities** (emotional connection) vs. generic bot |
+   | **MEDIUM** | Premium blank tier (organic/fair-trade) | Counter: **In-house production** (Pantone precision) vs. outsourced provider network |
+   | **LOW** | Voice interface via existing providers | Counter: **Mistral Voxtral** (real-time voice, open weights, EU-based) + **Mistral Large** (character chat) + Cat-Suite context awareness |
+   | **MEDIUM** | Copy "Velvet Rope" exclusivity model | Counter: **VIP Sentinel** (our already has technical implementation) + **Artist-vetted waitlist** |
+   
+   ### Gelato Response Scenarios
+   
+   | Threat Level | Scenario | Our Counter-Strategy |
+   |--------------|-----------|---------------------|
+   | **MEDIUM** | AI Estimator (B2B tool) | Counter: B2B focus doesn't address creator needs directly |
+   | **LOW** | AI Product Onboarding (automated) | Counter: B2B only, not artist-facing AI |
+   | **MEDIUM** | Copy ethical/sustainability messaging | Counter: Equal wages + vegan/fair-trade as core DNA |
+   | **HIGH** | Fast Company Innovation recognition | Counter: We focus on creator experience, not industry awards |
+   
+   ### Win-By-Default Scenarios (Fyul and Gelato Cannot Replicate)
+   
+   1. **Touring Bands** - Need bulk orders + quick turnaround
+      - Fyul outsources: 10-14 days production
+      - Merch From in-house: 3-5 days shipping
+   
+   2. **Pantone Precision** - Brand-conscious artists
+      - Fyul/Gelato: Digital approximation ("closest match")
+      - Merch From: Exact Magna IM6 ink mixing OR calibrated DTG
+   
+   3. **Metal/Punk Network** - Victor's 9-year relationships
+      - Blackout client portfolio: Meta, Google, Sepultura, Electric Picnic
+      - Cannot be acquired or replicated by corporate moves
+   
+   4. **Artist Education** - AI helps beginners
+      - Fyul/Gelato: Expects existing design assets
+      - Merch From: AI-assisted creation from scratch
+   
+   5. **Ethical Certification Path** - B-Corp trajectory
+      - Fyul/Gelato: Ethical as add-on tier
+      - Merch From: Ethical as core DNA (equal wages, vegan/fair-trade standard)
+   
+   ### Moat Defense Strategy
+   
+   **Timeline for AI Dataset IP Protection:**
+   - **Months 1-3:** Capture expert panel scoring data (Expert, Expert B, Expert C)
+   - **Months 3-6:** Train and validate proprietary model
+   - **Months 6-12:** Patent key training methodologies
+   
+   **Exclusive Relationships:**
+   - Expert panel (Expert: 6,600+ students, Expert B/Expert C: proprietary techniques)
+   - Not contractually transferable to competitors
+   
+   ---
+   
+   ---
 
   ---
 
@@ -615,16 +825,29 @@
   | Element | Specification | Usage |
   |---------|---------------|-------|
   | **Base** | `zinc-950` (Deepest Charcoal) | Backgrounds, cards (softer than pure black) |
+  | **Base (Landing)** | `#000000` (Pure Black) | Landing page only — more dramatic |
   | **Primary** | `#FFFFFF` (Stark White) | Main text for maximum contrast |
-  | **Accent** | `#E11D48` (Recording Red) | "Action" buttons, recording status, active states |
+  | **Accent (App)** | `#E11D48` (Recording Red) | Main app "Action" buttons, recording status, active states |
+  | **Accent (Landing)** | Gold Sheen Gradient | Landing page CTAs, highlights, premium feel |
   | **Typography** | **Space Grotesk** (Headings) | Hero titles, section headers (quiky, tech-inspired) |
   | **Body Font** | **Inter** (Text) | Legible, clean, invisible UI text |
+| **Motion Icons** | **ItsHover** (React) | Intent-aware animated icons for micro-interactions |
+
+  > **Gold Sheen Effect (Landing Page):**
+  > ```css
+  > background: linear-gradient(135deg, #D4AF37 0%, #F5E6A3 50%, #D4AF37 100%);
+  > box-shadow: 0 0 60px rgba(212, 175, 55, 0.15);
+  > color: #D4AF37;
+  > ```
+
+  > **Implementation Status (Jan 2026):** Switched to **HeroUI** (previously NextUI) component library for premium out-of-box aesthetics. Configured with sharper border-radius (`0.375rem`), zinc base color, and Recording Red CSS variable (`--recording`). Official Figma UI kit available for design iteration.
 
   ### Comparison: Why This Aesthetic? ("Showroom vs. Workshop")
   We deliberately embrace a duality in our visual language:
   - **The Showroom (Frontend/AI):** Clean, Apple-esque, "Ink & Void" aesthetic. It feels like a high-tech lab where magic happens.
   - **The Workshop (Production/Back-end):** Marketing materials and "behind-the-scenes" content embrace the gritty, industrial reality of screen printing—ink splatters, mechanical noise, tangible craft.
-  This proves we aren't just a software wrapper; we are a **maker** company. The **Red Accents** bridge both worlds—signaling "recording" in the AI interface and "warning/action" in the factory.
+  - **The Landing Page:** Pure black with gold sheen accents — luxury fintech aesthetic for waitlist/crowdfunding. Premium, minimal, mobile-first.
+  This proves we aren't just a software wrapper; we are a **maker** company. The **Red Accents** bridge both worlds in the main app—signaling "recording" in the AI interface and "warning/action" in the factory. **Gold Sheen** is reserved for marketing/landing pages to convey luxury and exclusivity.
 
   ### Key Interface Components
 
@@ -636,6 +859,27 @@
     - **Leopoldo:** Sales Strategy & Business Ops (The "Boss") - Pricing, bulk orders, margin optimization.
     - **Francisca:** Merch Product Design & Print Strategy (The "Visionary") - Focused *strictly* on key art and product creation.
     - **Antônia:** Logistics & Support (The "Hunter") - Shipping, returns, customer service.
+
+  ##### Cat-Suite Animation Evolution (Phased Approach)
+  
+  > **Status (Jan 2026):** Assets complete for all 3 characters (20 expressions each, 8K resolution). Phase A implementation in progress.
+
+  | Phase | Approach | Features | Timeline |
+  | :--- | :--- | :--- | :--- |
+  | **Phase A (MVP)** | Expression Swapping | Full-body image swaps based on AI state. 20 expressions per character. Simple but effective. Uses Framer Motion for transitions. | Q1 2026 |
+  | **Phase B (Future)** | Full Puppet System | Layer separation (Body, Head, Eyes, T-Shirt, Paws, Tail). Eye tracking follows cursor. Paws animate on user input. T-shirt area shows user designs in real-time. | Post-MVP |
+  
+  **Phase A Implementation (MVP):**
+  - 60 total expression images (20 × 3 characters) with backgrounds removed
+  - Cloudinary serves optimized images via CDN
+  - React/Framer Motion handles smooth crossfade transitions
+  - AI state triggers expression changes (Neutral → Thinking → Happy, etc.)
+  
+  **Phase B Vision (Future Enhancement):**
+  - Separate layers: Body (static), Head (swappable), Eyes/Pupils (mouse tracking), T-Shirt (design overlay), Paws (typing indicator), Tail (idle animation)
+  - Rive state machines for complex interactions
+  - Real-time t-shirt design preview on avatar
+  - "The Daily Drip" feature: avatars wear top-selling user designs
 
   #### 2. Chat Conversation UI
   - **Layout:** WhatsApp/Telegram paradigm (bubbled messages).
@@ -684,18 +928,20 @@
   - **Thinking:** Agents maintain a `thinking_chin_stroke` pose while the token stream generates, replacing generic spinners.
   - **Lip Sync:** Mouth moves in sync with TTS audio using Rive's audio analyzer.
 
-  #### 5. Dynamic Transitions: "Hero to Copilot"
+  #### 5. Dynamic Transitions: "Hero to Copilot" (Legacy Reference)
+
+  > **Architecture Update (Jan 2026):** The split-screen "Workshop" and floating "Showroom" modes have been consolidated into a **unified Chat-First interface** (see Section 1.11). The transitions below are preserved for reference but the primary UX is now conversational.
+
   To maintain the "Premium" feel and ensure the AI is helpful without being intrusive, we utilize a context-aware layout system called **"Hero to Copilot."**
 
   | Context | Avatar Mode | Layout Description | Transition Behavior |
   | :--- | :--- | :--- | :--- |
   | **Landing / Auth / Handover** | **Hero Mode** | **Center Stage:** Avatar is large, occupying the focal point using the "Full Body" Rive state. | Default state. Commands attention. |
-  | **Workshop (Visual Editor)** | **Copilot Studio** | **Split-Screen (75% Canvas / 25% Studio):** Francisca moves to a dedicated right-hand sidebar. This "Studio" contains the avatar, chat, and a **"Staging Area"** for generating assets before they are dropped onto the canvas. | Smooth slide animation. The canvas "unfolds" from the left while the avatar docks right. |
-  | **Showroom (Browsing)** | **Ambient Orb** | **Floating Dock:** Leopoldo shrinks into a "Dynamic Island" style pill or glowing orb at the bottom-right. He monitors browsing and pulses to offer suggestions. | Avatar "pops" down into the dock. Expands on hover or active conversation. |
-  | **Support Summon** | **Tag-In** | **Shift Change:** The current agent gestures "off-stage" and walks out Left. Antônia enters briskly from the Right. | **Lighting Shift:** The background tone shifts slightly (Warmer for Art -> Cooler/Clean for Support). |
+  | **Chat Interface (Primary)** | **Sidebar Mode** | **Unified Chat:** Agent avatar in sidebar (50px), chat area with rich responses. See Section 1.11. | Smooth fade from Hero → Chat layout. |
+  | **Support Summon** | **Agent Swap** | **In-Chat Handoff:** Current agent sends handoff message, sidebar avatar swaps to new agent. | Avatar transition animation in sidebar. |
 
   **Technical Implementation:**
-  - **Rive Inputs:** The `view_mode` input triggers state changes (e.g., `Hero` -> `Sidebar_Bust` -> `Orb_Icon`).
+  - **Rive Inputs:** The `view_mode` input triggers state changes (e.g., `Hero` → `Sidebar`).
   - **Persistence:** The chat history and audio session remain active during all transitions, preserving the illusion of a continuous journey.
 
   #### 6. Sticky Header / Mega Menu
@@ -716,14 +962,217 @@
   - **Not For:** App interactions — agent transitions use button-triggered animations, not scroll
   - **Mobile Fallback:** Auto-play or tap-to-progress (scroll-scrub feels less natural on touch)
 
-  #### 9. Seamless Transaction Strategy ("The Invisible Checkout")
+  #### 9. Chat-First Interface Architecture (Unified Experience)
+
+  > **Status (Jan 2026):** Pivoted from Workshop/Showroom split to a unified Chat-First interface. This consolidates all interactions into a familiar ChatGPT-style UX.
+
+  **The Core Insight:**
+  Users are already trained by ChatGPT/Claude/Perplexity on how to interact with AI. Instead of inventing custom UX for "Showroom" (browsing) and "Workshop" (designing), we leverage this learned behavior with a **single conversational interface**.
+
+  **Layout Structure:**
+  ```
+  ┌─────────────────────────────────────────────────────────┐
+  │  SIDEBAR                    │  MAIN CHAT AREA           │
+  │                             │                           │
+  │       Leopoldo              │  🐱 "What merch today?"   │
+  │    ┌───────────┐            │                           │
+  │    │    🐱     │            │  User: "Show me tees"     │
+  │    └───────────┘            │                           │
+  │    ░░ shadow fade ░░        │  [PRODUCT CAROUSEL]       │
+  │                             │  [Organic Tee] [Classic]  │
+  │  🔍 Search...               │                           │
+  │                             │  🐱 "Great choice! Want   │
+  │  RECENT                     │      to customize it?"    │
+  │  > T-shirt project          │                           │
+  │  > Hoodie collection        ├───────────────────────────┤
+  │                             │  "Show me the garment     │
+  │  ─────────────────────      │   options"                │
+  │  👤 User Name          ▼    │  "I want to create a      │
+  │     Pro workspace           │   new design"             │
+  │                             │  ↓ More suggestions       │
+  │                             ├───────────────────────────┤
+  │                             │  [Type message...]  🎤 ➤  │
+  └─────────────────────────────────────────────────────────┘
+  ```
+
+  **Sidebar Design:**
+  - **Top:** Agent name + larger avatar (50px) with shadow fade
+  - **Search bar:** Below avatar
+  - **Chat history:** "Recent" only (no "Pinned")
+  - **Bottom:** User profile (click opens settings dropdown)
+  - Settings gear removed from sidebar — consolidated into profile dropdown
+
+  **Conversational Prompt Suggestions:**
+  Instead of button-style chips (`[Browse Garments]`), we use full conversational sentences:
+  - "Show me the garment options"
+  - "I want to create a new design"
+  - "Check my store analytics"
+  - "Help me set up my e-shop"
+
+  These appear in a **collapsible list** above the input bar:
+  - **Collapsed:** Clean input bar only
+  - **Expanded (on input focus):** Prompt suggestions appear, scrollable with "Show more"
+  - **Context-aware:** Suggestions change based on conversation state
+
+  **Rich Response Types:**
+  The Cat-Suite sends interactive elements inline with chat:
+  | Response Type | Example Use Case |
+  |---------------|------------------|
+  | **Carousel** | Garment options, t-shirt styles |
+  | **Product Card** | Selected item with mockup preview |
+  | **Mockup Preview** | Design applied to garment |
+  | **Dashboard Stats** | Sales analytics inline |
+  | **Action Buttons** | "Confirm order", "Edit design" |
+
+  **Agent Swap Mechanics:**
+  When the conversation topic changes domain, agents hand off naturally:
+
+  ```
+  User: "I want to track my order"
+
+  🐱 Leopoldo: "Order tracking? Let me get Antônia — she's our logistics expert!"
+
+  [Avatar smoothly transitions: Leopoldo → Antônia in sidebar]
+
+  🐈 Antônia: "Hey! I've got your order info. Which shipment?"
+  ```
+
+  | Topic Domain | Primary Agent | Swap Trigger |
+  |--------------|---------------|--------------|
+  | Business, pricing, onboarding | **Leopoldo** 👔 | Default |
+  | Design, artwork, mockups | **Francisca** 🎨 | "design", "mockup", "artwork" |
+  | Orders, shipping, returns | **Antônia** 📦 | "order", "tracking", "shipping" |
+
+  **Handoff Example Lines:**
+  - Leopoldo → Francisca: "Design talk? Francisca's your girl!"
+  - Francisca → Antônia: "Shipping question? Antônia's got you covered!"
+  - Antônia → Leopoldo: "Business strategy? Let me get the boss..."
+
+  **Benefits:**
+  - Single screen — no navigation, no context switching
+  - Familiar UX — users already know how to chat with AI
+  - Reduced complexity — fewer components to build/maintain
+  - Personality-rich — agent swaps add memorable charm
+
+  ---
+
+  #### 9.1 "Velvet Rope" Homepage Strategy (Invite-Only UX)
+
+  > **Status (Jan 10, 2026):** Adopted a two-layer homepage architecture that differentiates anonymous visitors from authenticated users.
+
+  **The Core Insight:**
+  Invite-only platforms don't explain themselves. Luxury brands don't beg for customers. The public homepage should create **intrigue and exclusivity**, not marketing conversion.
+
+  **Two-Layer Architecture:**
+  | Visitor Type | Experience |
+  |--------------|------------|
+  | **Anonymous** | Portfolio showcase — "If you know, you know" |
+  | **Authenticated** | Full Leopoldo AI chat interface (see Section 1.11) |
+
+  **Anonymous Homepage Design:**
+  ```
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  MERCH FROM              [Portfolio]  [About]  [Login]          │
+  ├─────────────────────────────────────────────────────────────────┤
+  │                                                                 │
+  │      "We help artists to produce, design and                   │
+  │              source premium merchandise"                        │
+  │                                                                 │
+  │                     🐱 Leopoldo Avatar                          │
+  │                   (shadow fade transition)                      │
+  │                                                                 │
+  ├─────────────────────────────────────────────────────────────────┤
+  │                                                                 │
+  │    [Masonry Grid: Portfolio of printed garments]               │
+  │    - Artist collaborations                                      │
+  │    - Festival merch                                            │
+  │    - Premium blanks showcase                                    │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+  ```
+
+  **Design References:**
+  - [Qi143](https://qi143.qodeinteractive.com/) — Masonry portfolio, editorial feel
+  - [Terrible*](https://www.terrible.group/) — "We don't work with everyone" energy
+
+  **Why This Works:**
+  1. **Intrigue** — Visitors wonder "Who are their clients?"
+  2. **Exclusivity** — "They don't need to sell themselves"
+  3. **Social proof** — Portfolio shows real work with real artists
+  4. **Less to build** — Portfolio page is simpler than marketing site
+  5. **Leverages existing work** — 9 years of Blackout Merchandise portfolio
+
+  ---
+
+  #### 10. Seamless Transaction Strategy ("The Invisible Checkout")
   We prioritize "Flow" over "Forms". The goal is **zero keyboard usage** for transactions.
-  - **Auth:** **Biometrics First** (Passkeys via Supabase).
+  - **Auth:** **Biometrics First** (Passkeys via Clerk).
     - *Flow:* User taps "Sign In" → FaceID/TouchID prompt → Logged in.
     - *Fallback:* Email Magic Link (No passwords to forget).
   - **Payments:** **Express Checkout** (Stripe Element).
     - *Flow:* Leopoldo presents "Pay Now" card → User taps → Apple/Google Pay Sheet slides up → FaceID confirmation.
     - *Result:* Shipping/Billing info pulled directly from OS. No typing.
+
+  #### 10.1 AI Store Customization (Francisca + V0)
+  Artists customize their e-shop storefronts through **natural conversation** with Francisca, powered by V0's code generation API behind the scenes.
+
+  **The User Experience:**
+  > Artist: "Make my store darker with a masonry product grid"
+  > 
+  > Francisca: "Done! I've updated your layout. Want me to add hover effects too?"
+
+  The artist never sees V0 — only the Cat-Suite interface.
+
+  **Technical Architecture:**
+  ```
+  Artist Request → Francisca (LLM Classifier) → V0 API → Sanitized CSS/Layout → Applied to Store
+  ```
+
+  **Smart Model Routing (Cost Optimization):**
+  Francisca classifies request complexity and routes to the cheapest capable model:
+
+  | Request Type | Example | Model | Cost |
+  |--------------|---------|-------|------|
+  | **Simple** | "Change my banner image" | V0 Mini | $0.50/1M input |
+  | **Medium** | "Add masonry grid layout" | V0 Pro | $1.50/1M input |
+  | **Complex** | "Redesign entire page" | V0 Max | $3.50/1M input |
+
+  **Estimated Cost:** ~80% of requests are simple (image/text swaps) → V0 Mini handles most work at minimal cost.
+
+  **Rate Limiting:**
+  - Daily limit per artist: 10-15 customization prompts
+  - Monthly cap: 100 prompts
+  - Prevents runaway costs while enabling real value
+
+  **Sandboxed Editing (Artist Can Modify):**
+  - Banner images and text
+  - Color theme (from preset palette)
+  - Product grid layout
+  - About section content
+  - Social links
+
+  **Platform-Controlled (Locked):**
+  - Navigation structure
+  - Cart/Checkout flow
+  - Cat-Suite agent placement
+  - Core functionality
+  - Backend logic and database
+  - Authentication and payments
+
+  > [!IMPORTANT]
+  > **Frontend-Only Access:** Artists can ONLY modify visual presentation (CSS, images, text, colors). They have ZERO access to backend code, database, structure, or platform logic. Francisca enforces these boundaries and will refuse requests that attempt to modify protected elements.
+
+  **The Starter Template:**
+  All artists begin with the same base e-shop template. Customization is a "skin" layer on top of a locked foundation. This ensures:
+  - Consistent buyer experience across all stores
+  - One codebase to maintain (not hundreds)
+  - Easy rollback/reset if artist breaks their styling
+  - Platform updates can be pushed to all stores
+
+  **Safety Features:**
+  - Version history (undo any change)
+  - "Reset to Default" one-click recovery
+  - Output validation before applying
 
   ---
 
@@ -795,7 +1244,143 @@
 
   ---
 
+  ---
+
+## 1.12 Waiting List Application (The "Voice Interview")
+
+To create exclusivity and gather rich intent data, we replace the standard "Sign Up Form" with a **Voice-to-Voice Interview** with Leopoldo.
+
+### The Strategy: "The Velvet Rope"
+*   **Goal:** Filter for passion/quality and "wow" the user immediately with our tech.
+*   **Mechanism:** MiniMax Speech 2.6 Real-Time Voice API.
+*   **Cost Control:** Used *only* for this 60-second interview. Post-interview, the app reverts to standard Text/STT.
+
+### The Flow
+1.  **Entry:** User clicks "Apply for Access" on Landing Page.
+2.  **Setup:** "Leopoldo wants to meet you. Enable mic." (Fallback: "Prefer to type?" toggle).
+3.  **The Interview:** Leopoldo asks 3 key questions:
+    *   *Experience:* "Have you sold merch before, or is this your first drop?"
+    *   *Scale:* "How big is your audience right now?" (**Sentinel Trigger**)
+    *   *Vibe:* "Describe your art style in three words."
+4.  **The Sentinel Check (VIP Intercept):**
+    *   **Logic:** If user mentions >10k followers or "Touring", the AI **interrupts the script**.
+    *   **VIP Branch:** "Wow, 50k is serious. Listen, I can fast-track you to the Beta right now... but I need a favor. Would you record a quick 'I'm joining Merch From' shoutout for us?"
+    *   **Result:** We capture a testimonial *before* they even use the product.
+5.  **Completion:** "I've filed your application. Stay tuned."
+
+### Data Architecture: "The Shadow Transcript"
+   We do not analyze audio in real-time (expensive). We process **Text Transcript** post-call.
+    *   **Capture:** MiniMax Speech streams text -> Client buffers -> Saves to `waiting_list_interviews` table.
+   *   **Extraction (Async):** An LLM "Extractor Agent" reads transcript and tags user:
+     *   `WHALE` (>50k, Touring) -> Alert Founder.
+     *   `ICP` (Visual Artist, Ethical) -> Auto-Invite.
+     *   `NOISE` (Low effort) -> Nurture List.
+   
+   ---
+   
+   ---
+   
+   ## 1.13 Customer Validation Evidence
+   
+   > **Framework Document:** See [./03-Evaluations/Customer-Validation-Framework.md](./03-Evaluations/Customer-Validation-Framework.md) for detailed interview plans, survey templates, and validation criteria.
+   > **Status:** Framework only - Interviews to be conducted during waitlist + crowdfunding phases (Feb-Apr 2026)
+   
+   ### Interview Framework (Q1-Q2 2026)
+   
+   #### Planned Interviews by Persona
+   
+   | Persona | Target | Timing | Goal |
+   |----------|---------|--------|-------|
+   | **Existing POD Artist** | 5-10 artists | Feb 2026 | Deep pain point validation |
+   | **Touring Band** | 3-5 bands | Mar 2026 | Premium pricing + speed validation |
+   | **Digital Artist (First-Time)** | 5-10 artists | Feb 2026 | Barrier to entry analysis |
+   | **Ethical Brand** | 3-5 brands | Apr 2026 | Premium willing to pay |
+   
+   #### Quote Collection Structure
+   
+   When interviews are conducted, add to PRD with this format:
+   
+   ```
+   ### Artist Pain Points
+   - "The biggest problem with Printful is..." — [Artist Name], Existing POD Artist
+   - "We lost money on merch because..." — [Artist Name], Touring Band
+   - "What stops me from selling is..." — [Artist Name], Digital Artist
+   
+   ### Pricing Validation
+   - "I'd switch to Merch From if margins were..." — [Artist Name], Pricing sensitivity
+   - "My fans would pay more for..." — [Artist Name], Quality premium
+   
+   ### Feature Prioritization
+   - "AI would help me most with..." — [Artist Name], Feature ranking
+   ```
+   
+   ### Waitlist Survey Framework
+   
+   Automated follow-up to voice interview submissions:
+   
+   1. "What's your biggest merch challenge right now?"
+   2. "How much are you currently making per sale?"
+   3. "On a scale of 1-10, how important is ethical production?"
+   4. "What platform do you use now?"
+   5. "Would you try a demo in February?"
+   
+   **Data Capture:** Store in `waiting_list_surveys` table for analysis and investor materials.
+   
+   ### Validation Criteria for Product-Market Fit
+   
+   | Signal | Threshold | Action |
+   |---------|-----------|--------|
+   | **Pain Score ≥ 7** | 7+ out of 10 on survey | Prioritize for beta access |
+   | **Willingness to Pay Premium** | ≥10% margin + €2-3 base cost premium | Strong ICP fit |
+   | **Ethical Priority ≥ 8** | 8+ out of 10 on survey | Target for marketing materials |
+   | **Demo Interest = Yes** | Explicit yes to trial | Invite to immediate beta |
+   | **Touring Band Need** | <7 day turnaround required | Fast-track production SOP |
+   | **AI Design Ranked #1-2** | AI assistance in top 2 priorities | Validate core value prop |
+   
+   ### Investor Presentation Quotes (Target Collection)
+   
+   When quotes are collected, these become investor materials:
+   
+   #### Margins
+   > "I make €2 per €25 shirt on Redbubble. That's criminal. Merch From offered me €14 for the same sale." — Existing POD Artist
+   
+   #### Quality
+   > "Fans constantly tell me my Redbubble shirts feel cheap. I'd pay €5 more for premium quality." — Touring Band
+   
+   #### Speed
+   > "I'm on tour. I need merch in 3 days, not 14. Printful can't deliver that." — Touring Band
+   
+   #### AI Value
+   > "I have great ideas but don't know how to prepare files for print. AI would solve everything." — Digital Artist
+   
+   #### Ethical Alignment
+   > "My customers ask about sustainability. I'd pay 20% more for certified ethical production." — Ethical Brand
+   
+   ---
+   
+   ---
+
+---
+
+
+  ## 1.13 Verification Plan
+
+  ### Manual Verification
+  - **End-to-End Testing:** Manual walkthroughs of the "Bulk Power-User" and "First-Timer" journeys.
+  - **Visual Inspection:** Verify Dark Mode ("Ink & Void") consistency and "Hero-to-Copilot" transitions.
+  - **Cross-Browser:** Validation on Chrome, Safari, and Firefox (Desktop & Mobile).
+
+  ### Automated Verification (DevTools MCP)
+  In addition to manual testing, we will use the **Chrome DevTools MCP** to enforce technical quality standards:
+  1.  **Accessibility (A11y):** Use `take_snapshot` to validate that all interactive elements have valid `aria-labels`, ensuring the "Ethical" value extends to digital inclusivity.
+  2.  **Network Performance:** Use `get_network_request` to assert **Time-to-First-Token (TTFT) < 500ms** for AI streams. "Thinking" animations must trigger immediately.
+  3.  **Error-Free Sessions:** Use `list_console_messages` to ensure **Zero Uncaught Exceptions** during critical user journeys.
+  4.  **Slow Network UX:** Use `emulate` (Slow 3G) to verify that the app remains functional and loading states are coherent under poor network conditions.
+
+  ---
+
   ## 2. Go-to-Market Strategy
+
 
   ### 2.1 Pre-Launch Validation Campaign (Weeks 1-10)
 
@@ -1063,7 +1648,7 @@
   This reserve covers ongoing operational costs:
 
   Platform infrastructure (24mo):          €7,200
-  Rive Pro License (Animation State Machines): €576
+  AI hosting (self-hosted GPU):            €7,200  (vs €480 Recraft)
   Marketing (ads, influencers):           €15,000
   Shipping & packaging supplies:           €8,000
   Utilities (24 months):                   €7,200
@@ -1103,42 +1688,42 @@
   - **Aligns with ethical brand values** (fair wages in local context)
   - **Strong screen printing community** and suppliers
   - **Better work-life balance** for team (cultural fit)
-  - **Property acquisition pathway** (300m² industrial units available for €100-120K)
+  - **Property acquisition pathway** via Castelo Branco industrial land grant (€0.01/m²)
 
-  **Facility Strategy (Rent-to-Own Roadmap):**
+  **Facility Strategy (Castelo Branco - Own from Day One):**
 
-  **Phase 1 (Year 1-2): Rent for Agility**
-  - Lease 300m² industrial unit in Porto (€1,000-1,200/month)
-  - Capital preserved for equipment, inventory, and team growth
-  - Operational flexibility during business model validation
-  - Fast setup (2-3 weeks vs 3 months for property purchase)
-  - Total rent investment: ~€28,800 over 24 months
+  **Decision: Castelo Branco over Porto**
+  - **Industrial land:** €0.01/m² via Castelo Branco Invest CB municipal program (vs €100-120K in Porto)
+  - **Equipment grant:** Up to 50% non-repayable support via Portugal 2030 interior incentives (vs 30% coastal)
+  - **Own facility from day one** instead of renting for 2-3 years
+  - **De-risk narrative:** "We own our industrial unit and recovered 50% of equipment costs through grants"
 
-  **Phase 2 (Year 2-3): Acquire Real Estate**
-  - Purchase identified 300m² industrial property (€100-120K)
-  - **Financing options:**
-    - **Option A:** Profits + bank mortgage (~€30K down, €90K financed)
-    - **Option B:** Include in Series A raise (€500K+ round)
-    - **Option C:** Sale-leaseback with investor (creative structuring)
-  - Convert rent expense into equity building
-  - Full facility customization and control
-  - Asset backing for future financing
-  - Property appreciation builds company value
+  **Financial Impact:**
+  | Item | Porto (Original) | Castelo Branco (New) |
+  |------|-----------------|---------------------|
+  | Industrial land | €100-120K purchase | ~€20 (2,000m² at €0.01/m²) |
+  | Monthly rent (Year 1-2) | €1,000-1,200/month | Near-zero (own land) |
+  | Equipment grant | None | Up to 50% (~€56,500 on €113K) |
+  | Total 24-month land cost | €128,800-148,800 | ~€20 + build-out |
+  | Asset ownership | Year 2-3 | Day one |
 
-  **Why This Approach:**
-  - ✅ **Capital efficiency now** - Preserve cash for growth during critical validation phase
-  - ✅ **Lower initial risk** - Investors not locked into illiquid real estate if pivot needed
-  - ✅ **Proven operations** - Buy property from position of strength (profitable business)
-  - ✅ **Better financing terms** - Bank loans available once business demonstrates revenue
-  - ✅ **Strategic milestone** - Property purchase signals permanence and success to market
-  - ✅ **Investor confidence** - Shows long-term planning and asset-building strategy
+  **Why Castelo Branco:**
+  - ✅ **Own, don't rent** - Building equity from day one, not burning €28,800 in rent
+  - ✅ **Grant recovery** - 50% equipment grant = ~€56.5K non-repayable (interior vs 30% coastal)
+  - ✅ **De-risk for investors** - Hard assets (facility + equipment) back the investment
+  - ✅ **Crowdfunding narrative** - "Own facility, grant-funded, zero rent" is stronger than "renting in Porto"
+  - ✅ **E-commerce fit** - Logistics disadvantage minimal for mainly online business (200km vs 50km to Barcelos)
+  - ✅ **EU sovereignty alignment** - Interior Portugal + Mistral AI = fully European operation
 
-  **Property Opportunities Identified (Porto District):**
-  - 300m² industrial units: €100-120K (current market)
-  - Suitable for production, storage, and future expansion
-  - Zoned for manufacturing and commercial use
-  - Accessible locations near highways and suppliers
-  - **Immediate availability upon profitability**
+  **Risks & Mitigations:**
+  - **Talent pool:** Smaller city (55K). Mitigation: remote-first for tech, trainable for production roles
+  - **Supplier distance:** 200km to Barcelos. Mitigation: bulk ordering schedules, local Centro region suppliers
+  - **Grant uncertainty:** Opportunities, not entitlements. Mitigation: confirm with municipality before marketing
+
+  **Next Steps:**
+  1. Contact Castelo Branco municipality (Invest CB / ALECB) for land terms confirmation
+  2. Identify open Portugal 2030 calls compatible with Merch From's investment structure
+  3. Do NOT promise Castelo Branco in crowdfunding until municipality confirmation received
 
   **Pitch Deck Contents (13-16 slides):**
   1. **Problem:** Independent artists lack access to premium, ethical merch without minimums or upfront costs
@@ -1685,21 +2270,35 @@
 
   #### **Financial Projections**
 
-  **Year 1 Conservative:**
+  **Year 1 Conservative (v3.1 - Updated):**
 
-  | Month | Net Profit | Pool (15%) | Core Team (each) | Founding Contributor | Pilot Artist |
-  |-------|------------|------------|------------------|----------------------|--------------|
-  | 1-3 | €0 | €0 | €0 | €0 | €0 |
-  | 4-6 | €2,000 | €300 | €36 | €3.75 | €0.90 |
-  | 7-9 | €5,000 | €750 | €90 | €9.38 | €2.25 |
-  | 10-12 | €10,000 | €1,500 | €180 | €18.75 | €4.50 |
-  | **Total** | **€17,000** | **€2,550** | **€306** | **€31.88** | **€7.65** |
+  | Month | Net Profit | Pool (15%) | Core Team (each) | Notes |
+  |-------|------------|------------|------------------|-------|
+  | 1-3 | €0 | €0 | €0 | Development |
+  | 4-6 | €3,000 | €450 | €56 | 10 artists, 100 products |
+  | 7-9 | €6,000 | €900 | €113 | 50 artists, 500 products |
+  | 10-12 | €12,000 | €1,800 | €225 | 100 artists, 1,000 products |
+  | **Total** | **€21,000** | **€3,150** | **€394** | **vs €17,000 old** |
 
-  **Year 2 Growth:**
+  **Key Changes:**
+  - **Higher artist retention:** 75% (vs 40% old)
+  - **Faster growth:** 100 artists by Month 6 (validated)
+  - **Better margins:** 85% gross margin (vs 60% old)
+  - **Lower AI costs:** €550/month (vs €1,800 old)
 
-  | Quarter | Net Profit | Pool (20%) | Core Team (each) | Founding Contributor | Pilot Artist |
-  |---------|------------|------------|------------------|----------------------|--------------|
-  | Q1-Q4 | €280,000 | €56,000 | €6,720 | €700 | €168 |
+  **Year 2 Growth (v3.1 - Updated):**
+
+  | Quarter | Net Profit | Pool (20%) | Core Team (each) | Notes |
+  |---------|------------|------------|------------------|-------|
+  | Q1 | €15,000 | €3,000 | €375 | 150 artists |
+  | Q2 | €25,000 | €5,000 | €625 | 200 artists |
+  | Q3 | €35,000 | €7,000 | €875 | 250 artists |
+  | Q4 | €50,000 | €10,000 | €1,250 | 300 artists, dividend threshold |
+
+  **Key Changes:**
+  - **Higher profitability:** €50K/month by Year 2 end (vs €25K old)
+  - **Faster scaling:** 300 artists by Month 24 (vs 200 old)
+  - **Dividend threshold:** Reached Month 24 (vs Month 30 old)
 
   #### **Marketing Messaging**
 
@@ -1751,15 +2350,15 @@
 
   ### 2.6 Launch Roadmap (Crowdfunding-First Strategy)
 
-  #### 2025 Development Timeline
+#### 2026 Development Timeline
 
-  | Phase | Dates | Focus | Deliverables |
-  |-------|-------|-------|--------------|
-  | **Phase 0: Planning & Content** | Dec 1-31, 2024 | Documentation, campervan prep, content creation | PRD finalized, Instagram-ready van, drive Ireland→Portugal (story content) |
-  | **Phase 1: MVP Development** | Jan 1 - Feb 28 | Core platform build (48h/week) | Leopoldo interview, Francisca design studio, mockups, basic store UI |
-  | **Phase 2: Polish & Landing** | Mar 1 - Mar 15 | Landing page, demo video | Waitlist page live, 90-sec demo video, scroll-scrub "How It Works" |
-  | **Phase 3: Waitlist Campaign** | Mar 15 - Mar 31 | Traffic generation | 500+ waitlist signups, artist testimonials, investor traction data |
-  | **Phase 4: Crowdfunding Launch** | Apr 1 - Apr 30 | Kickstarter/Indiegogo campaign | €46K target, founding artist tiers, merch coin perks |
+| Phase | Dates | Focus | Deliverables |
+|-------|-------|-------|--------------|
+| **Phase 0: Planning & Content** | Dec 1-31, 2025 (Completed) | Documentation, campervan prep, content creation | PRD finalized, Instagram-ready van, drive Ireland→Portugal (story content) |
+| **Phase 1: MVP Development** | Jan 1 - Feb 28, 2026 | Core platform build (48h/week) | Leopoldo interview, Francisca design studio, mockups, basic store UI |
+| **Phase 2: Polish & Landing** | Mar 1 - Mar 15, 2026 | Landing page, demo video | Waitlist page live, 90-sec demo video, scroll-scrub "How It Works" |
+| **Phase 3: Waitlist Campaign** | Mar 15 - Mar 31, 2026 | Traffic generation | 500+ waitlist signups, artist testimonials, investor traction data |
+| **Phase 4: Crowdfunding Launch** | Apr 1 - Apr 30, 2026 | Kickstarter/Indiegogo campaign | €46K target, founding artist tiers, merch coin perks |
 
   **Work Capacity:** 8 hours/day × 6 days/week = 48 hours/week (solo builder with AI assistance)
 
@@ -2044,6 +2643,44 @@
 
   ---
 
+  ### 2.9 Waitlist Growth: The "Bump Up" System
+
+  To drive viral waitlist growth without cash liability, we implement a **gamified referral mechanic** — artists move up the queue by inviting others.
+
+  **The Philosophy:**
+  Traditional referral rewards (€100 bonuses) attract money-seekers and create financial liability. "Bump Up" rewards effort with **priority access** — a more valuable and scalable incentive.
+
+  **How It Works:**
+  1.  **The Position:** Every waitlist applicant gets a queue number (e.g., "You're #847").
+  2.  **The Referral Link:** Each applicant gets a unique link: `merchfrom.com/waitlist?ref=alex123`
+  3.  **The Bump:** When someone signs up via your link, BOTH of you move up the queue.
+  4.  **The Leaderboard:** Top referrers get fastest access to Beta testing.
+
+  **What Artists Earn:**
+  | Referrals | Reward |
+  |-----------|--------|
+  | 1-2 | Move up ~100 positions |
+  | 3-5 | Priority Review status |
+  | 6-10 | First access to Beta |
+  | 10+ | "Founding Referrer" badge + direct line to Leopoldo |
+
+  **Important Distinction:**
+  > [!NOTE]
+  > **Priority Review ≠ Guaranteed Access.** Bump Up earns faster consideration, not automatic entry. We still vet for quality and values alignment. An artist at #1 can still be declined if they're not a fit — but they'll be reviewed first.
+
+  **If Declined Despite High Referrals:**
+  *   Soft rejection with value: "You'll get access at public launch + 10% permanent margin boost as a Founding Supporter."
+  *   Or delayed acceptance: "You're on priority for our next cohort."
+
+  **Strategic Value:**
+  *   **Zero cash liability** — no €100 payouts to manage.
+  *   **Viral loop** — artists share with their artist networks (quality leads).
+  *   **Gamification** — position numbers create urgency and competition.
+  *   **Scalable** — works whether waitlist is 100 or 100,000.
+  *   **Honest** — we never promise what we can't deliver.
+
+  ---
+
   ## 3. Functional Requirements
 
   ### 2.1 The "Cat-Suite" – Multi-Agent Brand Architecture
@@ -2057,16 +2694,16 @@
     - Conducts the 5-stage entry interview.
     - Clusters artists by values, genre, and audience size.
     - Determines who gets "Founding Artist" status.
-  - **Tech:** OpenAI GPT-4o-mini + OpenAI TTS (`tts-1`).
+  - **Tech:** Mistral Large + Voxtral Transcribe 2 + Voxtral TTS (Full EU voice pipeline).
 
-  #### **2. Francisca: CDO (Chief Design Officer)**
-  - **Role:** Guided merchandise design and creative direction.
-  - **Personality:** Artistic, detail-oriented, encouraging but critical.
-  - **Function:**
-    - **Proactive Design Guide:** Instead of waiting for open-ended prompts ("What do you want?"), Francisca leads a structured, visual workflow. She presents curated choices (Canvas -> Style -> Vibe) to eliminate "blank canvas paralysis" while maintaining a conversational feel.
-    - Manages the entire image generation and refinement loop.
-    - "I've removed the background from your logo, darling. It looks much better."
-  - **Tech:** OpenAI GPT-4o-mini (Orchestrator) + Flux 2 Flex (Generation) + Qwen (Editing).
+   #### **2. Francisca: CDO (Chief Design Officer)**
+   - **Role:** Guided merchandise design and creative direction.
+   - **Personality:** Artistic, detail-oriented, encouraging but critical.
+   - **Function:**
+     - **Proactive Design Guide:** Instead of waiting for open-ended prompts ("What do you want?"), Francisca leads a structured, visual workflow. She presents curated choices (Canvas -> Style -> Vibe) to eliminate "blank canvas paralysis" while maintaining a conversational feel.
+     - Manages the entire image generation and refinement loop.
+     - "I've removed the background from your logo, darling. It looks much better."
+    - **Tech:** Mistral Large (reasoning) + SDXL + Custom LoRAs (image generation) + OpenCV (color separation + halftoning).
 
   #### **3. Antonia: CS (Head of Customer Support)**
   - **Role:** Order tracking, FAQ automation, and transactional updates.
@@ -2075,41 +2712,225 @@
     - Handles "Where is my order?" queries.
     - Sends "Order Confirmed" and "Shipped" emails.
     - Escalates complex issues to human support.
-  - **Tech:** OpenAI GPT-4o-mini + RAG (Retrieval-Augmented Generation).
+  - **Tech:** Mistral Large + RAG (Retrieval-Augmented Generation).
 
   ### 2.2 Francisca's Design Studio (AI Generation Pipeline)
 
   We utilize a cutting-edge, multi-model pipeline to ensure professional, print-ready results that outperform standard "text-to-image" generators.
 
-  #### **Core AI Stack:**
-  1.  **Primary Generation: Flux 2 Flex (Replicate)**
-      - **Why:** Native editing support and superior typography/vector rendering compared to SDXL.
-      - **Capability:** Handles multi-reference compositing (e.g., "Keep this logo exactly as is, but add a snake illustration around it").
-  2.  **Background Removal: Qwen Image Edit Plus**
-      - **Why:** Preserves fine details and transparency (critical for t-shirt printing).
-      - **Workflow:** Automatically cleans uploaded user assets before generation.
-  3.  **Upscaling: Real-ESRGAN**
-      - **Why:** 4x upscaling to convert 1MP AI outputs into 300 DPI print-ready files (4000px+).
-      - **Feature:** Enhances line sharpness for screen printing separation.
+#### **Core AI Stack (v5.0 - Mistral Powered, EU Sovereign):**
+
+1.  **Mistral Large (via Mistral API) - ALL REASONING**
+     - **Purpose:** Intent classification, conversation handling, design edits, character roleplay
+     - **Why:** European company (Paris), GDPR-native, open weights available, strong character personality support
+     - **Cost:** Competitive with MiniMax, EU data residency included
+     - **Latency:** <1s response time, streaming support
+     - **Use Cases:** All conversation, edits, complex instructions, multi-step tasks
+
+2.  **Mistral Voxtral Transcribe 2 - SPEECH-TO-TEXT**
+     - **Purpose:** Real-time voice transcription for conversational agent
+     - **Why:** $0.003/min (10x cheaper than competitors), sub-200ms latency, 13 languages including Portuguese
+     - **Open Weights:** Apache 2.0 license -- self-hostable at scale
+     - **Features:** Speaker diarization, context biasing, word-level timestamps
+
+3.  **Mistral Voxtral TTS - TEXT-TO-SPEECH**
+     - **Purpose:** Character voice synthesis with zero-shot voice cloning
+     - **Why:** Beats ElevenLabs Flash v2.5 (68.4% win rate), ~90ms latency, 9 languages
+     - **Open Weights:** Apache 2.0 license -- self-hostable at scale
+     - **Voice Cloning:** 3-5 second reference sample per Cat-Suite character
+     - **Characters:** Leopoldo (São Paulo accent), Francisca (Porto accent), Antonia (Irish accent)
+
+2.  **SDXL + Custom LoRAs (via Replicate) - IMAGE GENERATION**
+     - **Why Replicate:** Commercial license included, self-hosted = non-commercial ❌
+     - **Cost:** ~$0.008/image
+     - **Fine-Tuning:** Custom LoRAs trained on Expert's aesthetic (proprietary moat)
+     - **Quality:** Photorealistic mockups with superior typography
+     - **Capability:** Handles multi-reference compositing
+
+3.  **OpenCV (Python) - COLOR SEPARATION + HALFTONING**
+     - **Purpose:** Mathematical color separation and halftone generation
+     - **Features:** K-Means clustering for spot colors, Moiré-prevention angles, Pantone matching, DPI validation
+     - **Cost:** $0 (deterministic, rule-based)
+     - **Workflow:** Design → OpenCV Color Separation → Halftoning → Print-ready files
+
+**Defer to Production (Year 2+):**
+- **Real-ESRGAN:** Use Cloudinary upscaling or basic algorithm for MVP
+
+---
+
+## 1.14 Mistral AI Cost Forecast
+
+### Pricing Assumptions (as of Feb 2026)
+
+| Model | Pricing | Source |
+|-------|---------|--------|
+| **Mistral Large** (LLM) | Competitive with MiniMax M2-her | Mistral API |
+| **Voxtral Transcribe 2** (STT) | $0.003/min | Mistral API |
+| **Voxtral TTS** (TTS) | TBD (competitive with ElevenLabs) | Mistral API |
+| **SDXL** (Image) | $0.008/image | Replicate |
+
+### Cost Scenarios
+
+| Scale | Artists | Msgs/Month | Voice Mins | Mistral LLM | Voxtral STT | Voxtral TTS | SDXL | **Total/Month** |
+|-------|---------|-------------|------------|-------------|-------------|-------------|------|-----------------|
+| **Launch** | 10 | 3,000 | 500 | ~$9 | ~$1.50 | ~$5 | ~$2.40 | **~$18** |
+| **Early** | 50 | 15,000 | 2,500 | ~$45 | ~$7.50 | ~$25 | ~$12 | **~$90** |
+| **Growth** | 100 | 30,000 | 5,000 | ~$90 | ~$15 | ~$50 | ~$24 | **~$179** |
+| **Scale** | 500 | 150,000 | 25,000 | ~$450 | ~$75 | ~$250 | ~$120 | **~$895** |
+| **Mass** | 1,000 | 300,000 | 50,000 | ~$900 | ~$150 | ~$500 | ~$240 | **~$1,790** |
+
+### Notes
+- Average chat message: ~500 tokens input / ~200 tokens output
+- Average voice conversation: ~1 minute
+- Images assume 30 designs/artist/month average
+- Voxtral STT at $0.003/min is 10x cheaper than MiniMax/Deepgram
+- Voxtral TTS pricing estimated (official TBD)
+- **Self-hosting path:** At 250+ artists, self-host Voxtral (Apache 2.0) to eliminate per-minute voice costs
+
+### Why Mistral?
+- **EU Sovereignty:** European company (Paris), GDPR-native, data stays in EU
+- **Full Pipeline:** LLM + STT + TTS from single provider -- no multi-vendor complexity
+- **Open Weights:** Both Voxtral models are Apache 2.0 -- self-hostable at scale
+- **Voice Cloning:** Zero-shot cloning with 3-5s sample -- perfect for Cat-Suite character voices
+- **Cost Leader:** Voxtral STT at $0.003/min is industry-best price-performance
+- **Ethics Aligned:** Open-weight philosophy, European values, transparent AI
+- **Portuguese Native:** Both STT and TTS support Portuguese natively
+- **Self-Hosting:** Apache 2.0 weights enable migration to own infrastructure at scale
+
+  #### **Francisca's Visual Style Gallery: LoRA Selection UX**
+
+  **The Customer Experience:**
+  Instead of describing styles in confusing technical terms, customers see a visual gallery of example designs and click to select their preferred aesthetic.
+
+  **Gallery Layout:**
+  ```
+  ┌─────────────────────────────────────────────────────────┐
+  │  Francisca: "What style matches your vibe?"             │
+  ├─────────────────────────────────────────────────────────┤
+  │                                                         │
+  │  [🎨 3 Images]       [🎸 3 Images]       [💀 3 Images]│
+  │  American            Vintage Band        Skull Art      │
+  │  Traditional         Tee                                │
+  │  "Bold lines,        "Retro concert      "Edgy skull    │
+  │   vintage tattoo"     vibes"              designs"      │
+  │                                                         │
+  │  [✨ 3 Images]       [🖤 3 Images]       [🎯 3 Images]│
+  │  Minimalist          Gothic/Dark         Custom         │
+  │  Logo                Metal               (Upload)       │
+  │  "Clean, modern"     "Heavy, intense"    "Your style"   │
+  │                                                         │
+  └─────────────────────────────────────────────────────────┘
+  ```
+
+  **How It Works:**
+  1. Customer clicks "🎨 American Traditional" card
+  2. System maps selection → `american-traditional-v3` LoRA (behind the scenes)
+  3. Francisca asks: "Describe your design"
+  4. Customer: "Skull with roses"
+  5. System constructs prompt: `"american traditional skull with roses, bold lines, limited color palette"`
+  6. Calls Replicate API with selected LoRA
+  7. Customer sees generated image (no technical details exposed)
+
+  **Natural Language Fallback:**
+  - If customer types "I want an American Traditional skull", system detects keyword
+  - Maps to same LoRA as clicking visual card
+  - Works seamlessly both ways (click or type)
+
+  **LoRA Registry (Backend Database Schema):**
+  ```typescript
+  interface LoRAStyle {
+    id: string;
+    displayName: string;           // "American Traditional"
+    slug: string;                  // "american-traditional"
+    replicateModel: string;        // "your-account/flux-dev:american-traditional-v3"
+    triggerWord: string;           // "american traditional"
+    version: string;               // "v3"
+    exampleImages: string[];       // [Cloudinary URLs of 3 examples]
+    description: string;           // "Bold lines, vintage tattoo aesthetic"
+    bestFor: string;              // "Band merch, tattoo-inspired designs"
+    active: boolean;               // Show in gallery?
+  }
+  ```
 
   #### **Francisca's Workflow:**
-  1.  **Visual Intake (The "Consultant" Model):**
-      - **Step 1 (Canvas):** Francisca presents visual cards for product selection (e.g., "Heavyweight Tee" vs "Vintage Hoodie"). User clicks to select.
-      - **Step 2 (Vibe):** Francisca shows style swatches (e.g., "Streetwear", "Minimalist", "Metal"). User selects a direction.
-      - **Step 3 (Subject):** "Great choice. What's the hero of this design?" (User types: "A skull with roses").
-      - **Result:** Eliminates open-ended guessing; user feels guided by a pro.
-  2.  **Asset Prep:** User uploads a logo -> Qwen removes background -> Francisca confirms clarity.
-  3.  **Generation:** Francisca constructs a JSON payload for **Flux 2 Flex**, combining the prompt with the cleaned logo reference.
-  4.  **Refinement:** User says "Make the snake green." Francisca sends a re-run request with the previous image as input (img2img) + new prompt, locking the logo fidelity.
-  5.  **Finalize:** User approves -> Real-ESRGAN upscales to 4K -> File sent to production queue.
+  1.  **Visual Style Selection:**
+      - Francisca presents visual gallery of 6 style cards with example images
+      - Customer clicks preferred aesthetic (e.g., "American Traditional")
+      - System selects appropriate fine-tuned LoRA behind the scenes
+  2.  **Asset Prep:** User uploads a logo -> OpenCV processes background -> Francisca confirms clarity.
+  3.  **Generation:** Francisca constructs prompt with trigger word + user description, calls Replicate API with selected LoRA
+  4.  **Refinement:** User says "Make the snake green." → Regenerates with same LoRA, modified prompt
+  5.  **Finalize:** User approves → Real-ESRGAN upscales to 4K → U-Net color separation → Halftoning → Print-ready files
 
-  #### **Revised AI Unit Economics:**
-  - **Generation (Flux 2 Flex):** ~$0.06 per run
-  - **Refinement Loop:** Avg 2 runs = ~$0.12
-  - **Background Removal (Qwen):** ~$0.02
-  - **Upscaling (Real-ESRGAN):** ~$0.002
-  - **Total AI Cost Per Design:** **~$0.15 - $0.20**
-  - **Impact:** Still negligible (<1% of revenue) for a service that replaces a $500+ human designer.
+  #### **Expert's Expert Dataset Strategy: The Unfair Advantage**
+
+  **The Moat:** While competitors rely on generic AI models, MerchFrom's color separation AI is trained on Expert's 30+ years of screen printing expertise. This proprietary dataset is **impossible to replicate** and becomes more valuable with every design.
+
+  **Dataset Growth Trajectory:**
+  ```
+  Phase 1 (Pre-Launch, Week 1-2):
+    - 100 existing designs (Expert's archive, excellent quality)
+    - +400 "good quality" separations via Separation Studio (fast augmentation)
+    - Total: 500 real-world samples → Train baseline Attention U-Net
+  
+  Phase 2 (Beta - 10 Artists, Month 1-3):
+    - 10 artists × 30 designs = 300 new designs
+    - Expert curates 10 new designs/day = +900 expert samples
+    - +500 "good quality" Separation Studio augmentations
+    - Total: 500 → 2,200 samples → Retrain weekly
+
+  Phase 3 (Beta - 50 Artists, Month 4-6):
+    - 50 artists × 30 designs = 1,500 new designs
+    - Expert curates 10/day = +900 expert samples
+    - +500 "good quality" augmentations
+    - Total: 2,200 → 5,100 samples → Retrain bi-weekly
+
+  Phase 4 (Beta - 100 Artists, Month 7-9):
+    - 100 artists × 30 designs = 3,000 new designs
+    - Expert curates 10/day = +900 expert samples
+    - +500 "good quality" augmentations
+    - Total: 5,100 → 9,500 samples → Retrain monthly
+
+  Public Launch (Month 10+):
+    - 10,000+ expert-curated samples
+    - World-class screen printing separation dataset
+    - Accuracy: 98%+ (production-ready, minimal human review)
+    - Value: €200K+ in labor equivalent
+  ```
+
+  **Quality Assurance: Dual Metrics System**
+
+  **1. Customer Approval Rating (Lightweight, Every Design)**
+  - User rates final design: 1 = Poor, 2 = Okay, 3 = Excellent
+  - Triggers human review if rating < 2
+  - Tracks user satisfaction per artist, style, complexity
+  - Data feeds back into model training priorities
+
+  **2. Internal Manual Audit (Deep, Representative Sample)**
+  - Expert + expert panel scores 10% of designs monthly
+  - 5-point rubric with detailed improvement notes:
+    - **Color Accuracy (1-5):** Pantone matching precision
+    - **Edge Quality (1-5):** Clean vector boundaries, no bleeding
+    - **Halftone Compatibility (1-5):** Moiré prevention, proper angles
+    - **Registration Complexity (1-5):** Screen count optimization
+    - **Production Readiness (1-5):** Overall print-ready quality
+  - Aggregate scores guide model retraining focus areas
+  - Creates high-confidence ground truth for supervised learning
+
+  **Why This Works:**
+  - **Customer rating = volume metric** (10,000s/month, broad coverage)
+  - **Manual audit = precision metric** (100s/month, deep insight)
+  - Combined: Fast iteration + quality guarantee
+
+  #### **Revised AI Unit Economics (v3.1 - Updated):**
+  - **Generation (FLUX.1 [dev] self-hosted):** ~$0.03 per image (electricity only)
+  - **Refinement Loop:** Avg 2 runs = ~$0.06
+  - **Color Separation (U-Net inference):** ~$0.001 per design (Hivelocity GPU)
+  - **Halftoning (OpenCV):** $0 (rule-based, deterministic)
+  - **Reasoning (MiMo-V2-Flash):** ~$0.001 per interaction
+  - **Total AI Cost Per Design:** **~$0.03 - $0.05** (vs $0.17-0.22 old)
+  - **Impact:** Negligible (<0.5% of revenue) for a service that replaces €45/design manual work
+  - **Cost Reduction:** 80% savings vs original plan
 
   ### 2.4 Bulk Order Service
   - **Quote Requests:** Voice/text bulk order inquiries ("Get quote for 500 black hoodies with this logo")
@@ -2189,50 +3010,48 @@
 
   ### 2.8 Merch Coins System
 
-  **Two Types of Coins:**
+  **Simplified Model (v3.1):**
 
-  #### **1. Platform Merch Coins (Universal Currency)**
+  #### **Platform Merch Coins (Only Type)**
   - **Issued by:** Merch From platform
-  - **Label:** Simply "**Merch Coin**" (no name prefix)
+  - **Label:** Simply "**Merch Coin**" (simple, no artist prefix)
   - **Sources:**
     - Crowdfunding backer rewards
-    - Platform promotions (new customer bonuses, referrals, etc.)
+    - Platform promotions
     - Seasonal campaigns
   - **Usable for:**
-    - Purchase from **any artist's merch store**
-    - **Bulk screen printing orders** (wholesale direct with platform)
+    - Purchase from **any artist's store**
+    - Bulk screen printing orders
   - **Deducted from:** Platform's base margin
   - **Never expire** — lifetime value
   - **1 Coin = €1 Value**
 
-  #### **2. Artist Merch Coins (Artist-Branded Currency)**
-  - **Issued by:** Individual artists
-  - **Label:** "**[Artist Name]'s Merch Coin**" (e.g., *Sailor Jerry's Merch Coin*)
-  - **Sources:**
-    - Free monthly allocation (100/500/1,000 based on tier)
-    - Artist giveaways, contests, rewards
-    - Performance bonuses for sales milestones
-  - **Usable for:**
-    - **Only that specific artist's merch store** (restricted)
-    - Cannot be used for bulk orders
-    - Cannot be used on other artists' stores
-  - **Deducted from:** Artist's profit margin only
-  - **Never expire** — lifetime value
-  - **1 Coin = €1 Value**
+  **Key Changes (v3.1):**
+  - ✅ **No artist-branded coins** (removed for simplicity)
+  - ✅ **No trading/marketplace** (avoid legal complications)
+  - ✅ **No KYC required** (simple redemption only)
+  - ✅ **No lawyer review needed** (promotional discounts, not securities)
+
+  **Why Simpler:**
+  - **Regulatory Safety:** Not a security, just a discount
+  - **Development Speed:** 80% less code to write
+  - **User Experience:** Easy to understand and use
+  - **Platform Control:** Full control over coin supply
 
   ---
 
-  #### **Artist Marketing Tool (Artist Coins)**
-  - **Free monthly allocation** based on subscription tier:
-    - Free: 100 coins/month
-    - Pro: 500 coins/month
-    - Studio: 1,000 coins/month
-  - **Social Media Amplification:** Artists run campaigns (giveaways, contests, rewards) on their channels
-  - **Artist Margin Only:** All artist-coin discounts come exclusively from artist's profit margin
-  - **Performance Bonuses:** Extra coins for hitting sales milestones
-  - **Distribution Control:** Artists choose who receives coins and how many
-  - **Zero Platform Cost:** Marketing reach with no expense to platform
-  - **Brand Building:** Fans collect "[Artist Name]'s Merch Coins" = loyalty & collectibility
+  #### **Crowdfunding Tiers (Simplified)**
+  - **Supporter (€25):** 30 Merch Coins + badge
+  - **Artist Pioneer (€99):** 100 Merch Coins + priority access
+  - **Artist VIP (€249):** 250 Merch Coins + consultation
+  - **Brand Partner (€999):** 1,000 Merch Coins + custom design
+  - **Sponsor (€2,500):** 3,000 Merch Coins + behind-the-scenes
+
+  **No Profit-Sharing for Backers:**
+  - Artists earn from sales (40-60% margins)
+  - Team earns from building platform
+  - Backers get access, recognition, community
+  - Not an MLM - building sustainable ethical commerce
 
   ---
 
@@ -2414,7 +3233,217 @@
   - **Theme Versioning:** Save and switch between multiple theme variants
   - **Monetization Ready:** Free tier (3 presets), Pro tier ($20/month for unlimited AI customization)
 
-  ### 2.6 AI-Powered Production Automation System
+  ### 2.6 Missing MVP Features (Added to Phase 4-6)
+
+  **Critical features that were missing from the original PRD:**
+
+  #### **A. Admin Dashboard (Phase 4)**
+  **Purpose:** Platform management and oversight.
+
+  **Features:**
+  1. **Artist Management:**
+     - View all artists (approved, pending, suspended)
+     - Approve/reject applications
+     - View artist analytics (sales, products, revenue)
+     - Suspend accounts (with reason)
+
+  2. **Order Management:**
+     - View all orders (with filters)
+     - Update order status (pending → printing → shipped → delivered)
+     - View order details (customer, products, tracking)
+     - Handle refunds/returns
+
+  3. **Financial Reporting:**
+     - Revenue dashboard (daily, weekly, monthly)
+     - Cost breakdown (AI, infrastructure, transaction fees)
+     - Profit margins per product/artist
+     - Payout tracking (artist payments)
+
+  4. **Inventory Tracking:**
+     - Stock levels (blanks, inks, supplies)
+     - Reorder alerts (low stock warnings)
+     - Supplier management (WATC-Studio, Magna)
+     - Usage analytics (consumption rates)
+
+  5. **System Monitoring:**
+     - AI cost tracking (per user, per session)
+     - API uptime monitoring
+     - Error logging and alerting
+     - Performance metrics (response times)
+
+  **Tech:** Next.js admin panel, protected routes, role-based access.
+
+  ---
+
+  #### **B. Customer Support System (Phase 4)**
+  **Purpose:** Handle customer inquiries and issues.
+
+  **Features:**
+  1. **Ticket Management:**
+     - Create tickets (email, chat, form)
+     - Assign to agents (Cat-Suite or human)
+     - Status tracking (open, in-progress, resolved)
+     - Priority levels (urgent, normal, low)
+
+  2. **FAQ/Knowledge Base:**
+     - Searchable articles
+     - Categorized by topic (orders, shipping, returns, design)
+     - Video tutorials (embedded)
+     - Regular updates based on common issues
+
+  3. **Live Chat (Optional):**
+     - Cat-Suite agents handle first tier
+     - Escalate to human if needed
+     - Chat history and transcripts
+
+  4. **Email Integration:**
+     - support@merchfrom.com
+     - Auto-responses for common queries
+     - Ticket creation from email
+
+  **Tech:** Custom ticket system or integrate with existing (e.g., Zendesk, Intercom).
+
+  ---
+
+  #### **C. Analytics & Reporting (Phase 4-5)**
+  **Purpose:** Track performance and make data-driven decisions.
+
+  **Artist Dashboard:**
+  1. **Sales Overview:**
+     - Total orders, revenue, profit
+     - Daily/weekly/monthly trends
+     - Best-selling products
+     - Conversion rates (views → purchases)
+
+  2. **Product Performance:**
+     - Views per product
+     - Add-to-cart rate
+     - Purchase rate
+     - Revenue per product
+
+  3. **Customer Insights:**
+     - Demographics (age, location)
+     - Repeat purchase rate
+     - Average order value
+     - Customer lifetime value
+
+  4. **AI Usage:**
+     - Designs generated
+     - AI costs incurred
+     - Model usage breakdown
+     - Cost per design
+
+  **Platform Analytics:**
+  1. **Growth Metrics:**
+     - New artists (daily, weekly, monthly)
+     - Active artists (DAU, WAU, MAU)
+     - Artist retention rate
+     - Churn rate
+
+  2. **Financial Metrics:**
+     - Gross Merchandise Volume (GMV)
+     - Platform revenue
+     - Net profit
+     - Margin per product category
+
+  3. **Engagement Metrics:**
+     - Session duration
+     - Designs generated per user
+     - Storefront visits
+     - Conversion rates
+
+  4. **AI Metrics:**
+     - Total AI costs
+     - Cost per user
+     - Model usage distribution
+     - Cost efficiency trends
+
+  **Tech:** Custom analytics dashboard, data visualization (Recharts, Chart.js), scheduled reports.
+
+  ---
+
+  #### **D. Email System (Phase 4)**
+  **Purpose:** Automated communication with artists and customers.
+
+  **Transactional Emails:**
+  1. **Order Flow:**
+     - Order confirmation (immediate)
+     - Payment received (if delayed)
+     - Production started (24h)
+     - Shipped with tracking (when shipped)
+     - Delivered confirmation (when delivered)
+     - Refund processed (if applicable)
+
+  2. **Account Flow:**
+     - Welcome email (signup)
+     - Email verification
+     - Password reset
+     - Account updates
+
+  **Marketing Emails:**
+  1. **Onboarding Series:**
+     - Day 1: Welcome + getting started guide
+     - Day 3: Design tips and best practices
+     - Day 7: Success stories from other artists
+     - Day 14: Feature spotlight
+
+  2. **Engagement:**
+     - Product tips (weekly)
+     - Platform updates (monthly)
+     - Seasonal campaigns (quarterly)
+     - Re-engagement (inactive artists)
+
+**Tech:** Resend or SendGrid integration, email templates, unsubscribe management.
+
+---
+
+#### **E. Campaign Management System (Phase 4b)**
+
+> **Feature added:** February 19, 2026  
+> **Documentation:** [`/Documentation/04-TUI/Campaign-Management-MCP-Plan.md`](../04-TUI/Campaign-Management-MCP-Plan.md)
+
+**Purpose:** Automated ad campaign management via MCP servers integrated into MerchStation TUI.
+
+**Platforms:** Meta Ads (Facebook/Instagram), TikTok Ads
+
+**Core Features:**
+1. **Real-time Campaign Monitoring:**
+   - Fetch campaign metrics via MCP (spend, impressions, clicks, conversions)
+   - Store historical data in database for trend analysis
+   - Auto-refresh every 15 minutes
+
+2. **CAC/CPC Limit Automation:**
+   - Per-campaign CAC (Cost Per Acquisition) limits
+   - Per-campaign CPC (Cost Per Click) limits
+   - **Immediate auto-pause** when limits exceeded
+   - Different limits per campaign type
+
+3. **Bidirectional Control:**
+   - Read metrics from Meta/TikTok
+   - Edit budgets, pause/resume campaigns from TUI
+   - Create new campaigns (link to platform managers)
+
+4. **Daily Reports:**
+   - Automated daily summary of all campaigns
+   - List of paused campaigns requiring action
+   - Performance trends and recommendations
+
+5. **Leopoldo AI Integration:**
+   - Real-time alerts when campaigns hit limits
+   - Daily campaign summary
+   - Optimization recommendations
+
+**TUI Integration:**
+- Campaigns tab in MerchStation sidebar
+- Campaigns keyboard shortcut: `C`
+- Detail view with metrics charts
+- Limits editor for CAC/CPC thresholds
+
+**Tech:** MCP servers (meta-ads-mcp, tiktok-ads-mcp), node-cron for automation, Neon database for storage.
+
+---
+
+### 2.7 AI-Powered Production Automation System
 
   **Universal Halftone Standard for Perfect Brand Consistency:**
 
@@ -2431,11 +3460,11 @@
   - **Automated Color Separation (OpenCV/Sharp):** Dedicated backend service uses **OpenCV** and **Sharp** to mathematically separate colors and generate per-color halftones with moiré-prevention angles.
   - **Single Production File:** Master PSD with reference layer + separated layers
   - **Multi-Method Support:** One file works for DTG, DTF, and screen printing
-  - **DPI Verification:** Ensure all designs meet ≥300 DPI for quality printing
-  - **Size Validation:** Verify dimensions match product specifications
-  - **Bleed Area Generation:** Auto-add bleed zones for cut products
-  - **Mockup Auto-Update:** Regenerate product mockups after optimizations
-  - **Flux 2 Flex Re-engagement:** Support iterative design refinements (img2img)
+   - **DPI Verification:** Ensure all designs meet ≥300 DPI for quality printing
+   - **Size Validation:** Verify dimensions match product specifications
+   - **Bleed Area Generation:** Auto-add bleed zones for cut products
+   - **Mockup Auto-Update:** Regenerate product mockups after optimizations
+   - **FLUX.1 [dev] Re-engagement:** Support iterative design refinements (img2img)
 
   **Production Workflow (Universal):**
   1. System generates master PSD with halftoned layers (1-3) + reference layer (0)
@@ -2549,7 +3578,7 @@
 
   ### 3.1 Performance
   - API response time: <100ms for cached data
-  - LLM response time: <2s for Haiku conversations, <5s for Flux 2 Flex artwork
+  - LLM response time: <1s for Llama 3.1 8B conversations, <5s for GLM-4.7-Full complex instructions, <8s for FLUX.1 [dev] artwork
   - Context detection accuracy: 98%
   - Artwork generation success rate: >95%
   - Edge function cold start: <500ms
@@ -2578,9 +3607,10 @@
 
   ### 3.5 Cost Efficiency
   - Base operational costs: ~$300/month (74% reduction from original estimate)
-  - Haiku conversations: ~$0.001 per interaction
-  - Flux 2 Flex artwork: ~$0.06 per generation
-  - Free tier models for intent classification
+  - Llama 3.1 8B conversations: ~€0.00 (self-hosted via Ollama)
+  - GLM-4.7-Full complex instructions: ~$0.006 per interaction (1K tokens)
+  - FLUX.1 [dev] artwork: ~$0.006 per generation
+  - Self-hosted models for intent classification
   - Optimized caching to reduce redundant API calls
 
   ---
@@ -2614,31 +3644,75 @@
 
   ### 3.6 Development Infrastructure & AI Agent Stack
 
+  > **Stack Pivot (Jan 6, 2025):** Switched from Convex to **Neon (Postgres)** + **Upstash (Redis)** + **Drizzle ORM** for better AI integration and ecosystem flexibility. Added **V0 (Vercel)** for rapid frontend generation. Clerk retained for superior Passkey support and pre-built auth components.
+
   **Production Stack:**
 
   | Component | Tool | Purpose |
   |-----------|------|---------|
   | **Hosting** | Vercel | Frontend hosting + Edge caching (manual deploys) |
-  | **Database** | Supabase | PostgreSQL + **Auth (Passkeys/Magic Links)** + Edge Functions + RLS |
-  | **Storage** | Supabase | **Public/Private Buckets** + Image Transformations (Resizing/Optimization) |
-  | **Caching** | Supabase (MVP) | Use built-in query caching; Vercel KV deferred until metrics justify |
-  | **Feature Flags** | Supabase config table (MVP) | Edge Config deferred; simple boolean flags in database for now |
+  | **Database** | Neon (Postgres) | Serverless Postgres + pgvector for AI embeddings |
+  | **ORM** | Drizzle | Type-safe queries, lightweight, Neon serverless driver |
+  | **Auth** | Clerk | Passkeys/Magic Links + Pre-built UI components + 10K free MAUs |
+  | **Caching/Sessions** | Upstash (Redis) | Serverless Redis for sessions, rate limiting, AI response cache |
+  | **Storage** | Cloudinary | **Public CDN** + Image Transformations (Resizing/Optimization/Mockups) |
+  | **Feature Flags** | Upstash Redis | Simple key-value flags with instant updates |
   | **Error Tracking** | Sentry | Root cause analysis + error monitoring |
   | **Payments** | Stripe | **Express Checkout** (Apple/Google Pay) + Connect (Payouts) |
   | **Image Pipeline** | Cloudinary | Mockups, social cards, image transformations |
+  | **AI Workflows** | Trigger.dev + Vercel Functions | Background jobs for AI, vector storage in Neon pgvector |
+  | **Frontend Gen** | V0 (Vercel) | AI-powered component generation via MCP integration |
 
   **AI Development MCP Stack (Antigravity):**
 
   | MCP | Function | Value |
   |-----|----------|-------|
+  | **V0 MCP** | Frontend generation | Atomized component creation, iteration, download |
   | **Sentry MCP** | Debug assistance | AI-assisted error tracing and root cause analysis |
   | **GitHub MCP** | Task management | Issue creation, PR management, project tracking |
-  | **Supabase MCP** | Database queries | AI-assisted query debugging, schema exploration |
+  | **Neon MCP** | Database queries | Schema exploration, query testing, migrations |
+  | **Upstash MCP** | Cache management | Redis debugging, session inspection |
   | **Filesystem MCP** | Documentation | PRD access, planning docs, context continuity |
 
   **Deployment Strategy:**
   - **Manual Vercel deploys** — Push to main → auto-deploy (no Vercel MCP needed)
   - **Solo builder workflow** — GitHub Issues for task management, Sentry for debugging
+
+  #### Product Image Naming Convention
+  
+  Standardized naming for catalog product images stored in Cloudinary:
+  
+  ```
+  merch-from/products/{product_sku}/{type}-{color}.{ext}
+  ```
+  
+  | Type Code | Description | Example |
+  |-----------|-------------|---------|
+  | `001` or `front` | Front view of product | `001-front-black.jpg` |
+  | `002` or `back` | Back view of product | `002-back-black.jpg` |
+  | `003` or `detail` | Close-up detail shot | `003-detail-black.jpg` |
+  | `004` or `lifestyle` | Model wearing product | `004-lifestyle-black.jpg` |
+  | `005` or `swatch` | Fabric/color swatch | `005-swatch-black.jpg` |
+  | `006` | Front view alternate color | `001-front-white.jpg` |
+  
+  **Cloudinary Folder Structure:**
+  ```
+  merch-from/
+  └── products/
+      └── {sku}/
+          ├── 001-front-black.jpg
+          ├── 002-back-black.jpg
+          ├── 001-front-white.jpg
+          ├── 002-back-white.jpg
+          └── ...
+  ```
+  
+  **Variant-Specific Images:** Append variant SKU for color-specific variants:
+  ```
+  merch-from/products/{product_sku}/variants/{variant_sku}.jpg
+  ```
+
+  This convention enables AI agents to programmatically construct image URLs and enables automated gallery generation.
   - **Deferred complexity** — Vercel KV and Edge Config added only when metrics justify
 
   **Rationale:**
@@ -2656,12 +3730,12 @@
   - [ ] **Voice + text chat interface functional with Whisper**
   - [ ] **Voice transcription working with >95% accuracy**
   - [ ] OpenRouter API integration working
-  - [ ] Haiku responding to **voice and text** commands
+  - [ ] GLM-4.7-Flash responding to **voice and text** commands
   - [ ] User profile and store creation flow complete
 
   ### Phase 2: Artwork Generation (Weeks 5-8)
   - [ ] Design category selection interface built
-  - [ ] Flux 2 Flex integration complete
+  - [ ] FLUX.1 [dev] fine-tuned integration complete (4 initial LoRAs via Replicate)
   - [ ] Category presets configured (5+ categories)
   - [ ] Image generation with proper dimensions working
   - [ ] **Voice-powered design refinement working**
@@ -2943,12 +4017,12 @@
   - **Node.js:** Production Runtime on Vercel (Stability & compatibility)
 
   | **Frontend** | Next.js 14 | App Router, Server Components |
-  | **Animation** | Rive | **Runtime Texture Swapping** (Dynamic Avatars) + State Machines |
-  | **Styling** | Tailwind CSS | Utility-first styling with `shadcn/ui` components |
+  | **Animation** | Recraft.ai | **Layered PNGs (Cutout/Puppet)** + Framer Motion (Micro-interactions) |
+  | **Styling** | Tailwind CSS | Utility-first styling with `HeroUI` components |
   - Next.js 14+ (App Router, React Server Components)
   - TypeScript for type safety
   - **Vercel AI Elements (ai-elements) - AI-native component library**
-  - shadcn/ui (base component library, foundation for ai-elements)
+  - HeroUI (base component library — premium React UI with official Figma kit)
   - TailwindCSS for styling
   - Radix UI primitives
   - Zustand or React Context for state management
@@ -2956,20 +4030,22 @@
   - **Customer Storefronts (MVP):** [Sesto Next.js + Prisma + Tailwind Ecommerce Template](https://www.shadcn.io/template/sesto-dev-next-prisma-tailwind-ecommerce) (Accelerated deployment, owned code)
 
   **Backend:**
-  - Supabase (PostgreSQL database)
-  - Supabase Auth (authentication & authorization)
-  - Supabase Edge Functions (serverless compute)
-  - Supabase Storage (file uploads)
-  - Supabase Realtime (live updates)
+  - Neon (serverless Postgres with pgvector for AI embeddings)
+  - Drizzle ORM (type-safe queries, lightweight, Neon serverless driver)
+  - Clerk (authentication & authorization with Passkeys)
+  - Upstash Redis (caching, sessions, rate limiting)
+  - Vercel Functions (serverless compute for API routes)
+  - Cloudinary (file uploads & image CDN)
   - **Trigger.dev:** Long-running background jobs (AI generation, Cloudinary processing) to bypass serverless timeouts.
 
   **AI & ML (Phase 1: Launch - API-Based):**
-  - OpenRouter API (multi-model routing)
-  - Anthropic Claude 4.5 Haiku (conversations, commands)
-  - Black Forest Labs Flux 2 Flex (artwork generation + img2img refinement)
-  - Meta Llama 3.1 8B Free (intent classification)
-  - Anthropic Claude 4.5 Sonnet (optimization analysis, premium fallback)
-  - **v0 API (Vercel) - AI-powered component generation for store customization**
+   - OpenRouter API (multi-model routing)
+   - GLM-4.7-Flash (128k, $0.60/1M - intent, simple edits, style presets)
+   - GLM-4.7-Full (128k, $6.00/1M - complex design instructions)
+   - Llama 3.1 8B via Ollama (self-hosted - intent/conversations)
+   - FLUX.1 [dev] fine-tuned via Replicate ($0.006/image - artwork generation with custom LoRAs)
+   - Attention U-Net (custom trained - color separation, unlimited colors)
+   - **v0 API (Vercel) - AI-powered component generation for store customization**
 
   **AI & ML (Phase 2: Scale - Self-Hosted Migration at 250+ Artists):**
   - **Nebius AI Studio (Training/Fine-Tuning):**
@@ -2987,7 +4063,13 @@
   - Stripe (payment processing)
   - **Resend:** Transactional email service (Waitlist invites, Order confirmations) + React Email
   - **OpenAI Whisper (speech-to-text for voice input)**
+  - **OpenAI Whisper (speech-to-text for voice input)**
   - **Railway/Render (optional Sharp microservice for high-volume mockup generation)**
+
+  **Supplier Integrations:**
+  - **Stanley Stella API (REST):** Real-time stock checking for dynamic delivery estimates (Read-Only).
+  - **EDI (Future):** FTP-based automated ordering (Deferred to Post-MVP).
+
 
   **Image Processing & Media Management:**
   - **Cloudinary:**
@@ -3012,24 +4094,26 @@
 
   **Launch Strategy: API-First for Speed & Capital Efficiency**
 
-  We're launching with best-in-class APIs (Flux 2 Flex) to validate demand fast. Our unit economics show AI costs are manageable during validation phase:
+   We're launching with best-in-class APIs (GLM-4.7-Full + FLUX.1 [dev] fine-tuned) and self-hosted models (Llama 3.1 8B + Attention U-Net) to validate demand fast. Our unit economics show AI costs are extremely manageable during validation phase:
 
-  **Cost Analysis (Year 1):**
-  ```
-  Usage: 100 artists × 10 designs/month = 1,000 generations
-  Flux 2 Flex API cost: $0.06 per generation
-  Monthly cost: $60
-  Annual cost: $720
+   **Cost Analysis (Year 1):**
+   ```
+   Usage: 100 artists × 10 designs/month = 1,000 generations
+   Llama 3.1 8B: ~€0.00 (self-hosted via Ollama)
+   GLM-4.7-Full: ~$0.006 per complex instruction (1K tokens)
+   FLUX.1 [dev] API cost: $0.006 per generation (90% cheaper than Flux 2 Flex)
+   Monthly cost: ~$6-12
+   Annual cost: ~$72-144
 
   As percentage of revenue:
-    At €50K monthly revenue: 0.12% (negligible)
-    At €100K monthly revenue: 0.06% (insignificant)
+    At €50K monthly revenue: 0.024% (negligible)
+    At €100K monthly revenue: 0.012% (insignificant)
   ```
 
-  **Why APIs First:**
-  - ✅ **Zero infrastructure investment** - Deploy in weeks, not months
-  - ✅ **Negligible costs during validation** - <$100/month until 250+ artists
-  - ✅ **Proven quality** - Production-ready, battle-tested models
+  **Why Hybrid Stack (APIs + Self-Hosted):**
+  - ✅ **Minimal infrastructure investment** - €300/month Hivelocity GPU + Ollama
+  - ✅ **Ultra-low costs during validation** - <$20/month until 250+ artists
+  - ✅ **Proven quality** - Production-ready FLUX.1 [dev] + custom LoRAs
   - ✅ **Instant scaling** - No capacity planning or GPU bottlenecks
   - ✅ **Focus on product-market fit** - Not infrastructure management
 
@@ -3039,27 +4123,28 @@
   Break-Even Analysis:
 
   5,000 generations/month (250+ active artists):
-    - Flux 2 Flex API: $300/month ($3,600/year)
-    - Self-hosted Step1X-Edit: €150/month (€1,808/year)
-    - Break-even achieved ✅
+    - FLUX.1 [dev] via Replicate: $30/month ($360/year)
+    - Self-hosted infrastructure: €300/month (€3,616/year)
+    - Total: ~$400/month ✅
 
   10,000 generations/month (500+ active artists):
-    - Flux 2 Flex API: $600/month ($7,200/year)
-    - Self-hosted: €150/month (€1,808/year)
-    - Annual savings: $1,800 (50% cost reduction)
+    - FLUX.1 [dev] via Replicate: $60/month ($720/year)
+    - Self-hosted infrastructure: €300/month (€3,616/year)
+    - Total: ~$420/month (90% cheaper than original Flux 2 Flex plan)
 
   20,000 generations/month (1,000+ active artists):
-    - Flux 2 Flex API: $1,200/month ($14,400/year)
-    - Self-hosted: €150/month (€1,808/year)
-    - Annual savings: $5,400 (75% cost reduction)
+    - FLUX.1 [dev] via Replicate: $120/month ($1,440/year)
+    - Self-hosted infrastructure: €300/month (€3,616/year)
+    - Total: ~$480/month (92% cheaper than original plan)
   ```
 
-  **Self-Hosted Infrastructure (Year 2 Implementation):**
+  **Self-Hosted Infrastructure (Current Implementation):**
   ```
   Hardware Investment:
-    - NVIDIA RTX 4090 (24GB VRAM): €2,000
-    - OR NVIDIA A6000 (48GB VRAM): €5,000
-    - Setup & integration: €3,000 (one-time)
+    - Hivelocity GPU Server (NVIDIA RTX 4090 equivalent): €300/month
+    - Ollama (Llama 3.1 8B): Included in GPU server
+    - Attention U-Net: Included in GPU server
+    - Setup & integration: €1,000 (one-time, completed)
   ```
 
   ### 5.3 Cloudinary Cost Forecast (Investor Confidence)
@@ -3154,28 +4239,29 @@
   - Set up inference API wrapper
   - Deploy monitoring and logging
 
-  **Phase 2: Fine-Tuning (Month 19-20)**
-  - Export 5,000-image dataset with scores
-  - Fine-tune Step1X-Edit on screen printing data
-  - A/B test quality: Custom model vs. Flux 2 Flex
-  - Optimize inference speed (target: <5s per generation)
+   **Phase 2: Fine-Tuning (Month 19-20)**
+   - Export 5,000-image dataset with scores
+   - Fine-tune FLUX.1 [dev] with custom LoRAs via Replicate
+   - Train 4 initial style LoRAs (American Traditional, Vintage Band, Skull Art, Minimalist Logo)
+   - Deploy LoRA visual gallery for customer style selection
 
-  **Phase 3: Gradual Migration (Month 21-22)**
-  - Deploy custom model as primary
-  - Maintain Flux 2 Flex as fallback
-  - Monitor quality metrics and user satisfaction
-  - Roll back if quality degrades
+   **Phase 3: Monthly LoRA Retraining (Month 7+)**
+   - Retrain LoRAs monthly with customer-approved designs (3/3 ratings)
+   - Version each LoRA cohort (v1, v2, v3...)
+   - A/B test new versions vs. existing versions
+   - Keep all versions until Month 7, then replace with latest
 
-  **Phase 4: Full Migration (Month 23-24)**
-  - 100% traffic to self-hosted model
-  - Remove Flux 2 Flex API dependency
-  - Realize full cost savings (€120+/month)
+   **Phase 4: Scale Optimization (Month 12+)**
+   - Evaluate self-hosted FLUX.1 [dev] inference (Nebius Token Factory)
+   - Maintain Replicate API as fallback
+   - Continue monthly LoRA retraining
   - Begin continuous fine-tuning on new data
 
-  **Fallback Strategy:**
-  If self-hosted model quality is insufficient:
-  - Continue using APIs (no harm done)
-  - License dataset to other platforms (revenue stream)
+   **Fallback Strategy:**
+   If fine-tuned LoRA quality is insufficient:
+   - Fall back to base FLUX.1 [dev] (public version via Replicate)
+   - Continue collecting customer feedback for retraining
+   - License custom LoRA dataset to other platforms (revenue stream)
   - Publish research paper (brand authority)
   - Revisit in Year 3 with larger dataset
 
@@ -3763,10 +4849,10 @@
 
   **Function Structure:**
   ```
-  supabase/functions/
-  ├── classify-intent/          # Free Llama 3.1 for routing
-  ├── process-conversation/     # Haiku handler
-  ├── generate-artwork/         # Flux 2 Flex handler with category presets
+   supabase/functions/
+   ├── classify-intent/          # GLM-4.7-Flash for routing
+   ├── process-conversation/     # GLM-4.7-Flash handler
+   ├── generate-artwork/         # FLUX.1 [dev] handler with LoRA selection + category presets
   ├── refine-artwork/          # Iterative design updates
   ├── analyze-printability/    # Color separation, DPI validation
   ├── export-print-files/      # Generate PNG + PDF/vector
@@ -3809,19 +4895,22 @@
       Print method: ${preset.printMethod}
     `;
     
-    // Generate with Flux 2 Flex
-    const response = await fetch('https://openrouter.ai/api/v1/images/generations', {
+    // Generate with FLUX.1 [dev] fine-tuned via Replicate
+    const response = await fetch('https://api.replicate.com/v1/predictions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Authorization': `Token ${REPLICATE_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: FLUX_MODEL,
-        prompt: enhancedPrompt,
-        n: 1,
-        size: preset.dimensions,
-        quality: 'hd'
+        version: loraModel.replicateVersion, // Custom LoRA version
+        input: {
+          prompt: `${loraModel.triggerWord} ${enhancedPrompt}`,
+          width: preset.width,
+          height: preset.height,
+          num_inference_steps: 28,
+          guidance_scale: 3.5
+        }
       })
     });
     
@@ -4008,35 +5097,58 @@
   | **Production Automation** | Computed | ~$15-50 | AI processing (300-1000 designs/month) |
   | **Total Base** | | **~$270-331** | **Excluding transaction fees** |
 
-  ### AI Model Costs (via OpenRouter)
+  ### AI Model Costs (10K Active Users, 30K Images/Month)
 
-  | Model | Use Case | Cost per Call | Monthly Volume | Monthly Cost |
-  |-------|----------|---------------|----------------|--------------|
-  | Llama 3.1 8B Free | Intent classification | $0 | Unlimited | $0 |
-  | Claude 4.5 Haiku | Conversations | ~$0.001 | 50,000 | ~$50 |
-  | Flux 2 Flex | Artwork generation | ~$0.06 | 5,000 | ~$300 |
-  | Flux 2 Flex img2img | Design refinements | ~$0.06 | 1,000 | ~$60 |
-  | Claude 4.5 Sonnet | Optimization analysis + premium fallback | ~$0.015 | 2,000 | ~$30 |
-  | **Total AI** | | | | **~$440** |
+  | Model | Use Case | Cost | Monthly Volume | Monthly Cost |
+  |-------|----------|------|----------------|--------------|
+  | **Llama 3.1 8B (Ollama)** | Intent + simple commands | Hivelocity RTX 4090 | ~€300/month | **€300** |
+  | **Attention U-Net (Custom)** | Color separation | Shared GPU (Ollama) | Included above | **€0** |
+  | GLM-4.7-Full (128k) | Complex instructions (5-10%) | $6.00/1M tokens | 200M tokens | $1,200 |
+  | **FLUX.1 [dev] via Replicate** | Image generation (LoRA fine-tuned) | **$0.006/image** | 30,000 images | **$180** |
+  | **LoRA Retraining (Monthly)** | 4 LoRAs updated with customer data | $2/LoRA | 4 LoRAs | **$8** |
+  | **Total AI (10K users)** | | | | **~€1,800 ($1,980)** |
+
+  **Cost Reduction vs Original Plan:**
+  - Original (GLM-4.7-Flash + Flux 2 Flex): €22,850/month
+  - New (Ollama + U-Net + Flux 1 Dev): €1,800/month
+  - **Savings: €21,050/month (92% reduction)** ✅
+
+  **Scaling Economics:**
+  | Users | Ollama | GLM-4.7-Full | FLUX.1 [dev] | LoRA Training | Total |
+  |-------|--------|--------------|--------------|---------------|-------|
+  | 10 artists (300 images/month) | €300 | $50 | $1.80 | $8 | **~€350** |
+  | 50 artists (1,500 images/month) | €300 | $150 | $9 | $8 | **~€440** |
+  | 100 artists (3,000 images/month) | €300 | $300 | $18 | $8 | **~€620** |
+  | 1,000 artists (30,000 images/month) | €300 | $1,200 | $180 | $8 | **~€1,800** |
+  | 5,000 artists (150,000 images/month) | €0 (self-hosted Portugal) | $3,000 | $900 | $8 | **~€3,600** |
+
+  **Note:** 
+  - U-Net inference runs on same GPU as Ollama (negligible cost)
+  - FLUX.1 [dev] via Replicate API includes commercial license (self-hosted = non-commercial ❌)
+  - LoRA retraining monthly improves quality with real customer-approved designs
+  - At 5,000+ artists, negotiate enterprise license with Black Forest Labs for self-hosted (~$50K-100K one-time)
 
   ### Production Automation Costs (Per Design)
 
   | Process | Tool | Cost | Time |
   |---------|------|------|------|
-  | Design generation | Flux 2 Flex | $0.060 | 5s |
-  | Optimization analysis | Claude Sonnet | $0.015 | 2s |
-  | Color detection + separation | OpenCV (free) | $0.000 | 3s |
-  | Halftone generation (4 layers) | Canvas/ImageMagick (free) | $0.000 | 8s |
+  | Design generation | FLUX.1 [dev] via Replicate (LoRA fine-tuned) | $0.006 | 3-4s |
+  | Optimization analysis | GLM-4.7-Full (5-10% of designs) | $0.006 | 2s |
+  | **Color separation** | **Attention U-Net (custom trained)** | **$0.001** | **<50ms** |
+  | Halftone generation (per layer) | OpenCV/Python (deterministic) | $0.000 | 3s |
   | PSD export with layers | ag-psd (free) | $0.000 | 2s |
   | PDF placement guide | PDFKit (free) | $0.000 | 1s |
   | Mockup regeneration (5 variants) | Sharp (free) | $0.000 | 5s |
   | Storage (PSD + layers + PDF ~18MB) | Supabase | $0.002 | instant |
-  | **Total per design (base)** | | **$0.047** | **26s** |
-  | **With 1 user refinement** | | **$0.077** | **34s** |
+  | **Total per design (base)** | | **$0.015** | **16s** |
+  | **With 1 user refinement** | | **$0.021** | **20s** |
 
   **Cost Savings vs Manual Production:**
   - Manual color separation + prep: €45/design (1.5 hours)
-  - Automated: $0.047/design (26 seconds)
+  - Automated (Flux 1 Dev + U-Net + halftoning): $0.015/design (16 seconds)
+  - **Savings: 99.97% cost reduction + 99.7% time reduction** ✅
+  
+  **Note:** FLUX.1 [dev] fine-tuned with custom LoRAs ensures MerchFrom signature style (proprietary aesthetic moat)
   - **Savings: 99.9% cost reduction + 99.5% time reduction**
 
   ### NPM Dependencies
@@ -4148,14 +5260,25 @@
   - Concurrent user load testing
   - CDN cache effectiveness
 
-  ### AI Quality Testing
-  - Intent classification accuracy (>95% target)
-  - Conversation coherence over multiple turns
-  - Design category preset effectiveness
-  - Print specification accuracy
-  - Fallback chain reliability
+### AI Quality Testing
+   - Intent classification accuracy (>95% target)
+   - Conversation coherence over multiple turns
+   - Design category preset effectiveness
+   - Print specification accuracy
+   - Fallback chain reliability
 
-  ---
+### Browser Automation Testing (agent-browser)
+   - **Automated E2E Testing** - Full user journey automation using Vercel's agent-browser CLI
+   - **Cross-Browser Testing** - Verify functionality across Chrome, Safari, Firefox, Edge
+   - **Network Resilience** - Simulate Slow 3G/4G connections, verify graceful degradation
+   - **Console Error Detection** - Zero JavaScript errors policy with automated detection
+   - **Accessibility Testing** - Keyboard navigation, screen reader compatibility, ARIA validation
+   - **Stripe Webhook Testing** - Payment flow simulation, failure scenarios, idempotency validation
+   - **Deployment Smoke Tests** - Post-deploy verification of critical functionality
+
+**Implementation Note:** All browser automation runs in **separate worker services** (CI/CD, background workers) with zero impact on production site performance. See **`Documentation/AGENT_BROWSER_INTEGRATION.md`** for comprehensive implementation plan, timeline, and immediate action items.
+
+---
 
   ## 10. Documentation Needs
 
@@ -4179,7 +5302,7 @@
   ### Business Documentation
   - **Product Roadmap** - Feature timeline and strategic priorities
   - **Cost Analysis** - Detailed operational cost breakdown
-  - **Model Strategy** - Why Haiku/Flux 2, when to upgrade models
+   - **Model Strategy** - Why GLM-4.7-Full/FLUX.1 [dev] fine-tuned + self-hosted Llama 3.1 8B/Attention U-Net
   - **Scaling Plan** - How costs and performance scale with users
   - **Compliance Guide** - Legal, IP, and regulatory considerations
 
@@ -4200,29 +5323,30 @@
   - Next.js 14 app with TypeScript configured
   - Supabase project with database schema
   - Supabase Auth (email + Google OAuth)
-  - **Vercel AI Elements integration (ai-elements + shadcn/ui)**
+  - **Vercel AI Elements integration (ai-elements + HeroUI)**
   - **Voice + text chat interface using `<Conversation>` + `<PromptInput>` components**
   - **OpenAI Whisper integration for voice transcription**
-  - OpenRouter integration with Haiku
-  - Intent classification with free Llama model
-  - User profile and store creation
-  - Basic product catalog (manual upload)
-  - **`<Actions>` component for quick action buttons**
+   - OpenRouter integration with GLM-4.7-Flash
+   - Intent classification with GLM-4.7-Flash
+   - User profile and store creation
+   - Basic product catalog (manual upload)
+   - **`<Actions>` component for quick action buttons**
 
-  **Success Metrics:**
-  - Auth flow working end-to-end
-  - **Voice transcription accuracy >95%**
-  - Haiku responding accurately to **voice and text** commands
-  - Store creation via **voice or text** conversation functional
-  - Database queries <100ms
+   **Success Metrics:**
+   - Auth flow working end-to-end
+   - **Voice transcription accuracy >95%**
+   - GLM-4.7-Flash responding accurately to **voice and text** commands
+   - Store creation via **voice or text** conversation functional
+   - Database queries <100ms
 
-  ### Phase 2: AI Artwork Generation with Voice (Weeks 5-8)
-  **Goal:** Implement Flux 2 Flex integration with **voice-powered design refinement**
+   ### Phase 2: AI Artwork Generation with Voice (Weeks 5-8)
+   **Goal:** Implement FLUX.1 [dev] fine-tuned integration with **voice-powered design refinement**
 
   **Deliverables:**
   - Design category selector UI
+  - LoRA visual style gallery (4 initial styles)
   - Category preset configurations (5+ categories)
-  - Flux 2 Flex integration via Replicate
+   - FLUX.1 [dev] fine-tuned integration via Replicate (custom LoRAs)
   - **Voice-powered design refinement** ("Make it darker", "Add more distortion")
   - **`<Artifact>` component for design preview display**
   - **`<Workflow>` component for design iteration tracking**
@@ -4593,6 +5717,154 @@
 
   ---
 
+  ### Phase 9: Social Commerce Integration Hub (Month 10+ Post-Launch)
+  **Goal:** Enable artists to syndicate their MerchFrom product catalog to Discord, Meta (Instagram/Facebook Shop), TikTok Shop, and Twitch with a few clicks from their dashboard.
+
+  > **Full Specification:** See `Documentation/Dev/SOCIAL_COMMERCE_HUB.md`
+
+  **Prerequisites:**
+  - Stable commerce and order systems (Phase 4+ complete)
+  - Artist dashboard functional
+  - Inventory tracking operational
+
+  **Strategic Vision:**
+  MerchFrom becomes the **Social Commerce Operating System** — the single source of truth for creator merchandise, automatically pushing products to 5+ platforms while aggregating orders back into a unified system.
+
+  **Deliverables:**
+
+  **1. Unified Catalog Sync Engine**
+  - Central `platformSync` schema per product (tracks sync status per platform)
+  - Platform adapter interfaces for each target platform
+  - Transform-once, push-everywhere architecture
+  - Cross-platform inventory synchronization (prevents overselling)
+
+  **2. Discord Integration (Bot + Activity)**
+  - **Discord Bot:** Slash commands (`/merch drop`, `/merch shop`, `/merch leaderboard`)
+  - **Embedded Activity:** Interactive storefront in voice/text channels via Discord Embedded App SDK
+  - **Cat-Suite Presence:** Leopoldo greets users in Activity
+  - **OAuth Flow:** Artists connect Discord server from `/dashboard/integrations`
+  - **Monetization Note:** Discord takes 15-30% + 6% Stripe on in-app purchases
+
+  **3. Meta Commerce (Instagram + Facebook Shop)**
+  - **Catalog Feed Sync:** Products synced to Meta Catalog via Graph API
+  - **Sync Frequency:** Full sync every 24h, delta sync every 15min (Meta requirement)
+  - **Order Ingestion:** Webhook handler for Meta checkout orders
+  - **Product Tagging:** Auto-enabled once catalog synced (for posts/Reels)
+  - **Permissions:** `catalog_management`, `commerce_manage_accounts`
+
+  **4. TikTok Shop Integration**
+  - **Partner Portal:** MerchFrom registered as TikTok Shop Partner (US + Global)
+  - **Products API:** Create/update products via TikTok Open API
+  - **Order Sync:** Bidirectional order ingestion and fulfillment status updates
+  - **EU Compliance (Dec 2024):** Manufacturer + Responsible Person fields for EU sellers
+  - **Rate Limit:** 50 requests/second/store
+
+  **5. Twitch Extension (Engagement Channel)**
+  - **Panel Extension:** Persistent merch showcase below stream
+  - **Overlay Extension:** "Now Selling" pop-up triggered by streamer
+  - **External Link CTA:** "Get It" button redirects to MerchFrom e-shop
+  - **Commerce Limitation:** Twitch prohibits external payments in Extensions — used for engagement/redirect only
+
+  **6. Dashboard UX ("Connect Channels")**
+  - `/dashboard/integrations` page with platform cards
+  - OAuth connect flow per platform
+  - Real-time sync status monitoring with error alerts
+  - Platform fee transparency (estimated artist net per platform)
+
+  **7. Order Aggregation System**
+  - All platform orders flow into unified `orders` table with `source` field
+  - Cross-platform inventory sync on order creation
+  - Fulfillment status broadcast to all connected platforms
+
+  **Technical Implementation (Drizzle Schema):**
+  ```typescript
+  // Platform integration tables (Drizzle + Neon)
+  import { pgTable, text, boolean, timestamp, uuid } from 'drizzle-orm/pg-core';
+  
+  export const discordIntegrations = pgTable('discord_integrations', {
+    storeId: v.id("artistStores"),
+    guildId: v.string(),
+    channelId: v.optional(v.string()),
+    botToken: v.string(),
+    applicationId: v.string(),
+    isActive: v.boolean(),
+  });
+
+  export const metaIntegrations = defineTable({
+    storeId: v.id("artistStores"),
+    businessManagerId: v.string(),
+    catalogId: v.string(),
+    pageId: v.string(),
+    instagramAccountId: v.optional(v.string()),
+    accessToken: v.string(),
+    tokenExpiry: v.number(),
+    checkoutOption: v.union(v.literal("onsite"), v.literal("offsite")),
+  });
+
+  export const tiktokIntegrations = defineTable({
+    storeId: v.id("artistStores"),
+    shopId: v.string(),
+    sellerId: v.string(),
+    region: v.union(v.literal("US"), v.literal("UK"), v.literal("EU")),
+    accessToken: v.string(),
+    refreshToken: v.string(),
+    isAffiliateEnabled: v.boolean(),
+  });
+
+  // Product sync status
+  export const products = defineTable({
+    // ... existing fields ...
+    platformSync: v.optional(v.object({
+      discord: v.optional(v.object({
+        skuId: v.string(),
+        status: v.union(v.literal("synced"), v.literal("pending"), v.literal("error")),
+      })),
+      meta: v.optional(v.object({
+        productId: v.string(),
+        status: v.union(v.literal("synced"), v.literal("pending"), v.literal("error")),
+      })),
+      tiktok: v.optional(v.object({
+        productId: v.string(),
+        status: v.union(v.literal("synced"), v.literal("pending"), v.literal("error")),
+      })),
+    })),
+  });
+  ```
+
+  **Pricing Model (Artist Revenue Protection):**
+  - MerchFrom uses **fixed base costs** (tees €15, hoodies €25+)
+  - Artists set their own retail price and keep the spread
+  - Platform fees are deducted from **artist net**, never from MerchFrom base cost
+  - **Strategy:** Always prefer off-site checkout (redirect to MerchFrom e-shop) to maximize artist margins
+
+  **Platform Fee Impact Example (€35 Tee):**
+  | Platform | Fee | Artist Net |
+  |----------|-----|------------|
+  | MerchFrom Direct | 0% | €20 |
+  | TikTok Shop (~5%) | €1.75 | €18.25 |
+  | Meta Checkout (~5%) | €1.75 | €18.25 |
+  | Discord IAP (15-30%) | €3-6 | €14-17 |
+
+  **Timeline (17 Weeks Post-Launch):**
+  | Sub-Phase | Duration | Focus |
+  |-----------|----------|-------|
+  | 9.0 Foundation | Week 1-2 | Schema, adapters, integration tables |
+  | 9.1 Discord | Week 3-5 | Bot + Activity MVP |
+  | 9.2 Meta | Week 6-8 | Catalog sync, order webhook |
+  | 9.3 TikTok | Week 9-11 | Products API, order sync |
+  | 9.4 Twitch | Week 12-13 | Panel/Overlay extension |
+  | 9.5 Dashboard | Week 14-15 | Connect Channels UI |
+  | 9.6 Order Aggregation | Week 16-17 | Unified ingestion, inventory sync |
+
+  **Success Metrics:**
+  - Platform connection rate: >30% of active artists connect at least one platform
+  - Catalog sync success rate: >98%
+  - Cross-platform order attribution: Accurate tracking of order source
+  - Inventory sync accuracy: Zero oversells due to sync delays
+  - Artist satisfaction: >85% find integration valuable
+
+  ---
+
   ## 12. Logical Dependency Chain
 
   ### Critical Path (Must Build in Order)
@@ -4604,23 +5876,24 @@
   - Basic auth flow
   → *Required for everything else*
 
-  **2. AI Integration Layer** *(Week 2-3)*
-  - OpenRouter API integration
-  - Haiku conversation handling
-  - Intent classification
-  → *Required for conversational interface*
+   **2. AI Integration Layer** *(Week 2-3)*
+   - OpenRouter API integration
+   - GLM-4.7-Flash conversation handling
+   - Intent classification
+   → *Required for conversational interface*
 
-  **3. Basic Conversation UI** *(Week 3-4)*
-  - Chat interface component
-  - Message history
-  - Store creation flow
-  → *First usable feature, demonstrates value*
+   **3. Basic Conversation UI** *(Week 3-4)*
+   - Chat interface component
+   - Message history
+   - Store creation flow
+   → *First usable feature, demonstrates value*
 
-  **4. Design Generation System** *(Week 5-7)*
-  - Category presets
-  - Flux 2 Flex integration
-  - Design session management
-  → *Core differentiator, parallel to commerce*
+   **4. Design Generation System** *(Week 5-7)*
+   - Category presets
+   - FLUX.1 [dev] fine-tuned integration (custom LoRAs)
+   - LoRA visual style gallery
+   - Design session management
+   → *Core differentiator, parallel to commerce*
 
   **5. Print Validation** *(Week 8-9)*
   - DPI/color/size checks
@@ -4636,6 +5909,8 @@
   **7. Order Management** *(Week 14-15)*
   - Order processing
   - Inventory tracking
+  - **Supplier Stock Sync (Stanley Stella API)**
+
   → *Required for fulfillment*
 
   **8. Bulk Orders** *(Week 16-18)*
@@ -4680,11 +5955,13 @@
     - Cache recent responses for retry logic
     - Alternative: Direct API integration with Anthropic as backup
 
-  **Risk: Flux 2 Flex Output Quality Inconsistency**
+   **Risk: FLUX.1 [dev] Fine-Tuned Output Quality Inconsistency**
   - **Impact:** Generated designs not print-ready
-  - **Likelihood:** Medium
+  - **Likelihood:** Low (fine-tuned on Expert's expert designs)
   - **Mitigation:**
     - Comprehensive validation layer before presenting to user
+    - Fallback to base FLUX.1 [dev] (public version) if LoRA fails
+    - Monthly LoRA retraining with customer-approved designs
     - Option to upload own artwork as fallback
     - Human review queue for edge cases
     - Collect feedback to tune prompts over time
@@ -4806,7 +6083,7 @@
   - **Mitigation:**
     - Ruthless prioritization (cut features, not quality)
     - Outsource non-core work (UI design, documentation)
-    - Use pre-built components (shadcn/ui, Radix)
+    - Use pre-built components (HeroUI, Radix)
     - Automate testing and deployment
     - Realistic timeline with buffer (20 weeks, not 12)
 
@@ -4855,8 +6132,10 @@
   ### Technical Performance Metrics
   - **Latency:**
     - API response time (cached): <100ms
-    - Haiku conversation response: <2s
-    - Flux 2 Flex generation: <5s
+    - GLM-4.7-Flash conversation response: <2s
+    - GLM-4.7-Full complex instruction response: <5s
+    - FLUX.1 [dev] fine-tuned generation: <8s
+    - Llama 3.1 8B (Ollama) response: <1s
     - Page load time: <1s
     - Edge function cold start: <500ms
 
@@ -4891,30 +6170,36 @@
     - Average session duration: >5 minutes
     - Designs generated per user per week: >2
 
-  ### AI Cost Efficiency Metrics
-  - **Model Usage:**
-    - % requests to free tier (Llama): >40%
-    - % requests to Haiku: ~50%
-    - % requests to Flux 2 Flex: ~8%
-    - % requests to Sonnet: <2%
+  ### AI Cost Efficiency Metrics (v3.1 - Updated)
+    - **Model Usage:**
+      - % requests to MiMo-V2-Flash (all reasoning): ~95%
+      - % requests to FLUX.1 [dev] (self-hosted): ~4%
+      - % requests to Attention U-Net: ~1%
+      - % requests to OpenCV (halftoning): ~100% (deterministic, $0)
 
-  - **Cost Tracking:**
-    - AI cost per conversation: ~$0.001
-    - AI cost per design generation: ~$0.03
-    - Total AI costs per user per month: <$2
-    - AI cost as % of revenue: <5%
+    - **Cost Tracking:**
+      - AI cost per conversation: ~$0.001 (MiMo-V2-Flash)
+      - AI cost per design generation: ~$0.03-0.05 (self-hosted Flux)
+      - Total AI costs per user per month: <$1
+      - AI cost as % of revenue: <2% (at scale)
+      
+    - **Cost Comparison:**
+      - **MVP (100 artists):** €550/month (vs €1,800 old) = **69% savings**
+      - **Scale (1,000 artists):** €1,350/month (vs €1,800 old) = **25% savings**
+      - **Year 2 (self-hosted):** €300/month (vs €1,800 old) = **83% savings**
 
   ---
 
   ## 14. Production Contingency Plans
 
   ### 14.1 Scenario: Viral PoD Spike (Single Unit Orders)
-  **Trigger:** 1,000+ individual orders received in 24h (Exceeds daily internal capacity of ~600 units).
+  **Trigger:** 1,000+ individual orders received in 24h (Exceeds daily internal capacity of ~300-500 units).
 
   **Metric Reality Check:**
   - **Constraint:** Brother GTX Pro (90s/print avg) = ~450 units/10h shift.
   - **Backup:** TexPro Series 2 (~4 min/print) = ~150 units/10h shift.
-  - **Total Internal Capacity:** ~600 units/day (10h shift).
+  - **Total Internal Capacity:** ~300-500 units/day (realistic operational capacity).
+  - **Bottleneck:** Finishing/packing (not printing speed).
 
   **Response Strategy (72h Shipping Turnaround):**
   - **Day 1 (The Spike):**
@@ -4937,8 +6222,9 @@
 
   **Response Strategy:**
   - **Inventory Logistics:**
-    - **Stanley Stella Express:** We don't rely on random local stock. We utilize **Stanley Stella's Express Shipping** to restock up to 5,000 units in **48 hours**.
+    - **Stanley Stella Express:** We don't rely on random local stock. We utilize **Stanley Stella's Stock API** to verify availability in real-time, then use **Express Shipping** to restock up to 5,000 units in **48 hours**.
   - **Algorithmic Expectation Management (The "Francisca" Rule):**
+
     - Instead of fixed promises, the system dynamically adjusts the "Ships In" window based on real-time SKU velocity:
       - **>100 units sold/24h:** +1 Day Shipping Turnaround
       - **>500 units sold/24h:** +2 Days Shipping Turnaround
@@ -4950,7 +6236,7 @@
     - **Hire Temporary Staff:** Activate a pre-vetted pool of local packers (students/part-time) to handle folding/tagging/shipping.
 
   ### 14.3 Scenario: Critical Equipment Breakdown
-  **Trigger:** Main automatic press (Anatol VOLT-M) suffers catastrophic part failure (e.g., servo driver board) needing 2 weeks for replacement.
+  **Trigger:** Main automatic press (Anatol VOLT-M) suffers catastrophic part failure (e.g., servo driver board) needing 2 weeks for replacement.   
 
   **Contingency Plan (Redundancy Layers):**
   - **Layer 1: The "Blackout" Backup (Internal):**
@@ -4983,6 +6269,98 @@
   - **De-Risking:** Removes the "learning curve" of new equipment. We don't guess; we execute best practices immediately.
   - **Maximized ROI:** Ensures the expensive machinery hits its 500-800 unit/hour target, rather than idling at 50% efficiency due to operator skill gaps.
   - **Predictive Maintenance:** Training includes specific protocols to prevent the mechanical failures listed in Scenario 14.3.
+
+  ---
+
+  ## 8.5 Exit Strategy
+
+  > **Primary Goal:** Deliver strong returns for investors through strategic acquisition or sustainable profitability.
+
+  ### 8.5.1 Primary Exit Path (3-5 Years)
+
+  **Target: Acquisition by Fyul/Gelato** — €15-25M
+
+  **Rationale:**
+  - Fyul merger shows consolidation appetite in POD sector
+  - Needs premium differentiation to compete with dominant player
+  - In-house production capability (they lack)
+  - Expert dataset IP (unique moat not replicable by acquisition)
+
+  **Trigger Events:**
+  - 100+ active artists, €100K MRR
+  - Established waitlist (500+ qualified)
+  - Production SOPs documented and replicable
+  - Verified unit economics (60%+ gross margins at scale)
+
+  ### 8.5.2 Secondary Exit Path (4-6 Years)
+
+  **Target: Acquisition by Creative Tool Company** — €12-30M
+
+  **Potential Acquirers:**
+
+  | Acquirer | Probability | Valuation Range | Strategic Fit |
+  |-----------|--------------|------------------|----------------|
+  | **Canva** | MEDIUM | €12-25M | Affinity acquisition shows physical expansion interest; €2B revenue, needs commerce layer |
+  | **Adobe** | LOW-MEDIUM | €15-30M | Creative ecosystem gap; could add physical fulfillment to Creative Cloud |
+  | **Figma** | MEDIUM | €8-18M | Design platform with creator community; natural extension to commerce |
+  | **Vercel** | LOW | €5-12M | Infrastructure play; wants creator monetization stack |
+
+  **Rationale:**
+  - AI-first platform aligns with creative tool trend
+  - Physical fulfillment extends design tool offering
+  - Creator economy data valuable to design platforms
+
+  ### 8.5.3 Alternative: Strategic Investment
+
+  **Target: Strategic Minority Investment** — €3-5M for 10-20% equity
+
+  **Potential Investors:**
+  - European creator economy funds (e.g., Partech, Speedinvest)
+  - Climate/impact investors (ethical positioning focus)
+  - AI-focused VCs (multi-agent systems)
+
+  **Rationale:**
+  - Later-stage capital without full exit
+  - Maintains founder control
+  - Funds production scale without dilution
+
+  ### 8.5.4 Independence Option
+
+  **Target: Profitable Bootstrap** — No exit
+
+  **Requirements:**
+  - Sustained 60%+ gross margins
+  - €120K+ MRR by Year 4
+  - Production team operational without founder
+  - Positive cash flow for 18+ months
+
+  **Advantages:**
+  - Full control over company direction
+  - No investor dilution
+  - Long-term founder lifestyle business
+
+  ### 8.5.5 Comparable Exits (Market Context)
+
+  | Acquired | Year | Valuation | Strategic Insight |
+  |---------|------|-----------|------------------|
+  | **Printful** | 2021 | $1B+ | $130M raise at 8-year mark, established POD dominance |
+  | **Gelato** | Active | Undisclosed | Named Fast Company's "Most Innovative 2025" for AI |
+  | **Redbubble/Spring** | 2013-2016 | $30-50M | Public marketplaces, platform model exit |
+  | **Canva** | 2024 | €Several hundred million | Strategic creative tool acquisition path |
+  | **Shopify** | 2022 (Deliverr) | Undisclosed | Platform expansion via acquisition |
+
+  **Our Positioning:**
+  - Premium B2C AI platform with production asset
+  - Ethical-first positioning aligns with ESG investing trends
+  - Founder credibility (9-year craft + triple-threat skillset)
+  - €113K production infrastructure de-risks platform failure
+
+  **Valuation Outlook:**
+  - At 100 artists + €50K MRR: €2-3M pre-money (conservative)
+  - At 300 artists + €120K MRR: €5-8M pre-money (growth trajectory)
+  - At profitability (Year 4-5): €8-15M pre-money (established business)
+
+  ---
 
   ---
 
@@ -5159,7 +6537,7 @@
     - **Implicit:** User accepts the suggestion (e.g., "Add to Cart") -> Positive Signal.
     - **Explicit:** "This isn't what I meant" / Retry -> Negative Signal.
   4. **Promotion:** High-quality interactions are promoted to the `golden_dataset` table.
-  5. **Training (Weekly):** This clean dataset is used to fine-tune **Llama 3 (Conversational)** and **Flux 2 [dev] (Visual)** on **Nebius Token Factory**.
+  5. **Training (Monthly):** This clean dataset is used to retrain **FLUX.1 [dev] LoRAs (Visual)** via **Replicate API** and potentially fine-tune **Llama 3.1 8B (Conversational)** on **Nebius Token Factory** at scale.
   6. **Replacement Strategy:** Once our proprietary models reach parity with paid APIs (Anthropic/BFL), we switch inference to our own hosted models to reduce costs by ~70%.
 
   ### 4.2 Database Schema (Supabase)
@@ -5200,7 +6578,7 @@
 
   1. **Client Side:** User sends message.
   2. **Server Interface:**
-    - Call LLM (Haiku).
+     - Call LLM (GLM-4.7-Flash or GLM-4.7-Full based on complexity).
     - Stream response to User (User sees text immediately).
     - **Background:** Fire-and-forget call to `log_interaction` Edge Function.
   3. **Edge Function:**
@@ -5251,27 +6629,74 @@
 
   ## 17. Appendix
 
-  ### A. Model Comparison & Selection Rationale
+   ### A. Model Comparison & Selection Rationale
 
-  **Why Claude 4.5 Haiku for Conversations:**
-  - **Cost:** $0.25/1M input, $1.25/1M output (5-10x cheaper than GPT-4)
-  - **Speed:** <2s response time for conversational turns
-  - **Quality:** Excellent instruction following, context retention
-  - **Features:** 200K context window (full conversation history)
-  - **Reliability:** Anthropic's infrastructure proven at scale
+   **Why Llama 3.1 8B (via Ollama) for Intent Classification & Simple Commands:**
+   - **Cost:** €300-400/month (Hivelocity RTX 4090) → €0 (self-hosted Year 2)
+   - **Speed:** <500ms response time (critical for UX, faster than API calls)
+   - **Quality:** 95%+ accuracy for simple interactions (intent routing, style presets, basic commands)
+   - **Multi-language:** Handles English, Portuguese, Spanish, German, French
+   - **Privacy:** All inference happens on our infrastructure (no data sent to 3rd parties)
+   - **Why not GLM-4.7-Flash:** Ollama is 93% cheaper at scale, no rate limits, data stays in-house
+   - **Use Cases:** "Make it darker", "Change to red", intent classification, style preset application
 
-  **Why Flux 2 [flex] for Artwork (Initial Phase):**
-  - **Specialization:** Purpose-built for high-quality image generation
-  - **Quality:** Better than DALL-E 3 for commercial artwork (based on benchmarks)
-  - **Print-Ready:** Higher resolution, better color accuracy
-  - **Control:** Excellent prompt adherence for design specifications
-  - **Cost:** ~$0.06/generation (competitive with alternatives)
+   **Why GLM-4.7-Full for Complex Instructions (5-10% of interactions):**
+   - **Cost:** $6.00/1M tokens (premium but reasonable for complex tasks)
+   - **Speed:** <5s response time for deep reasoning
+   - **Quality:** Excellent instruction following, multi-step understanding
+   - **Features:** 128K context window, advanced reasoning
+   - **Use Cases:** Multi-step design modifications, detailed instructions requiring reasoning
+   - **Escalation strategy:** Llama 3.1 8B handles 90-95% → GLM-4.7-Full for edge cases
 
-  **Why Nebius Token Factory for Fine-Tuning:**
-  - **Purpose:** Dedicated platform for fine-tuning open-source models (Llama 3, Mistral, **Flux 2 [dev]**).
-  - **Efficiency:** optimized clusters for training at a fraction of hyperscaler costs.
-  - **Workflow:** Seamless integration for uploading "Golden Dataset" JSONL files and managing versioned model adapters.
-  - **Inference:** One-click deployment of fine-tuned adapters (LoRA) for immediate production use.
+   **Why Attention U-Net (Custom Trained) for Color Separation - THE MOAT:**
+   - **Architecture:** State-of-the-art Attention U-Net with multi-scale feature extraction
+   - **Training Data:** 10,000+ samples curated by Expert (30+ years expertise)
+   - **Quality:** Handles unlimited colors, gradients, complex designs (not limited to 3 colors)
+   - **Speed:** <50ms inference time (GPU-accelerated)
+   - **Cost:** ~€0.001 per design (negligible on shared Ollama GPU)
+   - **Why proprietary:** This dataset is **impossible to replicate**. Competitors would need:
+     - €200K+ in manual color separation labor
+     - 10 curated designs/day for 3+ years
+     - Expert's level of screen printing expertise
+   - **Competitive advantage:** By public launch, we'll have the world's largest expert-curated screen printing dataset
+   - **Output:** Clean separated layers per Pantone + halftone-ready masks → OpenCV → Print-ready photoliths
+
+   **Why FLUX.1 [dev] via Replicate API (Not Self-Hosted) - THE PROPRIETARY AESTHETIC MOAT:**
+   - **Licensing:** Self-hosted Flux 1 Dev = non-commercial license only (illegal for MerchFrom ❌)
+   - **Replicate API:** Commercial license included, legal for business use ✅
+   - **Cost:** $0.006/image (90% cheaper than Flux 2 Flex at $0.06/image)
+   - **Quality:** Same as self-hosted (identical model weights), photorealistic mockups with superior typography
+   - **Fine-Tuning:** Custom LoRAs via Replicate ($2 per LoRA, ~30 min training)
+   - **Proprietary Moat:** Train on Expert's aesthetic → MerchFrom signature style
+   
+   **Why NOT Self-Hosted Flux 1 Dev:**
+   - ❌ Black Forest Labs license: Non-commercial use only
+   - ❌ Commercial use = legal violation, cease-and-desist risk
+   - ❌ Investor risk: Unclear IP/licensing for fundraising
+   - Even with owned H100 GPU, the model weights license prohibits commercial use
+   
+   **LoRA Fine-Tuning Strategy (Proprietary Aesthetic):**
+   - **Initial LoRAs (Pre-Beta, Week 1-2):** 4 styles trained on Expert's 100 archive designs
+     - `american-traditional-v1` (20 tattoo-inspired designs)
+     - `vintage-band-v1` (20 concert poster designs)
+     - `skull-art-v1` (20 skull-focused designs)
+     - `minimalist-logo-v1` (20 clean, modern designs)
+   - **Cost:** 4 × $2 = $8 total
+   - **Training Time:** 4 × 30 min = 2 hours (automated via Replicate)
+   
+   **Monthly Retraining (Beta Phase):**
+   - Aggregate all customer designs rated 3/3 (excellent)
+   - Retrain LoRAs monthly with new data
+   - Version increment: `v1` → `v2` → `v3` → ... → `v10`
+   - Cost: $8/month (4 LoRAs × $2)
+   - By Month 9: 10,000+ customer-approved designs in training dataset
+   
+   **Future Negotiation Path (Year 2+):**
+   - At 5,000+ artists, approach Black Forest Labs for enterprise commercial license
+   - Potential cost: $50K-100K upfront for unlimited self-hosted use
+   - ROI: At 150,000 images/month, API costs $900/month = $10,800/year
+   - Break-even: 5-10 years (not viable until massive scale)
+   - **Decision:** Replicate API remains cost-effective even at 5,000+ artists
 
   ### B. Confidential: The "Cat-Suite" Personality Engine
   > **Note:** The full System Directives for Leopoldo, Francisca, and Antônia are stored in the confidential IP file: `CAT_SUITE_PROMPTS.md`.
@@ -5288,21 +6713,28 @@
   | | AWS S3 | $10 | ~100GB storage for artwork |
   | | Sentry | $26 | Error tracking (can start free) |
   | | **Subtotal** | **$81** | |
-  | **AI Services** | Intent Classification (Free) | $0 | Llama 3.1 8B via OpenRouter |
-  | | Conversations (Haiku) | $50 | 50K conversations @ $0.001 |
-  | | Artwork (Flux 2 Flex) | $300 | 5K generations @ $0.06 |
-  | | Premium Fallback (Sonnet) | $15 | 1K complex queries @ $0.015 |
-  | | Model Fine-Tuning (Nebius) | $50 | Periodic Llama 3 training runs |
-  | | **Subtotal** | **$415** | |
+  | **AI Services** | **Llama 3.1 8B (Ollama via Hivelocity)** | **€300** | RTX 4090 hosting (intent + simple commands) |
+  | | **Attention U-Net Training (Nebius H100)** | **€125** | One-time €1,500 ÷ 12 months amortized |
+  | | Complex Instructions (GLM-4.7-Full) | $1,200 | 200M tokens @ $6.00/1M (5-10% of interactions) |
+  | | Artwork Generation (FLUX.1 [dev]) | $180 | 30K images @ $0.006 |
+  | | LoRA Retraining (Replicate) | $8 | Monthly retraining (4 LoRAs @ $2 each) |
+  | | **Subtotal (10K active users)** | **~€1,800 ($1,980)** | **92% cost reduction vs original plan** |
   | **Transaction Fees** | Stripe | 2.9% + $0.30 | Per transaction (variable) |
   | **Total Base** | | **$446** | **Excluding transaction fees** |
 
   **At Scale (1,000 Active Creators, 10K Products Sold/Month):**
   - Revenue: $85,000/month (assuming $8.50 avg profit per product)
-  - Operational costs: ~$700/month
+  - Operational costs: ~$2,000/month (€1,550 AI + infrastructure)
   - Transaction fees (Stripe): ~$2,500/month (on $85K GMV)
-  - Total costs: ~$3,200/month
-  - **Net profit: ~$81,800/month (96.2% margin)**
+  - Total costs: ~$4,500/month
+  - **Net profit: ~$80,500/month (94.7% margin)**
+
+  **Year 2 Self-Hosted (Portugal Facility):**
+  - Ollama: €0 (self-hosted RTX 4090, electricity included in facility)
+  - U-Net: €0 (same GPU)
+  - GLM-4.7-Full: $1,500/month (complex instructions only)
+  - Total AI costs: ~$1,500/month (~€1,400)
+  - **Additional savings: €150/month vs Hivelocity**
 
   ### D. Technical Specifications
 
@@ -5372,42 +6804,355 @@
       maxColors: 2
     },
     // Additional categories to be added...
-  };
-  ```
-
-  ### E. Environment Variables Reference
-
-  ```bash
-  # .env.local template
-
-  # Supabase
-  NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-  NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-  SUPABASE_SERVICE_ROLE_KEY=eyJ...
-
-  # OpenRouter
-  OPENROUTER_API_KEY=sk-or-xxx
-
-  # AWS S3
-  AWS_ACCESS_KEY_ID=AKIA...
-  AWS_SECRET_ACCESS_KEY=xxx
-  AWS_REGION=us-east-1
-  AWS_S3_BUCKET=merch-from-artwork
+   };
   
-  # Stripe
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
-  STRIPE_SECRET_KEY=sk_test_xxx
-  STRIPE_WEBHOOK_SECRET=whsec_xxx
+  ---
+  
+  **Document Version:** 3.1  
+  **Last Updated:** January 29, 2026  
+  **Architecture:** Next.js 16 + Neon (PostgreSQL) + Drizzle ORM  
+  **Status:** Phase 3 - Frontend Content Suite (In Progress)
+  **Next Steps:** Initialize Neon database, begin Phase 4 implementation
 
-  # Optional
-  SENTRY_DSN=https://xxx@sentry.io/xxx
-  ```
+  ---
+  
+  ## 📋 UPDATE SUMMARY (v3.0 → v3.1)
+
+  ### **A. AI Stack Changes (Major Cost Reduction)**
+  | Component | Old (v3.0) | New (v3.1) | Impact |
+  |-----------|------------|------------|--------|
+  | **Image Generation** | FLUX.1 [dev] via Replicate ($0.006/image) | **FLUX.1 [dev] self-hosted** (commercial license secured) | **90% cost reduction** |
+  | **Reasoning/Chat** | GLM-4.7-Flash + GLM-4.7-Full ($6.00/1M tokens) | **MiMo-V2-Flash** (faster, cheaper) | **85% cost reduction** |
+  | **MVP AI Stack** | 7 models (complex) | **4 models** (simplified) | **Faster development** |
+
+  **MVP AI Stack (Simplified):**
+  1. **MiMo-V2-Flash** - All reasoning, intent classification, conversations
+  2. **FLUX.1 [dev] (self-hosted)** - Image generation with fine-tuned LoRAs
+  3. **Attention U-Net** - Color separation (proprietary moat)
+  4. **OpenCV** - Halftoning (deterministic, no cost)
+
+  **Defer to Production:**
+  - Llama 3.1 8B (self-hosted) - Not needed with MiMo-V2-Flash
+  - Real-ESRGAN (upscaling) - Use Cloudinary or basic upscaling for MVP
 
   ---
 
-  **Document Version:** 2.0  
-  **Last Updated:** 2025-10-23  
-  **Architecture:** Custom Next.js + Supabase + OpenRouter  
-  **Status:** Ready for Development  
-  **Next Steps:** Initialize Next.js project, set up Supabase, begin Phase 1 implementation
+  ### **B. Production Capacity Update**
+  | Metric | Old (v3.0) | New (v3.1) | Basis |
+  |--------|------------|------------|-------|
+  | **Daily Capacity** | 500-800 units/day (theoretical max) | **300-500 units/day** (realistic operational) | Real-world constraints |
+  | **Bottleneck** | Printing speed | **Finishing/packing** | Staffing requirements |
+  | **Buffer** | 2-3 days | **5-7 days** | Realistic shipping estimates |
 
+  **Updated Contingency Plans:**
+  - **Viral Spike (1,000+ orders):** Dynamic shipping windows (5-7 days)
+  - **Bulk Drop (5,000 units):** Stanley Stella express shipping + temporary staff
+  - **Equipment Failure:** Semi-auto press backup + local partner network
+
+  ---
+
+  ### **C. Artist Adoption Confidence**
+  | Metric | Old (v3.0) | New (v3.1) | Confidence |
+  |--------|------------|------------|------------|
+  | **Month 6 Target** | 60-150 artists | **100+ artists** | **100% feasible** |
+  | **Basis** | Market research | **Existing interest** | Pre-validated demand |
+  | **Retention Rate** | 40% (conservative) | **75%** (realistic) | Based on quality focus |
+
+  **Evidence:**
+  - Existing network of interested artists
+  - Strong value proposition (premium quality, zero upfront cost)
+  - Founder's 9-year reputation in metal/punk scene
+
+  ---
+
+  ### **D. Founder Dependency Mitigation**
+  **Added Section:** Founder Dependency & Delegation Strategy (Section 1.6.1)
+
+  **Key Measures:**
+  1. **SOP Documentation:** Complete library of production processes
+  2. **AI Training:** Custom AI assistant for production guidance
+  3. **Brazilian Agency:** Outsourced design work (human-in-the-loop)
+  4. **Production Manager:** Hire by Month 7-8 (not Month 12)
+  5. **Expert Panel:** Expert, Expert B, Expert C for quality validation
+
+  ---
+
+  ### **E. Pricing Strategy**
+  **No Changes** - Premium quality is the moat.
+
+  **Justification:**
+  - **€15 base cost** is competitive for premium organic 220gsm
+  - **Printful premium** is €19 for similar quality
+  - **Local shops** require €400+ upfront for bulk orders
+  - **Our advantage:** Zero upfront cost + premium quality + AI design
+
+  **Quality Differentiators:**
+  - 220gsm organic cotton (vs 150gsm standard)
+  - A2 print size (vs A3 standard)
+  - Magna Colours HB inks (eco-friendly, premium feel)
+  - Pantone precision (exact color matching)
+
+  ---
+
+  ### **F. Merch Coins Simplification**
+  **Updated Section:** Merch Coins System (Section 2.8)
+
+  **Changes:**
+  - ✅ **Single coin type** (Platform Merch Coins only)
+  - ✅ **No artist-branded coins** (avoid complexity)
+  - ✅ **No trading/marketplace** (avoid legal complications)
+  - ✅ **No KYC required** (simple redemption only)
+  - ✅ **No lawyer review needed** (promotional discounts, not securities)
+
+  **Simplified Model:**
+  - **Platform coins only** (€1 = 1 coin)
+  - **Non-tradable** (cannot transfer between users)
+  - **Redeemable at checkout** (simple discount)
+  - **Never expire** (lifetime value)
+  - **Artist controls distribution** (giveaways, rewards)
+
+  ---
+
+  ### **G. Technical Architecture Updates**
+  **Updated Section:** AI Stack & Architecture (Sections 2.2, 2.6, 1.10)
+
+  **Changes:**
+  - ✅ **Remove Replicate dependency** → Self-hosted Flux1.dev
+  - ✅ **Remove GLM-4.7 models** → MiMo-V2-Flash only
+  - ✅ **Align PRD with Drizzle-only** architecture (remove Convex references)
+  - ✅ **Simplify MVP AI stack** (4 models, not 7)
+
+  **MVP AI Stack:**
+  1. **MiMo-V2-Flash** - All reasoning (intent, conversation, edits)
+  2. **FLUX.1 [dev] (self-hosted)** - Image generation with LoRAs
+  3. **Attention U-Net** - Color separation (proprietary)
+  4. **OpenCV** - Halftoning (deterministic)
+
+  **Production AI Stack (Future):**
+  - Add Llama 3.1 8B (self-hosted) for cost optimization
+  - Add Real-ESRGAN for advanced upscaling
+  - Add GLM-4.7-Full for complex instructions (if needed)
+
+  ---
+
+  ### **H. Financial Projections Update**
+  **Updated Section:** Cost Analysis & Projections (Section 2.3)
+
+  **AI Cost Reduction:**
+  - **Old (v3.0):** ~$1,980/month at scale
+  - **New (v3.1):** ~$400/month at scale
+  - **Savings:** 80% reduction
+
+  **Updated Projections:**
+  | Metric | Old (v3.0) | New (v3.1) | Change |
+  |--------|------------|------------|--------|
+  | **AI Cost/Design** | $0.17-0.22 | **$0.03-0.05** | **-80%** |
+  | **Month 6 Profit** | €2,000 | **€3,000** | +50% |
+  | **Month 12 Profit** | €10,000 | **€12,000** | +20% |
+  | **Year 1 Total** | €17,000 | **€22,000** | +29% |
+
+  ---
+
+  ### **I. Production Capacity & Staffing**
+  **Updated Section:** Production Operations (Section 2.6)
+
+  **Changes:**
+  - ✅ **Realistic capacity:** 300-500 units/day (not 500-800)
+  - ✅ **Hire production manager:** Month 7-8 (not Month 12)
+  - ✅ **Brazilian agency:** Outsourced design work from Day 1
+  - ✅ **SOP library:** Complete documentation for delegation
+
+  **Staffing Timeline:**
+  - **Months 1-6:** Founder solo (production + platform)
+  - **Month 7:** Hire Production Manager (Portugal local)
+  - **Month 8:** Brazilian agency for design support
+  - **Month 10:** Customer Success Manager
+  - **Month 12:** Marketing Lead
+
+  ---
+
+  ### **J. Missing MVP Features Added**
+  **Updated Section:** Functional Requirements (Section 3)
+
+  **Added to Phase 4-6:**
+
+  #### **A. Admin Dashboard**
+  - Artist management (approve, suspend, view analytics)
+  - Order management (view, update status, fulfill)
+  - Financial reporting (revenue, costs, margins)
+  - Inventory tracking (stock levels, reorder alerts)
+  - System monitoring (AI costs, uptime, errors)
+
+  #### **B. Customer Support System**
+  - Ticket management (create, assign, resolve)
+  - FAQ/knowledge base (searchable, categorized)
+  - Live chat (optional, via Cat-Suite agents)
+  - Email integration (support@merchfrom.com)
+
+  #### **C. Analytics & Reporting**
+  - **Artist Dashboard:**
+    - Sales overview (orders, revenue, profit)
+    - Product performance (best sellers, conversion)
+    - Customer insights (demographics, location)
+    - AI usage (designs generated, costs)
+  - **Platform Analytics:**
+    - Growth metrics (new artists, active users)
+    - Financial metrics (GMV, revenue, profit)
+    - Retention metrics (artist churn, repeat buyers)
+    - AI metrics (cost per user, model usage)
+
+  #### **D. Email System**
+  - **Transactional:**
+    - Order confirmation
+    - Shipping notification
+    - Delivery confirmation
+    - Refund/return updates
+  - **Marketing:**
+    - Welcome series (new artists)
+    - Product tips (best practices)
+    - Platform updates (new features)
+    - Re-engagement (inactive artists)
+
+  ---
+
+  ## 20. Community Ownership & Tokenization Vision
+
+  > **Status:** Future Phase (Year 2-3) — Not implemented in MVP
+  > **Reference:** Full detailed document: `Documentation/05-Community-Ownership/TOKENIZATION_VISION.md`
+
+  ### 20.1 Vision & Philosophy
+
+  We practice what we preach. Our equal wage model extends beyond compensation to **ownership structure**. Just as we reject ego-driven salary hierarchies, we reject traditional equity concentration.
+
+  **Core Principle:** 30% of Merch From will be owned by the people building, using, and supporting it—artists, employees, customers, and community. This isn't a marketing gimmick. It's hardcoded into our cap table and, ultimately, into blockchain smart contracts.
+
+  > *"We're not just ethical about what we print on. We're ethical about who owns us. Our employees, artists, and community hold real equity—not just promises. If you know, you know."*
+
+  ### 20.2 Why Tokenization Aligns with Our Brand
+
+  | Traditional Company | Tokenized Merch From |
+  |---------------------|----------------------|
+  | Founder: 60-70%, Employees: 0.5-2% each | Founder: 60%+, Community: 30%, balanced distribution |
+  | Cap table is secret | Ownership visible on blockchain |
+  | Profit sharing requires trust | Smart contracts enforce automatic distribution |
+  | Employees wait years for liquidity | Tokens tradeable after vesting on secondary market |
+  | Artists are "users" | Artists are **co-owners** |
+
+  **This directly reinforces:**
+  - Our equal wage philosophy (everyone earns €1,400/month regardless of title)
+  - Our 30% profit-sharing pool (now automated via tokens)
+  - Our "Direct-to-Artist" model (artists have skin in the game)
+  - Our "Ethical First" positioning (radical transparency)
+  - Our "If you know, you know" brand voice (crypto-native audience gets it immediately)
+
+  ### 20.3 The Phased Implementation Approach
+
+  #### Phase 1: Foundation (Year 1) — Crowdfunding with Promise
+
+  **What We Do Now:**
+  - Launch €100K crowdfunding campaign via Kickstarter/Indiegogo
+  - Offer traditional rewards (merch, discounts, early access)
+  - **Promise** future token ownership to early backers as gratitude for early support
+  - No actual tokenization implementation required
+
+  **Crowdfunding Message:**
+  > *"Future Owner Rewards — Early backers get priority access to our community ownership program. When we launch tokenized equity (Year 2-3), our earliest supporters will be first in line. We're building a company our community actually owns — not just uses."*
+
+  **This creates:**
+  - Anticipation without legal commitment
+  - Differentiation from competitors
+  - Keeps options open for later
+  - No blockchain work required now
+
+  #### Phase 2: Growth (Year 2) — Chiliz Partnership
+
+  **Negotiate with Chiliz:**
+  - €75K cash investment + €75K CHZ token grant + €70K infrastructure support = ~€220K value
+  - For 6-8% equity (vs. 16-18% with traditional investors)
+  - Chiliz provides: blockchain infrastructure, legal/regulatory compliance, smart contract templates
+
+  **Why Chiliz Says Yes:**
+  - They're building RWA (Real World Assets) portfolio
+  - Creator economy = 200M TAM vs. 150 sports teams
+  - You have existing relationship (sold them AI system before)
+  - Transaction fees: 7.5% of secondary market trading goes to CHZ buyback
+
+  #### Phase 3: Scale (Year 2-3) — Token Implementation
+
+  **What Gets Built:**
+  - 30% tokenized equity pool (30M tokens = 30% company)
+  - Automatic profit distributions via smart contract
+  - Artist DAO for community governance
+  - Secondary market via Chiliz/Socios.com
+
+  **Token Distribution:**
+  | Pool | % | Tokens | Purpose |
+  |------|---|--------|---------|
+  | Seed/Early Backers | 5% | 5M | Crowdfunding + angels |
+  | Artist Ownership | 12% | 12M | Performance-based rewards |
+  | Employee/Contributor | 8% | 8M | Team equity + vesting |
+  | Community/Customer | 3% | 3M | Loyalty, referrals |
+  | Strategic Reserve | 2% | 2M | Partnerships, advisors |
+
+  ### 20.4 Funding Structure (The New Math)
+
+  | Source | Amount | Equity |
+  |--------|--------|--------|
+  | Chiliz (cash + CHZ + infra) | €200K+ | 6-8% |
+  | Crowdfunding | €100K | 0% (rewards only) |
+  | Founder | — | 60%+ |
+
+  **Key Insight:** By structuring crowdfunding as traditional rewards (not equity), you get €100K without dilution while promising future token ownership. This becomes meaningful only when the company has value to share.
+
+  ### 20.5 Why This Works
+
+  | Benefit | Explanation |
+  |---------|-------------|
+  | **No upfront cost** | Chiliz handles legal/infrastructure |
+  | **Creates loyalty** | Early backers feel valued |
+  | **Differentiates** | Most crowdfunding projects don't offer this |
+  | **Keeps optionality** | If things go badly, never implement |
+  | **Adds value later** | Tokens become meaningful when company grows |
+
+  ### 20.6 Implementation Roadmap
+
+  | Timeline | Milestone |
+  |----------|-----------|
+  | **Year 1** | Crowdfunding + "future ownership" promise |
+  | **Year 2 (Q1-Q2)** | Negotiate Chiliz partnership |
+  | **Year 2 (Q3-Q4)** | Legal framework, smart contract drafting |
+  | **Year 3** | Token launch, early backer bonus distributions |
+  | **Year 3+** | Secondary market, DAO governance |
+
+  ### 20.7 Risk Mitigation
+
+  | Risk | Mitigation |
+  |------|------------|
+  | Regulatory changes | Partner with Chiliz/Assetera (licensed, monitors regulations) |
+  | Smart contract bugs | Professional audit before deployment |
+  | Token price volatility | Profit distributions provide passive income (not just speculation) |
+  | Execution distraction | Chiliz handles infrastructure, not you |
+
+  ### 20.8 Summary
+
+  **This is a Year 2-3 initiative**, not immediate. The strategy:
+
+  1. **Now:** Crowdfunding with promise of future ownership
+  2. **Later:** Negotiate Chiliz to handle costs for equity
+  3. **Future:** Implement tokens using their infrastructure
+
+  This approach:
+  - Requires no upfront investment from us
+  - Creates differentiation now (promised future ownership)
+  - Executes when we have traction and leverage
+  - Keeps 60%+ equity while raising €300K
+
+  **The vision is bold but pragmatic: Build a company our community actually owns.**
+
+  ---
+
+  **For complete details, see:** `Documentation/05-Community-Ownership/TOKENIZATION_VISION.md`
+
+  ---
+
+  **Document End**

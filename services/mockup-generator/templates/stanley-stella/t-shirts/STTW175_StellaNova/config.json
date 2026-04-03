@@ -1,0 +1,124 @@
+{
+  "sku": "STTW175",
+  "name": "Stella Nova",
+  "category": "t-shirts",
+  "description": "Premium cotton t-shirt for everyday wear",
+  "fabric_type": "cotton",
+  "gsm": 155,
+  "fit": "Relaxed Fit",
+  "sizes": [
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 150,
+      "y": 180,
+      "width": 500,
+      "height": 600,
+      "max_width": 400,
+      "max_height": 500
+    },
+    "center": {
+      "x": 200,
+      "y": 250,
+      "width": 400,
+      "height": 500,
+      "max_width": 350,
+      "max_height": 450
+    }
+  },
+  "safe_zone": {
+    "x": 180,
+    "y": 200,
+    "width": 440,
+    "height": 500
+  },
+  "colors": {
+    "C727": {
+      "name": "French Navy",
+      "hex": "#000080",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C054": {
+      "name": "Natural Raw",
+      "hex": "#F5F5DC",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C002": {
+      "name": "Black",
+      "hex": "#000000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C129": {
+      "name": "Bubble Pink",
+      "hex": "#FFB6C1",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C115": {
+      "name": "Purple Love",
+      "hex": "#8B008B",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C001": {
+      "name": "White",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C142": {
+      "name": "Color C142",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C144": {
+      "name": "Color C144",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C145": {
+      "name": "Bubble Pink",
+      "hex": "#FFB6C1",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    },
+    "C146": {
+      "name": "Cool Heather Grey",
+      "hex": "#8D99AE",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": true
+    }
+  }
+}

@@ -1,11 +1,5 @@
-import { StickyHeader } from "@/components/StickyHeader";
-import { HeroSection } from "@/components/HeroSection";
+import { redirect } from 'next/navigation';
 
-export default function Home() {
-  return (
-    <main className="min-h-screen bg-background text-foreground">
-      <StickyHeader />
-      <HeroSection />
-    </main>
-  );
+export default function HomePage() {
+  redirect('/app/workspace');
 }

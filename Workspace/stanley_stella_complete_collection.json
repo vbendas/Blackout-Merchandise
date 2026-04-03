@@ -1,0 +1,3652 @@
+{
+  "collection_info": {
+    "season": "Autumn/Winter 2025",
+    "collection_code": "AW25",
+    "total_products": 150,
+    "extraction_date": "2025-01-25"
+  },
+  "products": [
+    {
+      "name": "HYPSTER",
+      "sku": "STTU258",
+      "url": "https://stanleystella.com/en-eu/hypster-sttu258",
+      "product_type": "T-SHIRT",
+      "color": "GROUNDED BEIGE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "GROUNDED BEIGE"
+      ]
+    },
+    {
+      "name": "STELLA RAYA",
+      "sku": "STTW259",
+      "url": "https://stanleystella.com/en-eu/stella-raya-sttw259",
+      "product_type": "T-SHIRT",
+      "color": "BLUE GREY",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "BLUE GREY"
+      ]
+    },
+    {
+      "name": "BLAKER",
+      "sku": "STTU263",
+      "url": "https://stanleystella.com/en-eu/blaker-sttu263",
+      "product_type": "T-SHIRT",
+      "color": "HEATHER GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "HEATHER GREY"
+      ]
+    },
+    {
+      "name": "STELLA ETTA",
+      "sku": "STTW264",
+      "url": "https://stanleystella.com/en-eu/stella-etta-sttw264",
+      "product_type": "T-SHIRT",
+      "color": "BLACK",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "BLACK"
+      ]
+    },
+    {
+      "name": "STELLA HARPER",
+      "sku": "STWW270",
+      "url": "https://stanleystella.com/en-eu/stella-harper-stww270",
+      "product_type": "UNKNOWN",
+      "color": "SUMMER BLUE",
+      "gender": "MEN",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": null,
+      "available_colors": [
+        "SUMMER BLUE"
+      ]
+    },
+    {
+      "name": "VOICER",
+      "sku": "STSU256",
+      "url": "https://stanleystella.com/en-eu/voicer-stsu256",
+      "product_type": "SHIRT",
+      "color": "MISTY GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 150,
+      "available_colors": [
+        "MISTY GREY"
+      ]
+    },
+    {
+      "name": "RYLER",
+      "sku": "STSU255",
+      "url": "https://stanleystella.com/en-eu/ryler-stsu255",
+      "product_type": "SHIRT",
+      "color": "FADED OLIVE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 150,
+      "available_colors": [
+        "FADED OLIVE"
+      ]
+    },
+    {
+      "name": "THINKER",
+      "sku": "STSU269",
+      "url": "https://stanleystella.com/en-eu/thinker-stsu269",
+      "product_type": "SHIRT",
+      "color": "ANTHRACITE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 150,
+      "available_colors": [
+        "ANTHRACITE"
+      ]
+    },
+    {
+      "name": "STELLA THINKER",
+      "sku": "STSW254",
+      "url": "https://stanleystella.com/en-eu/stella-thinker-stsw254",
+      "product_type": "SHIRT",
+      "color": "NATURAL RAW",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 150,
+      "available_colors": [
+        "NATURAL RAW"
+      ]
+    },
+    {
+      "name": "GAMECHANGER",
+      "sku": "STSU257",
+      "url": "https://stanleystella.com/en-eu/gamechanger-stsu257",
+      "product_type": "SHIRT",
+      "color": "BURGUNDY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 150,
+      "available_colors": [
+        "BURGUNDY"
+      ]
+    },
+    {
+      "name": "STELLA GAMECHANGER",
+      "sku": "STSW268",
+      "url": "https://stanleystella.com/en-eu/stella-gamechanger-stsw268",
+      "product_type": "SHIRT",
+      "color": "HEATHER GREY",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 150,
+      "available_colors": [
+        "HEATHER GREY"
+      ]
+    },
+    {
+      "name": "ASTOR",
+      "sku": "STSU261",
+      "url": "https://stanleystella.com/en-eu/astor-stsu261",
+      "product_type": "SHIRT",
+      "color": "HEATHER GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 150,
+      "available_colors": [
+        "HEATHER GREY"
+      ]
+    },
+    {
+      "name": "STELLA LIANNA",
+      "sku": "STSW262",
+      "url": "https://stanleystella.com/en-eu/stella-lianna-stsw262",
+      "product_type": "SHIRT",
+      "color": "DEEP PLUM",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 150,
+      "available_colors": [
+        "DEEP PLUM"
+      ]
+    },
+    {
+      "name": "TRAILER 2.0",
+      "sku": "STSU253",
+      "url": "https://stanleystella.com/en-eu/trailer-2-0-stsu253",
+      "product_type": "SHIRT",
+      "color": "DESERT DUST",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 150,
+      "available_colors": [
+        "DESERT DUST"
+      ]
+    },
+    {
+      "name": "CREATOR 2.0",
+      "sku": "STTU169",
+      "url": "https://stanleystella.com/en-eu/creator-2-0-sttu169",
+      "product_type": "T-SHIRT",
+      "color": "FADED OLIVE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "FADED OLIVE"
+      ]
+    },
+    {
+      "name": "CREATOR 2.0 LONG SLEEVE",
+      "sku": "STTU199",
+      "url": "https://stanleystella.com/en-eu/creator-2-0-long-sleeve-sttu199",
+      "product_type": "T-SHIRT",
+      "color": "HEATHER GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "HEATHER GREY"
+      ]
+    },
+    {
+      "name": "CRAFTER",
+      "sku": "STTU170",
+      "url": "https://stanleystella.com/en-eu/crafter-sttu170",
+      "product_type": "T-SHIRT",
+      "color": "BLUE GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "BLUE GREY"
+      ]
+    },
+    {
+      "name": "CRAFTER VINTAGE",
+      "sku": "STTU976",
+      "url": "https://stanleystella.com/en-eu/crafter-vintage-sttu976",
+      "product_type": "T-SHIRT",
+      "color": "G. DYED MISTY GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "G. DYED MISTY GREY"
+      ]
+    },
+    {
+      "name": "SPARKER 2.0",
+      "sku": "STTU171",
+      "url": "https://stanleystella.com/en-eu/sparker-2-0-sttu171",
+      "product_type": "T-SHIRT",
+      "color": "MISTY GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "MISTY GREY"
+      ]
+    },
+    {
+      "name": "BLASTER 2.0",
+      "sku": "STTU959",
+      "url": "https://stanleystella.com/en-eu/blaster-2-0-sttu959",
+      "product_type": "T-SHIRT",
+      "color": "VIOLET",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "VIOLET"
+      ]
+    },
+    {
+      "name": "BREEZER",
+      "sku": "STTU964",
+      "url": "https://stanleystella.com/en-eu/breezer-sttu964",
+      "product_type": "T-SHIRT",
+      "color": "GROUNDED BEIGE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "GROUNDED BEIGE"
+      ]
+    },
+    {
+      "name": "ASHER",
+      "sku": "STTU078",
+      "url": "https://stanleystella.com/en-eu/asher-sttu078",
+      "product_type": "T-SHIRT",
+      "color": "MISTY GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "MISTY GREY"
+      ]
+    },
+    {
+      "name": "FREESTYLER",
+      "sku": "STTU788",
+      "url": "https://stanleystella.com/en-eu/freestyler-sttu788",
+      "product_type": "T-SHIRT",
+      "color": "MOCHA",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "MOCHA"
+      ]
+    },
+    {
+      "name": "FREESTYLER VINTAGE",
+      "sku": "STTU073",
+      "url": "https://stanleystella.com/en-eu/freestyler-vintage-sttu073",
+      "product_type": "T-SHIRT",
+      "color": "G. DYED PURPLE LOVE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "G. DYED PURPLE LOVE"
+      ]
+    },
+    {
+      "name": "FREESTYLER LONG SLEEVE",
+      "sku": "STTU200",
+      "url": "https://stanleystella.com/en-eu/freestyler-long-sleeve-sttu200",
+      "product_type": "T-SHIRT",
+      "color": "COOL HEATHER GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "COOL HEATHER GREY"
+      ]
+    },
+    {
+      "name": "RE-CREATOR",
+      "sku": "STTU787",
+      "url": "https://stanleystella.com/en-eu/re-creator-sttu787",
+      "product_type": "T-SHIRT",
+      "color": "RE-WHITE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "RE-WHITE"
+      ]
+    },
+    {
+      "name": "ROCKER",
+      "sku": "STTU758",
+      "url": "https://stanleystella.com/en-eu/rocker-sttu758",
+      "product_type": "T-SHIRT",
+      "color": "HEATHER GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "HEATHER GREY"
+      ]
+    },
+    {
+      "name": "STELLA EXPRESSER 2.0",
+      "sku": "STTW079",
+      "url": "https://stanleystella.com/en-eu/stella-expresser-2-0-sttw079",
+      "product_type": "T-SHIRT",
+      "color": "WHITE",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "WHITE"
+      ]
+    },
+    {
+      "name": "STELLA MUSER",
+      "sku": "STTW172",
+      "url": "https://stanleystella.com/en-eu/stella-muser-sttw172",
+      "product_type": "T-SHIRT",
+      "color": "HONEY PAPER",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "HONEY PAPER"
+      ]
+    },
+    {
+      "name": "STELLA MUSER LONG SLEEVE",
+      "sku": "STTW219",
+      "url": "https://stanleystella.com/en-eu/stella-muser-long-sleeve-sttw219",
+      "product_type": "T-SHIRT",
+      "color": "WORKER BLUE",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "WORKER BLUE"
+      ]
+    },
+    {
+      "name": "STELLA AVA",
+      "sku": "STTW963",
+      "url": "https://stanleystella.com/en-eu/stella-ava-sttw963",
+      "product_type": "T-SHIRT",
+      "color": "FRENCH NAVY",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "FRENCH NAVY"
+      ]
+    },
+    {
+      "name": "STELLA COLLIDER",
+      "sku": "STTW089",
+      "url": "https://stanleystella.com/en-eu/stella-collider-sttw089",
+      "product_type": "T-SHIRT",
+      "color": "BUTTER",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "BUTTER"
+      ]
+    },
+    {
+      "name": "STELLA ELLA",
+      "sku": "STTW174",
+      "url": "https://stanleystella.com/en-eu/stella-ella-sttw174",
+      "product_type": "T-SHIRT",
+      "color": "NISPERO",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "NISPERO"
+      ]
+    },
+    {
+      "name": "STELLA ISLA",
+      "sku": "STTW176",
+      "url": "https://stanleystella.com/en-eu/stella-isla-sttw176",
+      "product_type": "T-SHIRT",
+      "color": "BLUE SOUL",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "BLUE SOUL"
+      ]
+    },
+    {
+      "name": "STELLA MIA",
+      "sku": "STTW962",
+      "url": "https://stanleystella.com/en-eu/stella-mia-sttw962",
+      "product_type": "T-SHIRT",
+      "color": "FRAICHE PECHE",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "FRAICHE PECHE"
+      ]
+    },
+    {
+      "name": "STELLA NOVA",
+      "sku": "STTW175",
+      "url": "https://stanleystella.com/en-eu/stella-nova-sttw175",
+      "product_type": "T-SHIRT",
+      "color": "PURPLE LOVE",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "PURPLE LOVE"
+      ]
+    },
+    {
+      "name": "STELLA SERENA",
+      "sku": "STTW173",
+      "url": "https://stanleystella.com/en-eu/stella-serena-sttw173",
+      "product_type": "T-SHIRT",
+      "color": "DUSK",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "DUSK"
+      ]
+    },
+    {
+      "name": "STANLEY PRESENTER",
+      "sku": "STTM562",
+      "url": "https://stanleystella.com/en-eu/stanley-presenter-sttm562",
+      "product_type": "T-SHIRT",
+      "color": "BLACK",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "BLACK"
+      ]
+    },
+    {
+      "name": "STANLEY STANCER",
+      "sku": "STTM961",
+      "url": "https://stanleystella.com/en-eu/stanley-stancer-sttm961",
+      "product_type": "T-SHIRT",
+      "color": "NATURAL RAW",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "NATURAL RAW"
+      ]
+    },
+    {
+      "name": "PREPSTER 2.0",
+      "sku": "STPU222",
+      "url": "https://stanleystella.com/en-eu/prepster-2-0-stpu222",
+      "product_type": "POLO",
+      "color": "BLUE GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 1,
+      "weight_gsm": 180,
+      "available_colors": [
+        "BLUE GREY"
+      ]
+    },
+    {
+      "name": "PREPSTER 2.0 LONG SLEEVE",
+      "sku": "STPU223",
+      "url": "https://stanleystella.com/en-eu/prepster-2-0-long-sleeve-stpu223",
+      "product_type": "POLO",
+      "color": "KHAKI",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 180,
+      "available_colors": [
+        "KHAKI"
+      ]
+    },
+    {
+      "name": "COASTER VINTAGE",
+      "sku": "STPU252",
+      "url": "https://stanleystella.com/en-eu/coaster-vintage-stpu252",
+      "product_type": "POLO",
+      "color": "G. DYED BLACK ROCK",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 180,
+      "available_colors": [
+        "G. DYED BLACK ROCK"
+      ]
+    },
+    {
+      "name": "STELLA COASTER",
+      "sku": "STPW977",
+      "url": "https://stanleystella.com/en-eu/stella-coaster-stpw977",
+      "product_type": "POLO",
+      "color": "BOTTLE GREEN",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 180,
+      "available_colors": [
+        "BOTTLE GREEN"
+      ]
+    },
+    {
+      "name": "STANLEY COASTER",
+      "sku": "STPM224",
+      "url": "https://stanleystella.com/en-eu/stanley-coaster-stpm224",
+      "product_type": "POLO",
+      "color": "DEEP PLUM",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 180,
+      "available_colors": [
+        "DEEP PLUM"
+      ]
+    },
+    {
+      "name": "CRUISER 2.0",
+      "sku": "STSU177",
+      "url": "https://stanleystella.com/en-eu/cruiser-2-0-stsu177",
+      "product_type": "SHIRT",
+      "color": "FADED OLIVE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "FADED OLIVE"
+      ]
+    },
+    {
+      "name": "RE-CRUISER",
+      "sku": "STSU800",
+      "url": "https://stanleystella.com/en-eu/re-cruiser-stsu800",
+      "product_type": "SHIRT",
+      "color": "RE-BLACK",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "RE-BLACK"
+      ]
+    },
+    {
+      "name": "CHANGER 2.0",
+      "sku": "STSU178",
+      "url": "https://stanleystella.com/en-eu/changer-2-0-stsu178",
+      "product_type": "SHIRT",
+      "color": "DEEP TEAL",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "DEEP TEAL"
+      ]
+    },
+    {
+      "name": "DRUMMER 2.0",
+      "sku": "STSU168",
+      "url": "https://stanleystella.com/en-eu/drummer-2-0-stsu168",
+      "product_type": "SHIRT",
+      "color": "BLUE GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "BLUE GREY"
+      ]
+    },
+    {
+      "name": "CONNECTOR 2.0",
+      "sku": "STSU207",
+      "url": "https://stanleystella.com/en-eu/connector-2-0-stsu207",
+      "product_type": "SHIRT",
+      "color": "FRENCH NAVY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "FRENCH NAVY"
+      ]
+    },
+    {
+      "name": "CULTIVATOR 2.0",
+      "sku": "STSU179",
+      "url": "https://stanleystella.com/en-eu/cultivator-2-0-stsu179",
+      "product_type": "SHIRT",
+      "color": "KHAKI",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "KHAKI"
+      ]
+    },
+    {
+      "name": "RADDER 2.0",
+      "sku": "STSU208",
+      "url": "https://stanleystella.com/en-eu/radder-2-0-stsu208",
+      "product_type": "SHIRT",
+      "color": "VIOLET",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "VIOLET"
+      ]
+    },
+    {
+      "name": "RADDER 2.0 VINTAGE",
+      "sku": "STSU210",
+      "url": "https://stanleystella.com/en-eu/radder-2-0-vintage-stsu210",
+      "product_type": "SHIRT",
+      "color": "G. DYED MISTY GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "G. DYED MISTY GREY"
+      ]
+    },
+    {
+      "name": "SLAMMER 2.0",
+      "sku": "STSU209",
+      "url": "https://stanleystella.com/en-eu/slammer-2-0-stsu209",
+      "product_type": "SHIRT",
+      "color": "MOCHA",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "MOCHA"
+      ]
+    },
+    {
+      "name": "SLAMMER 2.0 VINTAGE",
+      "sku": "STSU211",
+      "url": "https://stanleystella.com/en-eu/slammer-2-0-vintage-stsu211",
+      "product_type": "SHIRT",
+      "color": "G. DYED ANTHRACITE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "G. DYED ANTHRACITE"
+      ]
+    },
+    {
+      "name": "CHASER",
+      "sku": "STSU077",
+      "url": "https://stanleystella.com/en-eu/chaser-stsu077",
+      "product_type": "SHIRT",
+      "color": "HERITAGE BROWN",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "HERITAGE BROWN"
+      ]
+    },
+    {
+      "name": "STRIKER",
+      "sku": "STSU202",
+      "url": "https://stanleystella.com/en-eu/striker-stsu202",
+      "product_type": "SHIRT",
+      "color": "BLACK",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "BLACK"
+      ]
+    },
+    {
+      "name": "COOPER DRY",
+      "sku": "STSU797",
+      "url": "https://stanleystella.com/en-eu/cooper-dry-stsu797",
+      "product_type": "SHIRT",
+      "color": "ALOE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "ALOE"
+      ]
+    },
+    {
+      "name": "SOUNDER",
+      "sku": "STSU229",
+      "url": "https://stanleystella.com/en-eu/sounder-stsu229",
+      "product_type": "SHIRT",
+      "color": "BOTTLE GREEN",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "BOTTLE GREEN"
+      ]
+    },
+    {
+      "name": "ARCHER VINTAGE",
+      "sku": "STSU040",
+      "url": "https://stanleystella.com/en-eu/archer-vintage-stsu040",
+      "product_type": "SHIRT",
+      "color": "G. DYED MISTY GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "G. DYED MISTY GREY"
+      ]
+    },
+    {
+      "name": "MILLER DRY",
+      "sku": "STSU795",
+      "url": "https://stanleystella.com/en-eu/miller-dry-stsu795",
+      "product_type": "SHIRT",
+      "color": "RED EARTH",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "RED EARTH"
+      ]
+    },
+    {
+      "name": "MIXER",
+      "sku": "STSU205",
+      "url": "https://stanleystella.com/en-eu/mixer-stsu205",
+      "product_type": "SHIRT",
+      "color": "VERDANT GREEN",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "VERDANT GREEN"
+      ]
+    },
+    {
+      "name": "ROLLER",
+      "sku": "STSU868",
+      "url": "https://stanleystella.com/en-eu/roller-stsu868",
+      "product_type": "SHIRT",
+      "color": "DEEP PLUM",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "DEEP PLUM"
+      ]
+    },
+    {
+      "name": "MATCHER",
+      "sku": "STSU799",
+      "url": "https://stanleystella.com/en-eu/matcher-stsu799",
+      "product_type": "SHIRT",
+      "color": "PINK JOY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "PINK JOY"
+      ]
+    },
+    {
+      "name": "MATCHER VINTAGE",
+      "sku": "STSU085",
+      "url": "https://stanleystella.com/en-eu/matcher-vintage-stsu085",
+      "product_type": "SHIRT",
+      "color": "G. DYED MISTY GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "G. DYED MISTY GREY"
+      ]
+    },
+    {
+      "name": "KNOXER",
+      "sku": "STSU201",
+      "url": "https://stanleystella.com/en-eu/knoxer-stsu201",
+      "product_type": "SHIRT",
+      "color": "NATURAL RAW",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "NATURAL RAW"
+      ]
+    },
+    {
+      "name": "LEDGER DRY",
+      "sku": "STSU798",
+      "url": "https://stanleystella.com/en-eu/ledger-dry-stsu798",
+      "product_type": "SHIRT",
+      "color": "DESERT DUST",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "DESERT DUST"
+      ]
+    },
+    {
+      "name": "TRUCKER 2.0",
+      "sku": "STSU204",
+      "url": "https://stanleystella.com/en-eu/trucker-2-0-stsu204",
+      "product_type": "SHIRT",
+      "color": "HEATHER GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "HEATHER GREY"
+      ]
+    },
+    {
+      "name": "STELLA ALMA",
+      "sku": "STSW212",
+      "url": "https://stanleystella.com/en-eu/stella-alma-stsw212",
+      "product_type": "SHIRT",
+      "color": "BLUE GREY",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "BLUE GREY"
+      ]
+    },
+    {
+      "name": "STELLA CLARA",
+      "sku": "STSW217",
+      "url": "https://stanleystella.com/en-eu/stella-clara-stsw217",
+      "product_type": "SHIRT",
+      "color": "ECO-HEATHER",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "ECO-HEATHER"
+      ]
+    },
+    {
+      "name": "STELLA IDA",
+      "sku": "STSW214",
+      "url": "https://stanleystella.com/en-eu/stella-ida-stsw214",
+      "product_type": "SHIRT",
+      "color": "COOL HEATHER GREY",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "COOL HEATHER GREY"
+      ]
+    },
+    {
+      "name": "STELLA NORA",
+      "sku": "STSW213",
+      "url": "https://stanleystella.com/en-eu/stella-nora-stsw213",
+      "product_type": "SHIRT",
+      "color": "HONEY PAPER",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "HONEY PAPER"
+      ]
+    },
+    {
+      "name": "STELLA PALOMA",
+      "sku": "STSW218",
+      "url": "https://stanleystella.com/en-eu/stella-paloma-stsw218",
+      "product_type": "SHIRT",
+      "color": "BLACK",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "BLACK"
+      ]
+    },
+    {
+      "name": "HYGGER SHERPA",
+      "sku": "STSU956",
+      "url": "https://stanleystella.com/en-eu/hygger-sherpa-stsu956",
+      "product_type": "SHIRT",
+      "color": "DARK HEATHER GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 150,
+      "available_colors": [
+        "DARK HEATHER GREY"
+      ]
+    },
+    {
+      "name": "MOVER 2.0",
+      "sku": "STBU185",
+      "url": "https://stanleystella.com/en-eu/mover-2-0-stbu185",
+      "product_type": "UNKNOWN",
+      "color": "KHAKI",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": null,
+      "available_colors": [
+        "KHAKI"
+      ]
+    },
+    {
+      "name": "MOVER VINTAGE",
+      "sku": "STBU576",
+      "url": "https://stanleystella.com/en-eu/mover-vintage-stbu576",
+      "product_type": "UNKNOWN",
+      "color": "G. DYED KHAKI",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": null,
+      "available_colors": [
+        "G. DYED KHAKI"
+      ]
+    },
+    {
+      "name": "BOARDER DRY",
+      "sku": "STBU944",
+      "url": "https://stanleystella.com/en-eu/boarder-dry-stbu944",
+      "product_type": "SHORTS",
+      "color": "WORKER BLUE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 220,
+      "available_colors": [
+        "WORKER BLUE"
+      ]
+    },
+    {
+      "name": "JAMMER DRY",
+      "sku": "STBU157",
+      "url": "https://stanleystella.com/en-eu/jammer-dry-stbu157",
+      "product_type": "UNKNOWN",
+      "color": "BLACK",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": null,
+      "available_colors": [
+        "BLACK"
+      ]
+    },
+    {
+      "name": "TRAINER 2.0",
+      "sku": "STBU186",
+      "url": "https://stanleystella.com/en-eu/trainer-2-0-stbu186",
+      "product_type": "SHORTS",
+      "color": "TEAL MONSTERA",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": 220,
+      "available_colors": [
+        "TEAL MONSTERA"
+      ]
+    },
+    {
+      "name": "WORKER",
+      "sku": "STWU975",
+      "url": "https://stanleystella.com/en-eu/worker-stwu975",
+      "product_type": "UNKNOWN",
+      "color": "G. DYED GREEN BAY",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": null,
+      "available_colors": [
+        "G. DYED GREEN BAY"
+      ]
+    },
+    {
+      "name": "STANLEY DENIM SHIRT",
+      "sku": "STWM967",
+      "url": "https://stanleystella.com/en-eu/stanley-denim-shirt-stwm967",
+      "product_type": "UNKNOWN",
+      "color": "MID WASH",
+      "gender": "MEN",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 2,
+      "weight_gsm": null,
+      "available_colors": [
+        "MID WASH"
+      ]
+    },
+    {
+      "name": "STANLEY OXFORD SHIRT",
+      "sku": "STWM968",
+      "url": "https://stanleystella.com/en-eu/stanley-oxford-shirt-stwm968",
+      "product_type": "UNKNOWN",
+      "color": "BEIGE OXFORD",
+      "gender": "MEN",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "BEIGE OXFORD"
+      ]
+    },
+    {
+      "name": "STANLEY STYLER SHIRT",
+      "sku": "STWM969",
+      "url": "https://stanleystella.com/en-eu/stanley-styler-shirt-stwm969",
+      "product_type": "UNKNOWN",
+      "color": "SOFT KHAKI",
+      "gender": "MEN",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "SOFT KHAKI"
+      ]
+    },
+    {
+      "name": "STELLA DENIM SHIRT",
+      "sku": "STWW970",
+      "url": "https://stanleystella.com/en-eu/stella-denim-shirt-stww970",
+      "product_type": "UNKNOWN",
+      "color": "LIGHT WASH",
+      "gender": "MEN",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "LIGHT WASH"
+      ]
+    },
+    {
+      "name": "STELLA OXFORD SHIRT",
+      "sku": "STWW971",
+      "url": "https://stanleystella.com/en-eu/stella-oxford-shirt-stww971",
+      "product_type": "UNKNOWN",
+      "color": "BEIGE OXFORD",
+      "gender": "MEN",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "BEIGE OXFORD"
+      ]
+    },
+    {
+      "name": "STELLA STYLER SHIRT",
+      "sku": "STWW973",
+      "url": "https://stanleystella.com/en-eu/stella-styler-shirt-stww973",
+      "product_type": "UNKNOWN",
+      "color": "SUMMER BLUE",
+      "gender": "MEN",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "SUMMER BLUE"
+      ]
+    },
+    {
+      "name": "STANLEY CLIMBER 2.0",
+      "sku": "STJM189",
+      "url": "https://stanleystella.com/en-eu/stanley-climber-2-0-stjm189",
+      "product_type": "JACKET",
+      "color": "DESERT DUST",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "DESERT DUST"
+      ]
+    },
+    {
+      "name": "STELLA CLIMBER 2.0",
+      "sku": "STJW190",
+      "url": "https://stanleystella.com/en-eu/stella-climber-2-0-stjw190",
+      "product_type": "JACKET",
+      "color": "RED BROWN",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "RED BROWN"
+      ]
+    },
+    {
+      "name": "STANLEY VOYAGER 2.0",
+      "sku": "STJM188",
+      "url": "https://stanleystella.com/en-eu/stanley-voyager-2-0-stjm188",
+      "product_type": "JACKET",
+      "color": "RED BROWN",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "RED BROWN"
+      ]
+    },
+    {
+      "name": "STELLA VOYAGER 2.0",
+      "sku": "STJW191",
+      "url": "https://stanleystella.com/en-eu/stella-voyager-2-0-stjw191",
+      "product_type": "JACKET",
+      "color": "OFF WHITE",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "OFF WHITE"
+      ]
+    },
+    {
+      "name": "BOMBER 2.0",
+      "sku": "STJU251",
+      "url": "https://stanleystella.com/en-eu/bomber-2-0-stju251",
+      "product_type": "JACKET",
+      "color": "KHAKI",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "KHAKI"
+      ]
+    },
+    {
+      "name": "TREKKER",
+      "sku": "STJU242",
+      "url": "https://stanleystella.com/en-eu/trekker-stju242",
+      "product_type": "JACKET",
+      "color": "FRENCH NAVY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "FRENCH NAVY"
+      ]
+    },
+    {
+      "name": "STANLEY DISCOVERER",
+      "sku": "STJM158",
+      "url": "https://stanleystella.com/en-eu/stanley-discoverer-stjm158",
+      "product_type": "JACKET",
+      "color": "STARGAZER",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "STARGAZER"
+      ]
+    },
+    {
+      "name": "STELLA DISCOVERER",
+      "sku": "STJW159",
+      "url": "https://stanleystella.com/en-eu/stella-discoverer-stjw159",
+      "product_type": "JACKET",
+      "color": "ANTHRACITE",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "ANTHRACITE"
+      ]
+    },
+    {
+      "name": "STANLEY NAVIGATOR",
+      "sku": "STJM167",
+      "url": "https://stanleystella.com/en-eu/stanley-navigator-stjm167",
+      "product_type": "JACKET",
+      "color": "BLACK",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "BLACK"
+      ]
+    },
+    {
+      "name": "COMMUTER",
+      "sku": "STJU846",
+      "url": "https://stanleystella.com/en-eu/commuter-stju846",
+      "product_type": "JACKET",
+      "color": "LIME FLASH",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "LIME FLASH"
+      ]
+    },
+    {
+      "name": "SPEEDER",
+      "sku": "STJU834",
+      "url": "https://stanleystella.com/en-eu/speeder-stju834",
+      "product_type": "JACKET",
+      "color": "ORCHID FLOWER",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "ORCHID FLOWER"
+      ]
+    },
+    {
+      "name": "COACHER",
+      "sku": "STJU833",
+      "url": "https://stanleystella.com/en-eu/coacher-stju833",
+      "product_type": "JACKET",
+      "color": "FRENCH NAVY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "FRENCH NAVY"
+      ]
+    },
+    {
+      "name": "STANLEY GUIDER",
+      "sku": "STJM238",
+      "url": "https://stanleystella.com/en-eu/stanley-guider-stjm238",
+      "product_type": "JACKET",
+      "color": "ANTHRACITE",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "ANTHRACITE"
+      ]
+    },
+    {
+      "name": "STELLA GUIDER",
+      "sku": "STJW239",
+      "url": "https://stanleystella.com/en-eu/stella-guider-stjw239",
+      "product_type": "JACKET",
+      "color": "BURGUNDY",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "BURGUNDY"
+      ]
+    },
+    {
+      "name": "STELLA QUESTER",
+      "sku": "STJW241",
+      "url": "https://stanleystella.com/en-eu/stella-quester-stjw241",
+      "product_type": "JACKET",
+      "color": "STARGAZER",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "STARGAZER"
+      ]
+    },
+    {
+      "name": "STANLEY QUESTER",
+      "sku": "STJM240",
+      "url": "https://stanleystella.com/en-eu/stanley-quester-stjm240",
+      "product_type": "JACKET",
+      "color": "BLACK",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "BLACK"
+      ]
+    },
+    {
+      "name": "STANLEY TRAIL BLAZER",
+      "sku": "STJM235",
+      "url": "https://stanleystella.com/en-eu/stanley-trail-blazer-stjm235",
+      "product_type": "JACKET",
+      "color": "BLACK",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "BLACK"
+      ]
+    },
+    {
+      "name": "STELLA TRAIL BLAZER",
+      "sku": "STJW236",
+      "url": "https://stanleystella.com/en-eu/stella-trail-blazer-stjw236",
+      "product_type": "JACKET",
+      "color": "FRENCH NAVY",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "FRENCH NAVY"
+      ]
+    },
+    {
+      "name": "STELLA NAVIGATOR",
+      "sku": "STJW166",
+      "url": "https://stanleystella.com/en-eu/stella-navigator-stjw166",
+      "product_type": "JACKET",
+      "color": "STARGAZER",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "STARGAZER"
+      ]
+    },
+    {
+      "name": "BROOKER",
+      "sku": "STJU248",
+      "url": "https://stanleystella.com/en-eu/brooker-stju248",
+      "product_type": "JACKET",
+      "color": "FRENCH NAVY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "FRENCH NAVY"
+      ]
+    },
+    {
+      "name": "LINER",
+      "sku": "STJU249",
+      "url": "https://stanleystella.com/en-eu/liner-stju249",
+      "product_type": "JACKET",
+      "color": "FRENCH NAVY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "FRENCH NAVY"
+      ]
+    },
+    {
+      "name": "PADDED PARKER",
+      "sku": "STJU841",
+      "url": "https://stanleystella.com/en-eu/padded-parker-stju841",
+      "product_type": "JACKET",
+      "color": "BRITISH KHAKI",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "BRITISH KHAKI"
+      ]
+    },
+    {
+      "name": "PUFFER",
+      "sku": "STJU840",
+      "url": "https://stanleystella.com/en-eu/puffer-stju840",
+      "product_type": "JACKET",
+      "color": "OFF WHITE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "OFF WHITE"
+      ]
+    },
+    {
+      "name": "PUFFER GILET",
+      "sku": "STJU250",
+      "url": "https://stanleystella.com/en-eu/puffer-gilet-stju250",
+      "product_type": "JACKET",
+      "color": "FRENCH NAVY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": 320,
+      "available_colors": [
+        "FRENCH NAVY"
+      ]
+    },
+    {
+      "name": "SHOPPING BAG 2.0",
+      "sku": "STAU117",
+      "url": "https://stanleystella.com/en-eu/shopping-bag-2-0-stau117",
+      "product_type": "UNKNOWN",
+      "color": "DEEP TEAL",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "DEEP TEAL"
+      ]
+    },
+    {
+      "name": "LIGHT TOTE BAG",
+      "sku": "STAU773",
+      "url": "https://stanleystella.com/en-eu/light-tote-bag-stau773",
+      "product_type": "UNKNOWN",
+      "color": "DUSK",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "DUSK"
+      ]
+    },
+    {
+      "name": "MID TOTE BAG",
+      "sku": "STAU116",
+      "url": "https://stanleystella.com/en-eu/mid-tote-bag-stau116",
+      "product_type": "UNKNOWN",
+      "color": "PURPLE LOVE",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "PURPLE LOVE"
+      ]
+    },
+    {
+      "name": "TOTE BAG",
+      "sku": "STAU760",
+      "url": "https://stanleystella.com/en-eu/tote-bag-stau760",
+      "product_type": "UNKNOWN",
+      "color": "NATURAL",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "NATURAL"
+      ]
+    },
+    {
+      "name": "DUFFLE BAG",
+      "sku": "STAU892",
+      "url": "https://stanleystella.com/en-eu/duffle-bag-stau892",
+      "product_type": "UNKNOWN",
+      "color": "BLACK",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "BLACK"
+      ]
+    },
+    {
+      "name": "GYM BAG",
+      "sku": "STAU763",
+      "url": "https://stanleystella.com/en-eu/gym-bag-stau763",
+      "product_type": "UNKNOWN",
+      "color": "HEATHER GREY",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "HEATHER GREY"
+      ]
+    },
+    {
+      "name": "HIP BAG",
+      "sku": "STAU891",
+      "url": "https://stanleystella.com/en-eu/hip-bag-stau891",
+      "product_type": "UNKNOWN",
+      "color": "NATURAL",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "NATURAL"
+      ]
+    },
+    {
+      "name": "PENCIL CASE",
+      "sku": "STAU764",
+      "url": "https://stanleystella.com/en-eu/pencil-case-stau764",
+      "product_type": "UNKNOWN",
+      "color": "NATURAL",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "NATURAL"
+      ]
+    },
+    {
+      "name": "BUCKET HAT",
+      "sku": "STAU893",
+      "url": "https://stanleystella.com/en-eu/bucket-hat-stau893",
+      "product_type": "UNKNOWN",
+      "color": "BLACK",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "BLACK"
+      ]
+    },
+    {
+      "name": "FISHERMAN BEANIE",
+      "sku": "STAU771",
+      "url": "https://stanleystella.com/en-eu/fisherman-beanie-stau771",
+      "product_type": "UNKNOWN",
+      "color": "WORKER BLUE",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "WORKER BLUE"
+      ]
+    },
+    {
+      "name": "RIB BEANIE",
+      "sku": "STAU772",
+      "url": "https://stanleystella.com/en-eu/rib-beanie-stau772",
+      "product_type": "UNKNOWN",
+      "color": "MOCHA",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 3,
+      "weight_gsm": null,
+      "available_colors": [
+        "MOCHA"
+      ]
+    },
+    {
+      "name": "MINI CREATOR 2.0",
+      "sku": "STTK184",
+      "url": "https://stanleystella.com/en-eu/mini-creator-2-0-sttk184",
+      "product_type": "T-SHIRT",
+      "color": "VERDANT GREEN",
+      "gender": "KIDS",
+      "sizes": [
+        "2-3Y",
+        "4-5Y",
+        "6-7Y",
+        "8-9Y",
+        "10-11Y",
+        "12-13Y",
+        "14-15Y"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 180,
+      "available_colors": [
+        "VERDANT GREEN"
+      ]
+    },
+    {
+      "name": "MINI SPRINTER",
+      "sku": "STPK908",
+      "url": "https://stanleystella.com/en-eu/mini-sprinter-stpk908",
+      "product_type": "POLO",
+      "color": "HEATHER GREY",
+      "gender": "KIDS",
+      "sizes": [
+        "2-3Y",
+        "4-5Y",
+        "6-7Y",
+        "8-9Y",
+        "10-11Y",
+        "12-13Y",
+        "14-15Y"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 180,
+      "available_colors": [
+        "HEATHER GREY"
+      ]
+    },
+    {
+      "name": "MINI CHANGER 2.0",
+      "sku": "STSK181",
+      "url": "https://stanleystella.com/en-eu/mini-changer-2-0-stsk181",
+      "product_type": "SHIRT",
+      "color": "HERITAGE BROWN",
+      "gender": "KIDS",
+      "sizes": [
+        "2-3Y",
+        "4-5Y",
+        "6-7Y",
+        "8-9Y",
+        "10-11Y",
+        "12-13Y",
+        "14-15Y"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 150,
+      "available_colors": [
+        "HERITAGE BROWN"
+      ]
+    },
+    {
+      "name": "MINI CRUISER 2.0",
+      "sku": "STSK180",
+      "url": "https://stanleystella.com/en-eu/mini-cruiser-2-0-stsk180",
+      "product_type": "SHIRT",
+      "color": "STARGAZER",
+      "gender": "KIDS",
+      "sizes": [
+        "2-3Y",
+        "4-5Y",
+        "6-7Y",
+        "8-9Y",
+        "10-11Y",
+        "12-13Y",
+        "14-15Y"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 150,
+      "available_colors": [
+        "STARGAZER"
+      ]
+    },
+    {
+      "name": "MINI CULTIVATOR 2.0",
+      "sku": "STSK182",
+      "url": "https://stanleystella.com/en-eu/mini-cultivator-2-0-stsk182",
+      "product_type": "SHIRT",
+      "color": "NATURAL RAW",
+      "gender": "KIDS",
+      "sizes": [
+        "2-3Y",
+        "4-5Y",
+        "6-7Y",
+        "8-9Y",
+        "10-11Y",
+        "12-13Y",
+        "14-15Y"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 150,
+      "available_colors": [
+        "NATURAL RAW"
+      ]
+    },
+    {
+      "name": "MINI BOLTER",
+      "sku": "STBK102",
+      "url": "https://stanleystella.com/en-eu/mini-bolter-stbk102",
+      "product_type": "SHORTS",
+      "color": "FRENCH NAVY",
+      "gender": "KIDS",
+      "sizes": [
+        "2-3Y",
+        "4-5Y",
+        "6-7Y",
+        "8-9Y",
+        "10-11Y",
+        "12-13Y",
+        "14-15Y"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 220,
+      "available_colors": [
+        "FRENCH NAVY"
+      ]
+    },
+    {
+      "name": "MINI MOVER 2.0",
+      "sku": "STSK183",
+      "url": "https://stanleystella.com/en-eu/mini-mover-2-0-stsk183",
+      "product_type": "UNKNOWN",
+      "color": "TEAL MONSTERA",
+      "gender": "KIDS",
+      "sizes": [
+        "2-3Y",
+        "4-5Y",
+        "6-7Y",
+        "8-9Y",
+        "10-11Y",
+        "12-13Y",
+        "14-15Y"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": null,
+      "available_colors": [
+        "TEAL MONSTERA"
+      ]
+    },
+    {
+      "name": "BABY BODY",
+      "sku": "STUB103",
+      "url": "https://stanleystella.com/en-eu/baby-body-stub103",
+      "product_type": "UNKNOWN",
+      "color": "SERENE BLUE",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": null,
+      "available_colors": [
+        "SERENE BLUE"
+      ]
+    },
+    {
+      "name": "BABY CREATOR",
+      "sku": "STTB918",
+      "url": "https://stanleystella.com/en-eu/baby-creator-sttb918",
+      "product_type": "T-SHIRT",
+      "color": "BUTTER",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 180,
+      "available_colors": [
+        "BUTTER"
+      ]
+    },
+    {
+      "name": "BABY CHANGER",
+      "sku": "STSB920",
+      "url": "https://stanleystella.com/en-eu/baby-changer-stsb920",
+      "product_type": "SHIRT",
+      "color": "HEATHER GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 150,
+      "available_colors": [
+        "HEATHER GREY"
+      ]
+    },
+    {
+      "name": "BABY CONNECTOR",
+      "sku": "STSB105",
+      "url": "https://stanleystella.com/en-eu/baby-connector-stsb105",
+      "product_type": "SHIRT",
+      "color": "HEATHER GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 150,
+      "available_colors": [
+        "HEATHER GREY"
+      ]
+    },
+    {
+      "name": "BABY CRUISER",
+      "sku": "STSB919",
+      "url": "https://stanleystella.com/en-eu/baby-cruiser-stsb919",
+      "product_type": "SHIRT",
+      "color": "FRENCH NAVY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 150,
+      "available_colors": [
+        "FRENCH NAVY"
+      ]
+    },
+    {
+      "name": "BABY TUMBLER",
+      "sku": "STBB187",
+      "url": "https://stanleystella.com/en-eu/baby-tumbler-stbb187",
+      "product_type": "UNKNOWN",
+      "color": "ECO-HEATHER",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": null,
+      "available_colors": [
+        "ECO-HEATHER"
+      ]
+    },
+    {
+      "name": "BABY BIB",
+      "sku": "STAU029",
+      "url": "https://stanleystella.com/en-eu/baby-bib-stau029",
+      "product_type": "UNKNOWN",
+      "color": "WHITE",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": null,
+      "available_colors": [
+        "WHITE"
+      ]
+    },
+    {
+      "name": "ARCHER",
+      "sku": "STSU011",
+      "url": "https://stanleystella.com/en-eu/archer-stsu011",
+      "product_type": "SHIRT",
+      "color": "BUTTER",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 150,
+      "available_colors": [
+        "BUTTER"
+      ]
+    },
+    {
+      "name": "STANLEY CLIMBER",
+      "sku": "STJM836",
+      "url": "https://stanleystella.com/en-eu/stanley-climber-stjm836",
+      "product_type": "JACKET",
+      "color": "FRENCH NAVY",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 320,
+      "available_colors": [
+        "FRENCH NAVY"
+      ]
+    },
+    {
+      "name": "STELLA CLIMBER",
+      "sku": "STJW838",
+      "url": "https://stanleystella.com/en-eu/stella-climber-stjw838",
+      "product_type": "JACKET",
+      "color": "ANTHRACITE",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 320,
+      "available_colors": [
+        "ANTHRACITE"
+      ]
+    },
+    {
+      "name": "STANLEY VOYAGER",
+      "sku": "STJM837",
+      "url": "https://stanleystella.com/en-eu/stanley-voyager-stjm837",
+      "product_type": "JACKET",
+      "color": "DESERT DUST",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 320,
+      "available_colors": [
+        "DESERT DUST"
+      ]
+    },
+    {
+      "name": "STELLA VOYAGER",
+      "sku": "STJW839",
+      "url": "https://stanleystella.com/en-eu/stella-voyager-stjw839",
+      "product_type": "JACKET",
+      "color": "ROYAL BLUE",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 320,
+      "available_colors": [
+        "ROYAL BLUE"
+      ]
+    },
+    {
+      "name": "STELLA CLIMBER WOOL-LIKE",
+      "sku": "STJW899",
+      "url": "https://stanleystella.com/en-eu/stella-climber-wool-like-stjw899",
+      "product_type": "JACKET",
+      "color": "DEEP METAL HEATHER GREY",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 320,
+      "available_colors": [
+        "DEEP METAL HEATHER GREY"
+      ]
+    },
+    {
+      "name": "STELLA VOYAGER WOOL-LIKE",
+      "sku": "STJW897",
+      "url": "https://stanleystella.com/en-eu/stella-voyager-wool-like-stjw897",
+      "product_type": "JACKET",
+      "color": "DEEP METAL HEATHER GREY",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 320,
+      "available_colors": [
+        "DEEP METAL HEATHER GREY"
+      ]
+    },
+    {
+      "name": "STANLEY CLIMBER WOOL-LIKE",
+      "sku": "STJM898",
+      "url": "https://stanleystella.com/en-eu/stanley-climber-wool-like-stjm898",
+      "product_type": "JACKET",
+      "color": "DARK HEATHER GREY",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 320,
+      "available_colors": [
+        "DARK HEATHER GREY"
+      ]
+    },
+    {
+      "name": "STANLEY VOYAGER WOOL-LIKE",
+      "sku": "STJM889",
+      "url": "https://stanleystella.com/en-eu/stanley-voyager-wool-like-stjm889",
+      "product_type": "JACKET",
+      "color": "DARK HEATHER GREY",
+      "gender": "MEN",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 320,
+      "available_colors": [
+        "DARK HEATHER GREY"
+      ]
+    },
+    {
+      "name": "BLASTER",
+      "sku": "STTU815",
+      "url": "https://stanleystella.com/en-eu/blaster-sttu815",
+      "product_type": "T-SHIRT",
+      "color": "NATURAL RAW",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 180,
+      "available_colors": [
+        "NATURAL RAW"
+      ]
+    },
+    {
+      "name": "RIVER",
+      "sku": "STJU845",
+      "url": "https://stanleystella.com/en-eu/river-stju845",
+      "product_type": "JACKET",
+      "color": "DARK HEATHER GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 320,
+      "available_colors": [
+        "DARK HEATHER GREY"
+      ]
+    },
+    {
+      "name": "WAKER",
+      "sku": "STBU070",
+      "url": "https://stanleystella.com/en-eu/waker-stbu070",
+      "product_type": "SHORTS",
+      "color": "BRIGHT BLUE",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 220,
+      "available_colors": [
+        "BRIGHT BLUE"
+      ]
+    },
+    {
+      "name": "SHOPPING BAG",
+      "sku": "STAU762",
+      "url": "https://stanleystella.com/en-eu/shopping-bag-stau762",
+      "product_type": "UNKNOWN",
+      "color": "MIDNIGHT BLUE",
+      "gender": "UNISEX",
+      "sizes": [],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": null,
+      "available_colors": [
+        "MIDNIGHT BLUE"
+      ]
+    },
+    {
+      "name": "SIDER",
+      "sku": "STSU824",
+      "url": "https://stanleystella.com/en-eu/sider-stsu824",
+      "product_type": "SHIRT",
+      "color": "BLACK",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 150,
+      "available_colors": [
+        "BLACK"
+      ]
+    },
+    {
+      "name": "SLAMMER",
+      "sku": "STSU856",
+      "url": "https://stanleystella.com/en-eu/slammer-stsu856",
+      "product_type": "SHIRT",
+      "color": "NATURAL RAW",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 150,
+      "available_colors": [
+        "NATURAL RAW"
+      ]
+    },
+    {
+      "name": "RADDER",
+      "sku": "STSU857",
+      "url": "https://stanleystella.com/en-eu/radder-stsu857",
+      "product_type": "SHIRT",
+      "color": "HEATHER GREY",
+      "gender": "UNISEX",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "weight": null,
+      "fit": null,
+      "image_url": "packshot ? $root.dataset.imgPackshot : $root.dataset.img",
+      "is_aw25": true,
+      "page": 4,
+      "weight_gsm": 150,
+      "available_colors": [
+        "HEATHER GREY"
+      ]
+    }
+  ]
+}

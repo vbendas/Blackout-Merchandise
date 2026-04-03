@@ -1,0 +1,124 @@
+{
+  "sku": "STJM188",
+  "name": "STJM188",
+  "category": "jackets",
+  "description": "Lightweight performance jacket for all-weather wear",
+  "fabric_type": "cotton",
+  "gsm": 180,
+  "fit": "Medium Fit",
+  "sizes": [
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+  ],
+  "composition": "100% organic cotton",
+  "print_area": {
+    "chest": {
+      "x": 160,
+      "y": 180,
+      "width": 540,
+      "height": 640,
+      "max_width": 440,
+      "max_height": 540
+    },
+    "center": {
+      "x": 210,
+      "y": 250,
+      "width": 440,
+      "height": 540,
+      "max_width": 390,
+      "max_height": 490
+    }
+  },
+  "safe_zone": {
+    "x": 190,
+    "y": 210,
+    "width": 480,
+    "height": 560
+  },
+  "colors": {
+    "C729": {
+      "name": "Mindful Blue",
+      "hex": "#778899",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C702": {
+      "name": "Stargazer",
+      "hex": "#E6E6FA",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C223": {
+      "name": "Color C223",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C018": {
+      "name": "Color C018",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C116": {
+      "name": "Color C116",
+      "hex": "#FFFFFF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C004": {
+      "name": "Red",
+      "hex": "#FF0000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C727": {
+      "name": "French Navy",
+      "hex": "#000080",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C002": {
+      "name": "Black",
+      "hex": "#000000",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C253": {
+      "name": "Anthracite",
+      "hex": "#383838",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    },
+    "C028": {
+      "name": "Desert Dust",
+      "hex": "#EDC9AF",
+      "available": true,
+      "has_front": true,
+      "has_back": true,
+      "has_detail": false
+    }
+  }
+}
