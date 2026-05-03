@@ -1,23 +1,38 @@
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@db-root/index';
-import { artistStores, orderItems, orders, products } from '@db-root/schema';
+import { artistStores, orderItems, orders, products, users } from '@db-root/schema';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
+import { resolveUser } from '@/lib/auth/resolve-user';
+import { getStoreByArtist } from '@db-root/stores';
 
 export const dynamic = 'force-dynamic';
 
+// Valid status transitions by role
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  pending: ['paid', 'cancelled'],
+  paid: ['in_production', 'cancelled'],
+  in_production: ['shipped', 'cancelled'],
+  shipped: ['delivered'],
+  delivered: [],
+  cancelled: [],
+};
+
 export async function GET(request: NextRequest) {
   try {
+    const { userId: clerkId } = await auth();
+    const user = await resolveUser(clerkId);
+
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const storeId = searchParams.get('storeId');
     const orderId = searchParams.get('orderId');
+    const storeId = searchParams.get('storeId');
 
     if (orderId) {
       const order = await db
         .select({
           id: orders.id,
           storeId: orders.storeId,
+          customerId: orders.customerId,
           status: orders.status,
           totalAmount: orders.totalAmount,
           shippingAddress: orders.shippingAddress,
@@ -29,6 +44,15 @@ export async function GET(request: NextRequest) {
 
       if (order.length === 0) {
         return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      }
+
+      // Only allow access to the customer or the store owner
+      const isCustomer = order[0].customerId === user.id;
+      const artistStore = await getStoreByArtist(user.id);
+      const isStoreOwner = artistStore.length > 0 && artistStore[0].id === order[0].storeId;
+
+      if (!isCustomer && !isStoreOwner && user.role !== 'admin') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
 
       const items = await db
@@ -47,8 +71,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ order: order[0], items });
     }
 
-    if (userId) {
-      const userOrders = await db
+    if (storeId) {
+      // Verify the authenticated user owns this store
+      const artistStore = await getStoreByArtist(user.id);
+      const ownsStore = artistStore.length > 0 && artistStore[0].id === storeId;
+
+      if (!ownsStore && user.role !== 'admin') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
+      const storeOrders = await db
+        .select({
+          id: orders.id,
+          customerId: orders.customerId,
+          customerEmail: users.email,
+          customerName: users.displayName,
+          status: orders.status,
+          totalAmount: orders.totalAmount,
+          shippingAddress: orders.shippingAddress,
+          createdAt: orders.createdAt,
+        })
+        .from(orders)
+        .innerJoin(users, eq(orders.customerId, users.id))
+        .where(eq(orders.storeId, storeId))
+        .orderBy(orders.createdAt);
+
+      return NextResponse.json({ orders: storeOrders });
+    }
+
+    // Default: return the authenticated user's own orders
+    const userOrders = await db
         .select({
           id: orders.id,
           storeId: orders.storeId,
@@ -59,42 +111,23 @@ export async function GET(request: NextRequest) {
         })
         .from(orders)
         .innerJoin(artistStores, eq(orders.storeId, artistStores.id))
-        .where(eq(orders.customerId, userId))
+        .where(eq(orders.customerId, user.id))
         .orderBy(orders.createdAt);
 
       return NextResponse.json({ orders: userOrders });
-    }
-
-    if (storeId) {
-      const storeOrders = await db
-        .select({
-          id: orders.id,
-          customerId: orders.customerId,
-          status: orders.status,
-          totalAmount: orders.totalAmount,
-          shippingAddress: orders.shippingAddress,
-          createdAt: orders.createdAt,
-        })
-        .from(orders)
-        .where(eq(orders.storeId, storeId))
-        .orderBy(orders.createdAt);
-
-      return NextResponse.json({ orders: storeOrders });
-    }
-
-    return NextResponse.json({ error: 'Missing userId, storeId, or orderId' }, { status: 400 });
   } catch (error) {
-    console.error('Orders API error:', error);
+    if (error instanceof NextResponse) return error;
+    console.error('Orders GET error:', error);
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
   }
 }
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { userId: clerkId } = await auth();
+
+    // Resolve Clerk ID → DB user UUID (fixes the Clerk ID vs UUID bug)
+    const user = await resolveUser(clerkId);
 
     const { orderId, status } = await request.json();
 
@@ -102,17 +135,17 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Missing orderId or status' }, { status: 400 });
     }
 
-    const validStatuses = ['pending', 'paid', 'processing', 'shipped', 'fulfilled', 'cancelled'];
+    const validStatuses = ['pending', 'paid', 'in_production', 'shipped', 'delivered', 'cancelled'];
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
-    // Verify the user has access to this order
     const order = await db
       .select({
         id: orders.id,
         storeId: orders.storeId,
         customerId: orders.customerId,
+        status: orders.status,
       })
       .from(orders)
       .where(eq(orders.id, orderId))
@@ -122,18 +155,38 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // User must either own the order (as customer) or own the store
+    // Use DB UUIDs throughout — this is the critical fix
     const store = await db
       .select({ artistId: artistStores.artistId })
       .from(artistStores)
       .where(eq(artistStores.id, order[0].storeId))
       .limit(1);
 
-    const isStoreOwner = store.length > 0 && store[0].artistId === userId;
-    const isCustomer = order[0].customerId === userId;
+    const isStoreOwner = store.length > 0 && store[0].artistId === user.id;
+    const isCustomer = order[0].customerId === user.id;
+    const isAdmin = user.role === 'admin';
 
-    if (!isStoreOwner && !isCustomer) {
+    if (!isStoreOwner && !isCustomer && !isAdmin) {
       return NextResponse.json({ error: 'Forbidden: You do not have access to this order' }, { status: 403 });
+    }
+
+    // Validate status transitions
+    const currentStatus = order[0].status;
+    const allowedTransitions = VALID_TRANSITIONS[currentStatus] || [];
+
+    if (!allowedTransitions.includes(status)) {
+      return NextResponse.json(
+        { error: `Cannot transition from '${currentStatus}' to '${status}'` },
+        { status: 400 }
+      );
+    }
+
+    // Role-based transition restrictions
+    if (isCustomer && status !== 'cancelled') {
+      return NextResponse.json(
+        { error: 'Customers can only cancel orders' },
+        { status: 403 }
+      );
     }
 
     const [updated] = await db
@@ -144,6 +197,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true, order: updated });
   } catch (error) {
+    if (error instanceof NextResponse) return error;
     console.error('Order update error:', error);
     return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
   }

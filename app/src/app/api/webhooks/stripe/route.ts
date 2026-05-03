@@ -48,7 +48,13 @@ export async function POST(request: NextRequest) {
     const session = event.data.object as Stripe.Checkout.Session;
 
     try {
-      const metadataItems = session.metadata?.items ? JSON.parse(session.metadata.items) : [];
+      let metadataItems: unknown[] = [];
+      try {
+        metadataItems = session.metadata?.items ? JSON.parse(session.metadata.items) : [];
+      } catch (parseError) {
+        console.error('Failed to parse checkout metadata items:', parseError);
+        return NextResponse.json({ error: 'Invalid checkout metadata JSON' }, { status: 400 });
+      }
       const metadataValidation = checkoutMetadataSchema.safeParse({
         userId: session.metadata?.userId,
         storeId: session.metadata?.storeId,
@@ -80,7 +86,7 @@ export async function POST(request: NextRequest) {
             storeId,
             status: 'paid',
             totalAmount,
-            stripePaymentIntentId: session.id,
+            stripePaymentIntentId: session.payment_intent as string,
           })
           .returning();
 
@@ -120,33 +126,41 @@ export async function POST(request: NextRequest) {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
     try {
-      const existing = await db
-        .select({ id: processedWebhookEvents.id })
-        .from(processedWebhookEvents)
-        .where(and(eq(processedWebhookEvents.provider, 'stripe'), eq(processedWebhookEvents.eventId, event.id)))
-        .limit(1);
+      const result = await db.transaction(async (tx) => {
+        const existing = await tx
+          .select({ id: processedWebhookEvents.id })
+          .from(processedWebhookEvents)
+          .where(and(eq(processedWebhookEvents.provider, 'stripe'), eq(processedWebhookEvents.eventId, event.id)))
+          .limit(1);
 
-      if (existing.length > 0) {
+        if (existing.length > 0) {
+          return { duplicate: true };
+        }
+
+        const updated = await tx
+          .update(orders)
+          .set({ status: 'cancelled', updatedAt: new Date() })
+          .where(eq(orders.stripePaymentIntentId, paymentIntent.id))
+          .returning({ id: orders.id });
+
+        await tx.insert(processedWebhookEvents).values({
+          provider: 'stripe',
+          eventId: event.id,
+          objectId: paymentIntent.id,
+        });
+
+        return { orderId: updated[0]?.id ?? null };
+      });
+
+      if (result.duplicate) {
         return NextResponse.json({ success: true, duplicate: true, eventId: event.id });
       }
 
-      const updated = await db
-        .update(orders)
-        .set({ status: 'cancelled', updatedAt: new Date() })
-        .where(eq(orders.stripePaymentIntentId, paymentIntent.id))
-        .returning({ id: orders.id });
-
-      await db.insert(processedWebhookEvents).values({
-        provider: 'stripe',
-        eventId: event.id,
-        objectId: paymentIntent.id,
-      });
-
-      if (updated.length === 0) {
+      if (!result.orderId) {
         return NextResponse.json({ success: true, orderNotFound: true, eventId: event.id });
       }
 
-      return NextResponse.json({ success: true, orderId: updated[0].id, eventId: event.id });
+      return NextResponse.json({ success: true, orderId: result.orderId, eventId: event.id });
     } catch (error) {
       console.error('Payment failure handling error:', error);
       return NextResponse.json({ error: 'Payment failure handling failed' }, { status: 500 });
@@ -157,37 +171,127 @@ export async function POST(request: NextRequest) {
   if (event.type === 'charge.refunded') {
     const charge = event.data.object as Stripe.Charge;
 
-    try {
-      const existing = await db
-        .select({ id: processedWebhookEvents.id })
-        .from(processedWebhookEvents)
-        .where(and(eq(processedWebhookEvents.provider, 'stripe'), eq(processedWebhookEvents.eventId, event.id)))
-        .limit(1);
+    if (!charge.payment_intent) {
+      return NextResponse.json({ success: true, noPaymentIntent: true, eventId: event.id });
+    }
 
-      if (existing.length > 0) {
+    try {
+      const result = await db.transaction(async (tx) => {
+        const existing = await tx
+          .select({ id: processedWebhookEvents.id })
+          .from(processedWebhookEvents)
+          .where(and(eq(processedWebhookEvents.provider, 'stripe'), eq(processedWebhookEvents.eventId, event.id)))
+          .limit(1);
+
+        if (existing.length > 0) {
+          return { duplicate: true };
+        }
+
+        const updated = await tx
+          .update(orders)
+          .set({ status: 'cancelled', updatedAt: new Date() })
+          .where(eq(orders.stripePaymentIntentId, charge.payment_intent as string))
+          .returning({ id: orders.id });
+
+        await tx.insert(processedWebhookEvents).values({
+          provider: 'stripe',
+          eventId: event.id,
+          objectId: charge.id,
+        });
+
+        return { orderId: updated[0]?.id ?? null };
+      });
+
+      if (result.duplicate) {
         return NextResponse.json({ success: true, duplicate: true, eventId: event.id });
       }
 
-      const updated = await db
-        .update(orders)
-        .set({ status: 'cancelled', updatedAt: new Date() })
-        .where(eq(orders.stripePaymentIntentId, charge.payment_intent as string))
-        .returning({ id: orders.id });
-
-      await db.insert(processedWebhookEvents).values({
-        provider: 'stripe',
-        eventId: event.id,
-        objectId: charge.id,
-      });
-
-      if (updated.length === 0) {
+      if (!result.orderId) {
         return NextResponse.json({ success: true, orderNotFound: true, eventId: event.id });
       }
 
-      return NextResponse.json({ success: true, orderId: updated[0].id, refunded: true, eventId: event.id });
+      return NextResponse.json({ success: true, orderId: result.orderId, refunded: true, eventId: event.id });
     } catch (error) {
       console.error('Refund handling error:', error);
       return NextResponse.json({ error: 'Refund handling failed' }, { status: 500 });
+    }
+  }
+
+  // Handle account.updated - Connect onboarding status changes
+  if (event.type === 'account.updated') {
+    const account = event.data.object as Stripe.Account;
+
+    try {
+      await db.transaction(async (tx) => {
+        const existing = await tx
+          .select({ id: processedWebhookEvents.id })
+          .from(processedWebhookEvents)
+          .where(and(eq(processedWebhookEvents.provider, 'stripe'), eq(processedWebhookEvents.eventId, event.id)))
+          .limit(1);
+
+        if (existing.length > 0) {
+          return { duplicate: true };
+        }
+
+        await tx.insert(processedWebhookEvents).values({
+          provider: 'stripe',
+          eventId: event.id,
+          objectId: account.id,
+        });
+
+        return { success: true };
+      });
+
+      // Log the status for monitoring — future enhancement: update user stripeConnectStatus column
+      console.log(`Stripe Connect account updated: ${account.id}`, {
+        chargesEnabled: account.charges_enabled,
+        payoutsEnabled: account.payouts_enabled,
+        detailsSubmitted: account.details_submitted,
+      });
+
+      return NextResponse.json({ success: true, accountId: account.id, eventId: event.id });
+    } catch (error) {
+      console.error('Account update handling error:', error);
+      return NextResponse.json({ error: 'Account update handling failed' }, { status: 500 });
+    }
+  }
+
+  // Handle payout.paid - artist payout confirmation
+  if (event.type === 'payout.paid') {
+    const payout = event.data.object as Stripe.Payout;
+
+    try {
+      await db.transaction(async (tx) => {
+        const existing = await tx
+          .select({ id: processedWebhookEvents.id })
+          .from(processedWebhookEvents)
+          .where(and(eq(processedWebhookEvents.provider, 'stripe'), eq(processedWebhookEvents.eventId, event.id)))
+          .limit(1);
+
+        if (existing.length > 0) {
+          return { duplicate: true };
+        }
+
+        await tx.insert(processedWebhookEvents).values({
+          provider: 'stripe',
+          eventId: event.id,
+          objectId: payout.id,
+        });
+
+        return { success: true };
+      });
+
+      // Log the payout for audit trail — future enhancement: notify artist via email
+      console.log(`Stripe payout confirmed: ${payout.id}`, {
+        amount: payout.amount,
+        currency: payout.currency,
+        arrivalDate: payout.arrival_date,
+      });
+
+      return NextResponse.json({ success: true, payoutId: payout.id, eventId: event.id });
+    } catch (error) {
+      console.error('Payout handling error:', error);
+      return NextResponse.json({ error: 'Payout handling failed' }, { status: 500 });
     }
   }
 

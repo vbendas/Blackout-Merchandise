@@ -2,6 +2,8 @@
 
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
+import type { ApiOrder } from '@/hooks/useOrders';
+import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from '@/lib/eshop/status-config';
 
 interface DashboardStats {
   totalRevenue: number;
@@ -16,6 +18,7 @@ interface DashboardStats {
 
 interface OverviewTabProps {
   stats: DashboardStats;
+  recentOrders?: ApiOrder[];
 }
 
 const quickActions = [
@@ -25,63 +28,15 @@ const quickActions = [
   { label: 'Get Help', icon: 'lucide:help-circle', href: '#', color: 'bg-orange-500/10 text-orange-400' },
 ];
 
-const recentOrders = [
-  {
-    id: '#1234',
-    customer: 'Sarah M.',
-    product: 'Band Tee - Black',
-    status: 'shipped',
-    amount: 35,
-    date: '2 hours ago',
-  },
-  {
-    id: '#1233',
-    customer: 'Mike R.',
-    product: 'Hoodie - Gray',
-    status: 'in_production',
-    amount: 65,
-    date: '5 hours ago',
-  },
-  {
-    id: '#1232',
-    customer: 'Emma L.',
-    product: 'Band Tee - White',
-    status: 'in_production',
-    amount: 35,
-    date: '1 day ago',
-  },
-  { id: '#1231', customer: 'John D.', product: 'Sticker Pack', status: 'shipped', amount: 12, date: '2 days ago' },
-  {
-    id: '#1230',
-    customer: 'Anna K.',
-    product: 'Band Tee - Black',
-    status: 'delivered',
-    amount: 35,
-    date: '3 days ago',
-  },
-];
-
-const statusColors: Record<string, string> = {
-  shipped: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  in_production: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  delivered: 'bg-green-500/10 text-green-400 border-green-500/20',
-  pending: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
-};
-
-const statusLabels: Record<string, string> = {
-  shipped: 'Shipped',
-  in_production: 'In Production',
-  delivered: 'Delivered',
-  pending: 'Pending',
-};
-
-export function OverviewTab({ stats }: OverviewTabProps) {
+export function OverviewTab({ stats, recentOrders = [] }: OverviewTabProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IE', {
       style: 'currency',
       currency: 'EUR',
     }).format(amount);
   };
+
+  const displayOrders = recentOrders.slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -113,32 +68,36 @@ export function OverviewTab({ stats }: OverviewTabProps) {
             <button className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">View all</button>
           </div>
           <div className="divide-y divide-zinc-800">
-            {recentOrders.map((order) => (
-              <div
-                key={order.id}
-                className="flex items-center justify-between p-4 hover:bg-zinc-800/30 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center">
-                    <Icon icon="lucide:package" className="w-5 h-5 text-zinc-500" />
+            {displayOrders.length === 0 ? (
+              <div className="p-6 text-center text-zinc-500 text-sm">No orders yet.</div>
+            ) : (
+              displayOrders.map((order) => (
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between p-4 hover:bg-zinc-800/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center">
+                      <Icon icon="lucide:package" className="w-5 h-5 text-zinc-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">
+                        {order.customerName ?? order.customerEmail}
+                      </p>
+                      <p className="text-xs text-zinc-500">#{order.id.slice(0, 8).toUpperCase()}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">{order.product}</p>
-                    <p className="text-xs text-zinc-500">
-                      {order.customer} • {order.id}
-                    </p>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-white">{formatCurrency(order.totalAmount / 100)}</p>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border ${ORDER_STATUS_COLORS[order.status as keyof typeof ORDER_STATUS_COLORS] ?? ORDER_STATUS_COLORS['pending']}`}
+                    >
+                      {ORDER_STATUS_LABELS[order.status as keyof typeof ORDER_STATUS_LABELS] ?? order.status}
+                    </span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-white">{formatCurrency(order.amount)}</p>
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border ${statusColors[order.status]}`}
-                  >
-                    {statusLabels[order.status]}
-                  </span>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </section>
 
@@ -186,7 +145,11 @@ export function OverviewTab({ stats }: OverviewTabProps) {
               <div className="mt-2 h-2 bg-zinc-800 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${(stats.ordersInProduction / stats.totalOrders) * 100}%` }}
+                  animate={{
+                    width: stats.totalOrders > 0
+                      ? `${(stats.ordersInProduction / stats.totalOrders) * 100}%`
+                      : '0%',
+                  }}
                   transition={{ duration: 1, delay: 0.5 }}
                   className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full"
                 />
