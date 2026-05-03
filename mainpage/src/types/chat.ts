@@ -7,7 +7,26 @@ export type LegacyAgent = 'Leopoldo' | 'Francisca' | 'Antônia';
 
 export type Workflow = 'general' | 'waitlist' | 'design' | 'support' | 'checkout';
 
-export type MessageType = 'text' | 'audio';
+export type MessageType = 'text' | 'audio' | 'card';
+export type CardType = 'product' | 'mockup' | 'design' | 'form';
+
+export interface CardAttachment {
+  cardType: CardType;
+  productId?: string;
+  name?: string;
+  brand?: string;
+  category?: string;
+  imageUrl?: string;
+  price?: number;
+  colors?: Array<{ name: string; hex: string }>;
+  specs?: Record<string, string>;
+  variations?: string[];
+  question?: string;
+  formType?: 'text' | 'single_choice' | 'email' | 'number';
+  options?: string[];
+  currentStep?: number;
+  totalSteps?: number;
+}
 
 export interface ChatMessage {
   id: string;
@@ -19,6 +38,7 @@ export interface ChatMessage {
   duration?: number;
   timestamp: number;
   agent: AgentId;
+  attachment?: CardAttachment;
 }
 
 export interface AudioMessage extends ChatMessage {

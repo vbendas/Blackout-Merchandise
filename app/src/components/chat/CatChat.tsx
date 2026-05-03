@@ -4,8 +4,12 @@ import { Icon } from '@iconify/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AGENT_CONFIGS } from '@/types/chat';
+import type { CardMessageData } from '@/types/chat';
 import { useChat } from './CatChatProvider';
 import { ClarificationMessage } from './ClarificationMessage';
+import { ProductCardInline } from './ProductCardInline';
+import { MockupCardInline } from './MockupCardInline';
+import { DesignCardInline } from './DesignCardInline';
 
 function formatTime(timestamp: number): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -84,6 +88,48 @@ function AudioMessageComponent({ audioUrl, audioBlob, duration = 0, isPlaying, o
       </div>
     </div>
   );
+}
+
+function CardRenderer({ cardData }: { cardData: CardMessageData }) {
+  switch (cardData.cardType) {
+    case 'product':
+      return (
+        <ProductCardInline
+          productId={cardData.productId}
+          name={cardData.name}
+          brand={cardData.brand}
+          category={cardData.category}
+          imageUrl={cardData.imageUrl}
+          baseCost={cardData.baseCost}
+          suggestedRetail={cardData.suggestedRetail}
+          colors={cardData.colors}
+          specs={cardData.specs}
+        />
+      );
+    case 'mockup':
+      return (
+        <MockupCardInline
+          mockupId={cardData.productId}
+          productName={cardData.name}
+          mockupUrl={cardData.imageUrl}
+          designPreviewUrl={cardData.imageUrl}
+          colors={cardData.colors}
+        />
+      );
+    case 'design':
+      return (
+        <DesignCardInline
+          designId={cardData.productId}
+          title={cardData.name}
+          imageUrl={cardData.imageUrl}
+          description={cardData.category}
+          generatedBy="ai"
+          tags={cardData.brand ? [cardData.brand] : undefined}
+        />
+      );
+    default:
+      return null;
+  }
 }
 
 function TypingIndicator({ color }: { color: string }) {
@@ -439,6 +485,11 @@ export function CatChat() {
                             />
                           ) : (
                             <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                          )}
+                          {message.metadata?.cardData && (
+                            <div className="mt-3">
+                              <CardRenderer cardData={message.metadata.cardData} />
+                            </div>
                           )}
                           <span className="mt-1 block text-right text-[10px] text-zinc-500">
                             {formatTime(message.timestamp)}

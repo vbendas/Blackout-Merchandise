@@ -20,7 +20,7 @@ interface ChatContextValue {
   toggleChat: () => void;
   setAgent: (agent: AgentId) => void;
   setIsVoiceMode: (enabled: boolean) => void;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, metadata?: import('@/types/chat').MessageMetadata) => Promise<void>;
   sendAudio: (audioBlob: Blob) => Promise<void>;
   clearMessages: () => void;
   handleClarificationSelect: (agent: AgentId) => void;
@@ -97,7 +97,7 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
   }, []);
 
   const sendMessage = useCallback(
-    async (content: string) => {
+    async (content: string, metadata?: import('@/types/chat').MessageMetadata) => {
       const userMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'user',
@@ -105,6 +105,7 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
         type: 'text',
         timestamp: Date.now(),
         agent: currentAgent,
+        metadata,
       };
 
       setMessages((prev) => [...prev, userMessage]);
@@ -175,13 +176,19 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
 
         const data = await response.json();
 
+        // Check if API response includes card data
+        const assistantMetadata: import('@/types/chat').MessageMetadata | undefined = data.cardData
+          ? { cardData: data.cardData }
+          : undefined;
+
         const assistantMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
           content: data.response,
-          type: 'text',
+          type: data.cardData ? 'card' : 'text',
           timestamp: Date.now(),
           agent: agentForApi,
+          metadata: assistantMetadata,
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
