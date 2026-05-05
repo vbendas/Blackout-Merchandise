@@ -11,7 +11,6 @@ export const TopNavbar = () => {
   // Menu items for mobile and desktop
   const menuItems = [
     { name: 'Portfolio', href: '#portfolio' },
-    { name: 'About', href: '#hero' },
     { name: 'Services', href: '#process' },
   ];
 
