@@ -5,6 +5,10 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { determineAgentWithContext, generateHandoffMessage } from '@/lib/chat/agentRouter';
 import type { AgentId, ChatMessage } from '@/types/chat';
 import { AGENT_CONFIGS } from '@/types/chat';
+import type { DesignFlowStep } from '@/lib/ChatContext';
+import { getQuickActionsForStep } from '@/lib/designFlow';
+import type { QuickAction } from '@/lib/chat/quickActions';
+import { getAgentQuickActions } from '@/lib/chat/quickActions';
 
 const HANDOFF_DELAY_MS = 400;
 
@@ -17,6 +21,8 @@ interface ChatContextValue {
   isPlaying: boolean;
   isTyping: boolean;
   suggestions: string[];
+  quickActions: QuickAction[];
+  designFlowStep: DesignFlowStep;
   toggleChat: () => void;
   setAgent: (agent: AgentId) => void;
   setIsVoiceMode: (enabled: boolean) => void;
@@ -24,6 +30,7 @@ interface ChatContextValue {
   sendAudio: (audioBlob: Blob) => Promise<void>;
   clearMessages: () => void;
   handleClarificationSelect: (agent: AgentId) => void;
+  setDesignFlowStep: (step: DesignFlowStep) => void;
 }
 
 const ChatContext = createContext<ChatContextValue | null>(null);
@@ -50,6 +57,26 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
   const [isPlaying] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [designFlowStep, setDesignFlowStepState] = useState<DesignFlowStep>('idle');
+  const [quickActions, setQuickActions] = useState<QuickAction[]>([]);
+
+  // Update quick actions when agent or design flow step changes
+  useEffect(() => {
+    const agentActions = getAgentQuickActions(currentAgent);
+    if (designFlowStep !== 'idle' && currentAgent === 'francisca') {
+      const flowActions = getQuickActionsForStep(designFlowStep);
+      // Convert InlineChatAction to QuickAction format
+      const converted: QuickAction[] = flowActions.map((a) => ({
+        id: a.id,
+        label: a.label,
+        icon: a.icon || 'lucide:message-square',
+        action: a.action,
+      }));
+      setQuickActions(converted);
+    } else {
+      setQuickActions(agentActions);
+    }
+  }, [currentAgent, designFlowStep]);
 
   const _mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -387,6 +414,10 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
     }
   }, [isOpen, currentAgent, messages.length, fetchSuggestions]);
 
+  const setDesignFlowStep = useCallback((step: DesignFlowStep) => {
+    setDesignFlowStepState(step);
+  }, []);
+
   const value: ChatContextValue = {
     isOpen,
     currentAgent,
@@ -396,6 +427,8 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
     isPlaying,
     isTyping,
     suggestions,
+    quickActions,
+    designFlowStep,
     toggleChat,
     setAgent,
     setIsVoiceMode,
@@ -403,6 +436,7 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
     sendAudio,
     clearMessages,
     handleClarificationSelect,
+    setDesignFlowStep,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

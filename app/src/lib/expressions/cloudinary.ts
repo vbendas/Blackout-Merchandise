@@ -26,6 +26,13 @@ export function getCloudinaryUrl(agentName: AgentName, expression: Expression, w
 }
 
 /**
+ * Alias for getCloudinaryUrl - used by chat components
+ */
+export function getAvatarUrl(agentName: AgentName, expression: Expression, width: number = 800): string {
+  return getCloudinaryUrl(agentName, expression, width);
+}
+
+/**
  * Preload all avatar expression images to prevent loading delays
  * @param agentName - Optional specific agent to preload (loads all if not specified)
  */

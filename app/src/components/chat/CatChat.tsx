@@ -3,9 +3,14 @@
 import { Icon } from '@iconify/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AGENT_CONFIGS } from '@/types/chat';
-import type { CardMessageData } from '@/types/chat';
+import { usePathname } from 'next/navigation';
 import { useChat } from './CatChatProvider';
+import { AGENT_CONFIGS } from '@/types/chat';
+import { useViewportSize } from '@/hooks/useViewportSize';
+import { useAvatarExpression } from '@/lib/AvatarExpressionContext';
+import { getAvatarUrl } from '@/lib/expressions/cloudinary';
+import { useAgentGreeting } from '@/hooks/useAgentGreeting';
+import type { CardMessageData } from '@/types/chat';
 import { ClarificationMessage } from './ClarificationMessage';
 import { ProductCardInline } from './ProductCardInline';
 import { MockupCardInline } from './MockupCardInline';
@@ -171,31 +176,74 @@ function TypingIndicator({ color }: { color: string }) {
 }
 
 export function CatChat() {
+  const { isMobile, isTablet, isDesktop, hasMounted } = useViewportSize();
+  const { currentExpression } = useAvatarExpression();
+  const pathname = usePathname();
+  const isStudio = pathname === '/app/studio';
+
   const {
     isOpen,
     currentAgent,
     messages,
     isVoiceMode,
     isRecording,
+    isPlaying: _isMessagePlaying,
     isTyping,
     suggestions,
+    quickActions,
     toggleChat,
+    setAgent,
     setIsVoiceMode,
     sendMessage,
     sendAudio,
     handleClarificationSelect,
   } = useChat();
 
+  // Studio-specific: expanded by default, can collapse
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Auto-open on studio page
+  useEffect(() => {
+    if (isStudio && hasMounted && !isOpen && !isCollapsed) {
+      toggleChat();
+    }
+  }, [isStudio, hasMounted, isOpen, isCollapsed, toggleChat]);
+
+  // Handle collapse/expand for studio
+  const handleCollapse = useCallback(() => {
+    setIsCollapsed(true);
+    if (isOpen) {
+      toggleChat();
+    }
+  }, [isOpen, toggleChat]);
+
+  const handleExpand = useCallback(() => {
+    setIsCollapsed(false);
+    if (!isOpen) {
+      toggleChat();
+    }
+  }, [isOpen, toggleChat]);
+  const { currentGreeting } = useAgentGreeting(currentAgent);
+
   const [inputValue, setInputValue] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
   const [localIsPlaying, setLocalIsPlaying] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
-
+  
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const _chatWindowRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  
+  // Bubble visibility states
+  const [isBubbleVisible, setIsBubbleVisible] = useState(false);
+  const [hasShownInitially, setHasShownInitially] = useState(false);
+  const isHoveredRef = useRef(false);
+  const showTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hoverHideTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const agentConfig = AGENT_CONFIGS[currentAgent];
 
@@ -204,7 +252,7 @@ export function CatChat() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  });
+  }, [messages]);
 
   // Recording timer
   useEffect(() => {
@@ -224,6 +272,36 @@ export function CatChat() {
       }
     };
   }, [isRecording]);
+
+  // Bubble auto-show/hide timer
+  useEffect(() => {
+    if (!hasMounted || isOpen) return;
+    
+    // Initial delay: 1.5s then show
+    showTimerRef.current = setTimeout(() => {
+      setIsBubbleVisible(true);
+      
+      // Auto-hide after 5s
+      hideTimerRef.current = setTimeout(() => {
+        setIsBubbleVisible(false);
+        setHasShownInitially(true);
+      }, 5000);
+    }, 1500);
+
+    return () => {
+      if (showTimerRef.current) clearTimeout(showTimerRef.current);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, [hasMounted, isOpen, hasShownInitially]);
+
+  // Hide bubble when chat opens
+  useEffect(() => {
+    if (isOpen) {
+      setIsBubbleVisible(false);
+      if (showTimerRef.current) clearTimeout(showTimerRef.current);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    }
+  }, [isOpen]);
 
   const handleSend = useCallback(async () => {
     if (!inputValue.trim() || isTyping) return;
@@ -291,122 +369,176 @@ export function CatChat() {
 
   return (
     <>
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={toggleChat}
-            className="fixed bottom-6 right-6 z-50 flex h-20 w-20 items-center justify-center rounded-full shadow-2xl focus:outline-none"
-            style={{
-              backgroundColor: '#18181b',
-              boxShadow: '0 0 25px rgba(161, 161, 170, 0.25), 0 8px 30px rgba(0, 0, 0, 0.5)',
+      {/* Floating Avatar Button - Bottom Right (hidden on studio) */}
+      {!isStudio && (
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ 
+          opacity: 1,
+        }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        whileHover={!isOpen ? { scale: 1.02 } : {}}
+        whileTap={!isOpen ? { scale: 0.98 } : {}}
+        onClick={() => {
+          toggleChat();
+        }}
+        onMouseEnter={() => {
+          if (!isMobile && hasShownInitially && !isOpen) {
+            isHoveredRef.current = true;
+            if (hoverHideTimerRef.current) {
+              clearTimeout(hoverHideTimerRef.current);
+            }
+            setIsBubbleVisible(true);
+          }
+        }}
+        onMouseLeave={() => {
+          if (!isMobile) {
+            isHoveredRef.current = false;
+            hoverHideTimerRef.current = setTimeout(() => {
+              if (!isHoveredRef.current) {
+                setIsBubbleVisible(false);
+              }
+            }, 500);
+          }
+        }}
+        className={`fixed z-60 overflow-visible cursor-pointer ${
+          isMobile 
+            ? 'right-[-14px] bottom-[-36px] w-[140px] h-[180px]' 
+            : isTablet 
+              ? 'right-[-18px] bottom-[-45px] w-[160px] h-[200px]'
+              : 'right-[-25px] bottom-[-50px] w-[168px] h-[224px]'
+        }`}
+        style={{
+          filter: 'drop-shadow(0 0 15px rgba(161, 161, 170, 0.25))',
+        }}
+        aria-label="Open chat"
+      >
+        {/* Speech Bubble */}
+        <motion.div
+          className={`absolute -top-10 z-10 ${isMobile ? 'right-[50px]' : 'right-[40px]'}`}
+          animate={!isOpen ? { 
+            y: [0, -5, 0],
+            scale: [1, 1.02, 1]
+          } : { opacity: 0, y: -10 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ 
+              opacity: isBubbleVisible ? 1 : 0, 
+              y: isBubbleVisible ? 0 : 10,
+              scale: isBubbleVisible ? 1 : 0.95
             }}
-            aria-label="Open chat"
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="bg-white rounded-xl px-3 py-1.5 shadow-lg max-w-[320px] min-h-[24px]"
           >
-            <div className="relative h-16 w-16 overflow-hidden rounded-full">
-              <motion.div
-                className="absolute inset-0 -z-10 rounded-full"
-                style={{
-                  background:
-                    'radial-gradient(circle at center, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 40%, transparent 70%)',
-                }}
-                animate={{
-                  opacity: [0.6, 1, 0.6],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              />
-              <div className="h-full w-full overflow-hidden rounded-full">
-                <img
-                  src={`https://res.cloudinary.com/drhfgth7c/image/upload/f_auto,q_auto,w_200/merch-from/avatars/${currentAgent}/1_-_neutral_attr1_subject`}
-                  alt={agentConfig.name}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            </div>
+            <span className={`font-medium text-zinc-800 block ${isMobile ? 'text-[12px]' : 'text-[10px]'}`}>
+              {currentGreeting}
+            </span>
+            {/* Triangle pointer - inside animated container */}
+            <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 
+              border-l-[6px] border-l-transparent 
+              border-r-[6px] border-r-transparent 
+              border-t-[6px] border-t-white" />
+          </motion.div>
+        </motion.div>
+
+        {/* Avatar */}
+        <div className="overflow-hidden w-full h-full rounded-full">
+          <motion.img
+            key={currentExpression}
+            src={getAvatarUrl(agentConfig.name, isOpen ? 'thinking' : currentExpression, 400)}
+            alt={agentConfig.name}
+            className="w-full h-full object-cover object-top"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+          />
+        </div>
+      </motion.button>
+      )}
+
+      {/* Collapsed indicator for studio */}
+      <AnimatePresence>
+        {isStudio && isCollapsed && hasMounted && (
+          <motion.button
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            onClick={handleExpand}
+            className="fixed right-4 top-1/2 z-[100] -translate-y-1/2 flex items-center gap-2 rounded-l-xl border border-white/10 border-r-0 bg-zinc-900/90 backdrop-blur-xl px-3 py-4 shadow-2xl"
+          >
+            <Icon icon="lucide:message-circle" className="h-5 w-5 text-zinc-300" />
+            <span className="text-xs text-zinc-300 whitespace-nowrap">Chat with Francisca</span>
           </motion.button>
         )}
       </AnimatePresence>
 
+      {/* Chat Window */}
       <AnimatePresence>
-        {isOpen && (
+        {isOpen && hasMounted && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20, rotateX: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20, rotateX: -10 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-6 right-6 z-50 flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/95 shadow-2xl backdrop-blur-2xl"
-            style={{
-              width: '420px',
-              maxWidth: 'calc(100vw - 48px)',
-              height: '680px',
-              maxHeight: 'calc(100vh - 100px)',
-              boxShadow: '0 50px 100px -20px rgba(161, 161, 170, 0.25), 0 0 50px -20px rgba(161, 161, 170, 0.15)',
-            }}
+            className={`z-[100] flex flex-col overflow-hidden border border-white/10 bg-zinc-950/95 backdrop-blur-2xl ${
+              (isMobile || isTablet)
+                ? 'fixed inset-x-4 top-4 w-[calc(100%-32px)] h-[calc(100vh-148px)] rounded-3xl'
+                : isStudio
+                  ? 'fixed right-0 top-0 bottom-0 rounded-none border-r-0 border-y-0'
+                  : 'fixed bottom-[165px] right-6 rounded-3xl'
+            }`}
+            style={
+              isDesktop
+                ? isStudio
+                  ? {
+                      width: '380px',
+                      maxWidth: 'calc(100vw - 48px)',
+                      height: '100vh',
+                      top: 0,
+                      right: 0,
+                      borderRadius: 0,
+                    }
+                  : {
+                      width: '420px',
+                      maxWidth: 'calc(100vw - 48px)',
+                      height: '680px',
+                      maxHeight: 'calc(100vh - 140px)',
+                    }
+                : {
+                    width: 'calc(100% - 32px)',
+                    height: 'calc(100vh - 148px)',
+                    borderRadius: '1.5rem',
+                  }
+            }
           >
             {/* Header */}
             <motion.div
-              className="flex items-center justify-between px-5 py-4"
+              className={`flex items-center justify-center border-b border-white/10 ${
+                isMobile ? 'px-4 py-3' : isTablet ? 'px-6 py-5' : 'px-5 py-4'
+              }`}
               style={{
                 background: 'linear-gradient(135deg, rgba(161, 161, 170, 0.12) 0%, rgba(161, 161, 170, 0.04) 100%)',
               }}
             >
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <motion.div
-                    className="h-12 w-12 overflow-hidden rounded-full border-2 shadow-lg"
-                    style={{ borderColor: agentConfig.color }}
-                    animate={isTyping ? { scale: [1, 1.1, 1] } : {}}
-                    transition={{ duration: 0.5, repeat: isTyping ? Infinity : 0 }}
-                  >
-                    <img
-                      src={`https://res.cloudinary.com/drhfgth7c/image/upload/f_auto,q_auto,w_200/merch-from/avatars/${currentAgent}/1_-_neutral_attr1_subject`}
-                      alt={agentConfig.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </motion.div>
-                  <div
-                    className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-zinc-950"
-                    style={{ backgroundColor: agentConfig.color }}
-                  />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-white">{agentConfig.name}</h3>
-                  <p className="flex items-center gap-1.5 text-xs text-zinc-400">
-                    <span className="relative flex h-2 w-2">
-                      <span
-                        className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
-                        style={{ backgroundColor: agentConfig.color }}
-                      />
-                      <span
-                        className="relative inline-flex h-2 w-2 rounded-full"
-                        style={{ backgroundColor: agentConfig.color }}
-                      />
-                    </span>
-                    Online
-                  </p>
-                </div>
+              <div className="text-center">
+                <h3 className={`font-semibold text-white ${isMobile ? 'text-base' : isTablet ? 'text-lg' : 'text-base'}`}>{agentConfig.name}</h3>
               </div>
 
-              <div className="flex items-center gap-2">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setIsVoiceMode(!isVoiceMode)}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full transition-all ${
-                    isVoiceMode ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-                  }`}
-                  title={isVoiceMode ? 'Text mode' : 'Voice mode'}
-                >
-                  <Icon icon={isVoiceMode ? 'lucide:message-square' : 'lucide:mic'} className="h-4 w-4" />
-                </motion.button>
+              <div className="absolute right-4 flex items-center gap-2">
+                {isStudio && (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleCollapse}
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+                    aria-label="Collapse chat"
+                    title="Collapse chat"
+                  >
+                    <Icon icon="lucide:panel-right-close" className="h-4 w-4" />
+                  </motion.button>
+                )}
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -445,7 +577,7 @@ export function CatChat() {
                     const isUser = message.role === 'user';
                     const messageAgent = message.agent || currentAgent;
                     const agentCfg = AGENT_CONFIGS[messageAgent];
-
+                    
                     return (
                       <motion.div
                         key={message.id}
@@ -505,7 +637,9 @@ export function CatChat() {
             </div>
 
             {/* Input */}
-            <div className="border-t border-white/10 bg-zinc-950/50 p-4 backdrop-blur-xl">
+            <div className={`border-t border-white/10 bg-zinc-950/50 backdrop-blur-xl ${
+              isMobile ? 'p-3' : isTablet ? 'p-5' : 'p-4'
+            }`}>
               {isVoiceMode ? (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -520,9 +654,9 @@ export function CatChat() {
                     onMouseLeave={stopListening}
                     onTouchStart={startListening}
                     onTouchEnd={stopListening}
-                    className={`flex h-20 w-20 items-center justify-center rounded-full transition-all ${
+                    className={`flex items-center justify-center rounded-full transition-all ${
                       isRecording ? 'animate-pulse' : ''
-                    }`}
+                    } ${isMobile ? 'h-16 w-16' : isTablet ? 'h-24 w-24' : 'h-20 w-20'}`}
                     style={{
                       backgroundColor: isRecording ? '#EF4444' : agentConfig.color,
                       boxShadow: `0 0 30px ${isRecording ? '#EF4444' : agentConfig.color}50`,
@@ -532,10 +666,10 @@ export function CatChat() {
                       animate={isRecording ? { scale: [1, 1.2, 1] } : {}}
                       transition={{ duration: 0.5, repeat: isRecording ? Infinity : 0 }}
                     >
-                      <Icon icon="lucide:mic" className="h-8 w-8 text-white" />
+                      <Icon icon="lucide:mic" className={`text-white ${isMobile ? 'h-6 w-6' : isTablet ? 'h-10 w-10' : 'h-8 w-8'}`} />
                     </motion.div>
                   </motion.button>
-                  <p className="text-xs text-zinc-400">
+                  <p className={`text-zinc-400 ${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-xs'}`}>
                     {isRecording ? `Recording... ${formatDuration(recordingDuration)}` : 'Hold to speak'}
                   </p>
                 </motion.div>
@@ -566,7 +700,42 @@ export function CatChat() {
                     )}
                   </AnimatePresence>
 
+                  <AnimatePresence>
+                    {quickActions.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mb-3 flex gap-2 overflow-x-auto pb-1"
+                      >
+                        {quickActions.map((action) => (
+                          <motion.button
+                            key={action.id}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            onClick={() => handleQuickAction(action.action)}
+                            className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-zinc-800/60 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:bg-zinc-700/60 hover:text-white"
+                          >
+                            <Icon icon={action.icon} className="h-3 w-3" />
+                            {action.label}
+                          </motion.button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   <div className="flex items-end gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setIsVoiceMode(!isVoiceMode)}
+                      className={`flex shrink-0 items-center justify-center rounded-full transition-all ${
+                        isVoiceMode ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                      } ${isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'}`}
+                      title={isVoiceMode ? 'Text mode' : 'Voice mode'}
+                    >
+                      <Icon icon={isVoiceMode ? 'lucide:message-square' : 'lucide:mic'} className={isMobile ? 'h-4 w-4' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} />
+                    </motion.button>
                     <div className="relative flex-1">
                       <textarea
                         ref={inputRef}
@@ -578,8 +747,10 @@ export function CatChat() {
                         placeholder="Type a message..."
                         disabled={isTyping}
                         rows={1}
-                        className="w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 pr-10 text-sm text-white placeholder-zinc-500 transition-all focus:border-white/20 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/10 disabled:opacity-50"
-                        style={{ minHeight: '48px', maxHeight: '100px' }}
+                        className={`w-full resize-none rounded-2xl border border-white/10 bg-white/5 text-white placeholder-zinc-500 transition-all focus:border-white/20 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/10 disabled:opacity-50 ${
+                          isMobile ? 'px-3 py-3 text-sm' : isTablet ? 'px-5 py-4 text-base' : 'px-4 py-3 text-sm'
+                        }`}
+                        style={{ minHeight: isMobile ? '44px' : isTablet ? '56px' : '48px', maxHeight: '100px' }}
                       />
                       <AnimatePresence>
                         {inputValue.length > 0 && (
@@ -587,7 +758,9 @@ export function CatChat() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute bottom-3 right-3 text-[10px] text-zinc-500"
+                            className={`absolute right-3 text-zinc-500 ${
+                              isMobile ? 'bottom-3 text-[10px]' : isTablet ? 'bottom-4 text-xs' : 'bottom-3 text-[10px]'
+                            }`}
                           >
                             {inputValue.length}
                           </motion.span>
@@ -599,16 +772,18 @@ export function CatChat() {
                       whileTap={{ scale: 0.95 }}
                       onClick={handleSend}
                       disabled={!inputValue.trim() || isTyping}
-                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all ${
+                      className={`flex shrink-0 items-center justify-center rounded-full transition-all ${
                         !inputValue.trim() || isTyping ? 'cursor-not-allowed bg-zinc-800 text-zinc-600' : 'text-white'
-                      }`}
+                      } ${isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'}`}
                       style={inputValue.trim() && !isTyping ? { backgroundColor: agentConfig.color } : {}}
                       aria-label="Send message"
                     >
-                      <Icon icon="lucide:send" className="h-5 w-5" />
+                      <Icon icon="lucide:send" className={isMobile ? 'h-4 w-4' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} />
                     </motion.button>
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-[10px] text-zinc-500">
+                  <div className={`flex items-center justify-between text-zinc-500 ${
+                    isMobile ? 'mt-2 text-[10px]' : isTablet ? 'mt-3 text-xs' : 'mt-2 text-[10px]'
+                  }`}>
                     <span>Enter to send</span>
                     <span className="flex items-center gap-1">
                       <Icon icon="lucide:shield-check" className="h-3 w-3" />

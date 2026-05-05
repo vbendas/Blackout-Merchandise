@@ -652,7 +652,7 @@
   | **AI Store Management** | Leopoldo & Francisca handle the "business"—adding products, setting prices, and managing orders via chat. No dashboard needed. |
   | **Visual Appearance Editor** | A dedicated drag-and-drop **Visual Editor** (HeroUI) allows artists to manually build their store pages. **Strictly manual control**—artists upload their own banners/media. No AI interference in the site design. |
   | **AI Merch Design** | Cat-Suite agents (Francisca) assist **exclusively with product design** (t-shirts, hoodies)—creating art, refining mockups, and ensuring print-readiness. |
-  | **Curated Quality** | Premium organic/fair-trade blanks + in-house production = higher standard than Redbubble/Printful. |
+  | **Curated Quality** | **WATC Studio** 100% organic cotton premium blanks (Barcelos, Portugal) + in-house screen printing production = higher standard than Redbubble/Printful. Portuguese supply chain = faster logistics + ethical transparency. |
   | **Zero Upfront Cost** | Artists only pay when products sell (deducted from sale price). No MOQs, no inventory risk. |
   | **Production Redundancy** | Own facility (Portugal) + vetted partner network = zero downtime, global fulfillment capability. |
   | **Ethical Alignment** | Vegan, fair-trade, eco-friendly products match increasingly conscious consumer preferences. |
@@ -668,7 +668,8 @@
    | **Store Builder** | ✅ **Visual Editor** (Manual Drag & Drop) | ❌ Complex dashboard | ❌ Complex dashboard | ⚠️ Basic templates | ⚠️ Limited | ❌ Complex |
    | **AI Merch Design** | ✅ Full Cat-Suite (Francisca) | ❌ 3D Design Maker (not AI) | ❌ None | ❌ None | ❌ None | ❌ None |
    | **Voice Interface** | ✅ **Mistral Voxtral** (Real-Time Voice-to-Voice + Conversation Mode) | ❌ | ❌ | ❌ | ❌ | ❌ |
-   | **Blank Quality** | ✅ Premium organic, fair-trade | ⚠️ Standard | ⚠️ Low-mid | ⚠️ Standard | ⚠️ Standard | ⚠️ Standard |
+   | **Blank Quality** | ✅ Premium organic, fair-trade (WATC Studio) | ⚠️ Standard | ⚠️ Low-mid | ⚠️ Standard | ⚠️ Standard | ⚠️ Standard |
+   | **Supplier Location** | ✅ Portuguese (Barcelos) — short lead times, ethical traceability | ❌ Global network | ❌ Global network | ❌ Global network | ❌ Global network | ✅ Local (context dependent) |
    | **Ethical/Vegan Default** | ✅ Yes (core value) | ⚠️ Optional upgrade | ⚠️ Provider dependent | ❌ No | ❌ No | ⚠️ Limited |
    | **In-House Production** | ✅ Own facility (Portugal) | ❌ Outsourced network | ❌ Outsourced | ❌ Outsourced | ❌ Outsourced | ✅ Own facilities |
    | **Quality Control** | ✅ Direct oversight | ⚠️ Varies | ⚠️ Varies | ❌ Inconsistent | ⚠️ Varies | ✅ Good |
@@ -856,7 +857,7 @@
   - **Behavior:** Subtle breathing/blinking in idle state. **Reacts to user input** (looks at cursor, ears twitch when typing).
   - **Style:** 2D high-fidelity stylized illustrations (not 3D uncanniness).
   - **Roles:**
-    - **Leopoldo:** Sales Strategy & Business Ops (The "Boss") - Pricing, bulk orders, margin optimization.
+    - **Leopoldo:** Sales Strategy & Business Ops (The "Boss") - Pricing, bulk orders, margin optimization. **(Year 2-3):** MRCH token onboarding — guides artists through wallet setup, earning milestones, and quarterly EURC distributions via natural Cat-Suite conversation. See `Documentation/05-Community-Ownership/MRCH_ARTIST_ONBOARDING.md`.
     - **Francisca:** Merch Product Design & Print Strategy (The "Visionary") - Focused *strictly* on key art and product creation.
     - **Antônia:** Logistics & Support (The "Hunter") - Shipping, returns, customer service.
 
@@ -1714,16 +1715,73 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   - ✅ **Crowdfunding narrative** - "Own facility, grant-funded, zero rent" is stronger than "renting in Porto"
   - ✅ **E-commerce fit** - Logistics disadvantage minimal for mainly online business (200km vs 50km to Barcelos)
   - ✅ **EU sovereignty alignment** - Interior Portugal + Mistral AI = fully European operation
+  - ✅ **Founder commitment** - Victor is purchasing residential land in Castelo Branco, establishing permanent local presence and community integration
+  - ✅ **Local hiring pipeline** - Pre-existing network of young people with shared values (sustainability, ethical production, off-grid living) already in region = trainable workforce aligned with company culture
+
+  **Founder Residential Commitment & Community Integration:**
+  - **Personal Land Purchase:** Victor is acquiring residential land in Castelo Branco, establishing permanent residence alongside the business facility. This signals institutional commitment to the region and eliminates municipal concerns about capital flight or temporary presence.
+  - **Local Community Network:** Victor is embedded in a pre-existing network of young people and local residents in Castelo Branco who share company values (sustainability, ethical production, vegan/fair-trade principles, off-grid living). This network represents:
+    - **Immediate hiring pipeline** for production, support, and operations roles
+    - **Cultural alignment** that reduces onboarding friction and increases employee retention
+    - **Community validation** that the business is authentically rooted in local values, not extractive
+  - **Narrative for Grant Applications:** The combination of founder residence, existing community ties, and pre-validated hiring pool strengthens grant positioning significantly:
+    - *"MerchFrom is not a coastal tech startup seeking interior subsidy. It's a founder relocating to the interior with personal financial commitment (residential land purchase) and active integration into an existing community network committed to sustainable, ethical production."*
+    - This positioning unlocks municipality-level support programs, ESG-focused grant streams, and interior depopulation initiatives (e.g., *Programa de Valorização do Interior*).
+
+  **Creative Studio Hub — Music, Recording, Streaming & Photography:**
+
+  The industrial unit includes a **Creative Studio Hub** — three dedicated creative spaces serving both MerchFrom internal production and the broader creative community of Castelo Branco. Access is free, governed through the MerchFrom platform's booking module, and open to musicians, bands, actors, digital creators, photographers, and illustrators.
+
+  > **Full specification, equipment budgets, and grant narrative:** See [`/Documentation/06-Creative-Studio/Creative-Studio-Hub.md`](../06-Creative-Studio/Creative-Studio-Hub.md)
+
+  **The Three Spaces:**
+
+  | Space | Internal Use | Community Use |
+  |-------|-------------|---------------|
+  | **Music + Recording Room** | Artist sessions, brand audio content, demo recordings | Band rehearsals, recordings, live streams |
+  | **Meeting + Streaming Room** | Artist onboarding, team meetings, partner calls | Streaming sessions, content production, workshops |
+  | **Photo Studio** | Product photography, catalog shoots, campaign imagery | Portrait sessions, lookbooks, editorial content |
+
+  **Booking System (MerchFrom Platform):**
+  - Application gate — creatives apply, MerchFrom approves
+  - 2 hours per booking, max 1 booking per week
+  - Approval expires after 3 months of inactivity (keeps network active)
+  - No-show: 1 lifetime warning, then 3-month suspension
+  - Waitlist queue for full slots; freed slots auto-notify next in line
+  - Full calendar transparency — all bookings visible as "MerchFrom" or "[Artist Name]"
+
+  **Why this is strategic, not charitable:**
+  - Organic content flywheel — community sessions generate authentic social content at zero paid-media cost
+  - Network building — approved users are warm leads who have experienced MerchFrom firsthand
+  - Platform engagement — booking through the app creates habit-forming touchpoints beyond merch transactions
+  - Relationship moat — a trusted physical creative hub in a community is not replicable by remote competitors
+  - Talent pipeline — active community users are natural candidates for future production and operational roles
+
+  **Grant angle:** Reframes the industrial unit from "cheap land grab" to "creative infrastructure investment for the interior." Aligns with *Programa de Valorização do Interior*, ESG grant streams, and municipal depopulation initiatives. Measurable social impact (sessions served, unique users, community content produced) provides auditable outcomes for evaluators.
+
+  **Budget Summary:**
+
+  | Space | Equipment | Construction/Labor | Total |
+  |-------|-----------|-------------------|-------|
+  | Music + Recording Room | €5,385 | €1,850 | €7,235 |
+  | Meeting + Streaming Room | €3,681 | €100 | €3,781 |
+  | Photo Studio | €1,728 | €200 | €1,928 |
+  | **Grand Total** | **€10,794** | **€2,150** | **€12,944** |
 
   **Risks & Mitigations:**
-  - **Talent pool:** Smaller city (55K). Mitigation: remote-first for tech, trainable for production roles
-  - **Supplier distance:** 200km to Barcelos. Mitigation: bulk ordering schedules, local Centro region suppliers
-  - **Grant uncertainty:** Opportunities, not entitlements. Mitigation: confirm with municipality before marketing
+  - **Talent pool:** Smaller city (55K). Mitigation: remote-first for tech, pre-existing community network for production/support roles
+  - **Supplier distance:** 200km to Barcelos. Mitigation: bulk ordering schedules, local Centro region suppliers, WATC Studio partnership (Barcelos-based)
+  - **Grant uncertainty:** Opportunities, not entitlements. Mitigation: confirm with municipality before marketing; founder residential commitment de-risks the "will you stay?" question
+  - **Studio scheduling conflicts:** MerchFrom internal shoots may compete with community bookings. Mitigation: MerchFrom books via the same system with no priority override — plan sessions in advance and respect the queue like everyone else.
 
   **Next Steps:**
-  1. Contact Castelo Branco municipality (Invest CB / ALECB) for land terms confirmation
-  2. Identify open Portugal 2030 calls compatible with Merch From's investment structure
-  3. Do NOT promise Castelo Branco in crowdfunding until municipality confirmation received
+  1. Complete residential land acquisition in Castelo Branco
+  2. Document community network (names, roles, availability) for grant applications
+  3. Contact Castelo Branco municipality (Invest CB / ALECB) for land terms confirmation
+  4. Identify open Portugal 2030 calls compatible with Merch From's investment structure and interior location
+  5. Do NOT promise Castelo Branco in crowdfunding until municipality confirmation received
+  6. Add Creative Studio Hub to grant application narrative as community social program + organic marketing infrastructure
+  7. Scope studio build-out costs and include in facility financial model
 
   **Pitch Deck Contents (13-16 slides):**
   1. **Problem:** Independent artists lack access to premium, ethical merch without minimums or upfront costs
@@ -2059,8 +2117,11 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   - Everything in Tier 1 +
   - **Listed on "Founding Supporters" page** with link to your work
   - **Priority customer support** (faster response times)
-  - **Exclusive Discord channel** with founder + community
-  - **Beta tester privileges** (vote on new features)
+  - **Exclusive Discord access** — `#founders-lounge`, `#feature-voting`, `#build-in-public` channels with direct founder access
+  - **`🔒 Founding Supporter` role** visible across the entire server
+  - **Beta tester privileges** (vote on new features, see decisions before they ship)
+
+  > **Discord Strategy:** See `Documentation/05-Community-Ownership/DISCORD_STRATEGY.md` for full server architecture, role system, and community programs.
 
   **Tier 3: Strategic Partner (€499)**
   - Everything in Tier 2 +
@@ -3010,6 +3071,8 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   ### 2.8 Merch Coins System
 
+  > **MerchCoins ≠ MRCH Tokens.** These are two completely separate systems with no connection. MerchCoins (this section) are an off-chain loyalty discount currency stored in PostgreSQL. MRCH tokens (Section 20) are on-chain equity issued on the Stellar blockchain. Never conflate them in code, marketing, or communications. Full comparison: `Documentation/05-Community-Ownership/MERCHANTCOINS_VS_MRCH.md`
+
   **Simplified Model (v3.1):**
 
   #### **Platform Merch Coins (Only Type)**
@@ -3040,18 +3103,28 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   ---
 
-  #### **Crowdfunding Tiers (Simplified)**
-  - **Supporter (€25):** 30 Merch Coins + badge
-  - **Artist Pioneer (€99):** 100 Merch Coins + priority access
-  - **Artist VIP (€249):** 250 Merch Coins + consultation
-  - **Brand Partner (€999):** 1,000 Merch Coins + custom design
-  - **Sponsor (€2,500):** 3,000 Merch Coins + behind-the-scenes
+  #### **Crowdfunding Tiers**
 
-  **No Profit-Sharing for Backers:**
-  - Artists earn from sales (40-60% margins)
-  - Team earns from building platform
-  - Backers get access, recognition, community
-  - Not an MLM - building sustainable ethical commerce
+  | Tier | Price | Merch Coins | Founding MRCH | Equity at €10M | Notes |
+  |------|-------|-------------|---------------|----------------|-------|
+  | **Supporter** | €25 | 30 | — | — | No KYC, no blockchain |
+  | **Founding Creator** | €99 | 100 | **1,000 MRCH** | €333 | First tier with real equity |
+  | **Founding Artist** | €249 | 250 | **3,000 MRCH** | €1,000 | |
+  | **Founding Partner** | €999 | 1,000 | **12,500 MRCH** | €4,167 | |
+  | **Founding Sponsor** | €2,500 | 3,000 | **35,000 MRCH** | €11,667 | |
+
+  **About Founding MRCH Tokens:**
+  - Real tokens on Stellar blockchain — visible on stellarexpert.io immediately
+  - This founding cohort is permanent: allocation closes when campaign ends, never reopens at this price
+  - Tokens carry **active governance rights from day one** — off-chain Year 1 (Discord DAO polls weighted by MRCH holdings), on-chain Year 2 (Soroban contract)
+  - Tokens carry a **documented profit-sharing promise** — 30% of net profits to MRCH holders, activates Year 2 when Soroban deploys; backers are told this is the main ownership hook from day one
+  - Only Stellar DEX trading is locked until Year 2 legal framework is established
+  - MiCA legal framework established Year 1 Q3-Q4 before first distribution — no legal cost at crowdfunding launch
+  - Requires Stellar wallet (LOBSTR, free) — Leopoldo guides backers through setup at token distribution time
+
+  **Revised crowdfunding target: €80-120K** (up from €46K — MRCH tiers attract crypto-native backers who understand equity value)
+
+  **MRCH total allocated across all tiers:** ~500K-1.5M tokens (within the 5M Seed/Early Backer pool, leaving remainder for angel investors)
 
   ---
 
@@ -4067,7 +4140,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   - **Railway/Render (optional Sharp microservice for high-volume mockup generation)**
 
   **Supplier Integrations:**
-  - **Stanley Stella API (REST):** Real-time stock checking for dynamic delivery estimates (Read-Only).
+  - **WATC Studio (Portugal, Barcelos):** Real-time stock checking via API for dynamic delivery estimates. 100% organic cotton, premium luxury blanks.
   - **EDI (Future):** FTP-based automated ordering (Deferred to Post-MVP).
 
 
@@ -5739,11 +5812,22 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   - Cross-platform inventory synchronization (prevents overselling)
 
   **2. Discord Integration (Bot + Activity)**
-  - **Discord Bot:** Slash commands (`/merch drop`, `/merch shop`, `/merch leaderboard`)
+
+  > **Full Community Strategy:** See `Documentation/05-Community-Ownership/DISCORD_STRATEGY.md` — covers pre-launch community building, artist networking flywheel, role system, Cat-Suite presence, and the three-stage bot rollout.
+
+  - **Discord Bot:** Slash commands (`/merch drop`, `/merch shop`, `/merch leaderboard`, `/merch collab @artist`)
   - **Embedded Activity:** Interactive storefront in voice/text channels via Discord Embedded App SDK
-  - **Cat-Suite Presence:** Leopoldo greets users in Activity
+  - **Cat-Suite Presence:** Leopoldo greets users in Activity; Francisca and Antonia active in community channels
   - **OAuth Flow:** Artists connect Discord server from `/dashboard/integrations`
+  - **Revenue Strategy:** Always default to off-site checkout (redirect to MerchFrom direct) — Discord IAP takes 15-30% vs 0% on direct. Embedded Activity is a discovery tool, not a checkout surface.
   - **Monetization Note:** Discord takes 15-30% + 6% Stripe on in-app purchases
+
+  **Three-Stage Rollout:**
+  | Stage | When | Focus |
+  |-------|------|-------|
+  | A — Manual | Pre-launch now | Weekly "Top Drops" digest, leaderboard posts, character posting in Cat-Suite channels |
+  | B — Bot MVP | Post-beta | `/merch drop`, `/merch shop`, `/merch leaderboard`, `/merch collab` |
+  | C — Embedded Activity | Phase 9 | Full interactive storefront inside Discord via Embedded App SDK |
 
   **3. Meta Commerce (Instagram + Facebook Shop)**
   - **Catalog Feed Sync:** Products synced to Meta Catalog via Graph API
@@ -5909,7 +5993,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   **7. Order Management** *(Week 14-15)*
   - Order processing
   - Inventory tracking
-  - **Supplier Stock Sync (Stanley Stella API)**
+  - **Supplier Stock Sync (WATC Studio API)**
 
   → *Required for fulfillment*
 
@@ -6222,7 +6306,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   **Response Strategy:**
   - **Inventory Logistics:**
-    - **Stanley Stella Express:** We don't rely on random local stock. We utilize **Stanley Stella's Stock API** to verify availability in real-time, then use **Express Shipping** to restock up to 5,000 units in **48 hours**.
+    - **WATC Studio Direct Supply:** We leverage direct relationship with **WATC Studio (Barcelos, Portugal)** to verify real-time stock availability via API, then coordinate express local shipping to restock up to 5,000 units in **48 hours** (domestic supply chain advantage).
   - **Algorithmic Expectation Management (The "Francisca" Rule):**
 
     - Instead of fixed promises, the system dynamically adjusts the "Ships In" window based on real-time SKU velocity:
@@ -7017,7 +7101,8 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   ## 20. Community Ownership & Tokenization Vision
 
-  > **Status:** Future Phase (Year 2-3) — Not implemented in MVP
+  > **Status:** Year 1 groundwork required (SCF registration + Instaward) — Token launch Year 2-3
+  > **Blockchain:** Stellar Network | **Token:** MRCH (Stellar Asset / SAC) | **Contracts:** Soroban
   > **Reference:** Full detailed document: `Documentation/05-Community-Ownership/TOKENIZATION_VISION.md`
 
   ### 20.1 Vision & Philosophy
@@ -7047,43 +7132,62 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   ### 20.3 The Phased Implementation Approach
 
-  #### Phase 1: Foundation (Year 1) — Crowdfunding with Promise
+  #### Phase 1: Foundation (Year 1) — Crowdfunding with Live Founding MRCH Tokens
 
   **What We Do Now:**
-  - Launch €100K crowdfunding campaign via Kickstarter/Indiegogo
-  - Offer traditional rewards (merch, discounts, early access)
-  - **Promise** future token ownership to early backers as gratitude for early support
-  - No actual tokenization implementation required
+  - Launch crowdfunding campaign (revised target: €80-120K with MRCH founding tiers)
+  - Offer traditional rewards for lower tiers; real MRCH tokens for top-tier backers
+  - **Issue MRCH Founding Tokens on Stellar Mainnet at campaign launch** — ~1 afternoon of work, ~$5 in XLM, no development required
+  - Tokens issued with `AUTH_REQUIRED_FLAG`: every recipient manually KYC-approved before tokens are sent, no open-market trading at launch
+  - Tokens carry **active governance rights from day one** — off-chain Year 1 (community DAO polls, weighted by MRCH holdings), on-chain Year 2 (Soroban contract)
+  - Tokens carry a **documented profit-sharing promise** — 30% of profits to MRCH holders, activates Year 2 when Soroban deploys; this promise costs nothing legally
+  - Only Stellar DEX trading is locked until Year 2 legal framework is established
+  - **No lawyer needed before launch** — legal opinion and MiCA whitepaper commissioned Year 1 Q3-Q4, funded by Instaward, timed before first actual distribution
+  - **Register on SCF** (communityfund.stellar.org) and begin community verification
+  - **Apply for SCF Instaward** — initial grant funds the MiCA legal consultation
 
   **Crowdfunding Message:**
-  > *"Future Owner Rewards — Early backers get priority access to our community ownership program. When we launch tokenized equity (Year 2-3), our earliest supporters will be first in line. We're building a company our community actually owns — not just uses."*
+  > *"Founding Owners — You don't just back us. You own us. Right now. We're issuing real MRCH founding tokens on the Stellar blockchain to top-tier backers at campaign close. No promises. No IOUs. Real tokens in your Stellar wallet, visible on stellarexpert.io. When MerchFrom profits, 30% goes to MRCH holders — automatically, every quarter, in euros. And from day one, your tokens vote on how this platform evolves. This founding cohort closes when the campaign ends."*
 
   **This creates:**
-  - Anticipation without legal commitment
-  - Differentiation from competitors
-  - Keeps options open for later
-  - No blockchain work required now
+  - Real on-chain tokens from day one — backers check their wallet, not a spreadsheet
+  - Founding cohort urgency — this allocation closes permanently when the campaign ends
+  - Stronger SCF Instaward application immediately: "MRCH is already live on Stellar Mainnet with X verified holders"
+  - Zero legal cost at launch — promising future profit-sharing costs nothing legally; only the first actual distribution triggers MiCA compliance (Year 2)
+  - Differentiation unlike any crowdfunding campaign in the European creator economy space
 
-  #### Phase 2: Growth (Year 2) — Chiliz Partnership
+  #### Phase 2: Growth (Year 1-2) — Stellar Community Fund Grants
 
-  **Negotiate with Chiliz:**
-  - €75K cash investment + €75K CHZ token grant + €70K infrastructure support = ~€220K value
-  - For 6-8% equity (vs. 16-18% with traditional investors)
-  - Chiliz provides: blockchain infrastructure, legal/regulatory compliance, smart contract templates
+  **Strategy: Non-Dilutive Infrastructure via SCF**
 
-  **Why Chiliz Says Yes:**
-  - They're building RWA (Real World Assets) portfolio
-  - Creator economy = 200M TAM vs. 150 sports teams
-  - You have existing relationship (sold them AI system before)
-  - Transaction fees: 7.5% of secondary market trading goes to CHZ buyback
+  Instead of trading equity for blockchain infrastructure, the **Stellar Community Fund (SCF)** funds the entire layer through grants — zero equity given.
 
-  #### Phase 3: Scale (Year 2-3) — Token Implementation
+  | Grant | Amount | Timeline | Deliverable |
+  |-------|--------|----------|-------------|
+  | SCF Instaward | ~$10-25K XLM | Year 1 Q1-Q2 | Community verification; funds MiCA legal opinion (Year 1 Q3-Q4) |
+  | SCF Build Award | Up to $150K XLM | Year 1-2 | Soroban contracts: profit-distribution + DAO governance + vesting (token already live from crowdfunding — stronger application) |
+  | SCF Matching Fund | Up to $500K USD | Year 2+ | Matches committed lead investor's check |
+  | SCF Marketing Grant | Up to $500K USD | Year 3 | Creator economy growth campaign |
+
+  **Why SDF Approves This:**
+  - Real-world equity-backed token issuance (RWA) is SDF's stated strategic priority
+  - Creator economy is underrepresented in their portfolio (currently DeFi-heavy)
+  - We have a real business with live artists — not a whitepaper
+  - Artist co-ownership maps directly to Stellar's financial inclusion mission
+  - $0.0007/transaction: quarterly distributions to 500+ artists cost under $1 in total fees
+  - EU/Portugal base aligns with MiCA regulatory framework, which SDF actively supports
+
+  **Grant probability: 65-75%** for Build Award; higher for Instaward and Marketing Grant.
+
+  #### Phase 3: Scale (Year 2-3) — MRCH Token Launch on Stellar
 
   **What Gets Built:**
-  - 30% tokenized equity pool (30M tokens = 30% company)
-  - Automatic profit distributions via smart contract
-  - Artist DAO for community governance
-  - Secondary market via Chiliz/Socios.com
+  - 30M MRCH tokens = 30% equity pool, issued as Stellar Asset (SAC — no smart contract needed for issuance)
+  - Quarterly profit distributions via Soroban contract, paid in **EURC** (Circle's Euro stablecoin — no XLM volatility exposure)
+  - Artist DAO governance via Soroban contract (1 MRCH = 1 vote)
+  - Vesting enforced on-chain per pool type (employee cliff, artist milestone unlocks)
+  - Secondary market via **Stellar DEX** — built-in, permissionless, no exchange partnership required
+  - Free Soroban security audit provided by SDF through SCF Build Award
 
   **Token Distribution:**
   | Pool | % | Tokens | Purpose |
@@ -7098,56 +7202,109 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   | Source | Amount | Equity |
   |--------|--------|--------|
-  | Chiliz (cash + CHZ + infra) | €200K+ | 6-8% |
+  | SDF Grants (XLM/USD via SCF) | ~$150-300K | 0% |
+  | SCF Matching Fund (conditional) | Up to $500K USD | 0% |
+  | Traditional investor | €300K | 16-18% |
   | Crowdfunding | €100K | 0% (rewards only) |
   | Founder | — | 60%+ |
 
-  **Key Insight:** By structuring crowdfunding as traditional rewards (not equity), you get €100K without dilution while promising future token ownership. This becomes meaningful only when the company has value to share.
+  **Key Insight:** SDF grants replace the equity-for-infrastructure deal. We get blockchain infrastructure at zero equity cost. Combined with crowdfunding as traditional rewards, the founder keeps 82%+ equity while raising €300K+ and accessing up to $800K in non-dilutive grant capital.
 
   ### 20.5 Why This Works
 
   | Benefit | Explanation |
   |---------|-------------|
-  | **No upfront cost** | Chiliz handles legal/infrastructure |
-  | **Creates loyalty** | Early backers feel valued |
-  | **Differentiates** | Most crowdfunding projects don't offer this |
-  | **Keeps optionality** | If things go badly, never implement |
-  | **Adds value later** | Tokens become meaningful when company grows |
+  | **Zero equity for infrastructure** | SDF grants cover legal, audit, and contract development |
+  | **Better UX for artists** | Profit distributions in EURC (stable €), not volatile crypto |
+  | **Open secondary market** | Stellar DEX is built-in — no proprietary marketplace lock-in |
+  | **Creates loyalty** | Early backers hold real founding tokens — visible on-chain, not a promise |
+  | **Differentiates** | No competitor offers equity-backed tokens on a payments-grade blockchain |
+  | **Keeps optionality** | Stellar tooling is open-source — no single partner dependency |
+  | **Adds value later** | MRCH becomes meaningful when the company has real profits to distribute |
 
   ### 20.6 Implementation Roadmap
 
   | Timeline | Milestone |
   |----------|-----------|
-  | **Year 1** | Crowdfunding + "future ownership" promise |
-  | **Year 2 (Q1-Q2)** | Negotiate Chiliz partnership |
-  | **Year 2 (Q3-Q4)** | Legal framework, smart contract drafting |
-  | **Year 3** | Token launch, early backer bonus distributions |
-  | **Year 3+** | Secondary market, DAO governance |
+  | **Year 1 (Q1)** | Issue MRCH Founding Tokens at crowdfunding launch; SCF registration + Instaward application |
+  | **Year 1 (Q2-Q3)** | SCF Build Award application — cite live token + verified founding holders as proof of concept |
+  | **Year 1 (Q3-Q4)** | MiCA legal opinion + whitepaper (funded by Instaward, timed before first distribution) |
+  | **Year 2 (Q1)** | Soroban contracts audited + deployed; rights activated; SCF Matching Fund on investor close |
+  | **Year 2 (Q2-Q3)** | Artist DAO live; first quarterly EURC distributions; Stellar DEX trading unlocked |
+  | **Year 3** | SCF Marketing Grant; 300+ artists with MRCH; active secondary market |
+  | **Year 3+** | 500-1000+ token holders; full liquidity |
 
   ### 20.7 Risk Mitigation
 
   | Risk | Mitigation |
   |------|------------|
-  | Regulatory changes | Partner with Chiliz/Assetera (licensed, monitors regulations) |
-  | Smart contract bugs | Professional audit before deployment |
-  | Token price volatility | Profit distributions provide passive income (not just speculation) |
-  | Execution distraction | Chiliz handles infrastructure, not you |
+  | Regulatory changes | Promising future profit-sharing costs nothing legally — only the first actual distribution triggers MiCA compliance (Year 2); MiCA legal opinion + whitepaper commissioned Year 1 Q3-Q4, funded by Instaward, before first distribution |
+  | Smart contract bugs | Free Soroban security audit from SDF via Build Award; professional audit before mainnet |
+  | Token price volatility | Distributions in EURC (stable €) — artists receive euros, not speculative crypto |
+  | Execution distraction | SDF technical support + SCF program resources cover infrastructure guidance |
 
   ### 20.8 Summary
 
-  **This is a Year 2-3 initiative**, not immediate. The strategy:
+  **MRCH Founding Tokens launch at crowdfunding with active governance and a documented profit-sharing promise.** The strategy:
 
-  1. **Now:** Crowdfunding with promise of future ownership
-  2. **Later:** Negotiate Chiliz to handle costs for equity
-  3. **Future:** Implement tokens using their infrastructure
+  1. **Crowdfunding launch:** Issue MRCH on Stellar Mainnet (~$5, 1 afternoon). Top-tier backers receive real founding tokens with active DAO governance rights and an explicit promise of 30% quarterly profit distributions starting Year 2. Zero legal cost — promising future distributions is legally free; only the first actual distribution triggers MiCA compliance.
+  2. **Year 1 Q3-Q4:** MiCA legal opinion funded by Instaward, timed before first distribution. SCF Build Award funds Soroban automation layer. Off-chain DAO governance runs throughout Year 1 (Discord with MRCH-weighted voting).
+  3. **Year 2:** Soroban contracts deploy — profit-sharing activates, Stellar DEX trading unlocks. All three were promised from day one; Year 2 is when the on-chain infrastructure catches up.
 
   This approach:
-  - Requires no upfront investment from us
-  - Creates differentiation now (promised future ownership)
-  - Executes when we have traction and leverage
-  - Keeps 60%+ equity while raising €300K
+  - Zero equity given for blockchain infrastructure (grants replace the equity-for-infra deal)
+  - Creates real differentiation at crowdfunding — backers own equity in a company that promises and will pay them profits
+  - Profit-sharing is the main hook from day one — legally free to promise, and it's a genuine commitment
+  - Keeps 82%+ founder equity vs. ~74-78% under the previous path
+  - Non-dilutive grant stack: up to $800K+ potential across SCF programs
 
-  **The vision is bold but pragmatic: Build a company our community actually owns.**
+  **The vision is bold but pragmatic: Build a company our community actually owns — and tell them so from day one.**
+
+  ---
+
+  ### 20.9 Immediate Actions, Key Principles & Cross-References
+
+  #### At Crowdfunding Launch — Do These (Zero Cost, ~1 Afternoon)
+
+  - [ ] Issue MRCH on Stellar Mainnet with `AUTH_REQUIRED_FLAG` — ~$5 in XLM, 4 transactions
+  - [ ] Set up distribution account (holds uncirculated MRCH supply)
+  - [ ] Lock issuer account (`masterWeight: 0`) — supply is permanently capped at 30M
+  - [ ] Register at communityfund.stellar.org — begin SCF community verification
+  - [ ] Apply for SCF Instaward — cite live founding token as proof of concept
+
+  #### Year 1 Q3-Q4 — Before First Distribution (Funded by Instaward)
+
+  - [ ] Commission MiCA legal opinion on MRCH token classification
+  - [ ] Draft crypto-asset whitepaper (TOKENIZATION_VISION.md is already most of it)
+  - [ ] Join Stellar Developer Discord — introduce MerchFrom in `#projects` channel
+  - [ ] Find Portugal/EU Stellar Ambassador — accelerates Build Award processing
+  - [ ] SCF Build Award application — with live token + verified founding holder count
+
+  #### MiCA Is Our Grant Superpower
+
+  Every SCF application leads with:
+  > *"MerchFrom is the first MiCA-compliant, equity-backed creator economy RWA on Stellar — a real company, real artists, real euros distributed on-chain."*
+
+  This positions us as a reference case for SDF's EU institutional roadmap, not just another grant applicant. Portugal/EU jurisdiction + EURC distributions + Stellar native compliance controls (freeze/clawback) = a project SDF needs to exist.
+
+  #### EURC: Artists See Euros, Not Crypto
+
+  All profit distributions are paid in **EURC** (Circle's Euro stablecoin, MiCA-registered). Artists see `€16.00 received` in LOBSTR — not `12.3 XLM`. The blockchain is invisible. The euros are real. This principle must be maintained in all artist-facing copy, onboarding flows, and Cat-Suite scripts.
+
+  #### Cat-Suite MRCH Onboarding (Year 2-3)
+
+  Leopoldo handles all artist token onboarding entirely through natural Cat-Suite conversation. No external crypto knowledge required. Artists are guided from "what is MRCH?" through LOBSTR wallet setup to their first EURC distribution without ever leaving the platform. Full scripts: `Documentation/05-Community-Ownership/MRCH_ARTIST_ONBOARDING.md`
+
+  #### MerchCoins vs. MRCH — Not The Same System
+
+  | | MerchCoins | MRCH Tokens |
+  |--|--|--|
+  | Layer | Off-chain (database) | On-chain (Stellar) |
+  | Purpose | Loyalty discount (€1/coin) | Equity ownership |
+  | Blockchain | None | Stellar Mainnet |
+  | PRD section | 2.8 | 20 |
+
+  Full comparison: `Documentation/05-Community-Ownership/MERCHANTCOINS_VS_MRCH.md`
 
   ---
 

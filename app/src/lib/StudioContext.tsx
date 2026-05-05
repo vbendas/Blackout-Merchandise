@@ -13,6 +13,24 @@ import type { Transformation } from '@/types/transformations';
 
 // Types
 export type PrintArea = 'front' | 'back' | 'left_sleeve' | 'right_sleeve' | 'inner_tag';
+export type GarmentView = 'front' | 'back' | 'left' | 'right' | 'detail';
+
+export interface GarmentEntry {
+  sku: string;
+  productType: string;
+  colorCode: string;
+  colorName: string;
+  colorHex: string;
+  view: string;
+  imagePath: string;
+}
+
+export interface DesignPosition {
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+}
 
 export interface SeparatedColor {
   id: string;
@@ -38,6 +56,12 @@ export interface StudioState {
   separatedColors: SeparatedColor[];
   halftoneLPI: number;
   isApproved: boolean;
+  // Garment state
+  selectedGarment: GarmentEntry | null;
+  garmentColor: string;
+  activeView: GarmentView;
+  activePlacement: PrintArea;
+  designPosition: DesignPosition;
 }
 
 export interface StudioContextType extends StudioState {
@@ -60,6 +84,13 @@ export interface StudioContextType extends StudioState {
   setIsApproved: (approved: boolean) => void;
   setPrintReadyUrl: (designId: string, url: string) => void;
 
+  // Garment state
+  setSelectedGarment: (garment: GarmentEntry | null) => void;
+  setGarmentColor: (color: string) => void;
+  setActiveView: (view: GarmentView) => void;
+  setActivePlacement: (placement: PrintArea) => void;
+  setDesignPosition: (position: DesignPosition | ((prev: DesignPosition) => DesignPosition)) => void;
+
   // Reset
   clearStudio: () => void;
 }
@@ -79,6 +110,12 @@ export function StudioProvider({ children }: StudioProviderProps): React.ReactEl
   const [separatedColors, setSeparatedColorsState] = useState<SeparatedColor[]>([]);
   const [halftoneLPI, setHalftoneLPIState] = useState<number>(55);
   const [isApproved, setIsApprovedState] = useState<boolean>(false);
+  // Garment state
+  const [selectedGarment, setSelectedGarment] = useState<GarmentEntry | null>(null);
+  const [garmentColor, setGarmentColor] = useState<string>('');
+  const [activeView, setActiveView] = useState<GarmentView>('front');
+  const [activePlacement, setActivePlacement] = useState<PrintArea>('front');
+  const [designPosition, setDesignPosition] = useState<DesignPosition>({ x: 0, y: 0, scale: 1, rotation: 0 });
 
   // Design instance management
   const addDesignInstance = useCallback((instance: Omit<DesignInstance, 'id' | 'transformations'>) => {
@@ -137,12 +174,44 @@ export function StudioProvider({ children }: StudioProviderProps): React.ReactEl
     setDesignInstances((prev) => prev.map((d) => (d.id === designId ? { ...d, printReadyUrl: url } : d)));
   }, []);
 
+  // Garment state actions
+  const handleSetSelectedGarment = useCallback((garment: GarmentEntry | null) => {
+    setSelectedGarment(garment);
+    if (garment) {
+      setGarmentColor(garment.colorHex);
+    }
+  }, []);
+
+  const handleSetGarmentColor = useCallback((color: string) => {
+    setGarmentColor(color);
+  }, []);
+
+  const handleSetActiveView = useCallback((view: GarmentView) => {
+    setActiveView(view);
+  }, []);
+
+  const handleSetActivePlacement = useCallback((placement: PrintArea) => {
+    setActivePlacement(placement);
+  }, []);
+
+  const handleSetDesignPosition = useCallback(
+    (position: DesignPosition | ((prev: DesignPosition) => DesignPosition)) => {
+      setDesignPosition(position);
+    },
+    []
+  );
+
   // Reset
   const clearStudio = useCallback(() => {
     setDesignInstances([]);
     setSeparatedColorsState([]);
     setHalftoneLPIState(55);
     setIsApprovedState(false);
+    setSelectedGarment(null);
+    setGarmentColor('');
+    setActiveView('front');
+    setActivePlacement('front');
+    setDesignPosition({ x: 0, y: 0, scale: 1, rotation: 0 });
   }, []);
 
   // Context value
@@ -152,6 +221,11 @@ export function StudioProvider({ children }: StudioProviderProps): React.ReactEl
       separatedColors,
       halftoneLPI,
       isApproved,
+      selectedGarment,
+      garmentColor,
+      activeView,
+      activePlacement,
+      designPosition,
       addDesignInstance,
       removeDesignInstance,
       updateDesignInstance,
@@ -163,6 +237,11 @@ export function StudioProvider({ children }: StudioProviderProps): React.ReactEl
       setHalftoneLPI,
       setIsApproved,
       setPrintReadyUrl,
+      setSelectedGarment: handleSetSelectedGarment,
+      setGarmentColor: handleSetGarmentColor,
+      setActiveView: handleSetActiveView,
+      setActivePlacement: handleSetActivePlacement,
+      setDesignPosition: handleSetDesignPosition,
       clearStudio,
     }),
     [
@@ -170,6 +249,11 @@ export function StudioProvider({ children }: StudioProviderProps): React.ReactEl
       separatedColors,
       halftoneLPI,
       isApproved,
+      selectedGarment,
+      garmentColor,
+      activeView,
+      activePlacement,
+      designPosition,
       addDesignInstance,
       removeDesignInstance,
       updateDesignInstance,
@@ -181,6 +265,11 @@ export function StudioProvider({ children }: StudioProviderProps): React.ReactEl
       setHalftoneLPI,
       setIsApproved,
       setPrintReadyUrl,
+      handleSetSelectedGarment,
+      handleSetGarmentColor,
+      handleSetActiveView,
+      handleSetActivePlacement,
+      handleSetDesignPosition,
       clearStudio,
     ]
   );

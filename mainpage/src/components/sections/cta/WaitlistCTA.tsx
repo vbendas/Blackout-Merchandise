@@ -14,11 +14,11 @@ export function WaitlistCTA() {
   const isInView = useInView(containerRef, { once: true, amount: 0.8 });
 
   return (
-    <section className="relative bg-black py-16 md:py-24 overflow-hidden -mt-9" ref={containerRef}>
+    <section className="relative z-[45] bg-black py-16 md:py-24 overflow-hidden -mt-9" ref={containerRef}>
       {/* Subtle Noise Texture */}
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
+      <div className="relative z-50 max-w-6xl mx-auto px-6 text-center">
         {/* Main Headline - Morphing between two statements with fluid sizing */}
         <div
           className="md:-mt-5"
@@ -36,13 +36,18 @@ export function WaitlistCTA() {
               texts={MORPHING_TEXTS}
               textColors={['#52525b', '#ffffff']}
               start={isInView}
-              className="text-white font-black uppercase tracking-tighter leading-[0.9] text-balance [&>span]:!top-1/2 [&>span]:!-translate-y-1/2"
+              className="!h-[400px] text-white font-black uppercase tracking-tighter leading-[0.9] text-balance [&>span]:!top-1/2 [&>span]:!-translate-y-1/2"
             />
           </div>
         </div>
 
+        {/* Context copy */}
+        <p className="text-zinc-500 text-sm md:text-base max-w-md mx-auto mb-8 -mt-4">
+          We handpick artists who care about quality. Apply for access and we'll let you in when it's your turn.
+        </p>
+
         {/* CTA Button - Golden Border Gradient */}
-        <div className="flex justify-center md:mt-16">
+        <div className="flex justify-center md:mt-8">
           <Link href="/waitlist">
             <HoverBorderGradient
               containerClassName="rounded-full"

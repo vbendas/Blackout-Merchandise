@@ -83,9 +83,7 @@ Building a throwaway "Demo" and then a separate "Production" app wastes time. In
 | **7** | Beta Launch | Onboard 10-100 artists, gather data | 9 Months | ⏳ Apr 2026 → Dec 2026 |
 | **8** | Public Launch | Final polish, marketing, profitability | 1 Month | ⏳ Dec 2026 |
 | **9** | Social Commerce Hub | Discord, Meta, TikTok, Twitch catalog sync | 17 Weeks | ⏳ Jan-May 2027 |
-| **7** | Beta Launch | Onboard 10-100 artists, gather data | 9 Months | ⏳ Mar 2026 → Nov 2026 |
-| **8** | Public Launch | Final polish, marketing, unrestricted access | 1 Month | ⏳ Dec 2026 |
-| **9** | Social Commerce Hub | Discord, Meta, TikTok, Twitch catalog sync | 17 Weeks | ⏳ Jan-May 2027 |
+| **10** | Accessories Expansion | 3D-printed jewelry (pendants, rings, bracelets) via Cat-Suite AI | Year 2 | ⏳ 2027-2028 |
 
 **Total Estimated Time:** ~58 weeks (MVP: 15 weeks + Beta: 36 weeks + Polish: 4 weeks + Social: 17 weeks)
 
@@ -956,6 +954,79 @@ Enable artists to syndicate their MerchFrom catalog to Discord, Meta, TikTok, Tw
 
 ---
 
+## Phase 10: Accessories Expansion (Year 2)
+
+### Overview
+Expand Merch From from garments into **3D-printed jewelry accessories** — pendants, rings, bracelets, and more. Artists design accessories through Cat-Suite AI (Francisca guides design, Leopoldo handles pricing, Antonia tracks production). 3D models generated via Meshy API, post-processed to production-ready STL, then manufactured via cast-resin-to-metal at the Portugal facility.
+
+**Strategic Goal:** Working 3D accessory design flow in-app for **crowdfunding launch** — demonstrates platform extensibility and premium product range to investors.
+
+### Timeline
+| Period | Milestone | Goal |
+|--------|-----------|------|
+| **Now → Dec 2026** | Research & Architecture | Pipeline design, Meshy API integration, 3D viewer prototype |
+| **Jan 2027** | 3D Viewer Proof of Concept | Three.js viewer in app, Meshy API connected, basic design flow |
+| **Feb-Apr 2027** | Full Accessories UI | Cat-Suite guided design, material selection, preview + approve |
+| **May-Jul 2027** | Pilot Launch | 5-10 artists, simple pieces, data collection starts |
+| **Aug-Dec 2027** | Iteration & Data | Progressive complexity, synthetic dataset generation |
+| **Jan-Jun 2028** | Model Fine-Tuning | Train proprietary model on collected data (Hunyuan3D-2 or TRELLIS) |
+| **Jul 2028+** | Full Public Launch | Complex designs, automated pipeline, all artists |
+
+### Pre-Crowdfunding Deliverable (Priority)
+**Must-have for crowdfunding/investor showcase:**
+- 3D accessory viewer embedded in app (Three.js / React Three Fiber)
+- Meshy API integration generating 3D models from text/image input
+- Cat-Suite conversation flow: "Design me a pendant" → 3D preview → approve
+- Material/finish selector (brass, silver, gold-plated)
+- Working end-to-end demo (design → preview → "order" button)
+
+### Tech Stack (Accessories)
+| Component | Technology | Notes |
+|-----------|-----------|-------|
+| **3D Generation** | Meshy API (SaaS) | Text/image → 3D mesh, STL export |
+| **Post-Processing** | Python microservice (port 8002) | Mesh repair, wall thickness, castability checks |
+| **3D Viewer** | Three.js / React Three Fiber | In-app interactive preview |
+| **File Formats** | STL (print), GLB (web preview), 3MF (production) | |
+| **Future Fine-Tuning** | Hunyuan3D-2 or TRELLIS | LoRA on proprietary jewelry dataset |
+
+### Equipment (Portugal Facility — €10-25K Budget)
+| Category | Equipment | Est. Cost |
+|----------|-----------|-----------|
+| **Printer** | Formlabs Form 4 + Wash+Cure | €5,500 |
+| **Casting** | Neycraft vacuum caster + burnout oven | €3,500 |
+| **Finishing** | Flex shaft, tumbler, electroplating kit | €1,500 |
+| **Supplies** | Castable resin + casting grain (silver/brass) | €1,500 |
+| **Total** | | **€12,000** |
+
+### Pilot Program (5-10 Artists)
+| Phase | Artists | Complexity | Data Goal |
+|-------|---------|------------|-----------|
+| **Pilot A** (Months 1-3) | 5 | Simple: signet rings, plain bands, basic pendants | 50-100 designs |
+| **Pilot B** (Months 4-6) | 8 | Medium: engraved, textured, multi-element | 150-300 designs |
+| **Pilot C** (Months 7-12) | 10+ | Complex: filigree, articulated, stone settings | 500+ designs |
+
+### Synthetic Data Pipeline (Future Phase)
+- Curate 500-1,000 reference jewelry designs (commercially licensed)
+- Generate variations via Meshy, run through post-processing pipeline
+- Score each output (castability, print success, customer approval)
+- Create paired dataset: (reference image + text) → (production-ready STL)
+- Fine-tune TRELLIS or Hunyuan3D-2 using LoRA on domain-specific data
+- **Est. cost:** €2-5K dataset licensing + €500-1K compute
+
+### Success Criteria
+- ✅ 3D viewer working in app (interactive, mobile-responsive)
+- ✅ Meshy API generating 3D models from text/image input
+- ✅ Post-processing pipeline producing print-ready STL files
+- ✅ Cat-Suite guided design flow functional end-to-end
+- ✅ Crowdfunding demo working (design → preview → order)
+- ✅ Pilot: 5 artists producing accessories, data collection active
+- ✅ Fine-tuned model outperforming generic Meshy output (Year 2 end)
+
+### Detailed Plan
+See: [`/Documentation/02-Roadmap/Accessories-Expansion.md`](./Accessories-Expansion.md)
+
+---
+
 ## Deferred Features
 
 The following are explicitly **out of scope** for the MVP but architected to be added later:
@@ -1104,10 +1175,11 @@ For detailed breakdowns, see the Agent Assignment documents in `/Documentation/0
 ---
 
 **Roadmap Owner:** Victor Bendas  
-**Last Updated:** February 24, 2026  
+**Last Updated:** May 4, 2026  
 **Next Review:** Weekly during Phase 6 implementation
 
 **Recent Changes:**
+- 🆕 **May 4, 2026:** Added Phase 10: Accessories Expansion — 3D-printed jewelry (pendants, rings, bracelets) using Meshy API + Cat-Suite AI. Pre-crowdfunding 3D viewer prototype prioritized. Cast-resin-to-metal production at Portugal facility. Pilot program with 5-10 artists for data collection + future model fine-tuning.
 - 🔄 **Feb 25, 2026:** STRATEGIC PIVOT - AI Stack: MiniMax → Mistral (full pipeline: LLM + STT + TTS). EU sovereignty, open weights, voice cloning, 50%+ cost reduction.
 - 🔄 **Feb 25, 2026:** STRATEGIC PIVOT - Facility: Porto → Castelo Branco. 50% equipment grant, €0.01/m² industrial land, own facility instead of rent. De-risk crowdfunding pitch.
 - 🔄 **Feb 25, 2026:** NEW FEATURE - Real-time voice conversation mode ("Talk" button). Continuous back-and-forth dialogue with Cat-Suite agents via Mistral Voxtral pipeline.

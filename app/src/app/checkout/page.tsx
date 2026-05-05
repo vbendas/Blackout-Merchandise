@@ -1,5 +1,6 @@
 'use client';
 
+import { useUser } from '@clerk/nextjs';
 import { Loader2, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -8,6 +9,7 @@ import { formatPrice, getCartSummary, useCartStore } from '@/lib/cart/store';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { user } = useUser();
   const { items, clearCart } = useCartStore();
   const summary = getCartSummary(items);
   const [isLoading, setIsLoading] = useState(false);
@@ -15,6 +17,10 @@ export default function CheckoutPage() {
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
+    if (!user?.id) {
+      setError('Please sign in to complete your purchase.');
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -29,7 +35,7 @@ export default function CheckoutPage() {
             quantity: item.quantity,
             price: item.price,
           })),
-          userId: 'demo-user', // TODO: Replace with actual user ID from Clerk
+          userId: user.id,
           storeId: items[0]?.storeId,
         }),
       });
@@ -59,7 +65,7 @@ export default function CheckoutPage() {
           <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-zinc-600" />
           <h1 className="text-xl font-semibold mb-2">Your cart is empty</h1>
           <p className="text-zinc-400 mb-4">Add some items to your cart first</p>
-          <button onClick={() => router.push('/')} className="text-amber-400 hover:text-amber-300">
+          <button onClick={() => router.push('/')} className="text-white hover:text-zinc-300">
             Continue shopping
           </button>
         </div>
@@ -103,7 +109,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-400">Shipping</span>
-                  <span className="text-zinc-500">Calculated at next step</span>
+                  <span className="text-zinc-500">Included</span>
                 </div>
                 <div className="flex justify-between pt-3 border-t border-zinc-700">
                   <span className="font-semibold">Total</span>
@@ -118,7 +124,7 @@ export default function CheckoutPage() {
               <button
                 onClick={handleCheckout}
                 disabled={isLoading || items.length === 0}
-                className="w-full py-3 bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-600 disabled:cursor-not-allowed text-black font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-white hover:bg-zinc-200 disabled:bg-zinc-600 disabled:cursor-not-allowed text-black font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>

@@ -166,7 +166,7 @@ export default function MasonryGrid() {
                 <img
                   src={getCloudinaryUrl(ITEMS[currentSlide].publicId, 1200)}
                   alt={`Portfolio ${ITEMS[currentSlide].id}`}
-                  className="w-full h-full object-cover saturate-[0.4] sepia-[0.15] contrast-[1.05] blur-[0.5px]"
+                  className="w-full h-full object-cover saturate-[0.65] sepia-[0.08] contrast-[1.05] blur-[0.5px]"
                 />
               </motion.div>
             </AnimatePresence>
@@ -197,7 +197,7 @@ export default function MasonryGrid() {
                 <img
                   src={getCloudinaryUrl(item.publicId, 600)}
                   alt={`Portfolio ${item.id}`}
-                  className="w-full h-full object-cover saturate-[0.4] sepia-[0.15] contrast-[1.05] blur-[0.5px] group-hover:saturate-100 group-hover:sepia-0 group-hover:contrast-100 group-hover:blur-0 transition-all duration-700 ease-in-out scale-105 group-hover:scale-100"
+                  className="w-full h-full object-cover saturate-[0.65] sepia-[0.08] contrast-[1.05] blur-[0.5px] group-hover:saturate-100 group-hover:sepia-0 group-hover:contrast-100 group-hover:blur-0 transition-all duration-700 ease-in-out scale-105 group-hover:scale-100"
                 />
                 {/* Film grain overlay */}
                 <div
@@ -213,6 +213,24 @@ export default function MasonryGrid() {
           {/* Gradient fade at bottom */}
           {/* Gradient fade at bottom - Larger and darker as requested */}
           <div className="absolute bottom-0 left-0 w-full h-36 bg-gradient-to-t from-black via-black to-transparent z-10 pointer-events-none" />
+
+          {/* Dot indicators */}
+          <div className="flex gap-2 justify-center py-4 relative z-20">
+            {ITEMS.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setDirection(index > currentSlide ? 1 : -1);
+                  setCurrentSlide(index);
+                  setTimerKey((prev) => prev + 1);
+                }}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                  index === currentSlide ? 'bg-white' : 'bg-white/30'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
         </section>
       )}
 
@@ -297,17 +315,35 @@ export default function MasonryGrid() {
                 </button>
 
                 {/* Image */}
-                <motion.img
-                  key={selectedIndex}
-                  src={getCloudinaryUrl(ITEMS[selectedIndex].publicId, 1200)}
-                  alt={`Portfolio ${ITEMS[selectedIndex].id}`}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                  className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl"
+                <motion.div
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.8}
+                  onDragEnd={(_, { offset, velocity }) => {
+                    const swipe = Math.abs(offset.x) * Math.abs(velocity.x);
+                    if (swipe > 10000) {
+                      if (offset.x < 0) {
+                        goToNext();
+                      } else {
+                        goToPrevious();
+                      }
+                    }
+                  }}
                   onClick={(e) => e.stopPropagation()}
-                />
+                  className="cursor-grab active:cursor-grabbing"
+                >
+                  <motion.img
+                    key={selectedIndex}
+                    src={getCloudinaryUrl(ITEMS[selectedIndex].publicId, 1200)}
+                    alt={`Portfolio ${ITEMS[selectedIndex].id}`}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.3 }}
+                    className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl"
+                    draggable={false}
+                  />
+                </motion.div>
 
                 {/* Image counter */}
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-sm font-mono">

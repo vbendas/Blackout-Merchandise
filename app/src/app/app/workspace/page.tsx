@@ -2,22 +2,18 @@
 
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import { Mic, Send } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { openAccessibilityMenu } from '@/components/accessibility-widget';
-import { ChatAvatar } from '@/components/ChatAvatar';
 import { ProductDetailLightbox } from '@/components/catalog/ProductDetailLightbox';
 import { ShowroomLightbox } from '@/components/catalog/ShowroomLightbox';
 import { EshopDashboard } from '@/components/eshop/EshopDashboard';
 import { NotificationsPanel } from '@/components/NotificationsPanel';
 import { QuickActionsGrid } from '@/components/QuickActionsGrid';
-
 import { SessionHistory } from '@/components/SessionHistory';
 import { StickyHeader } from '@/components/StickyHeader';
 import { SupportState } from '@/components/SupportState';
-import { TypingIndicator } from '@/components/TypingIndicator';
-import { UserAvatar } from '@/components/UserAvatar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,19 +24,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { type Product, products } from '@/data/products';
-import { useIdleAnimation } from '@/hooks/useIdleAnimation';
-import { useSentimentDetection } from '@/hooks/useSentimentDetection';
-import { useSpeakingAnimation } from '@/hooks/useSpeakingAnimation';
-import { useSpeechToText } from '@/hooks/useSpeechToText';
-
-import { useAvatarExpression } from '@/lib/AvatarExpressionContext';
+import { useChat as useCatChat } from '@/components/chat/CatChatProvider';
 import { useChat } from '@/lib/ChatContext';
-import { getExpressionForMessage, getExpressionForPrompt } from '@/lib/expressions/sentiment';
 import { useHistory } from '@/lib/HistoryContext';
 import { LightboxProvider, useLightbox } from '@/lib/LightboxContext';
 import { useNavigation } from '@/lib/NavigationContext';
@@ -48,16 +35,7 @@ import { useNewChatDialog } from '@/lib/NewChatDialogContext';
 import { useNotifications } from '@/lib/NotificationsContext';
 import { useProductList } from '@/lib/ProductListContext';
 import { ShowroomProvider, useShowroom } from '@/lib/ShowroomContext';
-import type { AgentName, Expression } from '@/types/expressions';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  agent: AgentName;
-  expression: Expression;
-  timestamp: Date;
-}
+import type { AgentName } from '@/types/expressions';
 
 interface SessionItem {
   id: string;
@@ -68,13 +46,19 @@ interface SessionItem {
   preview: string;
 }
 
-const _CHAT_SESSION_KEY = 'merchfrom_chat_session';
-const _CHAT_STATE_KEY = 'merchfrom_chat_state';
-
 // Empty State Component
 function EmptyState() {
   return (
     <div className="h-full flex flex-col items-center justify-center px-4 py-8 overflow-y-auto">
+      <div className="text-center mb-10">
+        <div className="w-16 h-16 rounded-full bg-zinc-800/60 flex items-center justify-center mx-auto mb-4">
+          <Icon icon="lucide:cat" className="w-8 h-8 text-zinc-400" />
+        </div>
+        <h2 className="text-xl font-semibold text-white mb-2">Welcome to Merch From</h2>
+        <p className="text-zinc-400 max-w-md mx-auto">
+          Your AI-powered merchandise studio. Browse products, create designs, or manage your store.
+        </p>
+      </div>
       <div className="mb-8">
         <QuickActionsGrid />
       </div>
@@ -82,120 +66,36 @@ function EmptyState() {
   );
 }
 
-// Active State Component
-function ActiveState({
-  messages,
-  isTyping,
-  activeAgent,
-  inputValue,
-  setInputValue,
-  handleSendMessage,
-  scrollRef,
-  error,
-  setError,
-}: {
-  messages: Message[];
-  isTyping: boolean;
-  activeAgent: AgentName;
-  inputValue: string;
-  setInputValue: (value: string) => void;
-  handleSendMessage: () => void;
-  scrollRef: React.RefObject<HTMLDivElement | null>;
-  error: string | null;
-  setError: (error: string | null) => void;
-}) {
-  const { chatState, setChatState } = useNavigation();
-  const { isRecording, startRecording, stopRecording } = useSpeechToText({
-    onTranscript: (text) => {
-      setInputValue(text);
-    },
-    onError: (errorMsg) => {
-      setError(errorMsg);
-    },
-  });
+// Active State — opens CatChat overlay
+function ActiveState({ activeAgent }: { activeAgent: AgentName }) {
+  const { toggleChat } = useCatChat();
+  const { setChatState } = useNavigation();
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex-1 overflow-hidden px-4 min-h-0 relative" ref={scrollRef}>
-        <ScrollArea className="h-full" type="auto">
-          <div className="space-y-4 pb-4 min-h-full flex flex-col justify-end">
-            {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center flex-1 px-4 py-12 text-zinc-500">
-                <Icon icon="lucide:message-square" className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p className="text-sm">No messages yet. Start a conversation with {activeAgent}!</p>
-              </div>
-            ) : (
-              messages.map((message) => (
-                <motion.div
-                  key={message.id}
-                  initial={{ x: message.role === 'assistant' ? -20 : 20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  className={`flex gap-4 items-start ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {message.role === 'assistant' ? (
-                    <>
-                      <ChatAvatar agentName={message.agent} expression={message.expression} />
-                      <div className="bg-zinc-800 text-white rounded-2xl px-4 py-3 max-w-[60%]">
-                        <p className="text-sm">{message.content}</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex-1" />
-                      <div className="bg-zinc-700 text-white rounded-2xl px-4 py-3 max-w-[60%]">
-                        <p className="text-sm">{message.content}</p>
-                      </div>
-                      <UserAvatar userName="User" />
-                    </>
-                  )}
-                </motion.div>
-              ))
-            )}
-            {isTyping && <TypingIndicator agentName={activeAgent} isTyping={true} />}
-          </div>
-        </ScrollArea>
-      </div>
-
-      <div className="flex-shrink-0 px-4 py-4 z-10 relative">
-        <div className="flex gap-2 items-center bg-zinc-900/60 rounded-xl p-2 border border-zinc-800/80 focus-within:border-zinc-700 focus-within:shadow-lg transition-all backdrop-blur-sm shadow-lg">
-          <Button
-            size="icon"
-            variant={isRecording ? 'default' : 'ghost'}
-            onClick={isRecording ? stopRecording : startRecording}
-            className={
-              isRecording
-                ? 'bg-red-500 hover:bg-red-600 text-white'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
-            }
-          >
-            <Mic className="w-4 h-4" />
-          </Button>
-          <Input
-            placeholder={`Message ${activeAgent}...`}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-            className="bg-transparent border-0 focus-visible:ring-0"
-          />
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => setChatState(chatState === 'active' ? 'empty' : 'active')}
-            className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
-            aria-label={chatState === 'active' ? 'Close Chat' : 'Open Chat'}
-          >
-            <Icon
-              icon={chatState === 'active' ? 'lucide:panel-right-close' : 'lucide:message-square'}
-              className="w-4 h-4"
-            />
-          </Button>
-          <Button size="icon" onClick={handleSendMessage} disabled={!inputValue.trim()} className="rounded-lg">
-            <Send className="w-4 h-4" />
-          </Button>
+    <div className="flex flex-col h-full items-center justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center max-w-md"
+      >
+        <div className="w-20 h-20 rounded-full bg-zinc-800/60 flex items-center justify-center mx-auto mb-6">
+          <Icon icon="lucide:message-circle" className="w-10 h-10 text-zinc-400" />
         </div>
-        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-      </div>
+        <h2 className="text-xl font-semibold text-white mb-2">Chat with {activeAgent}</h2>
+        <p className="text-zinc-400 mb-6">
+          Ask questions, get help with designs, check your store analytics, or track orders.
+        </p>
+        <Button
+          onClick={() => {
+            toggleChat();
+            setChatState('empty');
+          }}
+          className="bg-white text-black hover:bg-zinc-200 px-6"
+        >
+          <Icon icon="lucide:message-square" className="w-4 h-4 mr-2" />
+          Open Chat
+        </Button>
+      </motion.div>
     </div>
   );
 }
@@ -209,6 +109,10 @@ function CatalogPageContent({
   onNotificationsClick,
   onListClick,
   listItemCount,
+  searchQuery,
+  onSearchChange,
+  sortBy,
+  onSortChange,
   selectedCategory,
   selectedColor,
   selectedSize,
@@ -252,6 +156,10 @@ function CatalogPageContent({
           onListClick={onListClick}
           listItemCount={listItemCount}
           showFilters={true}
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          sortBy={sortBy}
+          onSortChange={onSortChange}
           selectedCategory={selectedCategory}
           selectedColor={selectedColor}
           selectedSize={selectedSize}
@@ -329,7 +237,13 @@ function CatalogProductCard({ product }: { product: Product }) {
     >
       <div className="aspect-[3/4] relative overflow-hidden bg-zinc-800">
         {product.imageUrls && product.imageUrls.length > 0 ? (
-          <img src={product.imageUrls[0]} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
+          <Image
+            src={product.imageUrls[0]}
+            alt={product.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-zinc-600">
             <Icon icon="lucide:image" className="w-12 h-12" />
@@ -358,11 +272,8 @@ export default function WorkspacePage() {
   const { chatState, setChatState, activeAgent, setAgent } = useNavigation();
   const { isHistoryOpen, setIsHistoryOpen } = useHistory();
   const { isNotificationsOpen, setIsNotificationsOpen, notifications, markAsRead, clearAll } = useNotifications();
-  const { setExpression } = useAvatarExpression();
   const { setDesignFlowStep, designFlowStep } = useChat();
-  const { start, stop } = useSpeakingAnimation();
-  const { resetIdleTimer } = useIdleAnimation({ interval: 8000, duration: 2000, enabled: true });
-  const { applySentiment } = useSentimentDetection({ autoApply: true, duration: 3000 });
+  const { toggleChat, sendMessage: sendCatChatMessage } = useCatChat();
   const {
     isOpen: isNewChatDialogOpen,
     openDialog: openNewChatDialog,
@@ -370,11 +281,6 @@ export default function WorkspacePage() {
   } = useNewChatDialog();
   const { totalItems: listItemCount } = useProductList();
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
   const [_isListPanelOpen, setIsListPanelOpen] = useState(false);
 
   // Close all slide-out panels to prevent stacking
@@ -389,25 +295,27 @@ export default function WorkspacePage() {
   const [selectedColor, setSelectedColor] = useState('all');
   const [selectedSize, setSelectedSize] = useState('all');
   const [selectedFit, setSelectedFit] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('default');
 
   const hasActiveFilters =
-    selectedCategory !== 'all' || selectedColor !== 'all' || selectedSize !== 'all' || selectedFit !== 'all';
+    selectedCategory !== 'all' || selectedColor !== 'all' || selectedSize !== 'all' || selectedFit !== 'all' || searchQuery !== '';
 
-  // Filter products based on selected filters
+  // Filter and sort products
   const filteredProducts = useMemo(() => {
-    return products.filter((product: Product) => {
+    let result = products.filter((product: Product) => {
       // Category filter
       if (selectedCategory !== 'all' && product.category !== selectedCategory) {
         return false;
       }
 
-      // Color filter - check if product has the selected color
+      // Color filter
       if (selectedColor !== 'all') {
         const hasColor = product.colors.some((color: { name: string }) => color.name === selectedColor);
         if (!hasColor) return false;
       }
 
-      // Size filter - check if product has the selected size
+      // Size filter
       if (selectedSize !== 'all' && !product.sizes.includes(selectedSize)) {
         return false;
       }
@@ -417,15 +325,45 @@ export default function WorkspacePage() {
         return false;
       }
 
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = product.name.toLowerCase().includes(query);
+        const matchesDescription = product.description?.toLowerCase().includes(query);
+        const matchesCategory = product.category.toLowerCase().includes(query);
+        if (!matchesName && !matchesDescription && !matchesCategory) {
+          return false;
+        }
+      }
+
       return true;
     });
-  }, [selectedCategory, selectedColor, selectedSize, selectedFit]);
+
+    // Sort
+    switch (sortBy) {
+      case 'price-low':
+        result = [...result].sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        result = [...result].sort((a, b) => b.price - a.price);
+        break;
+      case 'name-asc':
+        result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      default:
+        break;
+    }
+
+    return result;
+  }, [selectedCategory, selectedColor, selectedSize, selectedFit, searchQuery, sortBy]);
 
   const handleClearFilters = useCallback(() => {
     setSelectedCategory('all');
     setSelectedColor('all');
     setSelectedSize('all');
     setSelectedFit('all');
+    setSearchQuery('');
+    setSortBy('default');
   }, []);
 
   // Session management
@@ -458,19 +396,7 @@ export default function WorkspacePage() {
 
   const handleSelectSession = useCallback((sessionId: string) => {
     console.log('Loading session:', sessionId);
-    setMessages([]);
   }, []);
-
-  // Auto-scroll
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (scrollRef.current) {
-      const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (viewport) {
-        viewport.scrollTop = viewport.scrollHeight;
-      }
-    }
-  }, [messages]);
 
   // Check for studio redirect message (from NavigationMenu when user has no products)
   useEffect(() => {
@@ -478,94 +404,19 @@ export default function WorkspacePage() {
       const needsProducts = sessionStorage.getItem('studio_redirect_no_products');
       if (needsProducts === 'true' && chatState === 'catalog' && activeAgent === 'Francisca') {
         sessionStorage.removeItem('studio_redirect_no_products');
-        // Add Francisca's message
-        const message: Message = {
-          id: Date.now().toString(),
-          role: 'assistant',
-          content:
-            "Hey! You'll need some products selected before we can start designing. Let me take you to the catalog!",
-          agent: 'Francisca',
-          expression: 'thinking',
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, message]);
+        // Open CatChat with Francisca's message
+        toggleChat();
+        sendCatChatMessage("Hey! You'll need some products selected before we can start designing. Let me take you to the catalog!");
       }
     }
-  }, [chatState, activeAgent]);
-
-  const handleSendMessage = useCallback(() => {
-    if (!inputValue.trim()) return;
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: inputValue,
-      agent: activeAgent,
-      expression: 'neutral',
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
-    setInputValue('');
-    applySentiment('user', inputValue);
-    resetIdleTimer();
-    start();
-    setIsTyping(true);
-
-    const predictedExpression = getExpressionForMessage(inputValue, [...messages, newMessage], activeAgent);
-
-    setTimeout(() => {
-      const response: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `I understand you're asking about "${inputValue}". Let me help you with that.`,
-        agent: activeAgent,
-        expression: predictedExpression,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, response]);
-      stop();
-      setIsTyping(false);
-      applySentiment('assistant', response.content);
-    }, 1500);
-  }, [inputValue, messages, activeAgent, applySentiment, resetIdleTimer, start, stop]);
+  }, [chatState, activeAgent, toggleChat, sendCatChatMessage]);
 
   const handlePromptClick = useCallback(
     (promptText: string) => {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        role: 'user',
-        content: promptText,
-        agent: activeAgent,
-        expression: 'neutral',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, newMessage]);
-
-      const promptExpression = getExpressionForPrompt(promptText);
-      setExpression(promptExpression);
-      resetIdleTimer();
-
-      const predictedExpression = getExpressionForMessage(promptText, [...messages, newMessage], activeAgent);
-      start();
-      setIsTyping(true);
-
-      setTimeout(() => {
-        const response: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: `I'm ${activeAgent}. Let me help you with ${promptText.toLowerCase()}.`,
-          agent: activeAgent,
-          expression: predictedExpression,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, response]);
-        stop();
-        setIsTyping(false);
-        applySentiment('assistant', response.content);
-      }, 800);
+      toggleChat();
+      sendCatChatMessage(promptText);
     },
-    [activeAgent, applySentiment, resetIdleTimer, setExpression, start, stop, messages]
+    [toggleChat, sendCatChatMessage]
   );
 
   return (
@@ -621,17 +472,7 @@ export default function WorkspacePage() {
             {chatState === 'empty' && <EmptyState />}
 
             {chatState === 'active' && (
-              <ActiveState
-                messages={messages}
-                isTyping={isTyping}
-                activeAgent={activeAgent}
-                inputValue={inputValue}
-                setInputValue={setInputValue}
-                handleSendMessage={handleSendMessage}
-                scrollRef={scrollRef}
-                error={error}
-                setError={setError}
-              />
+              <ActiveState activeAgent={activeAgent} />
             )}
 
             {chatState === 'catalog' && (
@@ -654,6 +495,10 @@ export default function WorkspacePage() {
                       setIsListPanelOpen(true);
                     }}
                     listItemCount={listItemCount}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    sortBy={sortBy}
+                    onSortChange={setSortBy}
                     selectedCategory={selectedCategory}
                     selectedColor={selectedColor}
                     selectedSize={selectedSize}
@@ -708,7 +553,6 @@ export default function WorkspacePage() {
             <AlertDialogCancel onClick={closeNewChatDialog}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                setMessages([]);
                 setChatState('empty');
                 closeNewChatDialog();
               }}

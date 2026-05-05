@@ -39,7 +39,7 @@ interface ChatProviderProps {
   initialAgent?: AgentId;
 }
 
-export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProviderProps) {
+export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatProviderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentAgent, setCurrentAgent] = useState<AgentId>(initialAgent);
   const [messages, setMessages] = useState<ChatMessage[]>([]);

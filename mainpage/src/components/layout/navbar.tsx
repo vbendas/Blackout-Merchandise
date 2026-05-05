@@ -10,9 +10,9 @@ export const TopNavbar = () => {
 
   // Menu items for mobile and desktop
   const menuItems = [
-    { name: 'Portfolio', href: '#' },
-    { name: 'About', href: '#' },
-    { name: 'Services', href: '#' },
+    { name: 'Portfolio', href: '#portfolio' },
+    { name: 'About', href: '#hero' },
+    { name: 'Services', href: '#process' },
   ];
 
   return (
@@ -102,7 +102,7 @@ export const TopNavbar = () => {
         <NavbarItem className="hidden lg:flex">
           <Button
             as={Link}
-            href="#"
+            href="/app"
             variant="light"
             className="text-foreground text-sm font-medium uppercase tracking-wider hover:opacity-70"
             style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.9)) drop-shadow(0 1px 2px rgba(0,0,0,0.6))' }}
@@ -135,7 +135,7 @@ export const TopNavbar = () => {
           </NavbarMenuItem>
         ))}
         <NavbarMenuItem className="mt-4">
-          <Button as={Link} href="#" variant="light" className="w-full justify-start text-foreground pl-0">
+          <Button as={Link} href="/app" variant="light" className="w-full justify-start text-foreground pl-0">
             Login
           </Button>
         </NavbarMenuItem>

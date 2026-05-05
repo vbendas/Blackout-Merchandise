@@ -43,12 +43,16 @@ export default function ShopsPage() {
 
   if (shops.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-black">
-        <h1 className="text-3xl font-bold text-white mb-4">No Shops Yet</h1>
-        <p className="text-zinc-400 mb-8">Be the first to create your merch store!</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4">
+        <div className="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center mb-6">
+          <span className="text-4xl">🎨</span>
+        </div>
+        <h1 className="text-3xl font-bold text-white mb-3">No Shops Yet</h1>
+        <p className="text-zinc-400 mb-2 max-w-md text-center">Artists are setting up their stores. Be the first to launch your merch line!</p>
+        <p className="text-zinc-500 text-sm mb-8">Join the waitlist to get early access.</p>
         <Link
           href="/waitlist"
-          className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-medium rounded-lg transition-colors"
+          className="px-6 py-3 bg-white hover:bg-zinc-200 text-black font-medium rounded-lg transition-colors"
         >
           Join Waitlist
         </Link>
@@ -65,7 +69,7 @@ export default function ShopsPage() {
             <Link
               key={shop.id}
               href={`/merchshops/${shop.slug}`}
-              className="group block bg-zinc-900 rounded-xl overflow-hidden hover:ring-2 hover:ring-amber-500 transition-all"
+              className="group block bg-zinc-900 rounded-xl overflow-hidden hover:ring-2 hover:ring-white transition-all"
             >
               <div className="relative aspect-video bg-zinc-800">
                 {shop.coverImage ? (
@@ -82,7 +86,7 @@ export default function ShopsPage() {
                 )}
               </div>
               <div className="p-4">
-                <h2 className="text-xl font-bold mb-1 group-hover:text-amber-400 transition-colors">{shop.name}</h2>
+                <h2 className="text-xl font-bold mb-1 group-hover:text-white transition-colors">{shop.name}</h2>
                 <p className="text-zinc-400 text-sm">
                   {shop.productCount} {shop.productCount === 1 ? 'product' : 'products'}
                 </p>

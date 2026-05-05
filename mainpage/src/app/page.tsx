@@ -25,7 +25,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center z-10">
+      <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center z-10">
         {/* Background gradient effect */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/5 rounded-full blur-3xl" />
@@ -37,7 +37,7 @@ export default function HomePage() {
 
           {/* Gradient Mask for fading bottom into black - Full Width */}
           <div className="absolute top-0 left-0 w-full h-[85vh] pointer-events-none z-0">
-            <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-black via-black/90 to-transparent" />
+            <div className="absolute bottom-0 left-0 w-full h-[40vh] bg-gradient-to-t from-black via-black/90 to-transparent" />
           </div>
         </div>
 
@@ -56,7 +56,7 @@ export default function HomePage() {
         </div>
 
         {/* Reordered Slogan Container - relative flow with padding push */}
-        <div className="relative z-10 w-full min-h-screen flex flex-col items-center pt-[calc(55vh+90px)] md:pt-[calc(55vh+90px)] lg:pt-[calc(65vh+90px)] pb-[86px] pointer-events-none">
+        <div className="relative z-10 w-full min-h-screen flex flex-col items-center pt-[calc(40vh+90px)] md:pt-[calc(45vh+90px)] lg:pt-[calc(50vh+90px)] pb-[60px] pointer-events-none">
           {/* Gradient Overlay - Contained within hero */}
           <div className="absolute top-[50vh] left-0 w-full h-[50vh] bg-gradient-to-b from-transparent via-black/80 to-black -z-10" />
 
@@ -66,13 +66,13 @@ export default function HomePage() {
               <div className="block space-y-1 px-6 w-full max-[389px]:scale-[0.85] max-[389px]:origin-top">
                 <WordReveal
                   text="We help artists, creators and brands"
-                  className="text-3xl md:text-4xl lg:text-5xl font-medium text-zinc-300 tracking-wide text-balance"
+                  className="text-3xl md:text-4xl lg:text-6xl font-medium text-zinc-300 tracking-wide text-balance"
                   range={[0, 100]}
                 />
 
                 <WordReveal
                   text="design, source and sell merchandise hassle-free."
-                  className="text-3xl md:text-4xl lg:text-5xl font-semibold text-zinc-100 tracking-tight leading-[0.9] text-balance pb-3"
+                  className="text-3xl md:text-4xl lg:text-6xl font-semibold text-zinc-100 tracking-tight leading-[0.9] text-balance pb-3"
                   range={[50, 200]}
                 />
               </div>
@@ -82,38 +82,55 @@ export default function HomePage() {
       </section>
 
       {/* Value Proposition - Between Hero and Gallery */}
-      <section className="relative z-40 bg-black py-10 max-[389px]:pt-0 max-[389px]:pb-6 -mt-[104px] max-[389px]:-mt-[114px] md:-mt-[84px]">
+      <section className="relative z-40 bg-black py-10 max-[389px]:pt-0 max-[389px]:pb-6 -mt-[150px] max-[389px]:-mt-[160px] md:-mt-[130px]">
         {/* Mobile: Carousel */}
         <div className="md:hidden w-full max-w-md mx-auto px-4">
           <ValuePropositionCarousel />
         </div>
 
         {/* Desktop: Original Three Values Side-by-Side */}
-        <div className="hidden md:flex items-center justify-center gap-4 text-zinc-400 text-xs uppercase tracking-[0.2em] font-medium">
-          <span>Premium&nbsp;Quality</span>
+        <div className="hidden md:flex items-center justify-center gap-6 text-zinc-300 text-sm uppercase tracking-[0.2em] font-medium py-2">
+          <span className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-gold/50" />
+            Premium&nbsp;Quality
+          </span>
           <span className="text-zinc-700">|</span>
-          <span>Eco-Friendly</span>
+          <span className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-gold/50" />
+            Eco-Friendly
+          </span>
           <span className="text-zinc-700">|</span>
-          <span>Artist-Owned</span>
+          <span className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-gold/50" />
+            Artist-Owned
+          </span>
         </div>
       </section>
 
       {/* Portfolio Grid Section */}
-      <div className="relative z-30 bg-background">
+      <div id="portfolio" className="relative z-30 bg-background scroll-mt-[100px]">
         <MasonryGrid />
       </div>
 
       {/* Marquee Specs */}
-      <FeatureMarquee />
+      <div id="features">
+        <FeatureMarquee />
+      </div>
 
       {/* Functionality Showcase */}
-      <HorizontalScroll />
+      <div id="process">
+        <HorizontalScroll />
+      </div>
 
       {/* Production & Quality Specs */}
-      <ProductionQuality />
+      <div id="quality">
+        <ProductionQuality />
+      </div>
 
       {/* Waitlist CTA - "We're not for everyone" */}
-      <WaitlistCTA />
+      <div id="waitlist">
+        <WaitlistCTA />
+      </div>
     </main>
   );
 }

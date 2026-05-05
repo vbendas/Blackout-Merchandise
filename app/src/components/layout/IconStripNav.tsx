@@ -2,6 +2,7 @@
 
 import { Icon } from '@iconify/react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { NotificationsPanel } from '@/components/NotificationsPanel';
 import { ProductListPanel } from '@/components/ProductListPanel';
@@ -22,12 +23,13 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { icon: 'solar:gallery-linear', label: 'Catalog', route: 'catalog', description: 'Browse products' },
-  { icon: 'solar:palette-linear', label: 'MerchStudio', route: 'design', description: 'Create designs' },
+  { icon: 'solar:palette-linear', label: 'MerchStudio', route: 'studio', description: 'Create designs' },
   { icon: 'solar:cart-large-2-linear', label: 'MerchShop', route: 'eshop', description: 'Manage your store' },
   { icon: 'solar:headphones-round-linear', label: 'Support', route: 'support', description: 'Get help' },
 ];
 
 export function IconStripNav() {
+  const router = useRouter();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [hoveredBottomItem, setHoveredBottomItem] = useState<string | null>(null);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -77,8 +79,8 @@ export function IconStripNav() {
   }, [registerProductAddedCallback, unregisterProductAddedCallback]);
 
   const handleNavigate = (route: string) => {
-    // Special handling for design route - start design flow via chat
-    if (route === 'design') {
+    // Special handling for studio route
+    if (route === 'studio') {
       // Check if user has products selected
       if (!hasProducts()) {
         // Show message in chat and navigate to catalog instead
@@ -94,11 +96,11 @@ export function IconStripNav() {
         return;
       }
 
-      // Start design flow via chat
+      // Navigate to studio page
+      router.push('/app/studio');
       setChatState('active');
       setAgent('Francisca');
       setDesignFlowStep('product-selected');
-      navigate('catalog' as any);
       setMobileDrawerOpen(false);
       return;
     }
@@ -461,8 +463,8 @@ export function IconStripNav() {
                       <Icon icon="lucide:user" className="h-6 w-6 text-zinc-400" />
                     </div>
                     <div className="text-left">
-                      <div className="font-medium text-white">User</div>
-                      <div className="text-sm text-zinc-500">Tap to view profile</div>
+                      <div className="font-medium text-white">Account</div>
+                      <div className="text-sm text-zinc-500">Manage your profile</div>
                     </div>
                     <Icon icon="lucide:chevron-right" className="ml-auto h-5 w-5 text-zinc-500" />
                   </button>

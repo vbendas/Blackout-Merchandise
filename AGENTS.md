@@ -509,6 +509,14 @@ bunx drizzle-kit studio     # Open Drizzle Studio GUI
 ### Phase 8: Social Commerce Integration Hub (Apr-Jul 2026)
 - Discord, Meta, TikTok, Twitch catalog sync
 
+### Phase 10: Accessories Expansion (Year 2 - 2027-2028)
+- 3D-printed jewelry (pendants, rings, bracelets) via Cat-Suite AI
+- Meshy API for 3D generation + Python post-processing pipeline (port 8002)
+- Three.js/React Three Fiber 3D viewer in-app
+- Cast-resin-to-metal production at Portugal facility (Formlabs Form 4 + vacuum casting)
+- Pilot with 5-10 artists → data collection → fine-tune proprietary model
+- **Docs:** [Accessories-Expansion.md](./Documentation/02-Roadmap/Accessories-Expansion.md)
+
 ---
 
 ## Cat-Suite AI Agents
@@ -537,6 +545,7 @@ Three brand ambassadors with distinct roles:
 
 ### 🤖 Read for Planning & Strategy
 1. **[Documentation/04-Crowdfunding-Landing/Overview.md](./Documentation/04-Crowdfunding-Landing/Overview.md)** - Crowdfunding campaign overview
+2. **[Documentation/02-Roadmap/Accessories-Expansion.md](./Documentation/02-Roadmap/Accessories-Expansion.md)** - Phase 10: 3D jewelry accessories plan
 
 ### 🎨 Read for Implementation Details
 1. **[Documentation/05-Shared/Design-System.md](./Documentation/05-Shared/Design-System.md)** - Colors, typography, components

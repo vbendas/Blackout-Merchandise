@@ -12,7 +12,7 @@ const cards = [
       "Your personal AI stylist. Chat with him to discover garments that match your vision, even if you can't quite describe them yet.",
     gradient: 'from-purple-900/20 to-blue-900/20',
     border: 'border-purple-500/20',
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff', // Placeholder
+    image: 'https://res.cloudinary.com/drhfgth7c/image/upload/f_auto,q_auto,w_800/merch-from/avatars/leopoldo/1_-_neutral_attr1_subject',
   },
   {
     id: 2,
@@ -22,7 +22,7 @@ const cards = [
       'The design studio. Customize every stitch, fabric, and placement. Visualize your creation in real-time before it exists.',
     gradient: 'from-emerald-900/20 to-teal-900/20',
     border: 'border-emerald-500/20',
-    image: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e', // Placeholder
+    image: 'https://res.cloudinary.com/drhfgth7c/image/upload/f_auto,q_auto,w_800/merch-from/avatars/francisca/1_-_neutral_attr1_subject',
   },
   {
     id: 3,
@@ -32,7 +32,7 @@ const cards = [
       'Your global storefront. Set up your fully functional E-shop in seconds and start selling to the world immediately.',
     gradient: 'from-orange-900/20 to-red-900/20',
     border: 'border-orange-500/20',
-    image: 'https://images.unsplash.com/photo-1556740758-90de374c12ad', // Placeholder
+    image: 'https://res.cloudinary.com/drhfgth7c/image/upload/f_auto,q_auto,w_800/merch-from/avatars/antonia/1_-_neutral_attr1_subject',
   },
 ];
 

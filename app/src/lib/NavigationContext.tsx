@@ -4,7 +4,7 @@ import type React from 'react';
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 
 // Types
-export type CurrentRoute = 'chat' | 'eshop' | 'catalog' | 'settings' | 'support';
+export type CurrentRoute = 'chat' | 'eshop' | 'catalog' | 'settings' | 'support' | 'studio';
 export type ChatState = 'empty' | 'active' | 'catalog' | 'eshop' | 'support';
 export type ActiveAgent = 'Leopoldo' | 'Francisca' | 'Antônia';
 export type AgentName = ActiveAgent;

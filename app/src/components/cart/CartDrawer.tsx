@@ -52,9 +52,10 @@ export function CartDrawer() {
           <div className="flex-1 flex items-center justify-center p-8">
             <div className="text-center">
               <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-zinc-600" />
-              <p className="text-zinc-400 mb-4">Your cart is empty</p>
-              <button onClick={closeCart} className="text-amber-400 hover:text-amber-300 transition-colors">
-                Continue shopping
+              <p className="text-zinc-300 font-medium mb-1">Your cart is empty</p>
+              <p className="text-zinc-500 text-sm mb-6">Browse the catalog to find products you love.</p>
+              <button onClick={closeCart} className="text-white hover:text-zinc-300 transition-colors text-sm">
+                Continue browsing
               </button>
             </div>
           </div>
@@ -113,7 +114,7 @@ export function CartDrawer() {
 
               <button
                 onClick={handleCheckout}
-                className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black font-medium rounded-lg transition-colors"
+                className="w-full py-3 bg-white hover:bg-zinc-200 text-black font-medium rounded-lg transition-colors"
               >
                 Checkout
               </button>

@@ -201,6 +201,16 @@ export function ProductionQuality() {
 
         {/* Bottom Inner Shadow - z-20 to sit ON TOP of cards */}
         <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-black via-black/80 to-transparent z-20 pointer-events-none" />
+
+        {/* Drag hint */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2, duration: 1 }}
+          className="text-zinc-600 text-xs uppercase tracking-widest text-center mt-4 relative z-10"
+        >
+          Drag to explore
+        </motion.p>
       </div>
     </section>
   );

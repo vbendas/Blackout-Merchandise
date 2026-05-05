@@ -135,6 +135,11 @@ p {
   text-wrap: balance;
 }
 
+/* Scroll margin for sections with fixed navbar */
+[id] {
+  scroll-margin-top: 100px;
+}
+
 .gradient-gold {
   background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
 }

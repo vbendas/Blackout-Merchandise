@@ -1,6 +1,3 @@
 // Chat components index
-
-export { ChatHeader } from './ChatHeader';
-export { ChatInput } from './ChatInput';
-export { ChatMessages } from './ChatMessages';
-export { FloatingChat } from './FloatingChat';
+export { CatChat } from './CatChat';
+export { CatChatProvider } from './CatChatProvider';

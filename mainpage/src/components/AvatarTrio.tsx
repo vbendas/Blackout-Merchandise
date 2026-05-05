@@ -85,11 +85,13 @@ function getCloudinaryUrl(folder: string, expression: string, avatarKey: string,
   return `${CLOUDINARY_BASE}/f_auto,q_auto,w_${width}/${publicId}`;
 }
 
-// Preload all avatar images to prevent loading delays
+// Preload only essential expressions to reduce initial bandwidth
+const PRELOAD_EXPRESSIONS = ['neutral', 'mischievous'];
+
 function preloadImages() {
   Object.keys(AVATARS).forEach((avatarKey) => {
     const avatar = AVATARS[avatarKey as AvatarKey];
-    EXPRESSIONS.forEach((expression) => {
+    PRELOAD_EXPRESSIONS.forEach((expression) => {
       const img = new Image();
       img.src = getCloudinaryUrl(avatar.folder, expression, avatarKey, 800);
     });
@@ -149,7 +151,7 @@ export function AvatarTrio() {
   }, []);
 
   return (
-    <div className="absolute top-[65px] md:top-[10px] left-0 w-full h-[70vh] md:h-[75vh] lg:h-[80vh] flex items-end justify-center z-40 overflow-hidden pt-5 scale-95 max-[389px]:scale-90 max-[389px]:origin-bottom md:scale-95 lg:scale-100">
+    <div className="absolute top-[65px] md:top-[10px] left-0 w-full h-[55vh] md:h-[60vh] lg:h-[65vh] flex items-end justify-center z-40 overflow-hidden pt-5 scale-95 max-[389px]:scale-90 max-[389px]:origin-bottom md:scale-95 lg:scale-100">
       <div className="relative w-full max-w-7xl mx-auto h-full flex items-end justify-center pb-0">
         {(Object.keys(AVATARS) as AvatarKey[]).map((key) => {
           const avatar = AVATARS[key];

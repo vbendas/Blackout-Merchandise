@@ -224,3 +224,25 @@ export interface RoutingContext {
     userIntent?: string;
   };
 }
+
+// Agent-specific greetings for the floating chat button
+export const AGENT_GREETINGS: Record<AgentId, string[]> = {
+  leopoldo: [
+    "Oi! Let's get you sorted! 🐱",
+    "Ready to set up shop? 💼",
+    "I'm here to help! What do you need? 🤝",
+    "Let's make this official! ✍️"
+  ],
+  francisca: [
+    "Ready to create something stunning? ✨",
+    "What's your vision? Let's bring it to life! 🎨",
+    "Looking for the perfect piece? 👗",
+    "Let's design your masterpiece! 💫"
+  ],
+  antonia: [
+    "Hey there! What can I do for you? 🍀",
+    "Got a question? I'm all ears! 👂",
+    "What's the craic? How can I help? 🎭",
+    "Stuck? Let's figure it out together! 🚀"
+  ]
+};

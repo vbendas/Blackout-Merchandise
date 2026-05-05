@@ -11,9 +11,9 @@ export const Footer = () => {
     {
       title: 'Services',
       links: [
-        { name: 'Portfolio', href: '#' },
-        { name: 'About Us', href: '#' },
-        { name: 'Services', href: '#' },
+        { name: 'Portfolio', href: '#portfolio' },
+        { name: 'About Us', href: '#hero' },
+        { name: 'Services', href: '#process' },
         { name: 'Pricing', href: '#' },
       ],
     },
@@ -88,9 +88,9 @@ export const Footer = () => {
 
           {/* Col 3-5: Links */}
           {footerLinks.map((column) => (
-            <div key={column.title} className="flex flex-col gap-4 text-center items-center pt-4">
+            <div key={column.title} className="flex flex-col gap-4 text-center md:text-left items-center md:items-start pt-4">
               <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{column.title}</h3>
-              <ul className="flex flex-col gap-2 items-center">
+              <ul className="flex flex-col gap-2 items-center md:items-start">
                 {column.links.map((link) => (
                   <li key={link.name}>
                     <Link href={link.href} className="text-zinc-500 hover:text-white transition-colors text-sm">

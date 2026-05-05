@@ -4,7 +4,7 @@ import { AccessibilityWidget } from '@/components/accessibility-widget';
 import { CatChat } from '@/components/chat/CatChat';
 import { CatChatProvider } from '@/components/chat/CatChatProvider';
 import { GradientMesh } from '@/components/GradientMesh';
-import { IconStripNav, UnifiedBottomBar } from '@/components/layout';
+import { IconStripNav } from '@/components/layout';
 import { AvatarExpressionProvider } from '@/lib/AvatarExpressionContext';
 import { ChatProvider } from '@/lib/ChatContext';
 import { DesignWorkflowProvider } from '@/lib/DesignWorkflowContext';
@@ -31,15 +31,11 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Main Content Area */}
       <div className="relative flex flex-1 flex-col min-w-0 md:ml-16 z-10">
-        {/* Main Content with bottom padding for the compact bottom bar */}
-        <main className="h-full flex-1 min-h-0 overflow-auto pb-[100px] md:pb-[104px]">{children}</main>
+        <main className="h-full flex-1 min-h-0 overflow-auto pb-4">{children}</main>
 
         {/* Accessibility Widget */}
         <AccessibilityWidget />
       </div>
-
-      {/* Unified Bottom Bar */}
-      <UnifiedBottomBar />
 
       {/* Cat-Suite Unified Chat */}
       <CatChat />
