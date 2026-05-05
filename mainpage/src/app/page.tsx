@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { AvatarTrio } from '@/components/AvatarTrio';
 import { FeatureMarquee } from '@/components/FeatureMarquee';
 import MasonryGrid from '@/components/MasonryGrid';
 import { SocialProof } from '@/components/SocialProof';
@@ -7,7 +6,7 @@ import { WaitlistCTA } from '@/components/sections/cta/WaitlistCTA';
 import { ProductionQuality } from '@/components/sections/quality/ProductionQuality';
 import HorizontalScroll from '@/components/uilayouts/horizontal-scroll';
 import { ValuePropositionCarousel } from '@/components/ValuePropositionCarousel';
-import { WordReveal } from '@/components/WordReveal';
+import { motion } from 'framer-motion';
 
 export const metadata: Metadata = {
   title: 'MerchFrom | AI-Powered Premium Merchandise for Creators',
@@ -24,24 +23,9 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-background">
-      {/* Hero Section */}
+      {/* Hero Section - DGB-inspired typography-first */}
       <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center z-10">
-        {/* Background gradient effect */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/5 rounded-full blur-3xl" />
-        </div>
-
-        {/* Avatar Trio Container - Pinned to viewport height */}
-        <div className="absolute top-0 left-0 w-full h-screen max-[389px]:h-[85vh] overflow-hidden">
-          <AvatarTrio />
-
-          {/* Gradient Mask for fading bottom into black - Full Width */}
-          <div className="absolute top-0 left-0 w-full h-[85vh] pointer-events-none z-0">
-            <div className="absolute bottom-0 left-0 w-full h-[40vh] bg-gradient-to-t from-black via-black/90 to-transparent" />
-          </div>
-        </div>
-
-        {/* Social Proof - Absolute Position Aligned with Grid - Tablet optimized */}
+        {/* Social Proof - Absolute Position - Desktop */}
         <div className="absolute top-[122px] md:top-[100px] lg:top-[122px] left-0 w-full z-[55] pointer-events-none hidden md:block">
           <div className="max-w-7xl mx-auto px-6">
             <div className="pointer-events-auto inline-block scale-90 md:scale-85 lg:scale-90 origin-left">
@@ -55,34 +39,70 @@ export default function HomePage() {
           <SocialProof />
         </div>
 
-        {/* Reordered Slogan Container - relative flow with padding push */}
-        <div className="relative z-10 w-full min-h-screen flex flex-col items-center pt-[calc(40vh+90px)] md:pt-[calc(45vh+90px)] lg:pt-[calc(50vh+90px)] pb-[60px] pointer-events-none">
-          {/* Gradient Overlay - Contained within hero */}
-          <div className="absolute top-[50vh] left-0 w-full h-[50vh] bg-gradient-to-b from-transparent via-black/80 to-black -z-10" />
+        {/* Hero Content - Centered Typography */}
+        <div className="relative z-10 w-full min-h-screen flex flex-col items-center justify-center px-6 pointer-events-none">
+          <div className="text-center max-w-5xl mx-auto flex flex-col items-center gap-8 pointer-events-auto">
+            {/* Main Headline - DGB style: mixed weights */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="space-y-1"
+            >
+              <h1 className="text-4xl md:text-5xl lg:text-7xl tracking-tight leading-[1.05] text-balance">
+                <span className="font-light text-zinc-300">We help </span>
+                <span className="font-semibold text-white">artists, creators</span>
+              </h1>
+              <h1 className="text-4xl md:text-5xl lg:text-7xl tracking-tight leading-[1.05] text-balance">
+                <span className="font-light text-zinc-300">and </span>
+                <span className="font-semibold text-white">brands</span>
+              </h1>
+              <h1 className="text-4xl md:text-5xl lg:text-7xl tracking-tight leading-[1.05] text-balance">
+                <span className="font-light text-zinc-300">design, source and sell</span>
+              </h1>
+              <h1 className="text-4xl md:text-5xl lg:text-7xl tracking-tight leading-[1.05] text-balance">
+                <span className="font-semibold text-white">premium merchandise.</span>
+              </h1>
+            </motion.div>
 
-          <div className="text-center max-w-7xl mx-auto flex flex-col items-center gap-4 pointer-events-auto">
-            {/* Main Slogan - Progressive sizing for mobile → tablet → desktop */}
-            <div className="space-y-1 -mt-[39px] max-[389px]:-mt-[59px] md:mt-2.5 mt-[60px] md:mt-0 w-full">
-              <div className="block space-y-1 px-6 w-full max-[389px]:scale-[0.85] max-[389px]:origin-top">
-                <WordReveal
-                  text="We help artists, creators and brands"
-                  className="text-3xl md:text-4xl lg:text-6xl font-medium text-zinc-300 tracking-wide text-balance"
-                  range={[0, 100]}
-                />
+            {/* Subheadline */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="text-base md:text-lg lg:text-xl text-zinc-500 max-w-xl leading-relaxed font-light"
+            >
+              Zero risk. You create, we handle everything else.
+            </motion.p>
 
-                <WordReveal
-                  text="design, source and sell merchandise hassle-free."
-                  className="text-3xl md:text-4xl lg:text-6xl font-semibold text-zinc-100 tracking-tight leading-[0.9] text-balance pb-3"
-                  range={[50, 200]}
-                />
-              </div>
-            </div>
+            {/* CTA Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+            >
+              <a
+                href="/waitlist"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-full text-sm font-semibold uppercase tracking-wider text-black transition-all duration-300 hover:scale-105 hover:shadow-[0_0_60px_rgba(212,175,55,0.3)]"
+                style={{
+                  background: 'linear-gradient(135deg, #D4AF37 0%, #F5E6A3 50%, #D4AF37 100%)',
+                }}
+              >
+                Join the Waitlist
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </motion.div>
           </div>
         </div>
+
+        {/* Gradient fade at bottom */}
+        <div className="absolute bottom-0 left-0 w-full h-[20vh] bg-gradient-to-t from-black to-transparent pointer-events-none" />
       </section>
 
       {/* Value Proposition - Between Hero and Gallery */}
-      <section className="relative z-40 bg-black py-10 max-[389px]:pt-0 max-[389px]:pb-6 -mt-[150px] max-[389px]:-mt-[160px] md:-mt-[130px]">
+      <section className="relative z-40 bg-black py-10 max-[389px]:pt-0 max-[389px]:pb-6 -mt-[60px] max-[389px]:-mt-[80px] md:-mt-[40px]">
         {/* Mobile: Carousel */}
         <div className="md:hidden w-full max-w-md mx-auto px-4">
           <ValuePropositionCarousel />
