@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { SocialProof } from '@/components/SocialProof';
+import { ScreenPressReveal } from '@/components/ScreenPressReveal';
 
 export function HeroSection() {
   return (
@@ -18,6 +19,9 @@ export function HeroSection() {
       <div className="absolute top-[110px] max-[389px]:top-[75px] left-1/2 -translate-x-1/2 z-[55] md:hidden scale-90 opacity-90 pointer-events-auto w-full flex justify-center">
         <SocialProof />
       </div>
+
+      {/* Screen Press 3D Animation Background */}
+      <ScreenPressReveal />
 
       {/* Simple headline placeholder */}
       <div className="relative z-10 w-full min-h-screen flex flex-col items-center justify-center px-6 pointer-events-none">
