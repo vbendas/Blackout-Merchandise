@@ -2,146 +2,111 @@
 
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { SocialProof } from '@/components/SocialProof';
-import { DraggableProductGrid } from '@/components/DraggableProductGrid';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
-// Tightly packed product tiles
+// Tiles with percentage-based positions for full coverage
+// Positions are in % of canvas size, sizes are in vw/vh
 const TILES = [
-  { id: 1, src: '/portfolio/hoodie.png', label: '.artista', col: 0, row: 0, colSpan: 2, rowSpan: 2 },
-  { id: 2, src: '/portfolio/tee.png', label: '.studiob', col: 2, row: 0, colSpan: 1, rowSpan: 1 },
-  { id: 3, src: '/portfolio/cap.png', label: '.brandc', col: 3, row: 0, colSpan: 1, rowSpan: 1 },
-  { id: 4, src: '/portfolio/tote.png', label: '.labeld', col: 2, row: 1, colSpan: 2, rowSpan: 1 },
-  { id: 5, src: '/portfolio/hoodie.png', label: '.artiste', col: 0, row: 2, colSpan: 1, rowSpan: 2 },
-  { id: 6, src: '/portfolio/tee.png', label: '.studiof', col: 1, row: 2, colSpan: 1, rowSpan: 1 },
-  { id: 7, src: '/portfolio/cap.png', label: '.brandg', col: 2, row: 2, colSpan: 2, rowSpan: 1 },
-  { id: 8, src: '/portfolio/tote.png', label: '.labelh', col: 1, row: 3, colSpan: 2, rowSpan: 1 },
-  { id: 9, src: '/portfolio/hoodie.png', label: '.artisti', col: 3, row: 2, colSpan: 1, rowSpan: 2 },
-  { id: 10, src: '/portfolio/tee.png', label: '.studioj', col: 0, row: 4, colSpan: 2, rowSpan: 1 },
-  { id: 11, src: '/portfolio/cap.png', label: '.brandk', col: 2, row: 4, colSpan: 1, rowSpan: 1 },
-  { id: 12, src: '/portfolio/tote.png', label: '.labell', col: 3, row: 4, colSpan: 1, rowSpan: 1 },
-  { id: 13, src: '/portfolio/hoodie.png', label: '.artistm', col: 0, row: 5, colSpan: 1, rowSpan: 1 },
-  { id: 14, src: '/portfolio/tee.png', label: '.studion', col: 1, row: 5, colSpan: 2, rowSpan: 1 },
-  { id: 15, src: '/portfolio/cap.png', label: '.brando', col: 3, row: 5, colSpan: 1, rowSpan: 1 },
-  { id: 16, src: '/portfolio/tote.png', label: '.labelp', col: 0, row: 6, colSpan: 2, rowSpan: 1 },
-  { id: 17, src: '/portfolio/hoodie.png', label: '.artistq', col: 2, row: 6, colSpan: 2, rowSpan: 2 },
-  { id: 18, src: '/portfolio/tee.png', label: '.studior', col: 0, row: 7, colSpan: 1, rowSpan: 1 },
-  { id: 19, src: '/portfolio/cap.png', label: '.brands', col: 1, row: 7, colSpan: 1, rowSpan: 1 },
+  { id: 1, src: '/portfolio/hoodie.png', label: '.artista', left: 0, top: 0, width: 30, height: 40 },
+  { id: 2, src: '/portfolio/tee.png', label: '.studiob', left: 30, top: 0, width: 20, height: 25 },
+  { id: 3, src: '/portfolio/cap.png', label: '.brandc', left: 50, top: 0, width: 25, height: 30 },
+  { id: 4, src: '/portfolio/tote.png', label: '.labeld', left: 75, top: 0, width: 25, height: 35 },
+  { id: 5, src: '/portfolio/hoodie.png', label: '.artiste', left: 0, top: 40, width: 20, height: 30 },
+  { id: 6, src: '/portfolio/tee.png', label: '.studiof', left: 20, top: 25, width: 30, height: 35 },
+  { id: 7, src: '/portfolio/cap.png', label: '.brandg', left: 50, top: 30, width: 25, height: 25 },
+  { id: 8, src: '/portfolio/tote.png', label: '.labelh', left: 75, top: 35, width: 25, height: 30 },
+  { id: 9, src: '/portfolio/hoodie.png', label: '.artisti', left: 0, top: 70, width: 35, height: 30 },
+  { id: 10, src: '/portfolio/tee.png', label: '.studioj', left: 35, top: 60, width: 30, height: 25 },
+  { id: 11, src: '/portfolio/cap.png', label: '.brandk', left: 65, top: 65, width: 20, height: 20 },
+  { id: 12, src: '/portfolio/tote.png', label: '.labell', left: 85, top: 60, width: 15, height: 25 },
+  { id: 13, src: '/portfolio/hoodie.png', label: '.artistm', left: 10, top: 85, width: 25, height: 15 },
+  { id: 14, src: '/portfolio/tee.png', label: '.studion', left: 40, top: 85, width: 30, height: 15 },
+  { id: 15, src: '/portfolio/cap.png', label: '.brando', left: 75, top: 85, width: 25, height: 15 },
 ];
-
-const COL_ROTATION = [0.03, -0.02, 0.025, -0.015];
 
 export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
-  const [scrollLocked, setScrollLocked] = useState(true);
 
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
+  // Canvas position
+  const canvasX = useMotionValue(0);
+  const canvasY = useMotionValue(0);
 
-  const col0 = useSpring(0, { stiffness: 120, damping: 25 });
-  const col1 = useSpring(0, { stiffness: 120, damping: 25 });
-  const col2 = useSpring(0, { stiffness: 120, damping: 25 });
-  const col3 = useSpring(0, { stiffness: 120, damping: 25 });
-  const columnRotations = [col0, col1, col2, col3];
+  // Rotation springs for each "column" (left, center, right)
+  const rotLeft = useSpring(0, { stiffness: 120, damping: 25 });
+  const rotCenter = useSpring(0, { stiffness: 120, damping: 25 });
+  const rotRight = useSpring(0, { stiffness: 120, damping: 25 });
 
-  useEffect(() => {
-    const check = () => {
-      setIsMobile(window.innerWidth < 640);
-      setIsTablet(window.innerWidth >= 640 && window.innerWidth < 1024);
-    };
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
+  // Canvas size (larger than viewport for drag room)
+  const canvasWidth = typeof window !== 'undefined' ? window.innerWidth * 1.5 : 1800;
+  const canvasHeight = typeof window !== 'undefined' ? window.innerHeight * 1.5 : 1200;
 
-  const cols = isMobile ? 2 : isTablet ? 3 : 4;
-  const cellW = isMobile ? 160 : isTablet ? 220 : 280;
-  const cellH = isMobile ? 160 : isTablet ? 220 : 280;
+  // Max drag distance
+  const maxDragX = (canvasWidth - (typeof window !== 'undefined' ? window.innerWidth : 1200)) / 2;
+  const maxDragY = (canvasHeight - (typeof window !== 'undefined' ? window.innerHeight : 800)) / 2;
 
-  const gridWidth = cols * cellW;
-  const gridRows = Math.ceil(TILES.length / cols);
-  const gridHeight = gridRows * cellH;
-
-  const maxDragX = Math.max(0, (gridWidth - (typeof window !== 'undefined' ? window.innerWidth : 1200)) / 2 + 100);
-  const maxDragY = Math.max(0, (gridHeight - (typeof window !== 'undefined' ? window.innerHeight : 800)) / 2 + 100);
-
-  // Wheel handler - consume scroll to move grid
+  // Scroll capture
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleWheel = (e: WheelEvent) => {
-      if (!scrollLocked) return;
-
-      const currentX = x.get();
-      const currentY = y.get();
-
-      const atBoundaryY = Math.abs(currentY) >= maxDragY - 20;
-      const atBoundaryX = Math.abs(currentX) >= maxDragX - 20;
-
-      // If scrolling down and at bottom boundary, unlock scroll
-      if (e.deltaY > 0 && atBoundaryY) {
-        setScrollLocked(false);
-        return;
-      }
-
-      // If scrolling up and at top boundary, unlock scroll
-      if (e.deltaY < 0 && atBoundaryY) {
-        setScrollLocked(false);
-        return;
-      }
-
       e.preventDefault();
 
-      const newX = Math.max(-maxDragX, Math.min(maxDragX, currentX - e.deltaX * 0.5));
-      const newY = Math.max(-maxDragY, Math.min(maxDragY, currentY - e.deltaY * 0.5));
+      const currentX = canvasX.get();
+      const currentY = canvasY.get();
 
-      x.set(newX);
-      y.set(newY);
+      // Move canvas based on scroll
+      const newX = Math.max(-maxDragX, Math.min(maxDragX, currentX - e.deltaX * 0.8));
+      const newY = Math.max(-maxDragY, Math.min(maxDragY, currentY - e.deltaY * 0.8));
 
-      const vx = -e.deltaX * 0.5;
-      columnRotations.forEach((rot, i) => {
-        rot.set(vx * COL_ROTATION[i] * 0.1);
-      });
+      canvasX.set(newX);
+      canvasY.set(newY);
 
+      // Apply rotation based on horizontal movement
+      const vx = -e.deltaX * 0.8;
+      rotLeft.set(vx * 0.02);
+      rotCenter.set(vx * -0.015);
+      rotRight.set(vx * 0.025);
+
+      // Reset rotation
       setTimeout(() => {
-        columnRotations.forEach((rot) => rot.set(0));
-      }, 150);
+        rotLeft.set(0);
+        rotCenter.set(0);
+        rotRight.set(0);
+      }, 200);
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });
     return () => container.removeEventListener('wheel', handleWheel);
-  }, [scrollLocked, x, y, maxDragX, maxDragY, columnRotations]);
+  }, [canvasX, canvasY, maxDragX, maxDragY, rotLeft, rotCenter, rotRight]);
 
-  // Re-lock when scrolling back to top
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY < 50) {
-        setScrollLocked(true);
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
+  // Drag handlers
   const handleDrag = useCallback(() => {
-    const vx = x.getVelocity();
-    columnRotations.forEach((rot, i) => {
-      rot.set(vx * COL_ROTATION[i] * 0.05);
-    });
-  }, [columnRotations, x]);
+    const vx = canvasX.getVelocity();
+    rotLeft.set(vx * 0.01);
+    rotCenter.set(vx * -0.008);
+    rotRight.set(vx * 0.012);
+  }, [canvasX, rotLeft, rotCenter, rotRight]);
 
   const handleDragEnd = useCallback(() => {
-    columnRotations.forEach((rot) => rot.set(0));
-  }, [columnRotations]);
+    rotLeft.set(0);
+    rotCenter.set(0);
+    rotRight.set(0);
+  }, [rotLeft, rotCenter, rotRight]);
+
+  // Get rotation for tile based on horizontal position
+  const getRotation = (leftPercent: number) => {
+    if (leftPercent < 33) return rotLeft;
+    if (leftPercent < 66) return rotCenter;
+    return rotRight;
+  };
 
   return (
     <section
       id="hero"
       ref={containerRef}
-      className="relative h-screen overflow-hidden"
+      className="relative w-full h-screen overflow-hidden cursor-grab active:cursor-grabbing"
       style={{ touchAction: 'none' }}
     >
       {/* Social Proof */}
@@ -168,57 +133,59 @@ export function HeroSection() {
         }}
         dragElastic={0.05}
         dragTransition={{ bounceStiffness: 100, bounceDamping: 25 }}
-        style={{ x, y }}
+        style={{
+          x: canvasX,
+          y: canvasY,
+          width: canvasWidth,
+          height: canvasHeight,
+        }}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
-        className="absolute left-1/2 top-1/2 cursor-grab active:cursor-grabbing"
-        initial={{ x: '-50%', y: '-50%' }}
+        className="absolute cursor-grab active:cursor-grabbing"
+        initial={{
+          left: -(canvasWidth - (typeof window !== 'undefined' ? window.innerWidth : 1200)) / 2,
+          top: -(canvasHeight - (typeof window !== 'undefined' ? window.innerHeight : 800)) / 2,
+        }}
       >
-        <div
-          className="grid"
-          style={{
-            gridTemplateColumns: `repeat(${cols}, ${cellW}px)`,
-            gridAutoRows: `${cellH}px`,
-            gap: '2px',
-          }}
-        >
-          {TILES.map((tile) => {
-            const rotation = columnRotations[tile.col % 4];
+        {/* Tiles - absolutely positioned */}
+        {TILES.map((tile) => {
+          const rotation = getRotation(tile.left);
 
-            return (
-              <motion.div
-                key={tile.id}
-                className="relative overflow-hidden bg-zinc-900"
-                style={{
-                  gridColumn: `${tile.col + 1} / span ${Math.min(tile.colSpan, cols)}`,
-                  gridRow: `${tile.row + 1} / span ${tile.rowSpan}`,
-                  rotate: rotation,
-                }}
-                onHoverStart={() => setHoveredId(tile.id)}
-                onHoverEnd={() => setHoveredId(null)}
-              >
-                <img
-                  src={tile.src}
-                  alt={tile.label}
-                  className={`w-full h-full object-cover transition-all duration-500 ${
-                    hoveredId === tile.id ? 'saturate-100 scale-105' : 'saturate-0 opacity-80'
-                  }`}
-                  draggable={false}
-                />
-                <div className="absolute bottom-2 left-2">
-                  <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-zinc-600">
-                    {tile.label}
-                  </span>
-                </div>
-                <div
-                  className={`absolute inset-0 bg-gradient-to-t from-black/30 to-transparent transition-opacity duration-300 ${
-                    hoveredId === tile.id ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-              </motion.div>
-            );
-          })}
-        </div>
+          return (
+            <motion.div
+              key={tile.id}
+              className="absolute overflow-hidden"
+              style={{
+                left: `${tile.left}%`,
+                top: `${tile.top}%`,
+                width: `${tile.width}%`,
+                height: `${tile.height}%`,
+                rotate: rotation,
+              }}
+              onHoverStart={() => setHoveredId(tile.id)}
+              onHoverEnd={() => setHoveredId(null)}
+            >
+              <img
+                src={tile.src}
+                alt={tile.label}
+                className={`w-full h-full object-cover transition-all duration-500 ${
+                  hoveredId === tile.id ? 'saturate-100 scale-105' : 'saturate-0 opacity-80'
+                }`}
+                draggable={false}
+              />
+              <div className="absolute bottom-2 left-2">
+                <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-zinc-600">
+                  {tile.label}
+                </span>
+              </div>
+              <div
+                className={`absolute inset-0 bg-gradient-to-t from-black/30 to-transparent transition-opacity duration-300 ${
+                  hoveredId === tile.id ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
+            </motion.div>
+          );
+        })}
       </motion.div>
 
       {/* Small headline overlay */}
@@ -260,7 +227,7 @@ export function HeroSection() {
       <motion.div
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center gap-2"
         initial={{ opacity: 0 }}
-        animate={{ opacity: scrollLocked ? 1 : 0 }}
+        animate={{ opacity: 1 }}
         transition={{ delay: 1.5 }}
       >
         <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-700">
