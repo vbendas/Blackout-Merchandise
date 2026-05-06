@@ -176,61 +176,62 @@ export default function MasonryGrid() {
           <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black via-black to-transparent z-10 pointer-events-none" />
         </section>
       ) : (
-        // DESKTOP: Grid
-        <section className="w-full min-h-screen bg-black px-4 pt-0 pb-0 relative">
+        // DESKTOP: Draggable Grid
+        <section className="w-full h-screen bg-black relative overflow-hidden cursor-grab active:cursor-grabbing" style={{ touchAction: 'none' }}>
           {/* Gradient fade at top */}
           <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black via-black/80 to-transparent z-10 pointer-events-none" />
 
-          {/* Chaotic Grid - CSS Grid */}
-          {/* Mobile: 1 col, Tablet: 2 cols, Desktop: 4 cols */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[300px] md:auto-rows-[250px] lg:auto-rows-[200px] grid-flow-dense max-w-[90rem] mx-auto relative z-0">
-            {ITEMS.map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, filter: 'blur(10px)' }}
-                whileInView={{ opacity: 1, filter: 'blur(0px)' }}
-                viewport={{ once: true, margin: '-50px' }}
-                transition={{ duration: 0.8, delay: index * 0.05 }}
-                className={`relative group overflow-hidden rounded-sm cursor-pointer ${item.className}`}
-                onClick={() => setSelectedIndex(index)}
-              >
-                <img
-                  src={getCloudinaryUrl(item.publicId, 600)}
-                  alt={`Portfolio ${item.id}`}
-                  className="w-full h-full object-cover saturate-[0.65] sepia-[0.08] contrast-[1.05] blur-[0.5px] group-hover:saturate-100 group-hover:sepia-0 group-hover:contrast-100 group-hover:blur-0 transition-all duration-700 ease-in-out scale-105 group-hover:scale-100"
-                />
-                {/* Film grain overlay */}
-                <div
-                  className="absolute inset-0 opacity-30 group-hover:opacity-0 transition-opacity duration-700 pointer-events-none mix-blend-overlay"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-                  }}
-                />
-              </motion.div>
-            ))}
-          </div>
+          {/* Draggable Canvas */}
+          <motion.div
+            drag
+            dragConstraints={{ left: -400, right: 400, top: -300, bottom: 300 }}
+            dragElastic={0.1}
+            dragTransition={{ bounceStiffness: 100, bounceDamping: 25 }}
+            className="absolute inset-0 p-8"
+          >
+            {/* Chaotic Grid - CSS Grid */}
+            <div className="grid grid-cols-4 gap-3 auto-rows-[200px] grid-flow-dense w-full h-full">
+              {ITEMS.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, filter: 'blur(10px)' }}
+                  whileInView={{ opacity: 1, filter: 'blur(0px)' }}
+                  viewport={{ once: true, margin: '-50px' }}
+                  transition={{ duration: 0.8, delay: index * 0.05 }}
+                  className={`relative group overflow-hidden rounded-sm cursor-pointer ${item.className}`}
+                  onClick={() => setSelectedIndex(index)}
+                >
+                  <img
+                    src={getCloudinaryUrl(item.publicId, 600)}
+                    alt={`Portfolio ${item.id}`}
+                    className="w-full h-full object-cover saturate-[0.65] sepia-[0.08] contrast-[1.05] blur-[0.5px] group-hover:saturate-100 group-hover:sepia-0 group-hover:contrast-100 group-hover:blur-0 transition-all duration-700 ease-in-out scale-105 group-hover:scale-100"
+                  />
+                  {/* Film grain overlay */}
+                  <div
+                    className="absolute inset-0 opacity-30 group-hover:opacity-0 transition-opacity duration-700 pointer-events-none mix-blend-overlay"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                    }}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
 
           {/* Gradient fade at bottom */}
-          {/* Gradient fade at bottom - Larger and darker as requested */}
           <div className="absolute bottom-0 left-0 w-full h-36 bg-gradient-to-t from-black via-black to-transparent z-10 pointer-events-none" />
 
-          {/* Dot indicators */}
-          <div className="flex gap-2 justify-center py-4 relative z-20">
-            {ITEMS.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setDirection(index > currentSlide ? 1 : -1);
-                  setCurrentSlide(index);
-                  setTimerKey((prev) => prev + 1);
-                }}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                  index === currentSlide ? 'bg-white' : 'bg-white/30'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
+          {/* Drag hint */}
+          <motion.div
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-700">
+              drag to explore
+            </span>
+          </motion.div>
         </section>
       )}
 
