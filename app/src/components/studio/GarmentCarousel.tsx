@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useStudio } from '@/lib/StudioContext';
 import { STATIC_CATALOG, getEntry } from '@/data/stanley-stella-catalog';
 import { cn } from '@/lib/utils';

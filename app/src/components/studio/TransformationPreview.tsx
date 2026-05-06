@@ -5,7 +5,7 @@
 
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { Check, Loader2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { buildTransformedUrl } from '@/lib/cloudinary';

@@ -1,7 +1,7 @@
 'use client';
 
 import { Icon } from '@iconify/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { useStudio } from '@/lib/StudioContext';
 import { useViewportSize } from '@/hooks/useViewportSize';

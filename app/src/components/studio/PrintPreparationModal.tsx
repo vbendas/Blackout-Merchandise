@@ -5,7 +5,7 @@
 
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { Check, Download, FileImage, Loader2, Palette, Printer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
