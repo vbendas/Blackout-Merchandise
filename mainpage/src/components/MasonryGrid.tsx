@@ -1,8 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
-import { useCallback, useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useState } from 'react';
 import { useViewportSize } from '@/hooks/useViewportSize';
 
 // Cloudinary configuration
@@ -33,12 +31,7 @@ const ITEMS = [
 
 export default function MasonryGrid() {
   const [mounted, setMounted] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [timerKey, setTimerKey] = useState(0);
-  const [direction, setDirection] = useState(1);
-  const { isMobile, hasMounted } = useViewportSize();
+  const { hasMounted } = useViewportSize();
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -46,253 +39,41 @@ export default function MasonryGrid() {
     });
   }, []);
 
-  // Auto-advance slider on mobile every 3 seconds
-  useEffect(() => {
-    if (!isMobile || !hasMounted || isDragging) return;
-
-    const timer = setInterval(() => {
-      setDirection(1);
-      setCurrentSlide((prev) => (prev + 1) % ITEMS.length);
-    }, 3000);
-
-    return () => clearInterval(timer);
-  }, [isMobile, hasMounted, isDragging, timerKey, currentSlide]);
-
-  // Keyboard navigation
-  useEffect(() => {
-    if (selectedIndex === null) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setSelectedIndex(null);
-      } else if (e.key === 'ArrowLeft') {
-        setSelectedIndex((prev) => (prev !== null ? (prev - 1 + ITEMS.length) % ITEMS.length : null));
-      } else if (e.key === 'ArrowRight') {
-        setSelectedIndex((prev) => (prev !== null ? (prev + 1) % ITEMS.length : null));
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
-    };
-  }, [selectedIndex]);
-
-  const goToPrevious = useCallback(() => {
-    setSelectedIndex((prev) => (prev !== null ? (prev - 1 + ITEMS.length) % ITEMS.length : null));
-  }, []);
-
-  const goToNext = useCallback(() => {
-    setSelectedIndex((prev) => (prev !== null ? (prev + 1) % ITEMS.length : null));
-  }, []);
-
-  const closeLightbox = useCallback(() => {
-    setSelectedIndex(null);
-  }, []);
-
   if (!mounted || !hasMounted) return null;
 
-  const swipeConfidenceThreshold = 10000;
-  const swipePower = (offset: number, velocity: number) => {
-    return Math.abs(offset) * Math.abs(velocity);
-  };
-
-  const paginate = (newDirection: number) => {
-    setDirection(newDirection);
-    setCurrentSlide((prev) => {
-      const next = prev + newDirection;
-      if (next < 0) return ITEMS.length - 1;
-      if (next >= ITEMS.length) return 0;
-      return next;
-    });
-    setTimerKey((prev) => prev + 1);
-  };
-
   return (
-    <>
-      {isMobile ? (
-        // MOBILE: Slider/Carousel
-        <section className="w-full bg-black py-12 -mt-[40px] relative">
-          <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-black via-black to-transparent z-10 pointer-events-none" />
+    <section className="w-full bg-black relative overflow-hidden" style={{ height: '100vh' }}>
+      {/* Gradient fade at top */}
+      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black via-black/80 to-transparent z-20 pointer-events-none" />
 
-          <div className="relative h-[60vh] flex items-center justify-center overflow-hidden">
-            <AnimatePresence mode="wait" custom={direction}>
-              <motion.div
-                key={currentSlide}
-                custom={direction}
-                initial={{ opacity: 0, x: direction > 0 ? 300 : -300 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: direction > 0 ? -300 : 300 }}
-                transition={{
-                  x: { type: 'spring', stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 },
+      {/* Static masonry grid */}
+      <div className="min-h-full overflow-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[300px] md:auto-rows-[250px] lg:auto-rows-[200px] grid-flow-dense relative z-0">
+          {ITEMS.map((item, index) => (
+            <div
+              key={item.id}
+              className={`relative group overflow-hidden rounded-sm ${item.className}`}
+            >
+              <img
+                src={getCloudinaryUrl(item.publicId, 600)}
+                alt={`Portfolio ${item.id}`}
+                draggable={false}
+                className="w-full h-full object-cover saturate-[0.65] sepia-[0.08] contrast-[1.05] blur-[0.5px] group-hover:saturate-100 group-hover:sepia-0 group-hover:contrast-100 group-hover:blur-0 transition-all duration-700 ease-in-out scale-105 group-hover:scale-100"
+              />
+              {/* Film grain overlay */}
+              <div
+                className="absolute inset-0 opacity-30 group-hover:opacity-0 transition-opacity duration-700 pointer-events-none mix-blend-overlay"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
                 }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={1}
-                onDragStart={() => setIsDragging(true)}
-                onDragEnd={(e, { offset, velocity }) => {
-                  const swipe = swipePower(offset.x, velocity.x);
-
-                  if (swipe > swipeConfidenceThreshold) {
-                    if (offset.x < 0) {
-                      paginate(1);
-                    } else {
-                      paginate(-1);
-                    }
-                  }
-
-                  setTimeout(() => {
-                    setIsDragging(false);
-                    setTimerKey((prev) => prev + 1);
-                  }, 100);
-                }}
-                className="absolute w-full h-full cursor-grab active:cursor-grabbing"
-                onClick={() => setSelectedIndex(currentSlide)}
-              >
-                <img
-                  src={getCloudinaryUrl(ITEMS[currentSlide].publicId, 1200)}
-                  alt={`Portfolio ${ITEMS[currentSlide].id}`}
-                  className="w-full h-full object-cover saturate-[0.65] sepia-[0.08] contrast-[1.05] blur-[0.5px]"
-                />
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black via-black to-transparent z-10 pointer-events-none" />
-        </section>
-      ) : (
-        // DESKTOP: Draggable Masonry Grid
-        <section className="w-full bg-black relative overflow-hidden" style={{ height: '100vh' }}>
-          {/* Gradient fade at top */}
-          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black via-black/80 to-transparent z-20 pointer-events-none" />
-
-          {/* Draggable wrapper */}
-          <motion.div
-            drag
-            dragConstraints={{ left: -500, right: 500, top: -400, bottom: 400 }}
-            dragElastic={0.1}
-            dragMomentum={true}
-            className="w-full h-full cursor-grab active:cursor-grabbing"
-            style={{ touchAction: 'none' }}
-          >
-            {/* Original masonry grid - padded to allow drag room */}
-            <div className="p-16 min-w-[120vw] min-h-[120vh]">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[300px] md:auto-rows-[250px] lg:auto-rows-[200px] grid-flow-dense max-w-[90rem] mx-auto relative z-0">
-                {ITEMS.map((item, index) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, filter: 'blur(10px)' }}
-                    whileInView={{ opacity: 1, filter: 'blur(0px)' }}
-                    viewport={{ once: true, margin: '-50px' }}
-                    transition={{ duration: 0.8, delay: index * 0.05 }}
-                    className={`relative group overflow-hidden rounded-sm ${item.className}`}
-                  >
-                    <img
-                      src={getCloudinaryUrl(item.publicId, 600)}
-                      alt={`Portfolio ${item.id}`}
-                      draggable={false}
-                      className="w-full h-full object-cover saturate-[0.65] sepia-[0.08] contrast-[1.05] blur-[0.5px] group-hover:saturate-100 group-hover:sepia-0 group-hover:contrast-100 group-hover:blur-0 transition-all duration-700 ease-in-out scale-105 group-hover:scale-100"
-                    />
-                    {/* Film grain overlay */}
-                    <div
-                      className="absolute inset-0 opacity-30 group-hover:opacity-0 transition-opacity duration-700 pointer-events-none mix-blend-overlay"
-                      style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-                      }}
-                    />
-                  </motion.div>
-                ))}
-              </div>
+              />
             </div>
-          </motion.div>
+          ))}
+        </div>
+      </div>
 
-          {/* Gradient fade at bottom */}
-          <div className="absolute bottom-0 left-0 w-full h-36 bg-gradient-to-t from-black via-black to-transparent z-20 pointer-events-none" />
-
-          {/* Drag hint */}
-          <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-          >
-            <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-700">
-              drag to explore
-            </span>
-          </motion.div>
-        </section>
-      )}
-
-      {/* Lightbox Modal */}
-      {mounted &&
-        createPortal(
-          <AnimatePresence>
-            {selectedIndex !== null && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm"
-                onClick={closeLightbox}
-              >
-                <button
-                  onClick={closeLightbox}
-                  className="absolute top-6 right-6 text-white/60 hover:text-white transition-colors z-[9999]"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-
-                <button
-                  onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
-                  className="absolute left-4 md:left-8 text-white/60 hover:text-white transition-colors z-[9999] p-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                  </svg>
-                </button>
-
-                <button
-                  onClick={(e) => { e.stopPropagation(); goToNext(); }}
-                  className="absolute right-4 md:right-8 text-white/60 hover:text-white transition-colors z-[9999] p-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                  </svg>
-                </button>
-
-                <motion.div
-                  onClick={(e) => e.stopPropagation()}
-                  className="cursor-grab active:cursor-grabbing"
-                >
-                  <motion.img
-                    key={selectedIndex}
-                    src={getCloudinaryUrl(ITEMS[selectedIndex].publicId, 1200)}
-                    alt={`Portfolio ${ITEMS[selectedIndex].id}`}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.3 }}
-                    className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl"
-                    draggable={false}
-                  />
-                </motion.div>
-
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-sm font-mono">
-                  {selectedIndex + 1} / {ITEMS.length}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>,
-          document.body
-        )}
-    </>
+      {/* Gradient fade at bottom */}
+      <div className="absolute bottom-0 left-0 w-full h-36 bg-gradient-to-t from-black via-black to-transparent z-20 pointer-events-none" />
+    </section>
   );
 }
