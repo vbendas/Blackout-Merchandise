@@ -3,64 +3,60 @@
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { useRef, useState, useCallback } from 'react';
 
-// Product data - asymmetrically distributed
-const PRODUCTS = [
-  { id: 1, src: '/portfolio/hoodie.png', label: 'Artist A', x: 0, y: 0, w: 280, h: 350, col: 0 },
-  { id: 2, src: '/portfolio/tee.png', label: 'Studio B', x: 320, y: -80, w: 220, h: 280, col: 1 },
-  { id: 3, src: '/portfolio/cap.png', label: 'Brand C', x: 580, y: 40, w: 180, h: 200, col: 2 },
-  { id: 4, src: '/portfolio/tote.png', label: 'Label D', x: 100, y: 380, w: 240, h: 300, col: 0 },
-  { id: 5, src: '/portfolio/hoodie.png', label: 'Artist E', x: 400, y: 320, w: 260, h: 320, col: 1 },
-  { id: 6, src: '/portfolio/tee.png', label: 'Studio F', x: 700, y: 280, w: 200, h: 260, col: 2 },
-  { id: 7, src: '/portfolio/cap.png', label: 'Brand G', x: -100, y: 650, w: 190, h: 210, col: 0 },
-  { id: 8, src: '/portfolio/tote.png', label: 'Label H', x: 250, y: 700, w: 230, h: 290, col: 1 },
-  { id: 9, src: '/portfolio/hoodie.png', label: 'Artist I', x: 550, y: 600, w: 270, h: 340, col: 2 },
-  { id: 10, src: '/portfolio/tee.png', label: 'Studio J', x: 850, y: 500, w: 210, h: 270, col: 0 },
-  { id: 11, src: '/portfolio/cap.png', label: 'Brand K', x: 150, y: 1000, w: 180, h: 200, col: 1 },
-  { id: 12, src: '/portfolio/tote.png', label: 'Label L', x: 450, y: 950, w: 250, h: 310, col: 2 },
+// Tightly packed product tiles - no gaps, masonry-style
+// Each tile has varied aspect ratios for visual chaos
+const TILES = [
+  { id: 1, src: '/portfolio/hoodie.png', label: '.artista', col: 0, row: 0, colSpan: 2, rowSpan: 2 },
+  { id: 2, src: '/portfolio/tee.png', label: '.studiob', col: 2, row: 0, colSpan: 1, rowSpan: 1 },
+  { id: 3, src: '/portfolio/cap.png', label: '.brandc', col: 3, row: 0, colSpan: 1, rowSpan: 1 },
+  { id: 4, src: '/portfolio/tote.png', label: '.labeld', col: 2, row: 1, colSpan: 2, rowSpan: 1 },
+  { id: 5, src: '/portfolio/hoodie.png', label: '.artiste', col: 0, row: 2, colSpan: 1, rowSpan: 2 },
+  { id: 6, src: '/portfolio/tee.png', label: '.studiof', col: 1, row: 2, colSpan: 1, rowSpan: 1 },
+  { id: 7, src: '/portfolio/cap.png', label: '.brandg', col: 2, row: 2, colSpan: 2, rowSpan: 1 },
+  { id: 8, src: '/portfolio/tote.png', label: '.labelh', col: 1, row: 3, colSpan: 2, rowSpan: 1 },
+  { id: 9, src: '/portfolio/hoodie.png', label: '.artisti', col: 3, row: 2, colSpan: 1, rowSpan: 2 },
+  { id: 10, src: '/portfolio/tee.png', label: '.studioj', col: 0, row: 4, colSpan: 2, rowSpan: 1 },
+  { id: 11, src: '/portfolio/cap.png', label: '.brandk', col: 2, row: 4, colSpan: 1, rowSpan: 1 },
+  { id: 12, src: '/portfolio/tote.png', label: '.labell', col: 3, row: 4, colSpan: 1, rowSpan: 1 },
+  // Extra row for more coverage
+  { id: 13, src: '/portfolio/hoodie.png', label: '.artistm', col: 0, row: 5, colSpan: 1, rowSpan: 1 },
+  { id: 14, src: '/portfolio/tee.png', label: '.studion', col: 1, row: 5, colSpan: 2, rowSpan: 1 },
+  { id: 15, src: '/portfolio/cap.png', label: '.brando', col: 3, row: 5, colSpan: 1, rowSpan: 1 },
 ];
 
-// Column rotation multipliers (each column rotates differently)
-const COL_ROTATION = [0.02, -0.015, 0.025];
+// Column rotation multipliers
+const COL_ROTATION = [0.03, -0.02, 0.025, -0.015];
 
 export function DraggableProductGrid() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
 
-  // Motion values for the canvas position
+  // Motion values
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
-  // Track velocity for rotation
-  const dragVelocityX = useMotionValue(0);
-  const dragVelocityY = useMotionValue(0);
+  // Spring-smoothed rotation per column
+  const col0 = useSpring(0, { stiffness: 120, damping: 25 });
+  const col1 = useSpring(0, { stiffness: 120, damping: 25 });
+  const col2 = useSpring(0, { stiffness: 120, damping: 25 });
+  const col3 = useSpring(0, { stiffness: 120, damping: 25 });
+  const columnRotations = [col0, col1, col2, col3];
 
-  // Spring-smoothed rotation values per column
-  const col0Rotate = useSpring(0, { stiffness: 100, damping: 30 });
-  const col1Rotate = useSpring(0, { stiffness: 100, damping: 30 });
-  const col2Rotate = useSpring(0, { stiffness: 100, damping: 30 });
-
-  const columnRotations = [col0Rotate, col1Rotate, col2Rotate];
-
-  // Update rotation based on drag velocity
   const handleDrag = useCallback(() => {
-    const vx = dragVelocityX.get();
-    const vy = dragVelocityY.get();
-
-    // Apply rotation based on horizontal velocity
-    columnRotations.forEach((rotation, i) => {
-      const target = vx * COL_ROTATION[i] * 0.1;
-      rotation.set(target);
+    const vx = x.getVelocity();
+    columnRotations.forEach((rot, i) => {
+      rot.set(vx * COL_ROTATION[i] * 0.05);
     });
-  }, [columnRotations, dragVelocityX, dragVelocityY]);
+  }, [columnRotations, x]);
 
-  // Reset rotation when drag ends
   const handleDragEnd = useCallback(() => {
-    setIsDragging(false);
-    columnRotations.forEach((rotation) => {
-      rotation.set(0);
-    });
+    columnRotations.forEach((rot) => rot.set(0));
   }, [columnRotations]);
+
+  // Grid config
+  const cols = 4;
+  const cellW = 280; // base cell width
+  const cellH = 280; // base cell height
 
   return (
     <div
@@ -70,89 +66,90 @@ export function DraggableProductGrid() {
       {/* Draggable Canvas */}
       <motion.div
         drag
-        dragConstraints={{ left: -800, right: 800, top: -600, bottom: 600 }}
-        dragElastic={0.1}
-        dragTransition={{ bounceStiffness: 100, bounceDamping: 20 }}
+        dragConstraints={{ left: -600, right: 600, top: -400, bottom: 400 }}
+        dragElastic={0.08}
+        dragTransition={{ bounceStiffness: 100, bounceDamping: 25 }}
         style={{ x, y }}
-        onDragStart={() => setIsDragging(true)}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
-        className="absolute inset-0"
+        className="absolute"
+        // Center the grid initially, offset so it fills the screen
+        initial={{ left: '50%', top: '50%', x: '-50%', y: '-50%' }}
       >
-        {/* Product Cards */}
-        {PRODUCTS.map((product) => {
-          const columnRotation = columnRotations[product.col];
+        {/* CSS Grid - no gaps, tightly packed */}
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns: `repeat(${cols}, ${cellW}px)`,
+            gridAutoRows: `${cellH}px`,
+            gap: '2px', // minimal hairline gap like Nicola Romei's 0.2vw margin
+          }}
+        >
+          {TILES.map((tile) => {
+            const rotation = columnRotations[tile.col % 4];
 
-          return (
-            <motion.div
-              key={product.id}
-              className="absolute group"
-              style={{
-                left: `calc(50% + ${product.x}px)`,
-                top: `calc(50% + ${product.y}px)`,
-                width: product.w,
-                height: product.h,
-                rotate: columnRotation,
-              }}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: product.id * 0.1 }}
-              onHoverStart={() => setHoveredId(product.id)}
-              onHoverEnd={() => setHoveredId(null)}
-            >
-              {/* Card Container */}
-              <div className="relative w-full h-full rounded-lg overflow-hidden bg-zinc-900/50 border border-white/5 backdrop-blur-sm">
-                {/* Product Image */}
+            return (
+              <motion.div
+                key={tile.id}
+                className="relative overflow-hidden bg-zinc-900"
+                style={{
+                  gridColumn: `${tile.col + 1} / span ${tile.colSpan}`,
+                  gridRow: `${tile.row + 1} / span ${tile.rowSpan}`,
+                  rotate: rotation,
+                }}
+                onHoverStart={() => setHoveredId(tile.id)}
+                onHoverEnd={() => setHoveredId(null)}
+              >
+                {/* Product Image - fills entire tile */}
                 <img
-                  src={product.src}
-                  alt={product.label}
-                  className={`w-full h-full object-contain p-4 transition-all duration-500 ${
-                    hoveredId === product.id
+                  src={tile.src}
+                  alt={tile.label}
+                  className={`w-full h-full object-cover transition-all duration-500 ${
+                    hoveredId === tile.id
                       ? 'saturate-100 scale-105'
-                      : 'saturate-0 opacity-70'
+                      : 'saturate-0 opacity-80'
                   }`}
                   draggable={false}
                 />
 
-                {/* Label - tiny, mysterious */}
-                <div className="absolute bottom-3 left-3 right-3">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 group-hover:text-zinc-300 transition-colors">
-                    .{product.label.toLowerCase().replace(' ', '')}
+                {/* Tiny label - bottom corner */}
+                <div className="absolute bottom-2 left-2">
+                  <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-zinc-600 group-hover:text-zinc-400 transition-colors">
+                    {tile.label}
                   </span>
                 </div>
 
-                {/* Hover glow */}
-                {hoveredId === product.id && (
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-t from-gold/10 to-transparent pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  />
-                )}
-              </div>
-            </motion.div>
-          );
-        })}
+                {/* Hover overlay */}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-t from-black/30 to-transparent transition-opacity duration-300 ${
+                    hoveredId === tile.id ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+              </motion.div>
+            );
+          })}
+        </div>
       </motion.div>
 
       {/* Drag hint */}
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ delay: 1.5 }}
       >
-        <span className="text-xs font-mono uppercase tracking-widest text-zinc-600">
-          ← drag to explore →
+        <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-700">
+          drag to explore
         </span>
       </motion.div>
 
-      {/* Gradient fades */}
-      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
-      <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-black to-transparent pointer-events-none z-10" />
-      <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-black to-transparent pointer-events-none z-10" />
+      {/* Edge fades */}
+      <div className="absolute inset-0 pointer-events-none z-10">
+        <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-black to-transparent" />
+        <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black to-transparent" />
+        <div className="absolute top-0 left-0 w-24 h-full bg-gradient-to-r from-black to-transparent" />
+        <div className="absolute top-0 right-0 w-24 h-full bg-gradient-to-l from-black to-transparent" />
+      </div>
     </div>
   );
 }
