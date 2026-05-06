@@ -1,7 +1,7 @@
 'use client';
 
-import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { useRef, useState, useCallback } from 'react';
 
 // Product data - asymmetrically distributed
 const PRODUCTS = [
