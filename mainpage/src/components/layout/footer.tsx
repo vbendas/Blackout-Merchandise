@@ -43,7 +43,7 @@ export const Footer = () => {
   ];
 
   return (
-    <footer className="w-full bg-black/50 backdrop-blur-md pt-16 pb-8 -mt-[50px] selection:bg-white selection:text-black">
+    <footer className="w-full pt-16 pb-8 -mt-[50px] selection:bg-white selection:text-black">
       {/* Divider: Gradient Line */}
       <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-12"></div>
 

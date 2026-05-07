@@ -1,84 +1,91 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { SocialProof } from '@/components/SocialProof';
-import { ScreenPressReveal } from '@/components/ScreenPressReveal';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useRef } from 'react';
+import { TypewriterText } from '@/components/TypewriterText';
 
 export function HeroSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  });
+
+  const topGradientOpacity = useTransform(scrollYProgress, [0, 0.05], [0, 1]);
+  const bottomGradientOpacity = useTransform(scrollYProgress, [0.7, 1], [0, 1]);
+
   return (
-    <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center z-10">
-      {/* Social Proof */}
-      <div className="absolute top-[122px] md:top-[100px] lg:top-[122px] left-0 w-full z-[55] pointer-events-none hidden md:block">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="pointer-events-auto inline-block scale-90 md:scale-85 lg:scale-90 origin-left">
-            <SocialProof />
+    <section ref={sectionRef} id="hero" className="relative min-h-screen flex flex-col items-center justify-center z-10">
+
+      {/* SVG threshold filter (same as MorphingText) */}
+      <svg className="fixed h-0 w-0">
+        <defs>
+          <filter id="threshold">
+            <feColorMatrix
+              in="SourceGraphic"
+              type="matrix"
+              values="1 0 0 0 0
+                      0 1 0 0 0
+                      0 0 1 0 0
+                      0 0 0 255 -140"
+            />
+          </filter>
+        </defs>
+      </svg>
+
+      {/* Top gradient - activates on scroll */}
+      <motion.div
+        className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-black via-black/80 to-transparent z-30 pointer-events-none"
+        style={{ opacity: topGradientOpacity }}
+      />
+
+      {/* Hero Content */}
+      <div className="relative z-10 w-full min-h-screen flex flex-col items-center justify-center px-6">
+        <div className="text-center mx-auto">
+          {/* Headlines with threshold filter */}
+          <div className="font-sans text-[32pt] leading-none font-bold [filter:url(#threshold)_blur(0.6px)] md:text-[3.5rem] lg:text-[4.5rem] md:whitespace-nowrap">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="tracking-tighter leading-[1.05]"
+            >
+              <span className="text-white">YOUR FANS WEAR YOUR ART.</span>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, filter: 'blur(12px)' }}
+              animate={{ opacity: 1, filter: 'blur(0px)' }}
+              transition={{ duration: 1.8, delay: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="tracking-tighter leading-[1.05] mt-2"
+            >
+              <span className="text-[#71717a]">WHY DRESS THEM IN GARBAGE?</span>
+            </motion.div>
+          </div>
+
+          {/* Typewriter sub-line — outside the filter, fixed position */}
+          <div
+            className="mt-12 md:mt-16 min-h-[2.5em]"
+            style={{
+              fontSize: 'clamp(0.875rem, 1.5vw, 1.25rem)',
+            }}
+          >
+            <TypewriterText
+              text="We help artists, creators, and companies to design, source and sell premium merchandise."
+              delay={3200}
+              speed={35}
+              className="text-zinc-500 font-light tracking-wide leading-relaxed max-w-2xl mx-auto"
+            />
           </div>
         </div>
       </div>
 
-      <div className="absolute top-[110px] max-[389px]:top-[75px] left-1/2 -translate-x-1/2 z-[55] md:hidden scale-90 opacity-90 pointer-events-auto w-full flex justify-center">
-        <SocialProof />
-      </div>
-
-      {/* Screen Press 3D Animation Background */}
-      <ScreenPressReveal />
-
-      {/* Simple headline placeholder */}
-      <div className="relative z-10 w-full min-h-screen flex flex-col items-center justify-center px-6 pointer-events-none">
-        <div className="text-center max-w-5xl mx-auto flex flex-col items-center gap-8 pointer-events-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="space-y-1"
-          >
-            <h1 className="text-4xl md:text-5xl lg:text-7xl tracking-tight leading-[1.05] text-balance">
-              <span className="font-light text-zinc-300">We help </span>
-              <span className="font-semibold text-white">artists, creators</span>
-            </h1>
-            <h1 className="text-4xl md:text-5xl lg:text-7xl tracking-tight leading-[1.05] text-balance">
-              <span className="font-light text-zinc-300">and </span>
-              <span className="font-semibold text-white">brands</span>
-            </h1>
-            <h1 className="text-4xl md:text-5xl lg:text-7xl tracking-tight leading-[1.05] text-balance">
-              <span className="font-light text-zinc-300">design, source and sell</span>
-            </h1>
-            <h1 className="text-4xl md:text-5xl lg:text-7xl tracking-tight leading-[1.05] text-balance">
-              <span className="font-semibold text-white">premium merchandise.</span>
-            </h1>
-          </motion.div>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-base md:text-lg lg:text-xl text-zinc-500 max-w-xl leading-relaxed font-light"
-          >
-            Zero risk. You create, we handle everything else.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-          >
-            <a
-              href="/waitlist"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-full text-sm font-semibold uppercase tracking-wider text-black transition-all duration-300 hover:scale-105 hover:shadow-[0_0_60px_rgba(212,175,55,0.3)]"
-              style={{
-                background: 'linear-gradient(135deg, #D4AF37 0%, #F5E6A3 50%, #D4AF37 100%)',
-              }}
-            >
-              Join the Waitlist
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </a>
-          </motion.div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-0 left-0 w-full h-[20vh] bg-gradient-to-t from-black to-transparent pointer-events-none" />
+      {/* Bottom gradient - activates on scroll */}
+      <motion.div
+        className="absolute bottom-0 left-0 w-full h-[20vh] bg-gradient-to-t from-black to-transparent z-30 pointer-events-none"
+        style={{ opacity: bottomGradientOpacity }}
+      />
     </section>
   );
 }

@@ -1,10 +1,16 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 export function GradualBlurBottom() {
+  const { scrollY } = useScroll();
+  const opacity = useTransform(scrollY, [0, 200], [0, 1]);
+
   return (
-    <div className="fixed bottom-0 left-0 z-40 w-full h-[100px] pointer-events-none">
+    <motion.div
+      className="fixed bottom-0 left-0 z-40 w-full h-[100px] pointer-events-none"
+      style={{ opacity }}
+    >
       <div
         className="relative w-full h-full backdrop-blur-[2px] bg-black"
         style={{
@@ -12,6 +18,6 @@ export function GradualBlurBottom() {
           WebkitMaskImage: 'linear-gradient(to bottom, transparent, black)',
         }}
       />
-    </div>
+    </motion.div>
   );
 }

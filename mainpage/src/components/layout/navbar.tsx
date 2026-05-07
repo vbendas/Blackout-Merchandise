@@ -2,11 +2,15 @@
 
 import { Button, Link, Navbar, NavbarContent, NavbarItem, NavbarMenu, NavbarMenuItem } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import React from 'react';
 import { openAccessibilityMenu } from '@/components/accessibility-widget';
 
 export const TopNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
+  const { scrollY } = useScroll();
+  const gradientOpacity = useTransform(scrollY, [0, 300], [0, 1]);
 
   // Menu items for mobile and desktop
   const menuItems = [
@@ -41,7 +45,7 @@ export const TopNavbar = () => {
       }}
     >
       {/* Smoother, Taller Faded Background - Matching Bottom Blur */}
-      <div
+      <motion.div
         className="fixed top-0 left-0 w-full h-32 bg-black backdrop-blur-[2px] -z-10 pointer-events-none"
         style={{
           maskImage: 'linear-gradient(to bottom, black 40%, transparent)',
@@ -49,6 +53,7 @@ export const TopNavbar = () => {
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden',
           WebkitBackfaceVisibility: 'hidden',
+          opacity: gradientOpacity,
         }}
       />
 

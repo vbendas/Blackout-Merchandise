@@ -126,7 +126,7 @@ export function ProductionQuality() {
 
   return (
     <section
-      className="relative z-30 bg-black py-0 overflow-hidden flex flex-col gap-0"
+      className="relative z-30 py-0 overflow-hidden flex flex-col gap-0"
       style={{
         marginTop: '-110px',
         boxShadow: '0 0 50px 20px rgba(0,0,0,0.9)',
@@ -155,11 +155,11 @@ export function ProductionQuality() {
               <div key={i} className="flex items-center gap-12">
                 {/* Outline Text */}
                 <span className="text-transparent whitespace-nowrap" style={{ WebkitTextStroke: '2px #52525b' }}>
-                  YOUR FANS WEAR YOUR ART.
+                  Merch shouldn't suck.
                 </span>
 
                 {/* Solid Pop Text */}
-                <span className="text-white whitespace-nowrap">WHY DRESS THEM IN GARBAGE?</span>
+                <span className="text-white whitespace-nowrap">Ours doesn't.</span>
               </div>
             ))}
           </div>

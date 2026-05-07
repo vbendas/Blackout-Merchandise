@@ -14,10 +14,7 @@ export function WaitlistCTA() {
   const isInView = useInView(containerRef, { once: true, amount: 0.8 });
 
   return (
-    <section className="relative z-[45] bg-black py-16 md:py-24 overflow-hidden -mt-9" ref={containerRef}>
-      {/* Subtle Noise Texture */}
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
-
+    <section className="relative z-[45] py-16 md:py-24 overflow-hidden -mt-9" ref={containerRef}>
       <div className="relative z-50 max-w-6xl mx-auto px-6 text-center">
         {/* Main Headline - Morphing between two statements with fluid sizing */}
         <div
@@ -51,7 +48,7 @@ export function WaitlistCTA() {
           <Link href="/waitlist">
             <HoverBorderGradient
               containerClassName="rounded-full"
-              className="dark:bg-black bg-black text-white flex flex-col items-center font-bold uppercase tracking-wider px-10 py-4"
+              className="bg-black/60 text-white flex flex-col items-center font-bold uppercase tracking-wider px-10 py-4"
               style={{ fontSize: 'clamp(1rem, 3vw, 1.125rem)' }}
             >
               <span>Prove Her&nbsp;Right!</span>

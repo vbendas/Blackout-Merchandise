@@ -35,8 +35,6 @@ export default function MasonryGrid() {
   const [mounted, setMounted] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [timerKey, setTimerKey] = useState(0);
   const [direction, setDirection] = useState(1);
   const { isMobile, hasMounted } = useViewportSize();
 
@@ -48,7 +46,7 @@ export default function MasonryGrid() {
 
   // Auto-advance slider on mobile every 3 seconds
   useEffect(() => {
-    if (!isMobile || !hasMounted || isDragging) return;
+    if (!isMobile || !hasMounted) return;
 
     const timer = setInterval(() => {
       setDirection(1);
@@ -56,7 +54,7 @@ export default function MasonryGrid() {
     }, 3000);
 
     return () => clearInterval(timer);
-  }, [isMobile, hasMounted, isDragging, timerKey, currentSlide]);
+  }, [isMobile, hasMounted, currentSlide]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -95,28 +93,12 @@ export default function MasonryGrid() {
 
   if (!mounted || !hasMounted) return null;
 
-  const swipeConfidenceThreshold = 10000;
-  const swipePower = (offset: number, velocity: number) => {
-    return Math.abs(offset) * Math.abs(velocity);
-  };
-
-  const paginate = (newDirection: number) => {
-    setDirection(newDirection);
-    setCurrentSlide((prev) => {
-      const next = prev + newDirection;
-      if (next < 0) return ITEMS.length - 1;
-      if (next >= ITEMS.length) return 0;
-      return next;
-    });
-    setTimerKey((prev) => prev + 1);
-  };
-
   return (
     <>
       {isMobile ? (
-        // MOBILE: Slider/Carousel
-        <section className="w-full bg-black py-12 -mt-[40px] relative">
-          <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-black via-black to-transparent z-10 pointer-events-none" />
+        // MOBILE: Auto-advancing Carousel
+        <section className="w-full py-12 -mt-[40px] relative">
+          <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-transparent via-transparent to-transparent z-10 pointer-events-none" />
 
           <div className="relative h-[60vh] flex items-center justify-center overflow-hidden">
             <AnimatePresence mode="wait" custom={direction}>
@@ -130,27 +112,7 @@ export default function MasonryGrid() {
                   x: { type: 'spring', stiffness: 300, damping: 30 },
                   opacity: { duration: 0.2 },
                 }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={1}
-                onDragStart={() => setIsDragging(true)}
-                onDragEnd={(e, { offset, velocity }) => {
-                  const swipe = swipePower(offset.x, velocity.x);
-
-                  if (swipe > swipeConfidenceThreshold) {
-                    if (offset.x < 0) {
-                      paginate(1);
-                    } else {
-                      paginate(-1);
-                    }
-                  }
-
-                  setTimeout(() => {
-                    setIsDragging(false);
-                    setTimerKey((prev) => prev + 1);
-                  }, 100);
-                }}
-                className="absolute w-full h-full cursor-grab active:cursor-grabbing"
+                className="absolute w-full h-full"
                 onClick={() => setSelectedIndex(currentSlide)}
               >
                 <img
@@ -162,68 +124,47 @@ export default function MasonryGrid() {
             </AnimatePresence>
           </div>
 
-          <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black via-black to-transparent z-10 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-transparent via-transparent to-transparent z-10 pointer-events-none" />
         </section>
       ) : (
-        // DESKTOP: Draggable Masonry Grid
-        <section className="w-full bg-black relative overflow-hidden" style={{ height: '100vh' }}>
+        // DESKTOP: Centered Static Masonry Grid
+        <section className="w-full relative overflow-hidden py-16">
           {/* Gradient fade at top */}
-          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black via-black/80 to-transparent z-20 pointer-events-none" />
+          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-transparent via-transparent to-transparent z-20 pointer-events-none" />
 
-          {/* Draggable wrapper */}
-          <motion.div
-            drag
-            dragConstraints={{ left: -500, right: 500, top: -400, bottom: 400 }}
-            dragElastic={0.1}
-            dragMomentum={true}
-            className="w-full h-full cursor-grab active:cursor-grabbing"
-            style={{ touchAction: 'none' }}
-          >
-            {/* Original masonry grid - padded to allow drag room */}
-            <div className="p-16 min-w-[120vw] min-h-[120vh]">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[300px] md:auto-rows-[250px] lg:auto-rows-[200px] grid-flow-dense max-w-[90rem] mx-auto relative z-0">
-                {ITEMS.map((item, index) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, filter: 'blur(10px)' }}
-                    whileInView={{ opacity: 1, filter: 'blur(0px)' }}
-                    viewport={{ once: true, margin: '-50px' }}
-                    transition={{ duration: 0.8, delay: index * 0.05 }}
-                    className={`relative group overflow-hidden rounded-sm ${item.className}`}
-                  >
-                    <img
-                      src={getCloudinaryUrl(item.publicId, 600)}
-                      alt={`Portfolio ${item.id}`}
-                      draggable={false}
-                      className="w-full h-full object-cover saturate-[0.65] sepia-[0.08] contrast-[1.05] blur-[0.5px] group-hover:saturate-100 group-hover:sepia-0 group-hover:contrast-100 group-hover:blur-0 transition-all duration-700 ease-in-out scale-105 group-hover:scale-100"
-                    />
-                    {/* Film grain overlay */}
-                    <div
-                      className="absolute inset-0 opacity-30 group-hover:opacity-0 transition-opacity duration-700 pointer-events-none mix-blend-overlay"
-                      style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-                      }}
-                    />
-                  </motion.div>
-                ))}
-              </div>
+          {/* Centered masonry grid */}
+          <div className="max-w-[90rem] mx-auto px-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[300px] md:auto-rows-[250px] lg:auto-rows-[200px] grid-flow-dense">
+              {ITEMS.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, filter: 'blur(10px)' }}
+                  whileInView={{ opacity: 1, filter: 'blur(0px)' }}
+                  viewport={{ once: true, margin: '-50px' }}
+                  transition={{ duration: 0.8, delay: index * 0.05 }}
+                  className={`relative group overflow-hidden rounded-sm ${item.className}`}
+                  onClick={() => setSelectedIndex(index)}
+                >
+                  <img
+                    src={getCloudinaryUrl(item.publicId, 600)}
+                    alt={`Portfolio ${item.id}`}
+                    draggable={false}
+                    className="w-full h-full object-cover saturate-[0.65] sepia-[0.08] contrast-[1.05] blur-[0.5px] group-hover:saturate-100 group-hover:sepia-0 group-hover:contrast-100 group-hover:blur-0 transition-all duration-700 ease-in-out scale-105 group-hover:scale-100"
+                  />
+                  {/* Film grain overlay */}
+                  <div
+                    className="absolute inset-0 opacity-30 group-hover:opacity-0 transition-opacity duration-700 pointer-events-none mix-blend-overlay"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                    }}
+                  />
+                </motion.div>
+              ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* Gradient fade at bottom */}
-          <div className="absolute bottom-0 left-0 w-full h-36 bg-gradient-to-t from-black via-black to-transparent z-20 pointer-events-none" />
-
-          {/* Drag hint */}
-          <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-          >
-            <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-700">
-              drag to explore
-            </span>
-          </motion.div>
+          <div className="absolute bottom-0 left-0 w-full h-36 bg-gradient-to-t from-transparent via-transparent to-transparent z-20 pointer-events-none" />
         </section>
       )}
 
@@ -270,7 +211,6 @@ export default function MasonryGrid() {
 
                 <motion.div
                   onClick={(e) => e.stopPropagation()}
-                  className="cursor-grab active:cursor-grabbing"
                 >
                   <motion.img
                     key={selectedIndex}
