@@ -27,16 +27,16 @@ export default function HomePage() {
         <GrainGradient
           style={{ height: '100%', width: '100%' }}
           colorBack="hsl(0, 0%, 0%)"
-          softness={0.76}
-          intensity={0.35}
+          softness={0.55}
+          intensity={0.22}
           noise={0}
           shape="corners"
           offsetX={0}
           offsetY={0}
           scale={1}
           rotation={0}
-          speed={0.8}
-          colors={['hsl(0, 0%, 6%)', 'hsl(0, 0%, 4%)', 'hsl(0, 0%, 8%)']}
+          speed={0.4}
+          colors={['hsl(0, 0%, 8%)', 'hsl(0, 0%, 5%)', 'hsl(0, 0%, 10%)']}
         />
       </div>
 

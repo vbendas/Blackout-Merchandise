@@ -12,7 +12,7 @@ export function GradualBlurBottom() {
       style={{ opacity }}
     >
       <div
-        className="relative w-full h-full backdrop-blur-[2px] bg-black"
+        className="relative w-full h-full backdrop-blur-[1px] bg-black"
         style={{
           maskImage: 'linear-gradient(to bottom, transparent, black)',
           WebkitMaskImage: 'linear-gradient(to bottom, transparent, black)',

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "03-Evaluations/QUICK_WINS_FEB06_2026.md",
+                "file": "05-Roadmap/Sprint-Plan-Crowdfunding-v1.0.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "QUICK_WINS_FEB06_2026"
+              "title": "Sprint-Plan-Crowdfunding-v1.0"
             }
           }
         ]
@@ -185,6 +185,9 @@
   },
   "active": "4ccf6a8ac8bcc8b0",
   "lastOpenFiles": [
+    "05-Roadmap/Roadmap-Crowdfunding-v1.0.md",
+    "05-Roadmap/Sprint-Plan-Crowdfunding-v1.0.md",
+    "05-Roadmap/Agent-Assignments/Agent-1-Database.md",
     "03-Evaluations/EVALUATION_JAN24_2026_AI_STACK_PIVOT.md",
     "03-Evaluations/EVALUATION_FEB06_2026_COMPREHENSIVE_AUDIT.md",
     "03-Evaluations/Evaluation-Archive.md",
@@ -209,9 +212,6 @@
     "DPIA.md",
     "DEVLOG.md",
     "Context.md",
-    "AGENT_BROWSER_INTEGRATION.md",
-    "05-Shared/Production-Automation-Reference.md",
-    "05-Shared/Mockup-Architecture-Reference.md",
     "05-Shared",
     "04-Crowdfunding-Landing",
     "03-Waitlist-Landing",

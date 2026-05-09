@@ -1,55 +1,29 @@
 # Merch From Documentation Hub
 
-Welcome to the central knowledge base for the Merch From project. Everything is organized and interconnected using Obsidian-style wiki links.
+Welcome to the Merch From knowledge base. Everything is organized and interconnected using Obsidian-style wiki links.
 
 ---
 
 ## Start Here Based on Your Goal
 
-### I Want to Understand the Project
-→ Read [[Project-Status]] (current phase, score, blockers)
-
-### I Want to See the Product Vision
-→ Read [[../00-PRD-Roadmap/PRD]] (what we're building and why)
-
-### I Want to Check the Timeline
-→ Read [[../00-PRD-Roadmap/Roadmap]] (8 phases, 32 weeks total)
-
-### I Want to Work on the PWA
-→ Copy [[../01-PWA/Claude-Context]] and paste into Claude Code
-
-### I Want to Work on the Website
-→ Copy [[../02-Website/Claude-Context]] and paste into Claude Code
-
-### I Want to Understand Design System
-→ Read [[../05-Shared/Design-System]] (colors, typography, components)
-
-### I Want to Understand the Brand
-→ Read [[../05-Shared/Brand-Guidelines]] (Cat-Suite voices, tone, messaging)
-
-### I Want to See Crowdfunding Strategy
-→ Read [[../04-Crowdfunding-Landing/Overview]] (tiers, timeline, projections)
+| Goal | Document |
+|------|----------|
+| Understand the product | [[../01-Product/README]] |
+| See technical architecture | [[../02-Architecture/README]] |
+| Understand the Cat-Suite agents | [[../03-Cat-Suite/README]] |
+| Check design system | [[../04-Design/README]] |
+| View roadmap | [[../05-Roadmap/README]] |
+| Understand production | [[../06-Operations/README]] |
+| See crowdfunding strategy | [[../07-Community/README]] |
+| Start developing | [[../08-Development/README]] |
 
 ---
 
 ## Current Status
 
-**Phase**: Phase 3 - Frontend Content Suite
-**Project Score**: 8.5/10
-**Timeline**: Jan 12 → Jan 26, 2026
-
-### Score Breakdown
-
-| Aspect | Score |
-|--------|-------|
-| Vision & Strategy | 9.7 |
-| Business Model | 8.5 |
-| Technical Architecture | 8.5 |
-| Market Opportunity | 7.5 |
-| Founder-Market Fit | 9.3 |
-| Competitive Moats | 8.3 |
-| Execution Progress | 8.2 |
-| Investment Readiness | 8.0 |
+**Phase**: Phase 3.8 — Product Catalog Database Complete  
+**Project Score**: 8.5/10  
+**Timeline to MVP**: 3-5 weeks
 
 ---
 
@@ -57,68 +31,47 @@ Welcome to the central knowledge base for the Merch From project. Everything is 
 
 ```
 Documentation/
-├── 00-Index/                  ← You are here
-│   ├── README.md              ← Navigation hub
-│   ├── Project-Status.md      ← Current metrics & blockers
-│   └── Quick-Links.md         ← Fast navigation
-│
-├── 00-PRD-Roadmap/            ← Product vision and timeline
-│   ├── PRD.md                 ← Full product requirements
-│   ├── Roadmap.md             ← 8 development phases
-│   ├── Success-Metrics.md     ← KPIs and targets
-│   └── Constraints.md         ← Budget, team, limits
-│
-├── 00-Evaluations/            ← Feature and tech decisions
-│   ├── Feature-Evaluations.md ← Why features were chosen
-│   ├── Tool-Stack-Decisions.md ← Technology choices
-│   └── Architecture-Decisions.md ← Structural decisions
-│
-├── 01-PWA/                    ← Merchandise Studio (Creator App)
-│   └── Claude-Context.md      ← Copy to Claude Code for PWA work
-│
-├── 02-Website/                ← Marketing website (merchfrom.com)
-│   └── Claude-Context.md      ← Copy to Claude Code for website work
-│
-├── 03-Waitlist-Landing/       ← Email signup page
-│   └── Overview.md            ← Page specs and requirements
-│
-├── 04-Crowdfunding-Landing/   ← Campaign page
-│   └── Overview.md            ← Tiers, projections, timeline
-│
-└── 05-Shared/                 ← Design, API, Database
-    ├── Design-System.md       ← Colors, typography, components
-    ├── Database-Schema.md     ← Tables, relationships
-    └── Brand-Guidelines.md    ← Voice, tone, Cat-Suite
+├── 00-Index/              ← Navigation hub
+├── 01-Product/            ← Product vision, business model, user journeys
+├── 02-Architecture/       ← Tech stack, AI models, database, security
+├── 03-Cat-Suite/          ← AI agent prompts, personalities, routing
+├── 04-Design/             ← Design system, brand guidelines, assets
+├── 05-Roadmap/            ← Development phases and planning
+├── 06-Operations/         ← Production pipeline, facility, automation
+├── 07-Community/          ← Crowdfunding, tokenization, community
+├── 08-Development/        ← Dev guides, ADRs, Claude contexts
+└── 99-Archive/            ← Historical documents and evaluations
 ```
 
 ---
 
 ## Key Documents
 
-### Strategy & Vision
+### Product
 | Document | Purpose |
 |----------|---------|
-| [[../00-PRD-Roadmap/PRD]] | Full product requirements, founder profile, market analysis |
-| [[../00-PRD-Roadmap/Roadmap]] | 8 development phases, task breakdown |
-| [[../04-Crowdfunding-Landing/Overview]] | €35-50K campaign strategy |
+| [[../01-Product/Vision]] | Market analysis, competitive positioning, moats |
+| [[../01-Product/Business-Model]] | Pricing, revenue, Merch Coins, exit strategy |
+| [[../01-Product/User-Journeys]] | Personas, day-in-the-life, waitlist flow |
 
-### Decisions & Evaluations
+### Architecture
 | Document | Purpose |
 |----------|---------|
-| [[../00-Evaluations/Feature-Evaluations]] | Why features in each phase |
-| [[../00-Evaluations/Tool-Stack-Decisions]] | Technology choices (Neon, Clerk, etc.) |
+| [[../02-Architecture/Tech-Stack]] | Full technology stack with decisions |
+| [[../02-Architecture/AI-Stack]] | AI model routing, costs, scaling economics |
+| [[../02-Architecture/Database-Schema]] | Drizzle ORM schema (source of truth) |
 
-### Design & Brand
+### Cat-Suite
 | Document | Purpose |
 |----------|---------|
-| [[../05-Shared/Design-System]] | Colors, typography, spacing, components |
-| [[../05-Shared/Brand-Guidelines]] | Cat-Suite voices, brand tone, messaging |
+| [[../03-Cat-Suite/System-Prompts]] | Full system prompts for all three agents |
+| [[../03-Cat-Suite/Leopoldo-Detailed]] | Extended Leopoldo personality and capabilities |
 
-### Project-Specific
+### Design
 | Document | Purpose |
 |----------|---------|
-| [[../01-PWA/Claude-Context]] | Context for PWA development |
-| [[../02-Website/Claude-Context]] | Context for website development |
+| [[../04-Design/Design-System]] | Colors, typography, components |
+| [[../04-Design/Brand-Guidelines]] | Cat-Suite voices, brand tone |
 
 ---
 
@@ -138,22 +91,13 @@ Documentation/
 |------------|--------|--------|
 | €300,000 | 16-18% | 24 months to profitability |
 
-### Market Opportunity
-| Metric | Value |
-|--------|-------|
-| TAM | $340B (Global Licensed Merchandise) |
-| SAM | $12B (European Creator Merch) |
-| SOM (Year 1-3) | $50M (0.4% market capture) |
+---
+
+## Historical Record
+
+The complete historical PRD (7,000+ lines) is preserved in [[../99-Archive/PRD-v3.2-Full-Historical]]. This was split into the focused documents above for easier navigation.
 
 ---
 
-## Related Files (Root)
-
-- `CLAUDE.md` — Development guide for Claude Code sessions
-- `src/db/schema.ts` — Database schema (Drizzle)
-- `docs/Merchandise_Studio.md` — PWA strategy document
-
----
-
-**Last Updated**: January 17, 2026
-**Status**: Active (Phase 3 in progress)
+**Last Updated**: May 8, 2026  
+**Status**: Active (Phase 3.8 complete, Phase 4 ready)

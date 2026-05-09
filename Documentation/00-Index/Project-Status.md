@@ -197,9 +197,9 @@ None identified.
 
 ## Related Documents
 
-- **PRD**: [[../00-PRD-Roadmap/PRD]] - Product vision
-- **Roadmap**: [[../00-PRD-Roadmap/Roadmap]] - Timeline and phases
-- **Feature Evaluations**: [[../00-Evaluations/Feature-Evaluations]] - Why features were chosen
+- **PRD**: [[../PRD]] - Product vision
+- **Roadmap**: [[../05-Roadmap/Roadmap]] - Timeline and phases
+- **Feature Evaluations**: [[../99-Archive/Evaluations/Feature-Evaluations]] - Why features were chosen
 - **Quick Links**: [[Quick-Links]] - Fast navigation
 
 ---
