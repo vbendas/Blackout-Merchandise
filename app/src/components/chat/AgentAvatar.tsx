@@ -108,7 +108,7 @@ export function AgentAvatar({
 
   return (
     <motion.div
-      className={cn('relative h-full w-full overflow-hidden rounded-full bg-zinc-800', className)}
+      className={cn('relative h-full w-full overflow-hidden rounded-full bg-transparent', className)}
       animate={isIdle ? 'idle' : 'active'}
       variants={idleVariants}
     >

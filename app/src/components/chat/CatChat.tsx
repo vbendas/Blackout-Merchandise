@@ -232,7 +232,8 @@ export function CatChat() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const _chatWindowRef = useRef<HTMLDivElement>(null);
+  const chatWindowRef = useRef<HTMLDivElement>(null);
+  const avatarButtonRef = useRef<HTMLButtonElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -303,6 +304,23 @@ export function CatChat() {
     }
   }, [isOpen]);
 
+  // Close chat when clicking outside (skip in studio mode)
+  useEffect(() => {
+    if (!isOpen || isStudio) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        chatWindowRef.current &&
+        !chatWindowRef.current.contains(event.target as Node) &&
+        avatarButtonRef.current &&
+        !avatarButtonRef.current.contains(event.target as Node)
+      ) {
+        toggleChat();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, isStudio, toggleChat]);
+
   const handleSend = useCallback(async () => {
     if (!inputValue.trim() || isTyping) return;
     await sendMessage(inputValue.trim());
@@ -372,6 +390,7 @@ export function CatChat() {
       {/* Floating Avatar Button - Bottom Right (hidden on studio) */}
       {!isStudio && (
       <motion.button
+        ref={avatarButtonRef}
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', damping: 25, stiffness: 200, duration: 0.3 }}
@@ -399,16 +418,13 @@ export function CatChat() {
             }, 500);
           }
         }}
-        className={`fixed z-60 overflow-visible cursor-pointer rounded-full bg-zinc-900 ${
+        className={`fixed z-60 overflow-visible cursor-pointer rounded-full bg-transparent shadow-none ${
           isMobile 
             ? 'right-[-14px] bottom-[-36px] w-[140px] h-[180px]' 
             : isTablet 
               ? 'right-[-18px] bottom-[-45px] w-[160px] h-[200px]'
               : 'right-[-25px] bottom-[-50px] w-[168px] h-[224px]'
         }`}
-        style={{
-          filter: 'drop-shadow(0 0 15px rgba(161, 161, 170, 0.25))',
-        }}
         aria-label="Open chat"
       >
         {/* Speech Bubble */}
@@ -442,8 +458,9 @@ export function CatChat() {
         </motion.div>
 
         {/* Avatar */}
-        <AgentAvatar
-          agentName={agentConfig.name}
+        <div className="w-full h-full rounded-full overflow-hidden ring-1 ring-zinc-950">
+          <AgentAvatar
+            agentName={agentConfig.name}
           expression={
             isOpen
               ? 'thinking'
@@ -462,6 +479,7 @@ export function CatChat() {
           enableIdleAnimation={!isOpen}
           enableSpeakingAnimation={true}
         />
+      </div>
       </motion.button>
       )}
 
@@ -485,6 +503,7 @@ export function CatChat() {
       <AnimatePresence>
         {isOpen && hasMounted && (
           <motion.div
+            ref={chatWindowRef}
             initial={{ opacity: 0, scale: 0.9, y: 20, rotateX: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20, rotateX: -10 }}
@@ -510,12 +529,14 @@ export function CatChat() {
                   : {
                       width: '420px',
                       maxWidth: 'calc(100vw - 48px)',
-                      height: '680px',
+                      height: 'auto',
+                      minHeight: '400px',
                       maxHeight: 'calc(100vh - 140px)',
                     }
                 : {
                     width: 'calc(100% - 32px)',
-                    height: 'calc(100vh - 148px)',
+                    height: 'auto',
+                    maxHeight: 'calc(100dvh - 148px)',
                     borderRadius: '1.5rem',
                   }
             }
@@ -666,7 +687,7 @@ export function CatChat() {
                 <>
                   <QuickActionsCarousel actions={quickActions} onAction={handleQuickAction} />
 
-                  <div className="flex items-end gap-2">
+                  <div className="flex items-center gap-2">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -722,15 +743,6 @@ export function CatChat() {
                     >
                       <Icon icon="lucide:send" className={isMobile ? 'h-4 w-4' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} />
                     </motion.button>
-                  </div>
-                  <div className={`flex items-center justify-between text-zinc-500 ${
-                    isMobile ? 'mt-2 text-[10px]' : isTablet ? 'mt-3 text-xs' : 'mt-2 text-[10px]'
-                  }`}>
-                    <span>Enter to send</span>
-                    <span className="flex items-center gap-1">
-                      <Icon icon="lucide:shield-check" className="h-3 w-3" />
-                      Secure
-                    </span>
                   </div>
                 </>
               )}

@@ -157,7 +157,8 @@ export function CatChat() {
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const _chatWindowRef = useRef<HTMLDivElement>(null);
+  const chatWindowRef = useRef<HTMLDivElement>(null);
+  const avatarButtonRef = useRef<HTMLButtonElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -236,6 +237,23 @@ export function CatChat() {
     }
   }, [currentExpression, agentConfig.name]);
 
+  // Close chat when clicking outside
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        chatWindowRef.current &&
+        !chatWindowRef.current.contains(event.target as Node) &&
+        avatarButtonRef.current &&
+        !avatarButtonRef.current.contains(event.target as Node)
+      ) {
+        toggleChat();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, toggleChat]);
+
   const handleSend = useCallback(async () => {
     if (!inputValue.trim() || isTyping) return;
     await sendMessage(inputValue.trim());
@@ -304,6 +322,7 @@ export function CatChat() {
     <>
       {/* Floating Avatar Button - Bottom Right */}
       <motion.button
+        ref={avatarButtonRef}
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', damping: 25, stiffness: 200, duration: 0.3 }}
@@ -342,16 +361,13 @@ export function CatChat() {
             }, 500);
           }
         }}
-        className={`fixed z-60 overflow-visible cursor-pointer rounded-full bg-zinc-900 ${
+        className={`fixed z-60 overflow-visible cursor-pointer rounded-full bg-transparent shadow-none ${
           isMobile 
             ? 'right-[-14px] bottom-[-36px] w-[140px] h-[180px]' 
             : isTablet 
               ? 'right-[-18px] bottom-[-45px] w-[160px] h-[200px]'
               : 'right-[-25px] bottom-[-50px] w-[168px] h-[224px]'
         }`}
-        style={{
-          filter: 'drop-shadow(0 0 15px rgba(161, 161, 170, 0.25))',
-        }}
         aria-label="Open chat"
       >
         {/* Speech Bubble */}
@@ -385,7 +401,7 @@ export function CatChat() {
         </motion.div>
 
         {/* Avatar */}
-        <div className="overflow-hidden w-full h-full rounded-full bg-zinc-800">
+        <div className="overflow-hidden w-full h-full rounded-full bg-transparent ring-1 ring-zinc-950">
           <img
             key={currentExpression}
             ref={avatarImgRef}
@@ -402,6 +418,7 @@ export function CatChat() {
       <AnimatePresence>
         {isOpen && hasMounted && (
           <motion.div
+            ref={chatWindowRef}
             initial={{ opacity: 0, scale: 0.9, y: 20, rotateX: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20, rotateX: -10 }}
@@ -416,12 +433,14 @@ export function CatChat() {
                 ? {
                     width: '420px',
                     maxWidth: 'calc(100vw - 48px)',
-                    height: '680px',
+                    height: 'auto',
+                    minHeight: '400px',
                     maxHeight: 'calc(100vh - 140px)',
                   }
                 : {
                     width: 'calc(100% - 32px)',
-                    height: 'calc(100vh - 148px)',
+                    height: 'auto',
+                    maxHeight: 'calc(100dvh - 148px)',
                     borderRadius: '1.5rem',
                   }
             }
@@ -553,32 +572,7 @@ export function CatChat() {
              </motion.div>
            ) : (
              <>
-               <AnimatePresence>
-                 {inputFocused && suggestions.length > 0 && (
-                   <motion.div
-                     initial={{ opacity: 0, height: 0 }}
-                     animate={{ opacity: 1, height: 'auto' }}
-                     exit={{ opacity: 0, height: 0 }}
-                     className="mb-3 flex gap-2 overflow-x-auto pb-1"
-                   >
-                     {suggestions.map((suggestion, index) => (
-                       <motion.button
-                         key={index}
-                         initial={{ opacity: 0, x: -10 }}
-                         animate={{ opacity: 1, x: 0 }}
-                         transition={{ delay: index * 0.05 }}
-                         onClick={() => handleQuickAction(suggestion)}
-                         className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
-                       >
-                         <Icon icon="lucide:sparkles" className="h-3 w-3" />
-                         {suggestion.split(' ').slice(0, 2).join(' ')}...
-                       </motion.button>
-                     ))}
-                   </motion.div>
-                 )}
-               </AnimatePresence>
-
-               <QuickActionsCarousel actions={quickActions} onAction={handleQuickAction} />
+                <QuickActionsCarousel actions={quickActions} onAction={handleQuickAction} />
 
                <div className="flex items-end gap-2">
                     <motion.button
@@ -636,15 +630,6 @@ export function CatChat() {
                     >
                       <Icon icon="lucide:send" className={isMobile ? 'h-4 w-4' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} />
                     </motion.button>
-                  </div>
-                  <div className={`flex items-center justify-between text-zinc-500 ${
-                    isMobile ? 'mt-2 text-[10px]' : isTablet ? 'mt-3 text-xs' : 'mt-2 text-[10px]'
-                  }`}>
-                    <span>Enter to send</span>
-                    <span className="flex items-center gap-1">
-                      <Icon icon="lucide:shield-check" className="h-3 w-3" />
-                      Secure
-                    </span>
                   </div>
                 </>
               )}
