@@ -99,6 +99,19 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
         };
         setMessages((prev) => [...prev, handoffMessage]);
         setCurrentAgent(agent);
+
+        // Add welcome message from new agent after handoff delay
+        setTimeout(() => {
+          const welcomeMessage: ChatMessage = {
+            id: `welcome-${Date.now()}`,
+            role: 'assistant',
+            content: `Hi! I'm ${AGENT_CONFIGS[agent].name}, ${AGENT_CONFIGS[agent].role}. How can I help you today?`,
+            type: 'text',
+            timestamp: Date.now(),
+            agent: agent,
+          };
+          setMessages((prev) => [...prev, welcomeMessage]);
+        }, HANDOFF_DELAY_MS);
       }
     },
     [currentAgent]

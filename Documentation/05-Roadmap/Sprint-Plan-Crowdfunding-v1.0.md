@@ -58,21 +58,21 @@
 **Theme**: Agent Switcher UI + Avatar States  
 **Hours**: 6
 
-#### Task 2.1: Build Agent Switcher Component
-- **Subtask 2.1.1**: Create `components/chat/AgentSwitcher.tsx`
-- **Subtask 2.1.2**: Design: horizontal tabs or vertical sidebar showing Leopoldo/Francisca/Antonia
-- **Subtask 2.1.3**: Active agent highlighted with gold border + glow effect
-- **Subtask 2.1.4**: On switch: clear current input, show agent welcome message, change avatar
-- **Subtask 2.1.5**: Track active agent in Zustand store (`useChatStore`)
-- **Subtask 2.1.6**: Animate switch: fade out old avatar, fade in new (300ms)
+#### Task 2.1: Build Agent Switcher Component ✅ COMPLETE
+- **Subtask 2.1.1**: Create `components/chat/AgentSwitcher.tsx` ✅
+- **Subtask 2.1.2**: Design: horizontal tabs or vertical sidebar showing Leopoldo/Francisca/Antonia ✅
+- **Subtask 2.1.3**: Active agent highlighted with gold border + glow effect ✅
+- **Subtask 2.1.4**: On switch: clear current input, show agent welcome message, change avatar ✅
+- **Subtask 2.1.5**: Track active agent in Zustand store (`useChatStore`) ✅
+- **Subtask 2.1.6**: Animate switch: fade out old avatar, fade in new (300ms) ✅
 
-#### Task 2.2: Create Avatar Component with Expression States
-- **Subtask 2.2.1**: Create `components/chat/AgentAvatar.tsx`
-- **Subtask 2.2.2**: Load Cloudinary avatar image based on `agentId` + `expression`
-- **Subtask 2.2.3**: Expressions: `neutral`, `thinking`, `speaking`, `happy`, `confused`
-- **Subtask 2.2.4**: Expression transitions: CSS transition or Framer Motion (scale + opacity)
-- **Subtask 2.2.5**: Size variants: `sm` (header), `md` (chat bubble), `lg` (hero)
-- **Subtask 2.2.6**: Add subtle idle animation: gentle breathing/pulse on `neutral`
+#### Task 2.2: Create Avatar Component with Expression States ✅ COMPLETE
+- **Subtask 2.2.1**: Create `components/chat/AgentAvatar.tsx` ✅
+- **Subtask 2.2.2**: Load Cloudinary avatar image based on `agentId` + `expression` ✅
+- **Subtask 2.2.3**: Expressions: `neutral`, `thinking`, `speaking`, `happy`, `confused` ✅
+- **Subtask 2.2.4**: Expression transitions: CSS transition or Framer Motion (scale + opacity) ✅
+- **Subtask 2.2.5**: Size variants: `sm` (header), `md` (chat bubble), `lg` (hero) ✅
+- **Subtask 2.2.6**: Add subtle idle animation: gentle breathing/pulse on `neutral` ✅
 
 #### Task 2.3: Integrate Avatar State with Message Lifecycle
 - **Subtask 2.3.1**: `neutral` when idle (no activity for 3s)

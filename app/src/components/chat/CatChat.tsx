@@ -8,13 +8,15 @@ import { useChat } from './CatChatProvider';
 import { AGENT_CONFIGS } from '@/types/chat';
 import { useViewportSize } from '@/hooks/useViewportSize';
 import { useAvatarExpression } from '@/lib/AvatarExpressionContext';
-import { getAvatarUrl } from '@/lib/expressions/cloudinary';
+import { AgentAvatar } from './AgentAvatar';
 import { useAgentGreeting } from '@/hooks/useAgentGreeting';
 import type { CardMessageData } from '@/types/chat';
+import { useChatStore } from '@/lib/chat/store';
 import { ClarificationMessage } from './ClarificationMessage';
 import { ProductCardInline } from './ProductCardInline';
 import { MockupCardInline } from './MockupCardInline';
 import { DesignCardInline } from './DesignCardInline';
+import { AgentSwitcher } from './AgentSwitcher';
 
 function formatTime(timestamp: number): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -229,7 +231,25 @@ export function CatChat() {
   const [inputFocused, setInputFocused] = useState(false);
   const [localIsPlaying, setLocalIsPlaying] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
-  
+
+  // Zustand chat store for agent switching
+  const { activeAgent, setActiveAgent } = useChatStore();
+
+  // Sync Zustand -> Context (user clicked switcher)
+  useEffect(() => {
+    if (activeAgent !== currentAgent) {
+      setAgent(activeAgent);
+      setInputValue('');
+    }
+  }, [activeAgent, currentAgent, setAgent]);
+
+  // Sync Context -> Zustand (API auto-routed or internal changes)
+  useEffect(() => {
+    if (currentAgent !== activeAgent) {
+      setActiveAgent(currentAgent);
+    }
+  }, [currentAgent, activeAgent, setActiveAgent]);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const _chatWindowRef = useRef<HTMLDivElement>(null);
@@ -444,17 +464,26 @@ export function CatChat() {
         </motion.div>
 
         {/* Avatar */}
-        <div className="overflow-hidden w-full h-full rounded-full">
-          <motion.img
-            key={currentExpression}
-            src={getAvatarUrl(agentConfig.name, isOpen ? 'thinking' : currentExpression, 400)}
-            alt={agentConfig.name}
-            className="w-full h-full object-cover object-top"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
-          />
-        </div>
+        <AgentAvatar
+          agentName={agentConfig.name}
+          expression={
+            isOpen
+              ? 'thinking'
+              : currentExpression === 'speaking_a' || currentExpression === 'speaking_b'
+                ? 'speaking'
+                : currentExpression === 'happy'
+                  ? 'happy'
+                  : currentExpression === 'confused'
+                    ? 'confused'
+                    : currentExpression === 'thinking'
+                      ? 'thinking'
+                      : 'neutral'
+          }
+          size="md"
+          className="w-full h-full"
+          enableIdleAnimation={!isOpen}
+          enableSpeakingAnimation={true}
+        />
       </motion.button>
       )}
 
@@ -522,8 +551,8 @@ export function CatChat() {
                 background: 'linear-gradient(135deg, rgba(161, 161, 170, 0.12) 0%, rgba(161, 161, 170, 0.04) 100%)',
               }}
             >
-              <div className="text-center">
-                <h3 className={`font-semibold text-white ${isMobile ? 'text-base' : isTablet ? 'text-lg' : 'text-base'}`}>{agentConfig.name}</h3>
+              <div className="flex flex-1 justify-center px-10">
+                <AgentSwitcher />
               </div>
 
               <div className="absolute right-4 flex items-center gap-2">
