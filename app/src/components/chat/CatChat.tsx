@@ -16,7 +16,7 @@ import { ClarificationMessage } from './ClarificationMessage';
 import { ProductCardInline } from './ProductCardInline';
 import { MockupCardInline } from './MockupCardInline';
 import { DesignCardInline } from './DesignCardInline';
-import { AgentSwitcher } from './AgentSwitcher';
+
 
 function formatTime(timestamp: number): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -551,8 +551,8 @@ export function CatChat() {
                 background: 'linear-gradient(135deg, rgba(161, 161, 170, 0.12) 0%, rgba(161, 161, 170, 0.04) 100%)',
               }}
             >
-              <div className="flex flex-1 justify-center px-10">
-                <AgentSwitcher />
+              <div className="text-center">
+                <h3 className={`font-semibold text-white ${isMobile ? 'text-base' : isTablet ? 'text-lg' : 'text-base'}`}>{agentConfig.name}</h3>
               </div>
 
               <div className="absolute right-4 flex items-center gap-2">
