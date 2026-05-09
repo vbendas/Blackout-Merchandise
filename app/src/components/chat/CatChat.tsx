@@ -664,31 +664,6 @@ export function CatChat() {
                 </motion.div>
               ) : (
                 <>
-                  <AnimatePresence>
-                    {inputFocused && suggestions.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mb-3 flex gap-2 overflow-x-auto pb-1"
-                      >
-                        {suggestions.map((suggestion, index) => (
-                          <motion.button
-                            key={index}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            onClick={() => handleQuickAction(suggestion)}
-                            className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
-                          >
-                            <Icon icon="lucide:sparkles" className="h-3 w-3" />
-                            {suggestion.split(' ').slice(0, 2).join(' ')}...
-                          </motion.button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
                   <QuickActionsCarousel actions={quickActions} onAction={handleQuickAction} />
 
                   <div className="flex items-end gap-2">

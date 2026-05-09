@@ -22,9 +22,15 @@ function AvatarWrapper({ children }: { children: React.ReactNode }) {
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-zinc-950 text-foreground">
-      {/* Gradient Mesh Background - enables glass effect visibility */}
-      <GradientMesh />
+    <>
+      <link
+        rel="preload"
+        as="image"
+        href="https://res.cloudinary.com/drhfgth7c/image/upload/f_auto,q_auto,w_400/merch-from/avatars/leopoldo/1_-_neutral_attr1_subject"
+      />
+      <div className="flex h-screen overflow-hidden bg-zinc-950 text-foreground">
+        {/* Gradient Mesh Background - enables glass effect visibility */}
+        <GradientMesh />
 
       {/* Icon Strip Navigation */}
       <IconStripNav />
@@ -40,6 +46,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
       {/* Cat-Suite Unified Chat */}
       <CatChat />
     </div>
+  </>
   );
 }
 

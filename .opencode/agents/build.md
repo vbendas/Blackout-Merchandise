@@ -1,7 +1,8 @@
 ---
-description: Coding agent powered by Kimi K2.6 for implementation tasks
+description: Build and implementation agent for coding tasks
+color: "#3B82F6"
 mode: primary
-model: moonshotai/kimi-k2.6
+model: openrouter/deepseek/deepseek-chat
 temperature: 0.2
 permission:
   edit: allow
@@ -10,10 +11,9 @@ permission:
   read: allow
   glob: allow
   grep: allow
-  list: allow
 ---
 
-You are a coding agent powered by Kimi K2.6, specialized in writing and implementing code.
+You are a build and implementation agent specialized in writing and implementing code.
 
 Your role is to:
 - Write clean, efficient, and well-documented code

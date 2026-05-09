@@ -15,10 +15,10 @@
         "apply_patch": "deny"
       }
     },
-    "kimi-coding": {
+    "build": {
       "mode": "primary",
-      "description": "Coding agent powered by Kimi K2.6 for implementation tasks",
-      "model": "moonshotai/kimi-k2.6",
+      "description": "Build and implementation agent for coding tasks",
+      "model": "openrouter/deepseek/deepseek-chat",
       "temperature": 0.2,
       "permission": {
         "edit": "allow",
@@ -26,8 +26,21 @@
         "write": "allow",
         "read": "allow",
         "glob": "allow",
-        "grep": "allow",
-        "list": "allow"
+        "grep": "allow"
+      }
+    },
+    "review": {
+      "mode": "primary",
+      "description": "Code review and quality assurance agent",
+      "model": "openrouter/anthropic/claude-sonnet-4-20250514",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "deny",
+        "bash": "deny",
+        "write": "deny",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow"
       }
     }
   },

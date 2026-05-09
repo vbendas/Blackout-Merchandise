@@ -57,7 +57,7 @@ export function QuickActionsCarousel({ actions, onAction }: QuickActionsCarousel
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => scroll('left')}
-          className="flex shrink-0 items-center justify-center rounded-full bg-zinc-800/80 text-zinc-400 transition-colors hover:bg-zinc-700 hover:text-white disabled:opacity-0"
+          className="flex shrink-0 items-center justify-center rounded-full bg-transparent text-zinc-400 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-0"
           style={{ height: 24 }}
           aria-label="Scroll left"
         >
@@ -93,7 +93,7 @@ export function QuickActionsCarousel({ actions, onAction }: QuickActionsCarousel
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => scroll('right')}
-          className="flex shrink-0 items-center justify-center rounded-full bg-zinc-800/80 text-zinc-400 transition-colors hover:bg-zinc-700 hover:text-white disabled:opacity-0"
+          className="flex shrink-0 items-center justify-center rounded-full bg-transparent text-zinc-400 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-0"
           style={{ height: 24 }}
           aria-label="Scroll right"
         >

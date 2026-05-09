@@ -52,6 +52,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <link
+          rel="preload"
+          as="image"
+          href="https://res.cloudinary.com/drhfgth7c/image/upload/f_auto,q_auto,w_400/merch-from/avatars/antonia/1_-_neutral_attr1_subject"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${dmSans.variable} ${caveat.variable} antialiased bg-background text-foreground`}
       >
