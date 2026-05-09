@@ -9,6 +9,7 @@ import { useViewportSize } from '@/hooks/useViewportSize';
 import { useAvatarExpression } from '@/context/AvatarExpressionContext';
 import { getAvatarUrl } from '@/lib/expressions/cloudinary';
 import { useAgentGreeting } from '@/hooks/useAgentGreeting';
+import { QuickActionsCarousel } from './QuickActionsCarousel';
 
 function formatTime(timestamp: number): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -139,6 +140,7 @@ export function CatChat() {
     isPlaying: _isMessagePlaying,
     isTyping,
     suggestions,
+    quickActions,
     toggleChat,
     setIsVoiceMode,
     sendMessage,
@@ -150,6 +152,8 @@ export function CatChat() {
   const [inputFocused, setInputFocused] = useState(false);
   const [localIsPlaying, setLocalIsPlaying] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
+  const avatarImgRef = useRef<HTMLImageElement>(null);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -225,6 +229,13 @@ export function CatChat() {
     }
   }, [isOpen]);
 
+  // Handle cached avatar images
+  useEffect(() => {
+    if (avatarImgRef.current?.complete) {
+      setAvatarLoaded(true);
+    }
+  }, [currentExpression, agentConfig.name]);
+
   const handleSend = useCallback(async () => {
     if (!inputValue.trim() || isTyping) return;
     await sendMessage(inputValue.trim());
@@ -293,11 +304,9 @@ export function CatChat() {
     <>
       {/* Floating Avatar Button - Bottom Right */}
       <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ 
-          opacity: 1,
-        }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200, duration: 0.3 }}
         whileHover={!isOpen ? { scale: 1.02 } : {}}
         whileTap={!isOpen ? { scale: 0.98 } : {}}
         onClick={(e) => {
@@ -333,7 +342,7 @@ export function CatChat() {
             }, 500);
           }
         }}
-        className={`fixed z-60 overflow-visible cursor-pointer ${
+        className={`fixed z-60 overflow-visible cursor-pointer rounded-full bg-zinc-900 ${
           isMobile 
             ? 'right-[-14px] bottom-[-36px] w-[140px] h-[180px]' 
             : isTablet 
@@ -376,15 +385,15 @@ export function CatChat() {
         </motion.div>
 
         {/* Avatar */}
-        <div className="overflow-hidden w-full h-full rounded-full">
-          <motion.img
+        <div className="overflow-hidden w-full h-full rounded-full bg-zinc-800">
+          <img
             key={currentExpression}
+            ref={avatarImgRef}
             src={getAvatarUrl(agentConfig.name, isOpen ? 'thinking' : currentExpression, 400)}
             alt={agentConfig.name}
-            className="w-full h-full object-cover object-top"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
+            className={`w-full h-full object-cover object-top transition-opacity duration-300 ${avatarLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setAvatarLoaded(true)}
+            loading="eager"
           />
         </div>
       </motion.button>
@@ -471,7 +480,7 @@ export function CatChat() {
                               src={`https://res.cloudinary.com/drhfgth7c/image/upload/f_auto,q_auto,w_100/merch-from/avatars/${messageAgent}/1_-_neutral_attr1_subject`}
                               alt={agentCfg.name}
                               className="h-full w-full object-cover"
-                            />
+                             />
                           </div>
                         )}
                         <div
@@ -501,75 +510,77 @@ export function CatChat() {
                   })}
                 </AnimatePresence>
 
-                <AnimatePresence>{isTyping && <TypingIndicator color={agentConfig.color} />}</AnimatePresence>
-              </div>
-            </div>
+             <AnimatePresence>{isTyping && <TypingIndicator color={agentConfig.color} />}</AnimatePresence>
+           </div>
+         </div>
 
-            {/* Input */}
-            <div className={`border-t border-white/10 bg-zinc-950/50 backdrop-blur-xl ${
-              isMobile ? 'p-3' : isTablet ? 'p-5' : 'p-4'
-            }`}>
-              {isVoiceMode ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex flex-col items-center gap-3"
-                >
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onMouseDown={startListening}
-                    onMouseUp={stopListening}
-                    onMouseLeave={stopListening}
-                    onTouchStart={startListening}
-                    onTouchEnd={stopListening}
-                    className={`flex items-center justify-center rounded-full transition-all ${
-                      isRecording ? 'animate-pulse' : ''
-                    } ${isMobile ? 'h-16 w-16' : isTablet ? 'h-24 w-24' : 'h-20 w-20'}`}
-                    style={{
-                      backgroundColor: isRecording ? '#EF4444' : agentConfig.color,
-                      boxShadow: `0 0 30px ${isRecording ? '#EF4444' : agentConfig.color}50`,
-                    }}
-                  >
-                    <motion.div
-                      animate={isRecording ? { scale: [1, 1.2, 1] } : {}}
-                      transition={{ duration: 0.5, repeat: isRecording ? Infinity : 0 }}
-                    >
-                      <Icon icon="lucide:mic" className={`text-white ${isMobile ? 'h-6 w-6' : isTablet ? 'h-10 w-10' : 'h-8 w-8'}`} />
-                    </motion.div>
-                  </motion.button>
-                  <p className={`text-zinc-400 ${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-xs'}`}>
-                    {isRecording ? `Recording... ${formatDuration(recordingDuration)}` : 'Hold to speak'}
-                  </p>
-                </motion.div>
-              ) : (
-                <>
-                  <AnimatePresence>
-                    {inputFocused && suggestions.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mb-3 flex gap-2 overflow-x-auto pb-1"
-                      >
-                        {suggestions.map((suggestion, index) => (
-                          <motion.button
-                            key={index}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            onClick={() => handleQuickAction(suggestion)}
-                            className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
-                          >
-                            <Icon icon="lucide:sparkles" className="h-3 w-3" />
-                            {suggestion.split(' ').slice(0, 2).join(' ')}...
-                          </motion.button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+         {/* Input */}
+         <div className={`border-t border-white/10 bg-zinc-950/50 backdrop-blur-xl ${
+           isMobile ? 'p-3' : isTablet ? 'p-5' : 'p-4'
+         }`}>
+           {isVoiceMode ? (
+             <motion.div
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               className="flex flex-col items-center gap-3"
+             >
+               <motion.button
+                 whileHover={{ scale: 1.05 }}
+                 whileTap={{ scale: 0.95 }}
+                 onMouseDown={startListening}
+                 onMouseUp={stopListening}
+                 onMouseLeave={stopListening}
+                 onTouchStart={startListening}
+                 onTouchEnd={stopListening}
+                 className={`flex items-center justify-center rounded-full transition-all ${
+                   isRecording ? 'animate-pulse' : ''
+                 } ${isMobile ? 'h-16 w-16' : isTablet ? 'h-24 w-24' : 'h-20 w-20'}`}
+                 style={{
+                   backgroundColor: isRecording ? '#EF4444' : agentConfig.color,
+                   boxShadow: `0 0 30px ${isRecording ? '#EF4444' : agentConfig.color}50`,
+                 }}
+               >
+                 <motion.div
+                   animate={isRecording ? { scale: [1, 1.2, 1] } : {}}
+                   transition={{ duration: 0.5, repeat: isRecording ? Infinity : 0 }}
+                 >
+                   <Icon icon="lucide:mic" className={`text-white ${isMobile ? 'h-6 w-6' : isTablet ? 'h-10 w-10' : 'h-8 w-8'}`} />
+                 </motion.div>
+               </motion.button>
+               <p className={`text-zinc-400 ${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-xs'}`}>
+                 {isRecording ? `Recording... ${formatDuration(recordingDuration)}` : 'Hold to speak'}
+               </p>
+             </motion.div>
+           ) : (
+             <>
+               <AnimatePresence>
+                 {inputFocused && suggestions.length > 0 && (
+                   <motion.div
+                     initial={{ opacity: 0, height: 0 }}
+                     animate={{ opacity: 1, height: 'auto' }}
+                     exit={{ opacity: 0, height: 0 }}
+                     className="mb-3 flex gap-2 overflow-x-auto pb-1"
+                   >
+                     {suggestions.map((suggestion, index) => (
+                       <motion.button
+                         key={index}
+                         initial={{ opacity: 0, x: -10 }}
+                         animate={{ opacity: 1, x: 0 }}
+                         transition={{ delay: index * 0.05 }}
+                         onClick={() => handleQuickAction(suggestion)}
+                         className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
+                       >
+                         <Icon icon="lucide:sparkles" className="h-3 w-3" />
+                         {suggestion.split(' ').slice(0, 2).join(' ')}...
+                       </motion.button>
+                     ))}
+                   </motion.div>
+                 )}
+               </AnimatePresence>
 
-                  <div className="flex items-end gap-2">
+               <QuickActionsCarousel actions={quickActions} onAction={handleQuickAction} />
+
+               <div className="flex items-end gap-2">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}

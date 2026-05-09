@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { getAvatarUrl, preloadExpressions } from '@/lib/expressions/cloudinary';
 import { cn } from '@/lib/utils';
 import type { AgentName, Expression } from '@/types/expressions';
@@ -44,12 +44,20 @@ export function AgentAvatar({
   const [currentExpression, setCurrentExpression] = useState<Expression>(EXPRESSION_MAP[expression]);
   const [isLoaded, setIsLoaded] = useState(false);
   const speakingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const imgWidth = IMG_WIDTH_MAP[size];
 
   // Preload all expressions for this agent on mount
   useEffect(() => {
     preloadExpressions(agentName);
   }, [agentName]);
+
+  // Handle cached images: if already loaded before React attaches onLoad, set isLoaded immediately
+  useEffect(() => {
+    if (imgRef.current?.complete) {
+      setIsLoaded(true);
+    }
+  }, [currentExpression]);
 
   // Handle expression changes
   useEffect(() => {
@@ -100,28 +108,23 @@ export function AgentAvatar({
 
   return (
     <motion.div
-      className={cn('relative h-full w-full overflow-hidden rounded-full', className)}
+      className={cn('relative h-full w-full overflow-hidden rounded-full bg-zinc-800', className)}
       animate={isIdle ? 'idle' : 'active'}
       variants={idleVariants}
     >
-      <AnimatePresence mode="wait">
-        <motion.img
-          key={`${agentName}-${currentExpression}`}
-          src={imageUrl}
-          alt={`${agentName} - ${currentExpression}`}
-          className={cn(
-            'h-full w-full object-cover object-top transition-opacity duration-300',
-            isLoaded ? 'opacity-100' : 'opacity-0',
-            imageClassName
-          )}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: isLoaded ? 1 : 0, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.02 }}
-          transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
-          onLoad={() => setIsLoaded(true)}
-          loading="eager"
-        />
-      </AnimatePresence>
+      <img
+        key={`${agentName}-${currentExpression}`}
+        ref={imgRef}
+        src={imageUrl}
+        alt={`${agentName} - ${currentExpression}`}
+        className={cn(
+          'h-full w-full object-cover object-top transition-opacity duration-300',
+          isLoaded ? 'opacity-100' : 'opacity-0',
+          imageClassName
+        )}
+        onLoad={() => setIsLoaded(true)}
+        loading="eager"
+      />
     </motion.div>
   );
 }

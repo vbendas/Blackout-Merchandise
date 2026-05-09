@@ -163,6 +163,15 @@
   }
 }
 
+/* Scrollbar hide utility - for quick actions carousel */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Custom minimalist scrollbar for dark theme */
 .dark ::-webkit-scrollbar {
   width: 6px;

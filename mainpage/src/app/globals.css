@@ -270,6 +270,15 @@ p {
   border-color: var(--border-color);
 }
 
+/* Scrollbar hide utility - for quick actions carousel */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 .glass {
   background: rgba(9, 9, 11, 0.8);
   backdrop-filter: blur(12px);

@@ -14,6 +14,7 @@ import type { CardMessageData } from '@/types/chat';
 import { ProductCardInline } from './ProductCardInline';
 import { MockupCardInline } from './MockupCardInline';
 import { DesignCardInline } from './DesignCardInline';
+import { QuickActionsCarousel } from './QuickActionsCarousel';
 
 
 function formatTime(timestamp: number): string {
@@ -371,11 +372,9 @@ export function CatChat() {
       {/* Floating Avatar Button - Bottom Right (hidden on studio) */}
       {!isStudio && (
       <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ 
-          opacity: 1,
-        }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200, duration: 0.3 }}
         whileHover={!isOpen ? { scale: 1.02 } : {}}
         whileTap={!isOpen ? { scale: 0.98 } : {}}
         onClick={() => {
@@ -400,7 +399,7 @@ export function CatChat() {
             }, 500);
           }
         }}
-        className={`fixed z-60 overflow-visible cursor-pointer ${
+        className={`fixed z-60 overflow-visible cursor-pointer rounded-full bg-zinc-900 ${
           isMobile 
             ? 'right-[-14px] bottom-[-36px] w-[140px] h-[180px]' 
             : isTablet 
@@ -690,29 +689,7 @@ export function CatChat() {
                     )}
                   </AnimatePresence>
 
-                  <AnimatePresence>
-                    {quickActions.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mb-3 flex gap-2 overflow-x-auto pb-1"
-                      >
-                        {quickActions.map((action) => (
-                          <motion.button
-                            key={action.id}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => handleQuickAction(action.action)}
-                            className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-zinc-800/60 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:bg-zinc-700/60 hover:text-white"
-                          >
-                            <Icon icon={action.icon} className="h-3 w-3" />
-                            {action.label}
-                          </motion.button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <QuickActionsCarousel actions={quickActions} onAction={handleQuickAction} />
 
                   <div className="flex items-end gap-2">
                     <motion.button

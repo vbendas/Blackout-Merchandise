@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, useCallback, useRef, useEff
 import type { AgentId, ChatMessage } from '@/types/chat';
 import { AGENT_CONFIGS } from '@/types/chat';
 import { determineAgent, generateHandoffMessage } from '@/lib/chat/agentRouter';
+import type { QuickAction } from '@/lib/chat/quickActions';
+import { getAgentQuickActions } from '@/lib/chat/quickActions';
 
 const HANDOFF_DELAY_MS = 400;
 
@@ -16,6 +18,7 @@ interface ChatContextValue {
   isPlaying: boolean;
   isTyping: boolean;
   suggestions: string[];
+  quickActions: QuickAction[];
   toggleChat: () => void;
   setAgent: (agent: AgentId) => void;
   setIsVoiceMode: (enabled: boolean) => void;
@@ -48,7 +51,13 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
   const [isPlaying] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  
+  const [quickActions, setQuickActions] = useState<QuickAction[]>([]);
+
+  // Update quick actions when agent changes
+  useEffect(() => {
+    setQuickActions(getAgentQuickActions(currentAgent));
+  }, [currentAgent]);
+
   const _mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -309,6 +318,7 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
     isPlaying,
     isTyping,
     suggestions,
+    quickActions,
     toggleChat,
     setAgent,
     setIsVoiceMode,
