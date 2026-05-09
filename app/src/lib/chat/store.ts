@@ -11,7 +11,7 @@ interface ChatStore {
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
-  activeAgent: 'antonia',
+  activeAgent: 'leopoldo',
   isSwitching: false,
   setActiveAgent: (agent) =>
     set((state) => {

@@ -12,7 +12,6 @@ import { AgentAvatar } from './AgentAvatar';
 import { useAgentGreeting } from '@/hooks/useAgentGreeting';
 import type { CardMessageData } from '@/types/chat';
 import { useChatStore } from '@/lib/chat/store';
-import { ClarificationMessage } from './ClarificationMessage';
 import { ProductCardInline } from './ProductCardInline';
 import { MockupCardInline } from './MockupCardInline';
 import { DesignCardInline } from './DesignCardInline';
@@ -198,7 +197,7 @@ export function CatChat() {
     setIsVoiceMode,
     sendMessage,
     sendAudio,
-    handleClarificationSelect,
+
   } = useChat();
 
   // Studio-specific: expanded by default, can collapse
@@ -585,24 +584,6 @@ export function CatChat() {
               <div className="flex flex-col gap-4">
                 <AnimatePresence mode="popLayout">
                   {messages.map((message) => {
-                    if (message.clarificationData) {
-                      return (
-                        <motion.div
-                          key={message.id}
-                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                          layout
-                        >
-                          <ClarificationMessage
-                            options={message.clarificationData.options}
-                            onSelect={handleClarificationSelect}
-                          />
-                        </motion.div>
-                      );
-                    }
-
                     const isUser = message.role === 'user';
                     const messageAgent = message.agent || currentAgent;
                     const agentCfg = AGENT_CONFIGS[messageAgent];

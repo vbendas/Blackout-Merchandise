@@ -2,8 +2,7 @@
 
 import type React from 'react';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { determineAgentWithContext, generateHandoffMessage } from '@/lib/chat/agentRouter';
-import type { AgentId, ChatMessage } from '@/types/chat';
+import type { AgentId, ChatMessage, RoutingDecision } from '@/types/chat';
 import { AGENT_CONFIGS } from '@/types/chat';
 import type { DesignFlowStep } from '@/lib/ChatContext';
 import { getQuickActionsForStep } from '@/lib/designFlow';
@@ -11,6 +10,44 @@ import type { QuickAction } from '@/lib/chat/quickActions';
 import { getAgentQuickActions } from '@/lib/chat/quickActions';
 
 const HANDOFF_DELAY_MS = 400;
+
+const HANDOFF_MESSAGES: Record<AgentId, Record<AgentId, string>> = {
+  leopoldo: {
+    leopoldo: '',
+    francisca: 'This is a design matter. Francisca, can you take over?',
+    antonia: 'For this, Antônia is your best bet. She handles operations.',
+  },
+  francisca: {
+    leopoldo: 'Business question? Leopoldo will know best.',
+    francisca: '',
+    antonia: "Let me get Antônia for you - she's our operations expert.",
+  },
+  antonia: {
+    leopoldo: 'Leopoldo would be better for this. Let me bring him in.',
+    francisca: 'Francisca handles design questions. One moment...',
+    antonia: '',
+  },
+};
+
+function getHandoffMessage(fromAgent: AgentId, toAgent: AgentId): string {
+  return HANDOFF_MESSAGES[fromAgent]?.[toAgent] || `Let me connect you with ${toAgent.charAt(0).toUpperCase() + toAgent.slice(1)}.`;
+}
+
+async function routeMessageServer(options: {
+  message: string;
+  currentAgent: AgentId;
+  history: Array<{ role: 'user' | 'assistant'; content: string; agent?: AgentId }>;
+}): Promise<RoutingDecision> {
+  const response = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(options),
+  });
+  if (!response.ok) {
+    throw new Error(`Routing API error: ${response.status}`);
+  }
+  return response.json();
+}
 
 interface ChatContextValue {
   isOpen: boolean;
@@ -29,7 +66,6 @@ interface ChatContextValue {
   sendMessage: (content: string, metadata?: import('@/types/chat').MessageMetadata) => Promise<void>;
   sendAudio: (audioBlob: Blob) => Promise<void>;
   clearMessages: () => void;
-  handleClarificationSelect: (agent: AgentId) => void;
   setDesignFlowStep: (step: DesignFlowStep) => void;
 }
 
@@ -48,7 +84,7 @@ interface ChatProviderProps {
   initialAgent?: AgentId;
 }
 
-export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProviderProps) {
+export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatProviderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentAgent, setCurrentAgent] = useState<AgentId>(initialAgent);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -88,7 +124,7 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
   const setAgent = useCallback(
     (agent: AgentId) => {
       if (agent !== currentAgent) {
-        const handoffMsg = generateHandoffMessage(currentAgent, agent);
+        const handoffMsg = getHandoffMessage(currentAgent, agent);
         const handoffMessage: ChatMessage = {
           id: `handoff-${Date.now()}`,
           role: 'assistant',
@@ -158,28 +194,28 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
           agent: m.agent,
         }));
 
-        const routingResult = await determineAgentWithContext({
-          _message: content,
+        const routingResult = await routeMessageServer({
+          message: content,
           currentAgent,
-          context: { message: content },
           history: conversationHistory,
         });
 
+        // Never show clarification UI — route to best-guess agent or stay with current
         if (routingResult.needsClarification && routingResult.clarificationOptions) {
-          const clarificationMessage: ChatMessage = {
-            id: `clarification-${Date.now()}`,
-            role: 'assistant',
-            content: '',
-            type: 'text',
-            timestamp: Date.now(),
-            agent: currentAgent,
-            clarificationData: {
-              options: routingResult.clarificationOptions,
-            },
-          };
-          setMessages((prev) => [...prev, clarificationMessage]);
-          setIsTyping(false);
-          return;
+          const bestAgent = routingResult.clarificationOptions[0]?.agent ?? currentAgent;
+          if (bestAgent !== currentAgent) {
+            const handoffMessage: ChatMessage = {
+              id: `handoff-${Date.now()}`,
+              role: 'assistant',
+              content: getHandoffMessage(currentAgent, bestAgent),
+              type: 'text',
+              timestamp: Date.now(),
+              agent: currentAgent,
+            };
+            setMessages((prev) => [...prev, handoffMessage]);
+            setCurrentAgent(bestAgent);
+            await new Promise((resolve) => setTimeout(resolve, HANDOFF_DELAY_MS));
+          }
         }
 
         const needsHandoff = routingResult.shouldHandoff;
@@ -190,7 +226,7 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
             id: `handoff-${Date.now()}`,
             role: 'assistant',
             content:
-              routingResult.handoffMessage || generateHandoffMessage(currentAgent, routingResult.agent as AgentId),
+              routingResult.handoffMessage || getHandoffMessage(currentAgent, routingResult.agent as AgentId),
             type: 'text',
             timestamp: Date.now(),
             agent: currentAgent,
@@ -280,10 +316,9 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
           agent: m.agent,
         }));
 
-        const routingResult = await determineAgentWithContext({
-          _message: transcription,
+        const routingResult = await routeMessageServer({
+          message: transcription,
           currentAgent,
-          context: { message: transcription },
           history: conversationHistory,
         });
 
@@ -300,20 +335,22 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
           setMessages((prev) => [...prev, userMessage]);
         }
 
+        // Never show clarification UI — route to best-guess agent or stay with current
         if (routingResult.needsClarification && routingResult.clarificationOptions) {
-          const clarificationMessage: ChatMessage = {
-            id: `clarification-${Date.now()}`,
-            role: 'assistant',
-            content: '',
-            type: 'text',
-            timestamp: Date.now(),
-            agent: currentAgent,
-            clarificationData: {
-              options: routingResult.clarificationOptions,
-            },
-          };
-          setMessages((prev) => [...prev, clarificationMessage]);
-          return;
+          const bestAgent = routingResult.clarificationOptions[0]?.agent ?? currentAgent;
+          if (bestAgent !== currentAgent) {
+            const handoffMessage: ChatMessage = {
+              id: `handoff-${Date.now()}`,
+              role: 'assistant',
+              content: getHandoffMessage(currentAgent, bestAgent),
+              type: 'text',
+              timestamp: Date.now(),
+              agent: currentAgent,
+            };
+            setMessages((prev) => [...prev, handoffMessage]);
+            setCurrentAgent(bestAgent);
+            await new Promise((resolve) => setTimeout(resolve, HANDOFF_DELAY_MS));
+          }
         }
 
         const needsHandoff = routingResult.shouldHandoff;
@@ -323,7 +360,7 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
             id: `handoff-${Date.now()}`,
             role: 'assistant',
             content:
-              routingResult.handoffMessage || generateHandoffMessage(currentAgent, routingResult.agent as AgentId),
+              routingResult.handoffMessage || getHandoffMessage(currentAgent, routingResult.agent as AgentId),
             type: 'text',
             timestamp: Date.now(),
             agent: currentAgent,
@@ -388,24 +425,6 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
     setSuggestions([]);
   }, []);
 
-  const handleClarificationSelect = useCallback(
-    (agent: AgentId) => {
-      setMessages((prev) => prev.filter((m) => !m.clarificationData));
-
-      const handoffMessage: ChatMessage = {
-        id: `handoff-${Date.now()}`,
-        role: 'assistant',
-        content: generateHandoffMessage(currentAgent, agent),
-        type: 'text',
-        timestamp: Date.now(),
-        agent: currentAgent,
-      };
-      setMessages((prev) => [...prev, handoffMessage]);
-      setCurrentAgent(agent);
-    },
-    [currentAgent]
-  );
-
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -448,7 +467,6 @@ export function CatChatProvider({ children, initialAgent = 'antonia' }: ChatProv
     sendMessage,
     sendAudio,
     clearMessages,
-    handleClarificationSelect,
     setDesignFlowStep,
   };
 
