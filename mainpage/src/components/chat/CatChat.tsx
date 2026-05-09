@@ -90,40 +90,23 @@ function AudioMessageComponent({ audioUrl, audioBlob, duration = 0, isPlaying, o
   );
 }
 
-function TypingIndicator({ color }: { color: string }) {
+function TypingIndicator({ agentName }: { agentName: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
-      className="flex items-end gap-2"
+      className="flex items-center gap-2"
     >
-      <div className="h-8 w-8 overflow-hidden rounded-full border-2" style={{ borderColor: color }}>
-        <img
-          src={`https://res.cloudinary.com/drhfgth7c/image/upload/f_auto,q_auto,w_100/merch-from/avatars/antonia/1_-_neutral_attr1_subject`}
-          alt="Antônia"
-          className="h-full w-full object-cover"
-        />
-      </div>
-      <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-zinc-800/90 px-4 py-3 backdrop-blur-xl">
-        {[0, 1, 2].map((i) => (
-          <motion.div
-            key={i}
-            className="h-2 w-2 rounded-full"
-            style={{ backgroundColor: color }}
-            animate={{
-              scale: [1, 1.3, 1],
-              opacity: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 0.8,
-              repeat: Infinity,
-              delay: i * 0.15,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
-      </div>
+      <span className="text-xs text-zinc-500 italic">
+        {agentName} is typing
+        <motion.span
+          animate={{ opacity: [0, 1, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          ...
+        </motion.span>
+      </span>
     </motion.div>
   );
 }
@@ -155,6 +138,22 @@ export function CatChat() {
   const [avatarLoaded, setAvatarLoaded] = useState(false);
   const avatarImgRef = useRef<HTMLImageElement>(null);
   
+  // Voice conversation state
+  const [isVoiceConversationActive, setIsVoiceConversationActive] = useState(false);
+  const [voiceConversationStatus, setVoiceConversationStatus] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
+  const [audioLevel, setAudioLevel] = useState(0);
+  
+  // VAD refs
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const microphoneStreamRef = useRef<MediaStream | null>(null);
+  const vadFrameRef = useRef<number | null>(null);
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const voiceMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const voiceAudioChunksRef = useRef<Blob[]>([]);
+  const isRecordingVoiceRef = useRef(false);
+  const isProcessingVoiceRef = useRef(false);
+   
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const chatWindowRef = useRef<HTMLDivElement>(null);
@@ -279,8 +278,9 @@ export function CatChat() {
   };
 
   const handleQuickAction = (action: string) => {
-    setInputValue(action);
-    handleSend();
+    if (!action.trim() || isTyping) return;
+    sendMessage(action.trim());
+    setInputValue('');
   };
 
   const startListening = async () => {
@@ -317,6 +317,178 @@ export function CatChat() {
   const handlePlayPause = () => {
     setLocalIsPlaying(!localIsPlaying);
   };
+
+  // ── Voice Conversation ──────────────────────────────────────────────
+
+  const cleanupVoiceConversation = useCallback(() => {
+    if (vadFrameRef.current) {
+      cancelAnimationFrame(vadFrameRef.current);
+      vadFrameRef.current = null;
+    }
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    if (microphoneStreamRef.current) {
+      microphoneStreamRef.current.getTracks().forEach((t) => t.stop());
+      microphoneStreamRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    if (voiceMediaRecorderRef.current && voiceMediaRecorderRef.current.state === 'recording') {
+      voiceMediaRecorderRef.current.stop();
+    }
+    isRecordingVoiceRef.current = false;
+    isProcessingVoiceRef.current = false;
+    setAudioLevel(0);
+    setVoiceConversationStatus('idle');
+  }, []);
+
+  const playAudioResponse = useCallback((audioData: string) => {
+    return new Promise<void>((resolve) => {
+      const audio = new Audio(audioData);
+      audio.onended = () => resolve();
+      audio.onerror = () => resolve();
+      audio.play().catch(() => resolve());
+    });
+  }, []);
+
+  const processVoiceTurn = useCallback(async (audioBlob: Blob) => {
+    if (isProcessingVoiceRef.current) return;
+    isProcessingVoiceRef.current = true;
+    setVoiceConversationStatus('thinking');
+
+    try {
+      await sendAudio(audioBlob);
+    } catch (err) {
+      console.error('[Voice Conversation] sendAudio failed:', err);
+    } finally {
+      isProcessingVoiceRef.current = false;
+      // After sendAudio completes, the AI response is added to messages.
+      // We rely on the ChatProvider to handle TTS audio playback via the
+      // existing voice message infrastructure (audioUrl in message).
+      setVoiceConversationStatus('speaking');
+      // Give TTS a moment to be ready, then go back to listening
+      setTimeout(() => {
+        if (isVoiceConversationActive) {
+          setVoiceConversationStatus('listening');
+          startVoiceListening();
+        }
+      }, 2000);
+    }
+  }, [sendAudio, isVoiceConversationActive]);
+
+  const startVoiceRecording = useCallback(() => {
+    if (!microphoneStreamRef.current || isRecordingVoiceRef.current) return;
+
+    const recorder = new MediaRecorder(microphoneStreamRef.current);
+    voiceMediaRecorderRef.current = recorder;
+    voiceAudioChunksRef.current = [];
+    isRecordingVoiceRef.current = true;
+    setVoiceConversationStatus('listening');
+
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) voiceAudioChunksRef.current.push(e.data);
+    };
+
+    recorder.onstop = () => {
+      isRecordingVoiceRef.current = false;
+      const blob = new Blob(voiceAudioChunksRef.current, { type: 'audio/webm' });
+      if (blob.size > 1000) {
+        processVoiceTurn(blob);
+      } else {
+        // Too short — resume listening
+        if (isVoiceConversationActive) {
+          setVoiceConversationStatus('listening');
+          startVoiceListening();
+        }
+      }
+    };
+
+    recorder.start();
+  }, [processVoiceTurn, isVoiceConversationActive]);
+
+  const stopVoiceRecording = useCallback(() => {
+    if (voiceMediaRecorderRef.current && voiceMediaRecorderRef.current.state === 'recording') {
+      voiceMediaRecorderRef.current.stop();
+    }
+  }, []);
+
+  const startVoiceListening = useCallback(() => {
+    if (!analyserRef.current || !isVoiceConversationActive) return;
+
+    const analyser = analyserRef.current;
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    const threshold = 15; // RMS threshold for speech detection
+    const silenceDelay = 1200; // ms of silence before stopping
+
+    const detect = () => {
+      if (!isVoiceConversationActive) return;
+
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+      const avg = sum / dataArray.length;
+      setAudioLevel(avg);
+
+      if (avg > threshold) {
+        // Speech detected
+        if (!isRecordingVoiceRef.current) {
+          startVoiceRecording();
+        }
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
+      } else if (isRecordingVoiceRef.current && !silenceTimerRef.current) {
+        // Silence started — schedule stop
+        silenceTimerRef.current = setTimeout(() => {
+          stopVoiceRecording();
+          silenceTimerRef.current = null;
+        }, silenceDelay);
+      }
+
+      vadFrameRef.current = requestAnimationFrame(detect);
+    };
+
+    vadFrameRef.current = requestAnimationFrame(detect);
+  }, [isVoiceConversationActive, startVoiceRecording, stopVoiceRecording]);
+
+  const startVoiceConversation = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      microphoneStreamRef.current = stream;
+
+      const audioContext = new AudioContext();
+      audioContextRef.current = audioContext;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
+      source.connect(analyser);
+      analyserRef.current = analyser;
+
+      setIsVoiceConversationActive(true);
+      setVoiceConversationStatus('listening');
+      startVoiceListening();
+    } catch (error) {
+      console.error('[Voice Conversation] Microphone access denied:', error);
+      setIsVoiceConversationActive(false);
+    }
+  }, [startVoiceListening]);
+
+  const stopVoiceConversation = useCallback(() => {
+    setIsVoiceConversationActive(false);
+    cleanupVoiceConversation();
+  }, [cleanupVoiceConversation]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => cleanupVoiceConversation();
+  }, [cleanupVoiceConversation]);
 
   return (
     <>
@@ -435,25 +607,76 @@ export function CatChat() {
                     maxWidth: 'calc(100vw - 48px)',
                     height: 'auto',
                     minHeight: '400px',
-                    maxHeight: 'calc(100vh - 140px)',
+                    maxHeight: 'calc(100vh - 165px)',
                   }
                 : {
                     width: 'calc(100% - 32px)',
                     height: 'auto',
-                    maxHeight: 'calc(100dvh - 148px)',
+                    maxHeight: 'calc(100dvh - 173px)',
                     borderRadius: '1.5rem',
                   }
             }
           >
             {/* Header */}
             <motion.div
-              className={`flex items-center justify-center border-b border-white/10 ${
+              className={`relative flex items-center justify-center border-b border-white/10 ${
                 isMobile ? 'px-4 py-3' : isTablet ? 'px-6 py-5' : 'px-5 py-4'
               }`}
               style={{
                 background: 'linear-gradient(135deg, rgba(161, 161, 170, 0.12) 0%, rgba(161, 161, 170, 0.04) 100%)',
               }}
             >
+              {/* Voice Conversation Toggle - Left side */}
+              <div className="absolute left-4 flex items-center">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    if (isVoiceConversationActive) {
+                      stopVoiceConversation();
+                    } else {
+                      startVoiceConversation();
+                    }
+                  }}
+                  className={`flex items-center justify-center rounded-full transition-all ${
+                    isVoiceConversationActive
+                      ? 'text-red-400 animate-pulse'
+                      : 'text-zinc-400 hover:text-white'
+                  } ${isMobile ? 'h-8 w-8' : 'h-9 w-9'}`}
+                  title={isVoiceConversationActive ? 'End voice conversation' : 'Start voice conversation'}
+                >
+                  {isVoiceConversationActive ? (
+                    <div className="flex items-center gap-[3px] h-5">
+                      {[0.6, 1, 0.7, 0.4, 0.8].map((scale, i) => (
+                        <motion.div
+                          key={i}
+                          className="w-[3px] rounded-full bg-red-400"
+                          animate={{
+                            height: [12 * scale, 20 * scale, 8 * scale, 18 * scale, 12 * scale],
+                          }}
+                          transition={{
+                            duration: 0.8,
+                            repeat: Infinity,
+                            delay: i * 0.12,
+                            ease: "easeInOut",
+                          }}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-current">
+                      <path
+                        d="M12 3v18M8 8v8M4 10v4M16 6v12M20 9v6"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        className="opacity-70"
+                      />
+                    </svg>
+                  )}
+                </motion.button>
+              </div>
+
               <div className="text-center">
                 <h3 className={`font-semibold text-white ${isMobile ? 'text-base' : isTablet ? 'text-lg' : 'text-base'}`}>{agentConfig.name}</h3>
               </div>
@@ -490,18 +713,6 @@ export function CatChat() {
                         layout
                         className={`flex items-end gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
                       >
-                        {!isUser && (
-                          <div
-                            className="h-8 w-8 shrink-0 overflow-hidden rounded-full border-2"
-                            style={{ borderColor: agentCfg.color }}
-                          >
-                            <img
-                              src={`https://res.cloudinary.com/drhfgth7c/image/upload/f_auto,q_auto,w_100/merch-from/avatars/${messageAgent}/1_-_neutral_attr1_subject`}
-                              alt={agentCfg.name}
-                              className="h-full w-full object-cover"
-                             />
-                          </div>
-                        )}
                         <div
                           className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                             isUser
@@ -529,7 +740,7 @@ export function CatChat() {
                   })}
                 </AnimatePresence>
 
-             <AnimatePresence>{isTyping && <TypingIndicator color={agentConfig.color} />}</AnimatePresence>
+             <AnimatePresence>{isTyping && <TypingIndicator agentName={agentConfig.name} />}</AnimatePresence>
            </div>
          </div>
 
@@ -571,22 +782,68 @@ export function CatChat() {
                </p>
              </motion.div>
            ) : (
-             <>
-                <QuickActionsCarousel actions={quickActions} onAction={handleQuickAction} />
-
-               <div className="flex items-end gap-2">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setIsVoiceMode(!isVoiceMode)}
-                      className={`flex shrink-0 items-center justify-center rounded-full transition-all ${
-                        isVoiceMode ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-                      } ${isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'}`}
-                      title={isVoiceMode ? 'Text mode' : 'Voice mode'}
+              <>
+                {/* Voice Conversation Overlay */}
+                <AnimatePresence>
+                  {isVoiceConversationActive && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-3 flex flex-col items-center gap-2"
                     >
-                      <Icon icon={isVoiceMode ? 'lucide:message-square' : 'lucide:mic'} className={isMobile ? 'h-4 w-4' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} />
-                    </motion.button>
-                    <div className="relative flex-1">
+                      <div className="flex items-center gap-3">
+                        {/* Audio Wave Visualizer */}
+                        <div className="flex items-center gap-0.5 h-8">
+                          {[...Array(12)].map((_, i) => (
+                            <motion.div
+                              key={i}
+                              className="w-1 rounded-full bg-white/80"
+                              animate={{
+                                height: voiceConversationStatus === 'listening'
+                                  ? [4, Math.max(4, audioLevel * 0.8 + Math.random() * 20), 4]
+                                  : voiceConversationStatus === 'speaking'
+                                    ? [4, 20 + Math.random() * 12, 4]
+                                    : [4, 8, 4],
+                              }}
+                              transition={{
+                                duration: 0.3 + Math.random() * 0.2,
+                                repeat: Infinity,
+                                repeatType: 'reverse',
+                                delay: i * 0.03,
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs text-zinc-400 capitalize">
+                          {voiceConversationStatus === 'idle' && 'Ready'}
+                          {voiceConversationStatus === 'listening' && 'Listening...'}
+                          {voiceConversationStatus === 'thinking' && 'Thinking...'}
+                          {voiceConversationStatus === 'speaking' && `${agentConfig.name} is speaking...`}
+                        </span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {!isVoiceConversationActive && (
+                  <QuickActionsCarousel actions={quickActions} onAction={handleQuickAction} />
+                )}
+
+                <div className="flex items-end gap-2">
+                     <motion.button
+                       whileHover={{ scale: 1.05 }}
+                       whileTap={{ scale: 0.95 }}
+                       onClick={() => setIsVoiceMode(!isVoiceMode)}
+                       className={`flex shrink-0 items-center justify-center rounded-full transition-all ${
+                         isVoiceMode ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                       } ${isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'}`}
+                       title={isVoiceMode ? 'Text mode' : 'Voice mode'}
+                     >
+                       <Icon icon={isVoiceMode ? 'lucide:message-square' : 'lucide:mic'} className={isMobile ? 'h-4 w-4' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} />
+                     </motion.button>
+
+                     <div className="relative flex-1">
                       <textarea
                         ref={inputRef}
                         value={inputValue}
@@ -623,9 +880,10 @@ export function CatChat() {
                       onClick={handleSend}
                       disabled={!inputValue.trim() || isTyping}
                       className={`flex shrink-0 items-center justify-center rounded-full transition-all ${
-                        !inputValue.trim() || isTyping ? 'cursor-not-allowed bg-zinc-800 text-zinc-600' : 'text-white'
+                        !inputValue.trim() || isTyping
+                          ? 'cursor-not-allowed bg-zinc-800 text-zinc-600'
+                          : 'bg-white text-zinc-950 hover:bg-zinc-200 shadow-lg shadow-white/10'
                       } ${isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'}`}
-                      style={inputValue.trim() && !isTyping ? { backgroundColor: agentConfig.color } : {}}
                       aria-label="Send message"
                     >
                       <Icon icon="lucide:send" className={isMobile ? 'h-4 w-4' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} />

@@ -135,7 +135,7 @@ export function QuickActionsCarousel({ actions, onAction }: QuickActionsCarousel
         {/* Scrollable Pills - with padding so buttons don't go under arrows */}
         <div
           ref={scrollRef}
-          className="scrollbar-hide flex gap-2 overflow-x-auto px-8"
+          className="scrollbar-hide flex gap-2 overflow-x-auto pl-1 pr-8"
           style={{
             touchAction: 'pan-x',
             scrollbarWidth: 'none',
