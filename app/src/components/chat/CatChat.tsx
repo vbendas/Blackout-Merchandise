@@ -11,7 +11,6 @@ import { useAvatarExpression } from '@/lib/AvatarExpressionContext';
 import { AgentAvatar } from './AgentAvatar';
 import { useAgentGreeting } from '@/hooks/useAgentGreeting';
 import type { CardMessageData } from '@/types/chat';
-import { useChatStore } from '@/lib/chat/store';
 import { ProductCardInline } from './ProductCardInline';
 import { MockupCardInline } from './MockupCardInline';
 import { DesignCardInline } from './DesignCardInline';
@@ -193,7 +192,6 @@ export function CatChat() {
     suggestions,
     quickActions,
     toggleChat,
-    setAgent,
     setIsVoiceMode,
     sendMessage,
     sendAudio,
@@ -230,24 +228,6 @@ export function CatChat() {
   const [inputFocused, setInputFocused] = useState(false);
   const [localIsPlaying, setLocalIsPlaying] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
-
-  // Zustand chat store for agent switching
-  const { activeAgent, setActiveAgent } = useChatStore();
-
-  // Sync Zustand -> Context (user clicked switcher)
-  useEffect(() => {
-    if (activeAgent !== currentAgent) {
-      setAgent(activeAgent);
-      setInputValue('');
-    }
-  }, [activeAgent, currentAgent, setAgent]);
-
-  // Sync Context -> Zustand (API auto-routed or internal changes)
-  useEffect(() => {
-    if (currentAgent !== activeAgent) {
-      setActiveAgent(currentAgent);
-    }
-  }, [currentAgent, activeAgent, setActiveAgent]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
