@@ -601,7 +601,7 @@
    - **Mistral Small 4** (via Mistral API) — Fast, cost-optimized FAQ/order tracking (~70% of conversational traffic)
    - **Mistral Large 3** (via Mistral API) — Vision & image analysis: print readiness, resolution check, color count, style detection
    - **Mistral Voxtral Transcribe 2** — Real-time speech-to-text ($0.003/min, 13 languages)
-   - **Mistral Voxtral TTS** — Character voice synthesis with zero-shot cloning
+   - **ElevenLabs TTS** — Character voice synthesis with zero-shot cloning
    - **BFL API** — Direct FLUX 2 Flex / Pro / Max image generation (OpenRouter available as unified fallback)
    - **OpenCV (Python/Node)** — Color separation, halftoning, DPI validation (deterministic, $0)
    - **v0 API (Vercel)** — AI-powered component generation for store customization
@@ -655,7 +655,7 @@
    Mistral Large 3 (30% of messages): ~$9.00/month (9,000 msgs @ $0.001)
    Mistral Large 3 (vision/image analysis): ~$5.00/month (1,000 uploads)
    Voxtral STT (5,000 voice mins): ~$15.00/month
-   Voxtral TTS (5,000 voice mins): ~$25.00/month
+   ElevenLabs TTS (5,000 voice mins): ~$25.00/month
    Image Generation (FLUX 2 Flex / Pro / Max via BFL API): ~$15.00/month (1,000 images avg)
    Monthly cost: ~$64.50
    Annual cost: ~$774

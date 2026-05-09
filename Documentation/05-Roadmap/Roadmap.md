@@ -634,8 +634,8 @@ Connect real AI models (Mistral Large, SDXL, Mistral Voxtral, OpenCV) to the pla
 ### Key Tasks
 - Mistral Large integration for chat (replaces MiniMax M2-her)
 - Mistral Voxtral Transcribe 2 for STT (replaces Deepgram)
-- Mistral Voxtral TTS for voice synthesis (replaces MiniMax TTS)
-- Voice cloning: record 3-5s samples per Cat-Suite character
+- ElevenLabs TTS for voice synthesis (replaces MiniMax TTS) — 33M-min startup grant
+- Voice cloning: record 30s samples per Cat-Suite character (ElevenLabs zero-shot cloning)
 - Real-time conversation mode ("Talk" button in CatChat)
 - SDXL + Custom LoRAs setup for image generation (replaces Flux)
 - OpenCV for color separation + halftoning
@@ -646,9 +646,9 @@ Connect real AI models (Mistral Large, SDXL, Mistral Voxtral, OpenCV) to the pla
 
 ### Voice Pipeline Architecture
 ```
-User Audio → Voxtral Transcribe 2 (STT, sub-200ms)
+User Audio → Mistral Voxtral Transcribe 2 (STT, sub-200ms)
           → Mistral Large (LLM + agent personality)
-          → Voxtral TTS (character voice, ~90ms)
+          → ElevenLabs TTS (character voice, ~200-400ms)
           → User Speakers
 ```
 
@@ -661,7 +661,7 @@ User Audio → Voxtral Transcribe 2 (STT, sub-200ms)
 ### Success Criteria
 - ✅ Chat works with real AI (Mistral Large)
 - ✅ Voice transcription via Voxtral Transcribe 2
-- ✅ Voice synthesis via Voxtral TTS with character voices
+- ✅ Voice synthesis via ElevenLabs TTS with character voices
 - ✅ Real-time conversation mode working (Talk button)
 - ✅ Voice cloning samples recorded for all 3 characters
 - ✅ Image generation via SDXL + LoRAs
@@ -1142,7 +1142,7 @@ For detailed breakdowns, see the Agent Assignment documents in `/Documentation/0
 ### AI & Voice
 - **LLM (Chat):** Mistral Large via Mistral API (EU-based, GDPR-native, open weights available)
 - **STT (Speech-to-Text):** Mistral Voxtral Transcribe 2 ($0.003/min, sub-200ms, Apache 2.0)
-- **TTS (Text-to-Speech):** Mistral Voxtral TTS (zero-shot voice cloning, ~90ms, Apache 2.0)
+- **TTS (Text-to-Speech):** ElevenLabs TTS (zero-shot voice cloning, ~90ms, Apache 2.0)
 - **Real-Time Conversation:** Full Mistral voice pipeline -- continuous back-and-forth dialogue
 - **Image Generation:** SDXL via Replicate + Custom LoRAs
 - **Color Separation + Halftoning:** OpenCV (Python)

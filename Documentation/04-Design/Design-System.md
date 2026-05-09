@@ -441,7 +441,7 @@ When Talk mode is active, a minimal overlay appears:
 ```
 
 ### Voice Cloning Reference
-Each agent voice is configured via Voxtral TTS with a 3-5 second reference audio sample:
+Each agent voice is configured via ElevenLabs TTS with a 30-second reference audio sample:
 - **Leopoldo:** Confident male, São Paulo accent
 - **Francisca:** Expressive female, Porto accent
 - **Antônia:** Upbeat female, Dublin Irish accent

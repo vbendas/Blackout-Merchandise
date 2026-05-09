@@ -205,12 +205,12 @@ The video must make viewers think: *"This already exists and it's amazing. I nee
 ---
 
 #### Day 9 — Saturday, May 17
-**Sprint**: Voxtral TTS Integration  
+**Sprint**: ElevenLabs TTS Integration  
 **Hours**: 6
 
 | # | Task | Time | Acceptance |
 |---|------|------|------------|
-| 1 | Set up Mistral Voxtral TTS API | 1.5h | API key configured, test single sentence playback |
+| 1 | Set up ElevenLabs TTS API | 1.5h | API key configured, test single sentence playback |
 | 2 | Integrate TTS into chat response flow | 2.5h | After agent generates text → auto-send to TTS → play audio in browser |
 | 3 | Add mute/unmute toggle | 1h | User can turn voice on/off. Remember preference in localStorage |
 | 4 | Handle audio overlap: stop previous TTS before new | 1h | If user sends new message while agent is speaking → interrupt and restart |

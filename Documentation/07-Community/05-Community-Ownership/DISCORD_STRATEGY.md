@@ -334,3 +334,225 @@ Top Seller role creates visible social proof → more artists want it → more d
 | Click-through from #drop-alerts to store | >15% CTR |
 | Embedded Activity sessions/month | 1,000+ |
 | Community-driven referrals (tracked UTM) | >10% of new signups |
+
+---
+
+## 11. Discord Bot Strategy — AI-Powered Artist & Customer Support
+
+### Overview
+
+Discord bots are not just utility tools — they are **extensions of the Cat-Suite AI agents** into the community layer. Artists and customers interact with the same Leopoldo, Francisca, and Antonia personalities whether they're in the app or on Discord.
+
+**Architecture principle:** Shared context layer. When a customer asks the Discord bot about their order, and the artist asks MerchStation about the same order, both draw from the same knowledge graph. The AI maintains continuity across channels.
+
+---
+
+### Artist-Facing Bot (Powered by Mistral Small 4)
+
+**Deployed in:** Artist's own Discord server (via OAuth)
+**AI Model:** Mistral Small 4 (primary), Mistral Large 3 (escalation)
+**Persona:** Configurable — Leopoldo (admin), Francisca (design), or Antonia (support)
+
+#### Core Features
+
+| Feature | Description | AI Role |
+|---------|-------------|---------|
+| **Pre-launch campaigns** | "Create a poll for my fans about colorways" → bot generates poll, posts it, summarizes results | Small 4 |
+| **Analytics Q&A** | "How did my drop perform last week?" → queries MerchFrom API, returns formatted stats with insights | Small 4 |
+| **Order follow-ups** | "Remind me to check on the Portugal shipment" → scheduled natural language reminders | Small 4 |
+| **Support triage** | Handles 80% of artist questions; escalates 20% to human Head of Customer Success | Small 4 → Large 3 |
+| **Fan engagement ideas** | "What should I post before my drop?" → creative campaign suggestions | Large 3 |
+| **Poll generation** | "Ask my fans about hoodie vs tee" → structured poll with options | Small 4 |
+| **Collaboration matching** | "Find artists who do botanical prints" → searches community catalog | Small 4 |
+
+#### Example Interactions
+
+```
+@merchfrom-bot How did my Luna Tee drop do?
+
+🐱 Antonia: Grand news! Your Luna Tee drop did well:
+   • 42 units sold in 7 days
+   • €1,469 revenue (your cut: €880)
+   • Top buyer location: Lisbon (12 orders)
+   • 3 customers left reviews — all 5 stars
+   
+   That's your best-performing product so far. 
+   Want me to remind you when inventory hits 10 left?
+```
+
+```
+@merchfrom-bot Create a poll: should my next drop be hoodies or tees?
+
+🎭 Francisca: Claro! Here's your poll:
+
+📊 Next Drop: Hoodie or Tee?
+🧥 Hoodie — cozy season is coming
+👕 Tee — classic, wearable year-round
+
+Post this in #announcements? [Yes] [Edit] [Cancel]
+```
+
+---
+
+### Customer-Facing Bot (Powered by Mistral Small 4)
+
+**Deployed in:** MerchFrom community server + artist servers
+**AI Model:** Mistral Small 4 (primary), Mistral Large 3 (escalation)
+**Persona:** Antonia (friendly, direct, helpful)
+
+#### Core Features
+
+| Feature | Description | AI Role |
+|---------|-------------|---------|
+| **Order tracking** | "Where's my Luna Tee?" → natural language tracking, no copy-pasting numbers | Small 4 |
+| **Artist interaction** | "Ask [Artist] when the next drop is" → bot surfaces it or schedules notification | Small 4 |
+| **Support** | Return policies, shipping info, initiate refunds | Small 4 |
+| **Product discovery** | "Show me eco-friendly tees" → searches catalog, returns embeds | Small 4 |
+| **Escalation** | Complex disputes or emotional customers → human Head of Customer Success | Large 3 → Human |
+
+#### Example Interactions
+
+```
+@merchfrom-bot Where's my order?
+
+📦 Antonia: No bother, let me check...
+   
+   Order #1089 — Luna Tee (Black, M)
+   Status: Shipped 🚚
+   Tracking: CTT Expresso #PT123456789
+   Estimated: May 12-14
+   
+   [Track on CTT] [Contact Support]
+```
+
+---
+
+### Bot Architecture
+
+```
+Discord Bot (Node.js / Bun)
+├─ Artist Bot Module
+│  ├─ OAuth connection to MerchFrom API
+│  ├─ Command parser (/merch drop, /merch analytics, /merch poll)
+│  ├─ Mistral Small 4 client (natural language)
+│  └─ Escalation router (to Large 3 or human)
+│
+├─ Customer Bot Module
+│  ├─ Order tracking API integration
+│  ├─ Catalog search
+│  ├─ Mistral Small 4 client
+│  └─ Support ticket creation
+│
+├─ Shared Layer
+│  ├─ Knowledge graph (same DB as MerchStation)
+│  ├─ Context persistence (cross-channel memory)
+│  ├─ Human handoff protocol
+│  └─ Analytics logging
+│
+└─ Deployment
+   ├─ Self-hosted (open-source template)
+   └─ Managed hosting (MerchFrom-hosted, paid tier)
+```
+
+**Tech Stack:**
+- Runtime: Bun (fast, TypeScript-native)
+- Discord library: discord.js or @discordjs/core
+- AI client: @mistralai/mistral-sdk
+- Database: Same Neon PostgreSQL via Drizzle ORM
+- Cache: Upstash Redis for session state
+
+---
+
+### Why Mistral for Discord Bots
+
+| Requirement | How Mistral Delivers |
+|-------------|---------------------|
+| **Multilingual** | Portuguese, English, Spanish, German without model switching |
+| **Fast** | Small 4 delivers sub-second responses for chatty Discord UX |
+| **Cheap at scale** | $0.15/1M tokens means unpredictable support volume won't break the bank |
+| **Persona consistency** | Same models power in-app Cat-Suite and Discord bots |
+| **Shared context** | Single knowledge graph across app, MerchStation, and Discord |
+| **EU data residency** | Artist/customer conversations stay in Europe |
+
+---
+
+### Open-Source Strategy
+
+The Discord bot templates will be open-sourced under MIT license:
+
+| Template | Repository | Target User |
+|----------|-----------|-------------|
+| `artist-support-bot` | `github.com/merchfrom/discord-bots/artist-support` | Self-hosting artists |
+| `customer-support-bot` | `github.com/merchfrom/discord-bots/customer-support` | Community managers |
+| `drop-announcement-bot` | `github.com/merchfrom/discord-bots/drop-announcement` | Any Discord server |
+
+**Self-host:**
+```bash
+git clone github.com/merchfrom/discord-bots
+cd discord-bots/artist-support-bot
+cp .env.example .env
+# Add Discord token + MerchFrom API key
+bun install
+bun run start
+```
+
+**Managed hosting (paid):**
+- MerchFrom hosts and manages the bot
+- Artist connects via dashboard OAuth
+- Higher rate limits, priority support, custom branding
+
+---
+
+### Human-in-the-Loop on Discord
+
+Every bot interaction follows the same human oversight model as the app:
+
+- **Automatic flagging:** Negative sentiment, refund requests, legal mentions → immediate human alert
+- **Artist escalation:** Any user can type `/human` to request a human team member
+- **Human lead dashboard:** Head of Customer Success sees all Discord bot conversations in MerchStation
+- **Response time promise:** < 4 hours during business hours for human requests
+
+**Example handoff:**
+```
+@merchfrom-bot /human
+
+📦 Antonia: No bother at all, I'm getting Marta (Head of Customer Success) 
+           for you now. She'll be with you within 4 hours.
+           
+           In the meantime, is there anything I can help prepare 
+           for her? Your order number or question would be grand.
+           
+           [Marta will reply here]
+```
+
+---
+
+### Integration Timeline
+
+| Phase | Timeline | Deliverable |
+|-------|----------|-------------|
+| **Phase 1** | Q3 2026 | Basic slash commands (/merch drop, /merch shop) — rule-based, no AI |
+| **Phase 2** | Q4 2026 | AI-powered support bot (Mistral Small 4) in MerchFrom server |
+| **Phase 3** | Q1 2027 | Artist-facing bot templates (open-source) |
+| **Phase 4** | Q2 2027 | Full Cat-Suite persona integration, cross-channel context |
+| **Phase 5** | Q3 2027 | Embedded Activity (Discord storefront), advanced analytics |
+
+---
+
+### Success Metrics (Discord Bots)
+
+| Metric | Target |
+|--------|--------|
+| Bot response accuracy | > 90% |
+| Human escalation rate | 10-20% |
+| Average response time | < 2 seconds |
+| Artist bot adoption | > 30% of active artists |
+| Customer satisfaction (bot) | > 4.0/5 |
+| Cost per conversation | < €0.01 |
+
+---
+
+**See also:**
+- [[../04-TUI/MerchStation-Plan]] — Internal admin TUI with shared AI context
+- [[../../02-Architecture/AI-Stack]] — Full AI model architecture
+- [[../../02-Architecture/Human-in-the-Loop]] — Human oversight specification

@@ -180,7 +180,7 @@ Artist: "The Echoes" creates "Skrull" design
 | **AI Refinement** | SeeDream 4.0 img2img | Design modifications |
 | **AI Chat** | Mistral Large | Agent conversations, routing, character personalities |
 | **AI Voice STT** | Mistral Voxtral Transcribe 2 | Speech-to-text ($0.003/min, sub-200ms) |
-| **AI Voice TTS** | Mistral Voxtral TTS | Text-to-speech with zero-shot voice cloning |
+| **AI Voice TTS** | ElevenLabs TTS | Text-to-speech with zero-shot voice cloning |
 | **Storage** | Neon Storage | Production files (PSD, PNG, PDF) |
 | **Compute** | Vercel Edge Functions | Serverless processing |
 

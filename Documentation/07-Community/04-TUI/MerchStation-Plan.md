@@ -141,7 +141,9 @@ Production Floor Setup:
 | **Charts** | asciichart | 1.5 | ASCII sparklines and charts |
 | **Database** | Drizzle ORM | 0.45.x | Type-safe SQL |
 | **DB Driver** | @neondatabase/serverless | 1.0.x | Neon connection |
-| **AI** | @openrouter/sdk | 0.3.x | LLM gateway |
+| **AI (LLM)** | Mistral Small 4 | API | Natural language queries, insights |
+| **AI (Code)** | Codestral | API | SQL/script generation |
+| **AI Client** | @mistralai/mistral-sdk | Latest | Mistral API client |
 | **Auth** | argon2 | 0.41.x | Passphrase hashing |
 | **State** | Zustand | 5.x | Global state management |
 | **Encryption** | Node.js crypto | Built-in | AES-256-GCM for config |
@@ -536,12 +538,14 @@ Admin user: {username} (role: {role})
 
 | Feature | Description |
 |---------|-------------|
-| **Natural Language Queries** | "Show me all artists who joined this month" → SQL |
-| **Waitlist Analysis** | Analyze interview responses, score applicants 0-10 |
-| **Sales Insights** | "What's trending?", "Why did revenue drop?" |
+| **Natural Language Queries** | "Show me all artists who joined this month" → SQL via Mistral Small 4 |
+| **Waitlist Analysis** | Analyze interview responses, score applicants 0-10 via Mistral Large 3 |
+| **Sales Insights** | "What's trending?", "Why did revenue drop?" — Mistral Small 4 + data context |
 | **Anomaly Detection** | Proactive alerts for unusual patterns |
 | **Action Execution** | "Approve Sofia Martinez", "Ban user #123" (with confirmation) |
 | **Context Awareness** | Screen-aware suggestions, data-aware insights |
+| **Code Generation** | Codestral generates SQL, shell scripts, automation workflows |
+| **On-Premise Path** | At 250+ artists, self-host Mistral Small/Codestral at Portugal facility |
 
 ---
 
@@ -588,7 +592,7 @@ Admin user: {username} (role: {role})
 
 | # | Task | Subtasks | Est. Time |
 |---|------|----------|-----------|
-| 4.1 | OpenRouter client | Connection with streaming | 2 hours |
+| 4.1 | Mistral API client | Connection with streaming | 2 hours |
 | 4.2 | Leopoldo persona | System prompt, context builder | 2 hours |
 | 4.3 | AI tools | Function-calling for DB queries | 4 hours |
 | 4.4 | AI panel UI | Chat interface, message bubbles | 4 hours |
@@ -710,8 +714,7 @@ Phase 7 (Apr 2+)                 Beta Launch
     "zustand": "^5.0.0",
     "drizzle-orm": "^0.45.1",
     "@neondatabase/serverless": "^1.0.2",
-    "@openrouter/sdk": "^0.3.16",
-    "openai": "^6.16.0",
+    "@mistralai/mistral-sdk": "^1.0.0",
     "argon2": "^0.41.0",
     "asciichart": "^1.5.25",
     "chalk": "^5.3.0",

@@ -5,10 +5,10 @@
 **Deciders:** Victor Bendas
 
 ## Context
-Cat-Suite agents (Leopoldo, Francisca, Antônia) have distinct personalities but currently share generic TTS voices. Voxtral TTS supports zero-shot voice cloning with 3-5 second reference samples.
+Cat-Suite agents (Leopoldo, Francisca, Antônia) have distinct personalities but currently share generic TTS voices. ElevenLabs TTS supports zero-shot voice cloning with 30-second reference samples.
 
 ## Decision
-Create distinct voice profiles for each agent using Voxtral TTS zero-shot cloning:
+Create distinct voice profiles for each agent using ElevenLabs TTS zero-shot cloning:
 
 | Agent | Voice | Accent | Sample Source |
 |-------|-------|--------|---------------|
@@ -19,17 +19,17 @@ Create distinct voice profiles for each agent using Voxtral TTS zero-shot clonin
 ## Consequences
 **Positive:**
 - Each agent sounds unique and matches their personality
-- 3-5 second sample = minimal recording effort
+- 30-second sample = high-quality cloning with emotion preservation
 - No fine-tuning required (zero-shot)
 - Major brand differentiation
 
 **Negative:**
 - Need to source or create reference samples
-- Quality depends on Voxtral TTS capability
-- May need fallback to ElevenLabs if quality insufficient
+- Quality depends on ElevenLabs TTS capability
+- May need fallback to browser speechSynthesis or Mistral Voxtral TTS if ElevenLabs unavailable
 
 ## Next Steps
-1. Source or record 3-5s voice samples per character
-2. Test Voxtral TTS quality with samples
+1. Source or record 30s voice samples per character
+2. Test ElevenLabs TTS quality with samples
 3. Verify Portuguese accent accuracy
 4. Have ElevenLabs fallback ready

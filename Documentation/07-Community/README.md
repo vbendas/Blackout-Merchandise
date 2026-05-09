@@ -12,8 +12,8 @@ Crowdfunding, tokenization, and community strategy.
 | [[04-Crowdfunding-Landing/Overview]] | Campaign tiers, timeline, projections |
 | [[04-Crowdfunding-Landing/Merch-Coins-Strategy]] | Merch Coins loyalty system |
 | [[04-TUI/Campaign-Management-MCP-Plan]] | Campaign management MCP plan |
-| [[04-TUI/MerchStation-Plan]] | MerchStation TUI plan |
-| [[05-Community-Ownership/DISCORD_STRATEGY]] | Discord community server setup |
+| [[04-TUI/MerchStation-Plan]] | MerchStation TUI plan (Mistral-powered admin CLI) |
+| [[05-Community-Ownership/DISCORD_STRATEGY]] | Discord community server + AI bot strategy |
 | [[05-Community-Ownership/MERCHANTCOINS_VS_MRCH]] | MerchCoins vs MRCH tokens comparison |
 | [[05-Community-Ownership/MRCH_ARTIST_ONBOARDING]] | MRCH artist onboarding guide |
 | [[Tokenization]] | MRCH token vision, Stellar blockchain, phased approach |

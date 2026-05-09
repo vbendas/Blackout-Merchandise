@@ -27,12 +27,13 @@
      - **Open Weights:** Apache 2.0 license -- self-hostable at scale
      - **Features:** Speaker diarization, context biasing, word-level timestamps
 
-4.  **Mistral Voxtral TTS — TEXT-TO-SPEECH**
-     - **Purpose:** Character voice synthesis with zero-shot voice cloning
-     - **Why:** Beats ElevenLabs Flash v2.5 (68.4% win rate), ~90ms latency, 9 languages
-     - **Open Weights:** Apache 2.0 license -- self-hostable at scale
-     - **Voice Cloning:** 3-5 second reference sample per Cat-Suite character
-     - **Characters:** Leopoldo (São Paulo accent), Francisca (Porto accent), Antonia (Irish accent)
+4.  **ElevenLabs — TEXT-TO-SPEECH (via Startup Grant)**
+     - **Purpose:** Character voice synthesis with premium emotional depth
+     - **Why:** Industry-leading voice quality, 32 languages, zero-shot voice cloning with 30s samples, emotion control via SSML
+     - **Grant:** 33 million minutes (effectively unlimited for TTS at startup scale)
+     - **Latency:** ~200-400ms streaming (slightly slower than Mistral but acceptable for TTS)
+     - **Voice Design:** Unique per-agent voices — Leopoldo (warm Brazilian), Francisca (refined Portuguese), Antonia (Irish lilt)
+     - **Fallback:** Browser speechSynthesis API if ElevenLabs unavailable
 
        | Task Type | Model | Cost | Why |
        |-----------|-------|------|-----|
@@ -57,7 +58,7 @@
 
 **Defer to Production (Year 2+):**
 - **Real-ESRGAN:** Use Cloudinary upscaling or basic algorithm for MVP
-- **Self-hosted Voxtral:** At 250+ artists, migrate STT/TTS to on-premise (Apache 2.0 weights) for zero per-minute voice costs
+- **Self-hosted Voxtral STT:** At 250+ artists, migrate STT to on-premise (Apache 2.0 weights) for zero per-minute transcription costs. ElevenLabs TTS remains via API (grant covers usage).
 
 ---
 
@@ -70,12 +71,12 @@
 | **Mistral Large 3** (LLM) | ~€2/1M input, ~€6/1M output | Mistral API | Complex reasoning, onboarding, creative direction |
 | **Mistral Small 4** (LLM) | ~$0.15/1M input, ~$0.60/1M output | Mistral API | FAQ, order tracking, simple queries (~70% of traffic) |
 | **Voxtral Transcribe 2** (STT) | $0.003/min | Mistral API | Real-time voice transcription |
-| **Voxtral TTS** (TTS) | ~$0.005/min (estimated) | Mistral API | Character voice synthesis |
+| **ElevenLabs TTS** (TTS) | ~$0.00/min (grant-covered) | ElevenLabs API | Premium character voice synthesis |
 | **Image Generation** (BFL API) | $0.008–0.050/image | BFL API | FLUX 2 Flex / Pro / Max by task complexity |
 
 ### Cost Scenarios
 
-| Scale | Artists | Msgs/Month | Voice Mins | Images/Month | Large 3 (30%) | Small 4 (70%) | Voxtral STT | Voxtral TTS | Image Gen | **Total/Month** |
+| Scale | Artists | Msgs/Month | Voice Mins | Images/Month | Large 3 (30%) | Small 4 (70%) | Mistral STT | ElevenLabs TTS | Image Gen | **Total/Month** |
 |-------|---------|-------------|------------|--------------|---------------|---------------|-------------|-------------|-----------|-----------------|
 | **Launch** | 10 | 3,000 | 500 | 300 | ~$4.20 | ~$1.35 | ~$1.50 | ~$2.50 | ~$4.50 | **~$14.05** |
 | **Early** | 50 | 15,000 | 2,500 | 1,500 | ~$21.00 | ~$6.75 | ~$7.50 | ~$12.50 | ~$22.50 | **~$70.25** |
@@ -1362,13 +1363,13 @@
    - **Mistral Small 4** (via Mistral API) — Fast, cost-optimized FAQ/order tracking (~70% of conversational traffic)
    - **Mistral Large 3** (via Mistral API) — Vision & image analysis: print readiness, resolution check, color count, style detection
    - **Mistral Voxtral Transcribe 2** — Real-time speech-to-text ($0.003/min, 13 languages)
-   - **Mistral Voxtral TTS** — Character voice synthesis with zero-shot cloning
+   - **ElevenLabs TTS** — Character voice synthesis with emotion control and voice cloning (via 33M-min grant)
    - **BFL API** — Direct FLUX 2 Flex / Pro / Max image generation (OpenRouter available as unified fallback)
    - **OpenCV (Python/Node)** — Color separation, halftoning, DPI validation (deterministic, $0)
    - **v0 API (Vercel)** — AI-powered component generation for store customization
 
   **AI & ML (Phase 2: Scale - Self-Hosted Migration at 250+ Artists):**
-  - **Self-hosted Voxtral** (Apache 2.0 weights) — Eliminate per-minute STT/TTS costs at scale
+  - **Self-hosted Voxtral STT** (Apache 2.0 weights) — Eliminate per-minute STT costs at scale. ElevenLabs TTS remains via API (grant-covered).
   - **Custom LoRA fine-tuning** (via Replicate / Modal) — Train on Expert-scored designs for proprietary aesthetic
   - **Failover:** OpenRouter API remains as high-availability backup for image generation; Mistral API direct for LLM
 
@@ -1416,7 +1417,7 @@
    Mistral Large 3 (30% of messages): ~$9.00/month (9,000 msgs @ $0.001)
    Mistral Large 3 (vision/image analysis): ~$5.00/month (1,000 uploads)
    Voxtral STT (5,000 voice mins): ~$15.00/month
-   Voxtral TTS (5,000 voice mins): ~$25.00/month
+   ElevenLabs TTS (5,000 voice mins): ~$0.00/month (grant-covered)
    Image Generation (FLUX 2 Flex / Pro / Max via BFL API): ~$15.00/month (1,000 images avg)
    Monthly cost: ~$64.50
    Annual cost: ~$774
@@ -1440,17 +1441,17 @@
   Break-Even Analysis:
 
   250+ active artists (~25,000 voice mins/month):
-    - Voxtral STT/TTS via API: ~$200/month
+    - Voxtral STT via API + ElevenLabs TTS (grant): ~$15/month
     - Self-hosted Voxtral (Apache 2.0): €150/month (GPU rental)
     - Savings: ~$50/month ✅
 
   500+ active artists (~50,000 voice mins/month):
-    - Voxtral STT/TTS via API: ~$400/month
+    - Voxtral STT via API + ElevenLabs TTS (grant): ~$30/month
     - Self-hosted Voxtral: €150/month
     - Savings: ~$250/month ✅
 
   1,000+ active artists (~100,000 voice mins/month):
-    - Voxtral STT/TTS via API: ~$800/month
+    - Voxtral STT via API + ElevenLabs TTS (grant): ~$60/month
     - Self-hosted Voxtral: €150/month
     - Savings: ~$650/month ✅
   ```
@@ -1459,7 +1460,7 @@
   ```
   Hardware Investment:
     - Hetzner/Gcore GPU Server (NVIDIA A100 or RTX 4090): €150–300/month
-    - Voxtral STT + TTS (Apache 2.0 weights): Included
+    - Self-hosted Voxtral STT (Apache 2.0): Included | ElevenLabs TTS (grant): Included
     - Setup & integration: €500 (one-time)
   ```
 
@@ -1551,7 +1552,7 @@
 
   **Phase 1: Infrastructure Setup (Month 18)**
   - Acquire NVIDIA A6000 GPU (€5,000 from profits)
-  - Install self-hosted Voxtral STT + TTS (Apache 2.0 weights)
+  - Install self-hosted Voxtral STT (Apache 2.0 weights). ElevenLabs TTS via API (grant).
   - Set up inference API wrapper
   - Deploy monitoring and logging
 
@@ -2335,7 +2336,7 @@
   |-------|----------|------|----------------|--------------|
   | **Mistral Small 4** | FAQ, order tracking, simple queries (70%) | ~$0.15/1M input, ~$0.60/1M output | 21M tokens | **~$13.50** |
   | **Mistral Large 3** | Complex reasoning, onboarding, design (30%) | ~€2/1M input, ~€6/1M output | 9M tokens | **~$9.00** |
-  | **Voxtral STT + TTS** | Voice transcription + synthesis | $0.003/min STT, ~$0.005/min TTS | 5,000 mins | **~$40.00** |
+  | **Voice Pipeline** | STT (Mistral) + TTS (ElevenLabs) | $0.003/min STT, TTS grant-covered | 5,000 mins | **~$15.00** |
   | **FLUX 2 Flex** (BFL API) | Drafts, iterations, sketches (70%) | ~$0.008/image | 21,000 images | **~$168** |
   | **FLUX 2 Pro** (BFL API) | Final mockups, catalog (20%) | ~$0.020/image | 6,000 images | **~$120** |
   | **FLUX 2 Max** (BFL API) | Premium / hero releases (10%) | ~$0.050/image | 3,000 images | **~$150** |
@@ -3902,14 +3903,15 @@
    - **Why not external vision APIs (Claude Vision, GPT-4V):** Non-EU inference, higher cost (~$0.01+/image), no GDPR-native guarantee
    - **Use Cases:** Francisca's first pass on any uploaded image — "Darling, this logo is 72 DPI. For a 12-inch chest print, we need 3600px wide."
 
-   **Why Mistral Voxtral Transcribe 2 + TTS — Full EU Voice Pipeline:**
+   **Voice Pipeline: Mistral STT + ElevenLabs TTS — Best of Both Worlds:**
    - **STT Cost:** $0.003/min (10x cheaper than competitors)
    - **TTS Cost:** ~$0.005/min estimated (competitive with ElevenLabs)
    - **Speed:** STT <200ms latency, TTS ~90ms latency
    - **Quality:** STT supports 13 languages (including Portuguese); TTS beats ElevenLabs Flash v2.5 (68.4% win rate)
    - **Voice Cloning:** 3-5 second reference sample per Cat-Suite character
    - **Open Weights:** Apache 2.0 — self-hostable at scale (migration path at 250+ artists)
-   - **Why not Whisper + ElevenLabs:** Whisper is OpenAI (US, non-EU); ElevenLabs is expensive and lacks EU data guarantee
+   - **STT: Why not Whisper:** Whisper is OpenAI (US, non-EU). Mistral Voxtral is EU-native, Apache 2.0, and cheaper.
+   - **TTS: Why ElevenLabs over Voxtral TTS:** ElevenLabs offers superior emotional depth, voice design, and 32-language support. The 33M-minute startup grant makes it cost-free for the foreseeable future. Voxtral TTS remains the fallback.
 
    **Why BFL API for Image Generation:**
    - **Purpose:** Francisca routes all creative tasks to FLUX 2 family via single provider
@@ -3970,7 +3972,7 @@
   | **AI Services** | **Mistral Small 4** (simple queries, 70%) | **~$13.50** | 21M tokens @ ~$0.15/1M in, ~$0.60/1M out |
   | | **Mistral Large 3** (complex reasoning, 30%) | **~$9.00** | 9M tokens @ ~€2/1M input |
   | | **Mistral Large 3** (artwork analysis) | **~$5.00** | 1,000 uploads @ ~€0.005 |
-  | | **Voxtral STT + TTS** (voice pipeline) | **~$40.00** | 5,000 mins combined |
+  | | **Voice Pipeline** (Mistral STT + ElevenLabs TTS) | **~$15.00** | 5,000 mins combined |
   | | **BFL API Image Gen** (FLUX 2 Flex / Pro / Max) | **~$438** | 30K images @ ~$0.0146 avg |
   | | **Subtotal (10K active users)** | **~$517.50** | **98% cost reduction vs v3.0** |
   | **Transaction Fees** | Stripe | 2.9% + $0.30 | Per transaction (variable) |
@@ -4087,7 +4089,7 @@
   2. **Mistral Small 4** — Fast FAQ, order tracking, simple queries (~70% of traffic, 90% cheaper)
   3. **Mistral Large 3** — Vision & artwork analysis: resolution, color count, bleed safety, style detection
   4. **Mistral Voxtral Transcribe 2** — Real-time speech-to-text ($0.003/min)
-  5. **Mistral Voxtral TTS** — Character voice synthesis with zero-shot cloning
+  5. **ElevenLabs TTS** — Character voice synthesis with emotion control and voice cloning
   5. **BFL API** — FLUX 2-only image generation (Flex / Pro / Max by complexity)
 
   **Removed from MVP:**
@@ -4195,7 +4197,7 @@
   1. **Mistral Large 3** — Complex reasoning, onboarding, creative direction, vision & artwork analysis (native multimodal)
   2. **Mistral Small 4** — Fast FAQ, order tracking, simple queries (~70% traffic)
   3. **Mistral Voxtral Transcribe 2** — Real-time speech-to-text
-  4. **Mistral Voxtral TTS** — Character voice synthesis
+  4. **ElevenLabs TTS** — Character voice synthesis with voice design
   5. **FLUX 2 Flex** (BFL API) — Drafts, iterations, sketches (~70% of generations)
   6. **FLUX 2 Pro** (BFL API) — Final mockups, catalog images (~20% of generations)
   7. **FLUX 2 Max** (BFL API) — Premium hero releases (~10% of generations)
@@ -4520,12 +4522,12 @@
 | **Mistral Large 3** (LLM) | ~€2/1M input, ~€6/1M output | Mistral API | Complex reasoning, onboarding, creative direction |
 | **Mistral Small 4** (LLM) | ~$0.15/1M input, ~$0.60/1M output | Mistral API | FAQ, order tracking, simple queries (~70% of traffic) |
 | **Voxtral Transcribe 2** (STT) | $0.003/min | Mistral API | Real-time voice transcription |
-| **Voxtral TTS** (TTS) | ~$0.005/min (estimated) | Mistral API | Character voice synthesis |
+| **ElevenLabs TTS** (TTS) | ~$0.00/min (grant-covered) | ElevenLabs API | Premium character voice synthesis |
 | **Image Generation** (BFL API) | $0.008–0.050/image | BFL API | FLUX 2 Flex / Pro / Max by task complexity |
 
 ### Cost Scenarios
 
-| Scale | Artists | Msgs/Month | Voice Mins | Images/Month | Large 3 (30%) | Small 4 (70%) | Voxtral STT | Voxtral TTS | Image Gen | **Total/Month** |
+| Scale | Artists | Msgs/Month | Voice Mins | Images/Month | Large 3 (30%) | Small 4 (70%) | Mistral STT | ElevenLabs TTS | Image Gen | **Total/Month** |
 |-------|---------|-------------|------------|--------------|---------------|---------------|-------------|-------------|-----------|-----------------|
 | **Launch** | 10 | 3,000 | 500 | 300 | ~$4.20 | ~$1.35 | ~$1.50 | ~$2.50 | ~$4.50 | **~$14.05** |
 | **Early** | 50 | 15,000 | 2,500 | 1,500 | ~$21.00 | ~$6.75 | ~$7.50 | ~$12.50 | ~$22.50 | **~$70.25** |
@@ -5812,7 +5814,7 @@
    - **Mistral Small 4** (via Mistral API) — Fast, cost-optimized FAQ/order tracking (~70% of conversational traffic)
    - **Mistral Large 3** (via Mistral API) — Vision & image analysis: print readiness, resolution check, color count, style detection
    - **Mistral Voxtral Transcribe 2** — Real-time speech-to-text ($0.003/min, 13 languages)
-   - **Mistral Voxtral TTS** — Character voice synthesis with zero-shot cloning
+   - **ElevenLabs TTS** — Character voice synthesis with emotion control and voice cloning (via 33M-min grant)
    - **BFL API** — Direct FLUX 2 Flex / Pro / Max image generation (OpenRouter available as unified fallback)
    - **OpenCV (Python/Node)** — Color separation, halftoning, DPI validation (deterministic, $0)
    - **v0 API (Vercel)** — AI-powered component generation for store customization
@@ -5866,7 +5868,7 @@
    Mistral Large 3 (30% of messages): ~$9.00/month (9,000 msgs @ $0.001)
    Mistral Large 3 (vision/image analysis): ~$5.00/month (1,000 uploads)
    Voxtral STT (5,000 voice mins): ~$15.00/month
-   Voxtral TTS (5,000 voice mins): ~$25.00/month
+   ElevenLabs TTS (5,000 voice mins): ~$0.00/month (grant-covered)
    Image Generation (FLUX 2 Flex / Pro / Max via BFL API): ~$15.00/month (1,000 images avg)
    Monthly cost: ~$64.50
    Annual cost: ~$774
@@ -8537,7 +8539,7 @@
   2. **Mistral Small 4** — Fast FAQ, order tracking, simple queries (~70% of traffic, 90% cheaper)
   3. **Mistral Large 3** — Vision & artwork analysis: resolution, color count, bleed safety, style detection
   4. **Mistral Voxtral Transcribe 2** — Real-time speech-to-text ($0.003/min)
-  5. **Mistral Voxtral TTS** — Character voice synthesis with zero-shot cloning
+  5. **ElevenLabs TTS** — Character voice synthesis with emotion control and voice cloning (via 33M-min grant)
   5. **BFL API** — FLUX 2-only image generation (Flex / Pro / Max by complexity)
 
   **Removed from MVP:**
@@ -8645,7 +8647,7 @@
   1. **Mistral Large 3** — Complex reasoning, onboarding, creative direction, vision & artwork analysis (native multimodal)
   2. **Mistral Small 4** — Fast FAQ, order tracking, simple queries (~70% traffic)
   3. **Mistral Voxtral Transcribe 2** — Real-time speech-to-text
-  4. **Mistral Voxtral TTS** — Character voice synthesis
+  4. **ElevenLabs TTS** — Character voice synthesis with voice design
   5. **FLUX 2 Flex** (BFL API) — Drafts, iterations, sketches (~70% of generations)
   6. **FLUX 2 Pro** (BFL API) — Final mockups, catalog images (~20% of generations)
   7. **FLUX 2 Max** (BFL API) — Premium hero releases (~10% of generations)

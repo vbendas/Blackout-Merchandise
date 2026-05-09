@@ -84,7 +84,9 @@ Documentation/
 2. **In-House Production** — Own facility in Portugal, €113K equipment
 3. **Zero Risk Model** — Artists pay nothing upfront
 4. **Ethical First** — Vegan, fair-trade, organic blanks as standard
-5. **Proprietary Dataset** — World's only expert-scored screen print AI training data
+5. **European AI Sovereignty** — Mistral + BFL, EU data residency, AI Act compliant
+6. **Human-in-the-Loop** — Every AI agent has a human lead; no AI replaces people
+7. **Proprietary Dataset** — World's only expert-scored screen print AI training data
 
 ### Investment Ask
 | Investment | Equity | Runway |

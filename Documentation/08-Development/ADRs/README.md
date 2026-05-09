@@ -11,7 +11,7 @@ All major technical decisions for the Merch From platform.
 | [[ADR-001-Mistral-Adoption]] | Feb 25, 2026 | Mistral AI for full voice+text pipeline | ACCEPTED |
 | [[ADR-002-Castelo-Branco]] | Feb 25, 2026 | Facility in Castelo Branco, Portugal | ACCEPTED |
 | [[ADR-003-Voice-Conversation]] | Feb 25, 2026 | Real-time "Talk" voice mode | ACCEPTED |
-| [[ADR-004-Voice-Cloning]] | Feb 25, 2026 | Voxtral TTS zero-shot cloning for Cat-Suite | ACCEPTED |
+| [[ADR-004-Voice-Cloning]] | Feb 25, 2026 | ElevenLabs TTS zero-shot cloning for Cat-Suite | ACCEPTED |
 
 ---
 

@@ -1578,7 +1578,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
     - Conducts the 5-stage entry interview.
     - Clusters artists by values, genre, and audience size.
     - Determines who gets "Founding Artist" status.
-  - **Tech:** Mistral Large 3 + Voxtral Transcribe 2 + Voxtral TTS (Full EU voice pipeline).
+  - **Tech:** Mistral Large 3 + Voxtral Transcribe 2 + ElevenLabs TTS (Hybrid voice pipeline).
 
    #### **2. Francisca: CDO (Chief Design Officer)**
    - **Role:** Guided merchandise design and creative direction.
@@ -1626,11 +1626,11 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
      - **Open Weights:** Apache 2.0 license -- self-hostable at scale
      - **Features:** Speaker diarization, context biasing, word-level timestamps
 
-4.  **Mistral Voxtral TTS — TEXT-TO-SPEECH**
+4.  **ElevenLabs TTS — TEXT-TO-SPEECH**
      - **Purpose:** Character voice synthesis with zero-shot voice cloning
      - **Why:** Beats ElevenLabs Flash v2.5 (68.4% win rate), ~90ms latency, 9 languages
      - **Open Weights:** Apache 2.0 license -- self-hostable at scale
-     - **Voice Cloning:** 3-5 second reference sample per Cat-Suite character
+     - **Voice Cloning:** 30-second reference sample per Cat-Suite character
      - **Characters:** Leopoldo (São Paulo accent), Francisca (Porto accent), Antonia (Irish accent)
 
        | Task Type | Model | Cost | Why |

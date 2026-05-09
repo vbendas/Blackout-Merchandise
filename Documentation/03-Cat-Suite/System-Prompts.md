@@ -80,7 +80,7 @@ Your goal: Hunt down problems and deliver happiness.
 
 ## 4. Voice Design (Character Voices)
 
-Each Cat-Suite agent has a distinct voice synthesized via **Mistral Voxtral TTS** using zero-shot voice cloning (3-5 second reference sample).
+Each Cat-Suite agent has a distinct voice synthesized via **ElevenLabs TTS** using zero-shot voice cloning (30-second reference sample).
 
 | Agent | Voice Characteristics | Accent | Reference Sample Needed |
 |-------|----------------------|--------|------------------------|
@@ -92,7 +92,7 @@ Each Cat-Suite agent has a distinct voice synthesized via **Mistral Voxtral TTS*
 ```
 User speaks → Voxtral Transcribe 2 (STT, sub-200ms)
             → Mistral Large (LLM + agent personality prompt)
-            → Voxtral TTS (character voice via cloned reference)
+            → ElevenLabs TTS (character voice via cloned reference)
             → User hears agent speaking in character voice
 ```
 

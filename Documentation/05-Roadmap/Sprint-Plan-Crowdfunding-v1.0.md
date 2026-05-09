@@ -283,16 +283,16 @@
 ---
 
 ### Day 9 — Saturday, May 17
-**Theme**: Voxtral TTS Integration  
+**Theme**: ElevenLabs TTS Integration  
 **Hours**: 6
 
-#### Task 9.1: Voxtral TTS API Setup
-- **Subtask 9.1.1**: Add `MISTRAL_API_KEY` to `.env.local` (should already be there)
-- **Subtask 9.1.2**: Research Voxtral TTS endpoint and payload format
-- **Subtask 9.1.3**: Create `lib/voxtral-tts.ts` client
+#### Task 9.1: ElevenLabs TTS API Setup
+- **Subtask 9.1.1**: Add `ELEVENLABS_API_KEY` to `.env.local`
+- **Subtask 9.1.2**: Research ElevenLabs TTS endpoint and payload format (streaming vs batch)
+- **Subtask 9.1.3**: Create `lib/elevenlabs-tts.ts` client with voice IDs per agent
 - **Subtask 9.1.4**: Test: send "Hello, I am Leopoldo" → receive audio file
 - **Subtask 9.1.5**: Handle errors: API unavailable, text too long, unsupported language
-- **Subtask 9.1.6**: Fallback plan: if Voxtral fails, use browser `speechSynthesis` (Web Speech API)
+- **Subtask 9.1.6**: Fallback plan: if ElevenLabs fails, use browser `speechSynthesis` (Web Speech API)
 
 #### Task 9.2: Integrate TTS into Chat Response Flow
 - **Subtask 9.2.1**: After LLM generates response text, check if voice is enabled
