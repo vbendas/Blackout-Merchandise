@@ -322,11 +322,45 @@
 
 ## Related Documents
 
-- **PRD**: [[../00-PRD-Roadmap/PRD]] - Full product vision
-- **Roadmap**: [[../00-PRD-Roadmap/Roadmap]] - Development timeline
-- **Brand Guidelines**: [[../05-Shared/Brand-Guidelines]] - Voice and tone
+- **Campaign Copy** (NEW): [[./Campaign-Copy]] — Complete Indiegogo-ready campaign page with data-backed headlines, problem statements, reward tiers, and FAQ
+- **PRD**: [[../00-PRD-Roadmap/PRD]] — Full product vision
+- **Roadmap**: [[../00-PRD-Roadmap/Roadmap]] — Development timeline
+- **Brand Guidelines**: [[../05-Shared/Brand-Guidelines]] — Voice and tone
+- **Market Research**: [[../../09-Reseach/merchandise-market-research]] — Source data for campaign statistics
+- **POD Competition**: [[../../09-Reseach/pod_competition_report]] — Competitive intelligence and platform economics
 
 ---
 
-**Last Updated**: January 17, 2026
-**Status**: Pre-Campaign (Planning Phase)
+## Cross-Reference: Financial Consistency
+
+All financial projections in this document are consistent with `Campaign-Copy.md`:
+
+| Metric | Overview.md | Campaign-Copy.md | Status |
+|--------|-------------|------------------|--------|
+| Base goal | €35,000 | €35,000 | ✅ Match |
+| Stretch goal | €50,000 | €50,000 | ✅ Match |
+| Equipment value | €113,000 | €113,000 | ✅ Match |
+| Grant recovery (50%) | ~€56,500 | ~€56,500 | ✅ Match |
+| Conservative backers | 267 | 267 | ✅ Match |
+| Stretch backers | 458 | 458 | ✅ Match |
+| Merch Coin rate | 1 EUR = 1 Coin | 1 EUR = 1 Coin | ✅ Match |
+
+---
+
+## Campaign Copy Highlights
+
+The new `Campaign-Copy.md` includes:
+
+- **5 scroll-stopping headline options** with data hooks
+- **4-pillar problem statement** (streaming doesn't pay, platforms extract, quality/ethics ignored, design barrier)
+- **Solution positioning** with research validation for each pillar
+- **10+ powerful statistics** in "By the Numbers" section
+- **3 urgency drivers** (marketplace collapse, AI window, EU regulations)
+- **5 reward tiers** with market-justified pricing
+- **Complete FAQ** with risk mitigation
+- **6-update content schedule** for post-launch engagement
+
+---
+
+**Last Updated**: May 10, 2026
+**Status**: Pre-Campaign (Planning Phase) — Campaign copy complete, ready for video + graphics production
