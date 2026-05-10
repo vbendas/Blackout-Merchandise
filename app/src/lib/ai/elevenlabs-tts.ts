@@ -51,6 +51,8 @@ class ElevenLabsTTSProvider {
       return null;
     }
 
+    console.log(`[ElevenLabsTTS] Using voice ID: ${voiceId} for agent: ${agent}`);
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
@@ -66,7 +68,7 @@ class ElevenLabsTTSProvider {
           model_id: 'eleven_turbo_v2_5',
           voice_settings: {
             stability: 0.5,
-            similarity_boost: 0.75,
+            similarity_boost: 0.85,
           },
         }),
         signal: controller.signal,
