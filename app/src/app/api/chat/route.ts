@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { requireChatAuth } from '@/lib/auth/chat-auth';
+import { requireChatAccess } from '@/lib/auth/require-chat-access';
 import { contextRouter } from '@/lib/ai/contextRouter';
 import type { AgentId, RoutingContext } from '@/types/chat';
 
@@ -22,8 +23,11 @@ interface RouteRequestBody {
  * Returns a full RoutingDecision with handoff logic.
  */
 export async function POST(request: NextRequest) {
-  const userId = await requireChatAuth();
-  if (userId instanceof NextResponse) return userId;
+  const authResult = await requireChatAuth();
+  if (authResult instanceof NextResponse) return authResult;
+
+  const rateLimitResult = await requireChatAccess(authResult, 'chat');
+  if (rateLimitResult instanceof NextResponse) return rateLimitResult;
 
   const requestId = crypto.randomUUID();
 

@@ -1,4 +1,5 @@
 import { requireChatAuth } from '@/lib/auth/chat-auth';
+import { requireChatAccess } from '@/lib/auth/require-chat-access';
 import { type NextRequest, NextResponse } from 'next/server';
 import { MiniMaxSpeechProvider } from '@/lib/ai/minimax-speech';
 import { miniMaxProvider } from '@/lib/ai/provider';
@@ -12,8 +13,11 @@ const agentMap = {
 } as const;
 
 export async function POST(req: NextRequest) {
-  const userId = await requireChatAuth();
-  if (userId instanceof NextResponse) return userId;
+  const authResult = await requireChatAuth();
+  if (authResult instanceof NextResponse) return authResult;
+
+  const rateLimitResult = await requireChatAccess(authResult, 'voice');
+  if (rateLimitResult instanceof NextResponse) return rateLimitResult;
 
   try {
     const body = await req.json();
