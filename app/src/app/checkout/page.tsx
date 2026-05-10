@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { formatPrice, getCartSummary, useCartStore } from '@/lib/cart/store';
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
   const { user } = useUser();
   const { items, clearCart } = useCartStore();
@@ -145,4 +145,25 @@ export default function CheckoutPage() {
       </div>
     </div>
   );
+}
+
+export default function CheckoutPage() {
+  // During static generation, ClerkProvider may not be available.
+  // Render a placeholder to avoid the useUser hook throwing.
+  const clerkPubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const hasClerk = clerkPubKey && !clerkPubKey.includes('placeholder');
+
+  if (!hasClerk) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="text-center">
+          <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-zinc-600" />
+          <h1 className="text-xl font-semibold mb-2">Checkout</h1>
+          <p className="text-zinc-400">Authentication service not configured.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <CheckoutContent />;
 }

@@ -202,16 +202,18 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
       setIsTyping(true);
 
       try {
-        const conversationHistory = messages.map((m) => ({
-          role: m.role,
-          content: m.content,
-          agent: m.agent,
-        }));
+        const conversationHistory = messages
+          .filter((m) => m.role !== 'human')
+          .map((m) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+            agent: m.agent,
+          }));
 
         const routingResult = await routeMessageServer({
           message: content,
           currentAgent,
-          history: conversationHistory.filter((m) => m.role !== 'human'),
+          history: conversationHistory,
         });
 
         // Never show clarification UI — route to best-guess agent or stay with current
@@ -324,16 +326,18 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
         const data = await response.json();
         const transcription = data.transcription || '';
 
-        const conversationHistory = messages.map((m) => ({
-          role: m.role,
-          content: m.content,
-          agent: m.agent,
-        }));
+        const conversationHistory = messages
+          .filter((m) => m.role !== 'human')
+          .map((m) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+            agent: m.agent,
+          }));
 
     const routingResult = await routeMessageServer({
       message: transcription,
       currentAgent,
-      history: conversationHistory.filter((m) => m.role !== 'human'),
+      history: conversationHistory,
     });
 
         if (transcription) {

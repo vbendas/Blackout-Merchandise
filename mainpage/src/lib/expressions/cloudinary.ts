@@ -42,3 +42,8 @@ export function getCloudinaryUrl(character: AgentName, expression: Expression, s
 export function getAvatarUrl(character: AgentName, expression: Expression, size: number = 200): string {
   return getCloudinaryUrl(character, expression, size);
 }
+
+// Re-export preloadExpressions for compatibility with shared app components
+export function preloadExpressions(_agentName?: AgentName): void {
+  // Preloading is handled by the app layer; this is a no-op for the mainpage
+}

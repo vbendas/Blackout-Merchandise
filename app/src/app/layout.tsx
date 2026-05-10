@@ -2,6 +2,10 @@ import type { Metadata } from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/components/cart/CartProvider';
+import { ClerkProvider } from '@clerk/nextjs';
+
+const clerkPubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+const hasClerk = clerkPubKey && !clerkPubKey.includes('placeholder');
 
 const inter = Inter({
   subsets: ['latin'],
@@ -30,8 +34,17 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-background text-foreground font-sans selection:bg-white selection:text-black`}
       >
-        {children}
-        <CartProvider />
+        {hasClerk ? (
+          <ClerkProvider publishableKey={clerkPubKey}>
+            {children}
+            <CartProvider />
+          </ClerkProvider>
+        ) : (
+          <>
+            {children}
+            <CartProvider />
+          </>
+        )}
       </body>
     </html>
   );

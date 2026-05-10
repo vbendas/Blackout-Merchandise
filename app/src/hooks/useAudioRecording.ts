@@ -6,13 +6,18 @@ import { CHAT_CONFIG } from '@/lib/chat/config';
 export interface AudioRecordingState {
   isRecording: boolean;
   duration: number;
+  audioDuration: number; // backward-compatible alias
   error: string | null;
   start: () => Promise<void>;
   stop: () => void;
+  // Backward-compatible aliases for existing consumers
+  startRecording: () => Promise<void>;
+  stopRecording: () => void;
+  getBase64Audio: () => Promise<string | null>;
 }
 
 interface UseAudioRecordingOptions {
-  onSendAudio: (audioBlob: Blob) => Promise<void>;
+  onSendAudio?: (audioBlob: Blob) => Promise<void>;
   maxDurationSeconds?: number;
 }
 
@@ -28,10 +33,10 @@ interface UseAudioRecordingOptions {
  * - Optional max duration auto-stop
  * - Stream track cleanup on error
  */
-export function useAudioRecording({
-  onSendAudio,
-  maxDurationSeconds = 60,
-}: UseAudioRecordingOptions): AudioRecordingState {
+export function useAudioRecording(
+  options: UseAudioRecordingOptions = {}
+): AudioRecordingState {
+  const { onSendAudio, maxDurationSeconds = 60 } = options;
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +46,7 @@ export function useAudioRecording({
   const maxDurationTimerRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const lastBlobRef = useRef<Blob | null>(null);
 
   // Callback ref to prevent stale closure
   const onSendAudioRef = useRef(onSendAudio);
@@ -96,14 +102,17 @@ export function useAudioRecording({
         const audioBlob = new Blob(audioChunksRef.current, {
           type: 'audio/webm',
         });
+        lastBlobRef.current = audioBlob;
 
         // Send audio and handle errors properly
-        onSendAudioRef
-          .current(audioBlob)
-          .catch((err) => {
-            console.error('[AudioRecording] Send failed:', err);
-            setError('Failed to send audio. Please try again.');
-          });
+        if (onSendAudioRef.current) {
+          onSendAudioRef
+            .current(audioBlob)
+            .catch((err) => {
+              console.error('[AudioRecording] Send failed:', err);
+              setError('Failed to send audio. Please try again.');
+            });
+        }
       };
 
       mediaRecorder.onerror = (e) => {
@@ -139,6 +148,22 @@ export function useAudioRecording({
     cleanup();
   }, [cleanup]);
 
+  const getBase64Audio = useCallback(async (): Promise<string | null> => {
+    const blob = lastBlobRef.current;
+    if (!blob) return null;
+
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        // Strip data URL prefix to return just base64
+        resolve(result.split(',')[1] || result);
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => cleanup();
@@ -147,8 +172,13 @@ export function useAudioRecording({
   return {
     isRecording,
     duration,
+    audioDuration: duration, // backward-compatible alias
     error,
     start,
     stop,
+    // Backward-compatible aliases
+    startRecording: start,
+    stopRecording: stop,
+    getBase64Audio,
   };
 }
