@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
-import { useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { QuickActionsCarousel } from './QuickActionsCarousel';
 import type { QuickAction } from '@/lib/chat/quickActions';
 
@@ -14,16 +14,14 @@ interface ChatInputProps {
   isTyping: boolean;
   isVoiceConversationActive: boolean;
   voiceConversationStatus: string;
-  audioLevel: number;
+  waveSubtitles: string;
   quickActions: QuickAction[];
   onQuickAction: (action: string) => void;
   isMobile: boolean;
   isTablet: boolean;
   agentColor: string;
-  isInlineRecording: boolean;
-  onMicHoldStart: () => Promise<void>;
-  onMicHoldEnd: () => void;
-  showHoldTooltip: boolean;
+  onWaveHoldStart: () => Promise<void>;
+  onWaveHoldEnd: () => void;
 }
 
 export function ChatInput({
@@ -34,18 +32,68 @@ export function ChatInput({
   isTyping,
   isVoiceConversationActive,
   voiceConversationStatus,
-  audioLevel,
+  waveSubtitles,
   quickActions,
   onQuickAction,
   isMobile,
   isTablet,
   agentColor,
-  isInlineRecording,
-  onMicHoldStart,
-  onMicHoldEnd,
-  showHoldTooltip,
+  onWaveHoldStart,
+  onWaveHoldEnd,
 }: ChatInputProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const isHoldingRef = useRef(false);
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.currentTarget as HTMLButtonElement).setPointerCapture(e.pointerId);
+
+    isHoldingRef.current = true;
+    if (buttonRef.current) {
+      buttonRef.current.style.transform = 'scale(0.92)';
+    }
+
+    holdTimerRef.current = setTimeout(() => {
+      if (isHoldingRef.current) {
+        onWaveHoldStart();
+      }
+    }, 200);
+  }, [onWaveHoldStart]);
+
+  const handlePointerUp = useCallback(() => {
+    isHoldingRef.current = false;
+    if (buttonRef.current) {
+      buttonRef.current.style.transform = '';
+    }
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    onWaveHoldEnd();
+  }, [onWaveHoldEnd]);
+
+  const handlePointerLeave = useCallback(() => {
+    isHoldingRef.current = false;
+    if (buttonRef.current) {
+      buttonRef.current.style.transform = '';
+    }
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    onWaveHoldEnd();
+  }, [onWaveHoldEnd]);
+
+  useEffect(() => {
+    return () => {
+      if (holdTimerRef.current) {
+        clearTimeout(holdTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
@@ -63,14 +111,18 @@ export function ChatInput({
                 {[...Array(12)].map((_, i) => (
                   <motion.div
                     key={i}
-                    className="w-1 rounded-full bg-white/80"
+                    className={`w-1 rounded-full ${
+                      voiceConversationStatus === 'speaking'
+                        ? 'bg-rose-400/90'
+                        : 'bg-white/80'
+                    }`}
                     animate={{
                       height:
                         voiceConversationStatus === 'listening'
-                          ? [4, Math.max(4, audioLevel * 0.8 + Math.random() * 20), 4]
+                          ? [4, 12 + Math.random() * 20, 4]
                           : voiceConversationStatus === 'speaking'
-                            ? [4, 20 + Math.random() * 12, 4]
-                            : [4, 8, 4],
+                            ? [4, 18 + Math.random() * 16, 4]
+                            : [4, 10, 4],
                     }}
                     transition={{
                       duration: 0.3 + Math.random() * 0.2,
@@ -88,6 +140,21 @@ export function ChatInput({
                 {voiceConversationStatus === 'speaking' && 'Speaking...'}
               </span>
             </div>
+            {/* Subtitle text during speaking */}
+            <AnimatePresence>
+              {voiceConversationStatus === 'speaking' && waveSubtitles && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  className="w-full max-w-[95%] rounded-xl bg-zinc-900/90 px-4 py-2.5 backdrop-blur-xl"
+                >
+                  <p className="text-sm text-white/90 leading-relaxed max-h-[80px] overflow-y-auto">
+                    {waveSubtitles}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
@@ -97,51 +164,60 @@ export function ChatInput({
       )}
 
       <div className="flex items-center gap-2">
-        {/* Mic Button with Hold-to-Speak */}
-        <div className="relative">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onMouseDown={onMicHoldStart}
-            onMouseUp={onMicHoldEnd}
-            onMouseLeave={onMicHoldEnd}
-            onTouchStart={(e) => {
-              e.preventDefault();
-              onMicHoldStart();
-            }}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              onMicHoldEnd();
-            }}
-            className={`flex shrink-0 items-center justify-center rounded-full transition-all ${
-              isInlineRecording
-                ? 'bg-rose-600 text-white animate-pulse'
-                : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-            } ${isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'}`}
-            aria-label="Hold to speak"
+        {/* Wave Button with Hold-to-Speak */}
+        <button
+          ref={buttonRef}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerLeave}
+          className={`flex shrink-0 items-center justify-center rounded-full transition-all select-none relative ${
+            isVoiceConversationActive
+              ? 'bg-rose-600/20 text-rose-400 animate-pulse'
+              : 'text-zinc-400 hover:bg-zinc-800 hover:text-white active:scale-95'
+          } ${isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'}`}
+          aria-label="Hold to speak"
+          title="Hold to speak"
+          style={{ touchAction: 'none' }}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            className={`text-current absolute inset-0 m-auto transition-opacity duration-150 ${
+              isVoiceConversationActive ? 'opacity-0' : 'opacity-100'
+            }`}
           >
-            <Icon 
-              icon="lucide:mic" 
-              className={`${isMobile ? 'h-4 w-4' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} ${isInlineRecording ? 'text-white' : ''}`} 
+            <path
+              d="M12 3v18M8 8v8M4 10v4M16 6v12M20 9v6"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              className="opacity-70"
             />
-          </motion.button>
-
-          {/* Hold to Speak Tooltip */}
-          <AnimatePresence>
-            {showHoldTooltip && (
+          </svg>
+          <div
+            className={`flex items-center gap-[2px] h-5 absolute inset-0 m-auto transition-opacity duration-150 pointer-events-none ${
+              isVoiceConversationActive ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {[0.6, 1, 0.7, 0.4, 0.8].map((scale, i) => (
               <motion.div
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 5 }}
-                transition={{ duration: 0.2 }}
-                className="absolute -top-10 left-1/2 -translate-x-1/2 bg-zinc-800 text-white text-xs px-2 py-1.5 rounded-lg whitespace-nowrap pointer-events-none z-50"
-              >
-                Hold to speak
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-800 rotate-45" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                key={i}
+                className="w-[2px] rounded-full bg-rose-400"
+                animate={isVoiceConversationActive ? {
+                  height: [10 * scale, 18 * scale, 6 * scale, 16 * scale, 10 * scale],
+                } : { height: 10 * scale }}
+                transition={{
+                  duration: 0.8,
+                  repeat: Infinity,
+                  delay: i * 0.12,
+                  ease: "easeInOut",
+                }}
+              />
+            ))}
+          </div>
+        </button>
 
         <div className="relative flex-1">
           <textarea

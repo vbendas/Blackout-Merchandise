@@ -32,6 +32,11 @@ class ElevenLabsTTSProvider {
       );
     } else {
       console.log('[ElevenLabsTTS] Configured with voices:', Object.keys(AGENT_VOICES).join(', '));
+      console.log('[ElevenLabsTTS] Voice IDs:', {
+        leopoldo: AGENT_VOICES.leopoldo,
+        francisca: AGENT_VOICES.francisca,
+        antonia: AGENT_VOICES.antonia,
+      });
     }
   }
 
@@ -65,7 +70,7 @@ class ElevenLabsTTSProvider {
         },
         body: JSON.stringify({
           text,
-          model_id: 'eleven_turbo_v2_5',
+          model_id: 'eleven_multilingual_v2',
           voice_settings: {
             stability: 0.5,
             similarity_boost: 0.85,

@@ -25,78 +25,6 @@ function formatTime(timestamp: number): string {
   }).format(new Date(timestamp));
 }
 
-function formatDuration(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
-interface AudioMessageProps {
-  audioUrl?: string;
-  audioBlob?: Blob;
-  duration?: number;
-  isPlaying: boolean;
-  onPlayPause: () => void;
-}
-
-function AudioMessageComponent({ audioUrl, audioBlob, duration = 0, isPlaying, onPlayPause }: AudioMessageProps) {
-  const [currentTime, setCurrentTime] = useState(0);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    if (audioUrl) {
-      const audio = new Audio(audioUrl);
-      audio.onended = () => setCurrentTime(0);
-      audio.ontimeupdate = () => setCurrentTime(audio.currentTime);
-      setAudioElement(audio);
-    } else if (audioBlob) {
-      const url = URL.createObjectURL(audioBlob);
-      const audio = new Audio(url);
-      audio.onended = () => setCurrentTime(0);
-      audio.ontimeupdate = () => setCurrentTime(audio.currentTime);
-      setAudioElement(audio);
-      return () => URL.revokeObjectURL(url);
-    }
-  }, [audioUrl, audioBlob]);
-
-  const handlePlayPause = () => {
-    if (audioElement) {
-      if (isPlaying) {
-        audioElement.pause();
-      } else {
-        audioElement.play();
-      }
-      onPlayPause();
-    }
-  };
-
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-
-  return (
-    <div className="flex items-center gap-2">
-      <button
-        onClick={handlePlayPause}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-700 hover:bg-zinc-600"
-      >
-        <Icon icon={isPlaying ? 'lucide:pause' : 'lucide:play'} className="h-4 w-4 text-white" />
-      </button>
-      <div className="flex-1">
-        <div className="h-6 w-full overflow-hidden rounded-full bg-zinc-800">
-          <motion.div
-            className="h-full bg-zinc-500"
-            style={{ width: `${progress}%` }}
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-          />
-        </div>
-        <span className="text-[10px] text-zinc-400">
-          {formatDuration(currentTime)} / {formatDuration(duration)}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 function CardRenderer({ cardData }: { cardData: CardMessageData }) {
   switch (cardData.cardType) {
     case 'product':
@@ -170,11 +98,7 @@ export function CatChat() {
     isOpen,
     currentAgent,
     messages,
-    isVoiceMode,
-    isRecording,
-    isPlaying: _isMessagePlaying,
     isTyping,
-    suggestions,
     quickActions,
     handoffStatus,
     handoffTicketId,
@@ -182,9 +106,7 @@ export function CatChat() {
     assignedStaffRole,
     contactEmail,
     toggleChat,
-    setIsVoiceMode,
     sendMessage,
-    sendAudio,
     setMessages,
     requestHumanHandoff,
     cancelHandoff,
@@ -219,20 +141,10 @@ export function CatChat() {
 
   const [inputValue, setInputValue] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
-  const [localIsPlaying, setLocalIsPlaying] = useState(false);
-  const [recordingDuration, setRecordingDuration] = useState(0);
-
-  // Inline mic hold-to-speak state
-  const [isInlineRecording, setIsInlineRecording] = useState(false);
-  const [showMicTooltip, setShowMicTooltip] = useState(false);
-  const holdThresholdTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const isHoldingRef = useRef(false);
-  const micTooltipTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const pendingStopRef = useRef(false);
 
   // Voice conversation state
   const [voiceConversationStatus, setVoiceConversationStatus] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
-  const [audioLevel, setAudioLevel] = useState(0);
+  const [waveSubtitles, setWaveSubtitles] = useState('');
 
   // Human handoff email form state
   const [emailInput, setEmailInput] = useState('');
@@ -242,15 +154,12 @@ export function CatChat() {
   const voiceMediaRecorderRef = useRef<MediaRecorder | null>(null);
   const voiceAudioChunksRef = useRef<Blob[]>([]);
   const isProcessingVoiceRef = useRef(false);
-  const wavePendingStopRef = useRef(false);
+  const isCancelledRef = useRef(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const chatWindowRef = useRef<HTMLDivElement>(null);
   const avatarButtonRef = useRef<HTMLButtonElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
   
   // Bubble visibility states
   const [isBubbleVisible, setIsBubbleVisible] = useState(false);
@@ -268,25 +177,6 @@ export function CatChat() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
-
-  // Recording timer
-  useEffect(() => {
-    if (isRecording) {
-      setRecordingDuration(0);
-      recordingTimerRef.current = setInterval(() => {
-        setRecordingDuration((prev) => prev + 1);
-      }, 1000);
-    } else {
-      if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current);
-      }
-    }
-    return () => {
-      if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current);
-      }
-    };
-  }, [isRecording]);
 
   // Bubble auto-show/hide timer
   useEffect(() => {
@@ -388,195 +278,31 @@ export function CatChat() {
     handleHandoffRequest();
   };
 
-  const startListening = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
 
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          audioChunksRef.current.push(e.data);
-        }
-      };
 
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        await sendAudio(audioBlob);
-        stream.getTracks().forEach((track) => track.stop());
-      };
 
-      mediaRecorder.start();
-    } catch (error) {
-      console.error('Microphone access denied:', error);
-    }
-  };
-
-  const stopListening = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-    }
-  };
-
-  // ── Inline Mic Hold-to-Speak (STT → Text Input → Auto Send) ─────────
-
-  const inlineMediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const inlineAudioChunksRef = useRef<Blob[]>([]);
-
-  const startInlineRecording = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          channelCount: 1,
-          sampleRate: 16000,
-        },
-      });
-
-      // Pick best supported MIME type for speech
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-        ? 'audio/webm;codecs=opus'
-        : MediaRecorder.isTypeSupported('audio/webm')
-          ? 'audio/webm'
-          : 'audio/mp4';
-
-      const mediaRecorder = new MediaRecorder(stream, { mimeType });
-      inlineMediaRecorderRef.current = mediaRecorder;
-      inlineAudioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          inlineAudioChunksRef.current.push(e.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(inlineAudioChunksRef.current, { type: mimeType });
-        stream.getTracks().forEach((track) => track.stop());
-
-        console.log(`[Inline Mic] Recording captured: ${audioBlob.size} bytes, type: ${mimeType}`);
-
-        // Skip very short recordings (less than 1KB = ~100ms of audio)
-        if (audioBlob.size < 1024) {
-          console.warn('[Inline Mic] Recording too short, skipping transcription');
-          setIsInlineRecording(false);
-          return;
-        }
-
-        // Send to transcribe API
-        try {
-          const fileExtension = mimeType.includes('mp4') ? 'audio.mp4' : 'audio.webm';
-          const formData = new FormData();
-          formData.append('audio', audioBlob, fileExtension);
-
-          console.log('[Inline Mic] Sending to /api/chat/transcribe...');
-          const response = await fetch('/api/chat/transcribe', {
-            method: 'POST',
-            body: formData,
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            console.error('[Inline Mic] Transcription API error:', response.status, errorData.error);
-            return;
-          }
-
-          const data = await response.json();
-          
-          console.log(`[Inline Mic] Transcription result: "${data.transcription || '(empty)'}"`);
-
-          if (data.transcription) {
-            // Send transcription directly as text message
-            await sendMessage(data.transcription.trim());
-          } else {
-            console.warn('[Inline Mic] No transcription received — audio may not contain speech');
-          }
-        } catch (error) {
-          console.error('[Inline Mic] Transcription error:', error);
-        }
-      };
-
-      // Start with timeslice=100ms to get data chunks every 100ms
-      // This ensures ondataavailable fires during recording, not just on stop
-      mediaRecorder.start(100);
-      
-      // Check if stop was requested while we were waiting for mic access
-      if (pendingStopRef.current) {
-        pendingStopRef.current = false;
-        mediaRecorder.stop();
-      }
-    } catch (error) {
-      console.error('[Inline Mic] Microphone access denied:', error);
-      setIsInlineRecording(false);
-    }
-  }, [sendMessage]);
-
-  const stopInlineRecording = useCallback(() => {
-    if (inlineMediaRecorderRef.current && inlineMediaRecorderRef.current.state === 'recording') {
-      inlineMediaRecorderRef.current.stop();
-    } else {
-      // Recorder not ready yet — flag it to stop immediately when ready
-      pendingStopRef.current = true;
-    }
-  }, []);
-
-  const handleMicMouseDown = useCallback(async () => {
-    isHoldingRef.current = true;
-    holdThresholdTimerRef.current = setTimeout(() => {
-      if (isHoldingRef.current) {
-        setIsInlineRecording(true);
-        startInlineRecording();
-      }
-    }, 300); // 300ms threshold to distinguish click from hold
-  }, [startInlineRecording]);
-
-  const handleMicMouseUp = useCallback(() => {
-    const wasHolding = isHoldingRef.current;
-    isHoldingRef.current = false;
-
-    if (holdThresholdTimerRef.current) {
-      clearTimeout(holdThresholdTimerRef.current);
-      holdThresholdTimerRef.current = null;
-    }
-
-    if (isInlineRecording) {
-      setIsInlineRecording(false);
-      stopInlineRecording();
-    } else if (wasHolding) {
-      // It was a click (release before threshold) — show tooltip
-      setShowMicTooltip(true);
-      micTooltipTimerRef.current = setTimeout(() => {
-        setShowMicTooltip(false);
-      }, 3000);
-    }
-  }, [isInlineRecording, stopInlineRecording]);
-
-  // Cleanup timers on unmount
-  useEffect(() => {
-    return () => {
-      if (holdThresholdTimerRef.current) clearTimeout(holdThresholdTimerRef.current);
-      if (micTooltipTimerRef.current) clearTimeout(micTooltipTimerRef.current);
-    };
-  }, []);
-
-  const handlePlayPause = () => {
-    setLocalIsPlaying(!localIsPlaying);
-  };
 
   // ── Audio Playback Helper ───────────────────────────────────────────
 
   const playAudioResponse = useCallback((audioDataUrl: string): Promise<void> => {
     return new Promise((resolve) => {
       const audio = new Audio(audioDataUrl);
-      audio.onended = () => resolve();
-      audio.onerror = () => {
-        console.error('[Voice Conversation] Audio playback error');
+      audio.onended = () => {
+        console.log('[Voice Conversation] Audio playback ended');
         resolve();
       };
-      audio.play().catch((err) => {
-        console.error('[Voice Conversation] Audio play() failed:', err);
+      audio.onerror = (e) => {
+        console.error('[Voice Conversation] Audio playback error:', e);
         resolve();
-      });
+      };
+      audio.play()
+        .then(() => {
+          console.log('[Voice Conversation] Audio playback started');
+        })
+        .catch((err) => {
+          console.error('[Voice Conversation] Audio play() failed:', err?.name, err?.message);
+          resolve();
+        });
     });
   }, []);
 
@@ -587,7 +313,9 @@ export function CatChat() {
       voiceMediaRecorderRef.current.stop();
     }
     isProcessingVoiceRef.current = false;
+    isCancelledRef.current = false;
     setVoiceConversationStatus('idle');
+    setWaveSubtitles('');
   }, []);
 
   const processVoiceTurn = useCallback(async (audioBlob: Blob) => {
@@ -596,7 +324,6 @@ export function CatChat() {
     setVoiceConversationStatus('thinking');
 
     try {
-      // Call voice pipeline directly for real-time conversation
       const formData = new FormData();
       const fileExt = audioBlob.type.includes('mp4') ? 'audio.mp4' : 'audio.webm';
       formData.append('audio', audioBlob, fileExt);
@@ -620,57 +347,83 @@ export function CatChat() {
       }
 
       const data = await response.json();
+      console.log('[Voice Conversation] API response:', {
+        hasTranscription: !!data.transcription,
+        hasResponse: !!data.response,
+        hasAudio: !!data.audioData,
+        audioLength: data.audioData ? data.audioData.length : 0,
+      });
 
-      // Add user transcription message to chat
       if (data.transcription) {
         const userMessage = {
           id: Date.now().toString(),
           role: 'user' as const,
           content: data.transcription.trim(),
-          type: 'voice' as const,
-          audioBlob,
+          type: 'text' as const,
           timestamp: Date.now(),
           agent: currentAgent,
         };
         setMessages((prev) => [...prev, userMessage]);
       }
 
-      // Add assistant response to chat
-      if (data.response) {
+      if (data.response && data.audioData) {
+        setVoiceConversationStatus('speaking');
+        setWaveSubtitles(data.response);
+        await playAudioResponse(data.audioData);
+
         const assistantMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant' as const,
           content: data.response,
-          type: 'voice' as const,
-          audioUrl: data.audioData || undefined,
+          type: 'text' as const,
           timestamp: Date.now(),
           agent: currentAgent,
         };
         setMessages((prev) => [...prev, assistantMessage]);
-      }
-
-      // Auto-play TTS audio response
-      if (data.audioData) {
-        setVoiceConversationStatus('speaking');
-        await playAudioResponse(data.audioData);
+      } else if (data.response) {
+        const assistantMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant' as const,
+          content: data.response,
+          type: 'text' as const,
+          timestamp: Date.now(),
+          agent: currentAgent,
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
       }
     } catch (err) {
       console.error('[Voice Conversation] Processing failed:', err);
     } finally {
       isProcessingVoiceRef.current = false;
       setVoiceConversationStatus('idle');
+      setWaveSubtitles('');
     }
-  }, [currentAgent, messages, playAudioResponse]);
+  }, [currentAgent, messages, playAudioResponse, setMessages]);
+
+  // ── Audio Context Unlock for Autoplay ──────────────────────────────
+
+  const unlockAudio = useCallback(() => {
+    const silent = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAAAAAA==');
+    silent.play().catch(() => {});
+  }, []);
 
   // ── Wave Icon Hold-to-Speak (STT → LLM → TTS) ─────────────────────
 
   const handleWaveHoldStart = useCallback(async () => {
     if (isProcessingVoiceRef.current) return;
+    isCancelledRef.current = false;
+    unlockAudio();
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, sampleRate: 16000 },
       });
+
+      // Check if cancelled during permission request
+      if (isCancelledRef.current) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
 
       const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
         ? 'audio/webm;codecs=opus'
@@ -690,10 +443,7 @@ export function CatChat() {
         const blob = new Blob(voiceAudioChunksRef.current, { type: mimeType });
         stream.getTracks().forEach((t) => t.stop());
 
-        console.log(`[Wave Voice] Captured: ${blob.size} bytes, type: ${mimeType}`);
-
         if (blob.size < 1024) {
-          console.warn('[Wave Voice] Recording too short, skipping');
           setVoiceConversationStatus('idle');
           return;
         }
@@ -701,25 +451,24 @@ export function CatChat() {
         await processVoiceTurn(blob);
       };
 
+      // Check if cancelled before starting
+      if (isCancelledRef.current) {
+        mediaRecorder.stop();
+        return;
+      }
+
       setVoiceConversationStatus('listening');
       mediaRecorder.start(100);
-
-      // If stop was requested while waiting for mic access
-      if (wavePendingStopRef.current) {
-        wavePendingStopRef.current = false;
-        mediaRecorder.stop();
-      }
     } catch (error) {
       console.error('[Wave Voice] Mic access denied:', error);
       setVoiceConversationStatus('idle');
     }
-  }, [processVoiceTurn]);
+  }, [processVoiceTurn, unlockAudio]);
 
   const handleWaveHoldEnd = useCallback(() => {
+    isCancelledRef.current = true;
     if (voiceMediaRecorderRef.current && voiceMediaRecorderRef.current.state === 'recording') {
       voiceMediaRecorderRef.current.stop();
-    } else {
-      wavePendingStopRef.current = true;
     }
   }, []);
 
@@ -893,54 +642,6 @@ export function CatChat() {
                 background: 'linear-gradient(135deg, rgba(161, 161, 170, 0.12) 0%, rgba(161, 161, 170, 0.04) 100%)',
               }}
             >
-              {/* Voice Hold-to-Speak - Left side */}
-              <div className="absolute left-4 flex items-center">
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onMouseDown={handleWaveHoldStart}
-                  onMouseUp={handleWaveHoldEnd}
-                  onMouseLeave={handleWaveHoldEnd}
-                  onTouchStart={(e) => { e.preventDefault(); handleWaveHoldStart(); }}
-                  onTouchEnd={handleWaveHoldEnd}
-                  className={`flex items-center justify-center rounded-full transition-all select-none ${
-                    voiceConversationStatus !== 'idle'
-                      ? 'text-red-400 animate-pulse'
-                      : 'text-zinc-400 hover:text-white'
-                  } ${isMobile ? 'h-8 w-8' : 'h-9 w-9'}`}
-                  title="Hold to speak"
-                >
-                  {voiceConversationStatus !== 'idle' ? (
-                    <div className="flex items-center gap-[3px] h-5">
-                      {[0.6, 1, 0.7, 0.4, 0.8].map((scale, i) => (
-                        <motion.div
-                          key={i}
-                          className="w-[3px] rounded-full bg-red-400"
-                          animate={{
-                            height: [12 * scale, 20 * scale, 8 * scale, 18 * scale, 12 * scale],
-                          }}
-                          transition={{
-                            duration: 0.8,
-                            repeat: Infinity,
-                            delay: i * 0.12,
-                            ease: "easeInOut",
-                          }}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-current">
-                      <path
-                        d="M12 3v18M8 8v8M4 10v4M16 6v12M20 9v6"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        className="opacity-70"
-                      />
-                    </svg>
-                  )}
-                </motion.button>
-              </div>
-
               <div className="text-center">
                 <h3 className={`font-semibold text-white ${isMobile ? 'text-base' : isTablet ? 'text-lg' : 'text-base'}`}>{agentConfig.name}</h3>
               </div>
@@ -1046,17 +747,7 @@ export function CatChat() {
                               </span>
                             </div>
                           )}
-                          {message.type === 'voice' ? (
-                            <AudioMessageComponent
-                              audioUrl={message.audioUrl}
-                              audioBlob={message.audioBlob}
-                              duration={message.duration}
-                              isPlaying={localIsPlaying}
-                              onPlayPause={handlePlayPause}
-                            />
-                          ) : (
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
-                          )}
+                          <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                           {message.metadata?.cardData && (
                             <div className="mt-3">
                               <CardRenderer cardData={message.metadata.cardData} />
@@ -1087,16 +778,14 @@ export function CatChat() {
                 isTyping={isTyping}
                 isVoiceConversationActive={voiceConversationStatus !== 'idle'}
                 voiceConversationStatus={voiceConversationStatus}
-                audioLevel={audioLevel}
+                waveSubtitles={waveSubtitles}
                 quickActions={quickActions}
                 onQuickAction={handleQuickAction}
                 isMobile={isMobile}
                 isTablet={isTablet}
                 agentColor={agentConfig.color}
-                isInlineRecording={isInlineRecording}
-                onMicHoldStart={handleMicMouseDown}
-                onMicHoldEnd={handleMicMouseUp}
-                showHoldTooltip={showMicTooltip}
+                onWaveHoldStart={handleWaveHoldStart}
+                onWaveHoldEnd={handleWaveHoldEnd}
               />
 
               {/* Human Handoff UI */}

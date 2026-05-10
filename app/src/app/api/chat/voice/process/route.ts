@@ -3,6 +3,7 @@ import { mistralClient } from '@/lib/ai/mistral-client';
 import { voxtralSpeechProvider } from '@/lib/ai/voxtral-speech';
 import { elevenLabsTTSProvider } from '@/lib/ai/elevenlabs-tts';
 import { withCors } from '@/lib/cors';
+import { AGENT_CONFIGS } from '@/types/chat';
 import type { AgentId } from '@/types/chat';
 
 /**
@@ -17,6 +18,7 @@ interface VoiceRequestBody {
 
 export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin');
+  const startTime = Date.now();
 
   try {
     const formData = await request.formData();
@@ -73,7 +75,9 @@ export async function POST(request: NextRequest) {
 
     // Step 1: Transcribe audio
     console.log(`[Voice API] Processing audio: ${audioFile.size} bytes, type: ${audioFile.type}, agent: ${agent}`);
+    const sttStart = Date.now();
     const transcription = await voxtralSpeechProvider.transcribeAudio(audioBlob);
+    console.log(`[Voice API] STT completed in ${Date.now() - sttStart}ms`);
 
     if (!transcription) {
       console.log('[Voice API] No transcription — returning fallback');
@@ -84,23 +88,36 @@ export async function POST(request: NextRequest) {
       }), origin);
     }
 
-    // Step 2: Get AI response using Mistral
+    // Step 2: Get AI response using Mistral WITH agent persona
+    const agentConfig = AGENT_CONFIGS[agent];
+    const systemPrompt = `${agentConfig.persona}\n\nYou are ${agentConfig.name}, ${agentConfig.role} at MerchFrom. Stay in character. Be concise (2-3 sentences max).`;
+
     const formattedHistory = history.map((msg) => ({
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
     }));
 
-    console.log(`[Voice API] Transcription: "${transcription}" — getting AI response...`);
+    console.log(`[Voice API] Transcription: "${transcription}" — getting AI response with persona...`);
+    const llmStart = Date.now();
     const aiResponse = await mistralClient.chat({
-      messages: [...formattedHistory, { role: 'user', content: transcription }],
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...formattedHistory,
+        { role: 'user', content: transcription },
+      ],
       temperature: 0.7,
-      maxTokens: 1024,
+      maxTokens: 256, // Shorter for voice responses
     });
+    console.log(`[Voice API] LLM completed in ${Date.now() - llmStart}ms`);
 
     // Step 3: Generate audio response
-    console.log(`[Voice API] AI response: "${aiResponse.content.substring(0, 100)}" — generating TTS...`);
+    console.log(`[Voice API] AI response: "${aiResponse.content.substring(0, 100)}" — generating TTS for agent: ${agent}`);
+    console.log(`[Voice API] ElevenLabs configured: ${elevenLabsTTSProvider.configured}`);
+    const ttsStart = Date.now();
     const audioData = await elevenLabsTTSProvider.generateSpeech(aiResponse.content, agent);
+    console.log(`[Voice API] TTS completed in ${Date.now() - ttsStart}ms`);
     console.log(`[Voice API] TTS result: ${audioData ? `${audioData.length} chars of base64 audio` : 'null (no audio)'}`);
+    console.log(`[Voice API] Total pipeline time: ${Date.now() - startTime}ms`);
 
     return withCors(NextResponse.json({
       transcription,
