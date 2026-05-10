@@ -44,7 +44,7 @@ export function SocialProof() {
       </div>
       <Link href="#" className="group">
         <p className="text-zinc-400 text-xs md:text-sm font-medium transition-colors group-hover:text-zinc-200">
-          Meet our <span className="text-zinc-200 group-hover:text-white transition-colors">AI Team</span>
+          Meet your <span className="text-zinc-200 group-hover:text-white transition-colors">dedicated team</span>
         </p>
       </Link>
     </motion.div>

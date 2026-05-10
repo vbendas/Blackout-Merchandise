@@ -57,16 +57,17 @@ The waitlist landing page is the primary funnel for collecting email signups and
 ## 📝 Copy & Messaging
 
 ### Hero Headline
-"AI-Powered Merch For Every Creator"
+"Premium Merch For Artists Who Give a Damn"
 
 ### Hero Subheadline
-"Design, produce, and sell premium merchandise with zero commission. Let our AI assistants guide you."
+"Design, produce, and sell premium merchandise with zero commission. Leopoldo, Francisca, and Antonia handle the hard parts."
 
 ### Key Value Props
 1. **Zero Commission** - Keep 100% of profits
 2. **Premium Quality** - Vegan, fair-trade, eco-friendly
-3. **AI-Guided** - Three AI "cats" help you succeed
+3. **Expert Guidance** - Your dedicated team handles design, sourcing, and logistics
 4. **No Upfront Cost** - For qualified creators
+5. **In-House Production** - Every piece produced in our Portugal facility
 
 ---
 

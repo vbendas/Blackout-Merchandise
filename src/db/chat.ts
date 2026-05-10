@@ -125,3 +125,59 @@ export async function getUserChatSessions(userId: string): Promise<ChatSession[]
     updatedAt: session.updatedAt,
   }));
 }
+
+// ============================================================================
+// HUMAN HANDOFF OPERATIONS
+// ============================================================================
+
+export async function linkSessionToTicket(
+  sessionId: string,
+  ticketId: string
+): Promise<void> {
+  await db
+    .update(chatSessions)
+    .set({
+      supportTicketId: ticketId,
+      updatedAt: new Date(),
+    })
+    .where(eq(chatSessions.id, sessionId));
+}
+
+export async function updateSessionHandoffStatus(
+  sessionId: string,
+  status: string
+): Promise<void> {
+  const updates: Record<string, unknown> = {
+    humanHandoffStatus: status,
+    updatedAt: new Date(),
+  };
+
+  if (status === 'pending') {
+    updates.humanHandoffRequestedAt = new Date();
+  }
+
+  await db
+    .update(chatSessions)
+    .set(updates)
+    .where(eq(chatSessions.id, sessionId));
+}
+
+export async function getSessionByTicketId(
+  ticketId: string
+): Promise<ChatSession | null> {
+  const [session] = await db
+    .select()
+    .from(chatSessions)
+    .where(eq(chatSessions.supportTicketId, ticketId))
+    .limit(1);
+
+  if (!session) return null;
+
+  return {
+    id: session.id,
+    userId: session.userId || undefined,
+    messages: (session.messages as ChatMessage[]) || [],
+    createdAt: session.createdAt,
+    updatedAt: session.updatedAt,
+  };
+}

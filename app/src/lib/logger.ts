@@ -51,14 +51,14 @@ export const logger = {
     if (isDev || isTest) {
       console.info(formatLog('info', message, meta));
     }
-    // TODO: In production, send to logging service
+    // In production, info is suppressed to reduce noise.
+    // TODO: Integrate structured logging service (Sentry, Datadog) for production.
   },
 
   warn: (message: string, meta?: LogMeta) => {
-    if (isDev || isTest) {
-      console.warn(formatLog('warn', message, meta));
-    }
-    // TODO: In production, send to logging service
+    // Always log warnings — important for production observability
+    console.warn(formatLog('warn', message, meta));
+    // TODO: In production, also send to logging service
   },
 
   error: (message: string, error?: Error, meta?: LogMeta) => {
@@ -66,9 +66,8 @@ export const logger = {
       ? { ...meta, errorName: error.name, errorMessage: error.message, stack: error.stack }
       : meta;
 
-    if (isDev || isTest) {
-      console.error(formatLog('error', message, errorMeta));
-    }
-    // TODO: In production, send to error tracking service
+    // Always log errors — critical for production debugging
+    console.error(formatLog('error', message, errorMeta));
+    // TODO: In production, also send to error tracking service (Sentry)
   },
 };

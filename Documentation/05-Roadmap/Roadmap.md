@@ -32,9 +32,9 @@
 
 ## Executive Summary
 
-**MerchFrom** is an AI-powered premium merchandise platform for artists and creators. We're building a platform where three "Cat-Suite" brand ambassadors (Leopoldo, Francisca, Antonia) guide artists through design, production, and sales—all powered by real AI.
+**MerchFrom** is a premium merchandise platform for artists and creators. We're building a platform where three dedicated team members — Leopoldo, Francisca, and Antonia — guide artists through design, production, and sales with expert care.
 
-**Mission:** Help artists, brands, and companies design, source, and sell premium quality merchandise through an AI-managed platform with professional visual tools.
+**Mission:** Help artists, brands, and companies design, source, and sell premium quality merchandise with expert guidance and professional visual tools.
 
 **Current Status:**
 - ✅ Phases 0-3.4 COMPLETE (Core shell, interactive demo, frontend content suite)

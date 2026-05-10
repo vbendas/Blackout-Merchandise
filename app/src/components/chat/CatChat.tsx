@@ -175,11 +175,18 @@ export function CatChat() {
     isTyping,
     suggestions,
     quickActions,
+    handoffStatus,
+    handoffTicketId,
+    assignedStaffName,
+    assignedStaffRole,
+    contactEmail,
     toggleChat,
     setIsVoiceMode,
     sendMessage,
     sendAudio,
-
+    requestHumanHandoff,
+    cancelHandoff,
+    setContactEmail,
   } = useChat();
 
   // Studio-specific: expanded by default, can collapse
@@ -217,6 +224,10 @@ export function CatChat() {
   const [isVoiceConversationActive, setIsVoiceConversationActive] = useState(false);
   const [voiceConversationStatus, setVoiceConversationStatus] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
   const [audioLevel, setAudioLevel] = useState(0);
+
+  // Human handoff email form state
+  const [emailInput, setEmailInput] = useState('');
+  const [isSubmittingHandoff, setIsSubmittingHandoff] = useState(false);
 
   // VAD refs
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -348,6 +359,23 @@ export function CatChat() {
     if (!action.trim() || isTyping) return;
     sendMessage(action.trim());
     setInputValue('');
+  };
+
+  const handleHandoffRequest = async () => {
+    if (isSubmittingHandoff) return;
+    setIsSubmittingHandoff(true);
+    try {
+      await requestHumanHandoff(emailInput || undefined);
+    } finally {
+      setIsSubmittingHandoff(false);
+    }
+  };
+
+  const handleEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput.trim()) return;
+    setContactEmail(emailInput.trim());
+    handleHandoffRequest();
   };
 
   const startListening = async () => {
@@ -785,12 +813,49 @@ export function CatChat() {
               </div>
             </motion.div>
 
+            {/* Handoff Status Banner */}
+            {handoffStatus !== 'none' && handoffStatus !== 'awaiting_email' && (
+              <div className="sticky top-0 z-10 border-b border-white/10 bg-zinc-900/90 px-4 py-3 backdrop-blur-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={`h-2 w-2 rounded-full ${
+                      handoffStatus === 'queued'
+                        ? 'animate-pulse bg-yellow-500'
+                        : handoffStatus === 'assigned'
+                          ? 'bg-blue-500'
+                          : handoffStatus === 'human_joined'
+                            ? 'bg-green-500'
+                            : 'bg-zinc-500'
+                    }`} />
+                    <span className="text-sm text-zinc-200">
+                      {handoffStatus === 'queued' &&
+                        `You're in queue. ${assignedStaffName || 'A team member'} will join soon.`}
+                      {handoffStatus === 'assigned' &&
+                        `${assignedStaffName || 'Someone'} has been assigned. They'll join shortly.`}
+                      {handoffStatus === 'human_joined' &&
+                        `👤 ${assignedStaffName || 'A team member'} has joined the conversation.`}
+                      {handoffStatus === 'resolved' && 'This conversation has been resolved.'}
+                    </span>
+                  </div>
+                  {handoffStatus !== 'resolved' && (
+                    <button
+                      onClick={cancelHandoff}
+                      className="text-xs text-zinc-500 hover:text-zinc-300"
+                    >
+                      Leave queue
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
               <div className="flex flex-col gap-4">
                 <AnimatePresence mode="popLayout">
                   {messages.map((message) => {
                     const isUser = message.role === 'user';
+                    const isHuman = message.role === 'human';
                     const messageAgent = message.agent || currentAgent;
                     const agentCfg = AGENT_CONFIGS[messageAgent];
                     
@@ -808,9 +873,22 @@ export function CatChat() {
                           className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                             isUser
                               ? 'rounded-br-sm bg-gradient-to-r from-zinc-700 to-zinc-600 text-white'
-                              : 'rounded-bl-sm bg-zinc-900/80 text-zinc-100 backdrop-blur-xl'
+                              : isHuman
+                                ? 'rounded-bl-sm border border-amber-500/30 bg-amber-950/30 text-amber-100 backdrop-blur-xl'
+                                : 'rounded-bl-sm bg-zinc-900/80 text-zinc-100 backdrop-blur-xl'
                           }`}
                         >
+                          {isHuman && (
+                            <div className="mb-1 flex items-center gap-1">
+                              <Icon icon="lucide:user" className="h-3 w-3 text-amber-400" />
+                              <span className="text-xs font-medium text-amber-400">
+                                {message.senderName || assignedStaffName || 'Human Support'}
+                                {message.senderRole && (
+                                  <span className="text-amber-500/70">, {message.senderRole}</span>
+                                )}
+                              </span>
+                            </div>
+                          )}
                           {message.type === 'voice' ? (
                             <AudioMessageComponent
                               audioUrl={message.audioUrl}
@@ -925,6 +1003,57 @@ export function CatChat() {
                   <QuickActionsCarousel actions={quickActions} onAction={handleQuickAction} />
                 )}
 
+                {/* Human Handoff UI */}
+                {handoffStatus === 'awaiting_email' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border border-white/10 bg-zinc-900/80 p-4 backdrop-blur-xl"
+                  >
+                    <p className="mb-3 text-sm text-zinc-300">
+                      We'll connect you with {assignedStaffName || 'a human'}.
+                      What's your email so we can reach you?
+                    </p>
+                    <form onSubmit={handleEmailSubmit} className="flex gap-2">
+                      <input
+                        type="email"
+                        value={emailInput}
+                        onChange={(e) => setEmailInput(e.target.value)}
+                        placeholder="you@example.com"
+                        required
+                        className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-white/20 focus:outline-none"
+                      />
+                      <button
+                        type="submit"
+                        disabled={isSubmittingHandoff || !emailInput.trim()}
+                        className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-950 transition-colors hover:bg-zinc-200 disabled:opacity-50"
+                      >
+                        {isSubmittingHandoff ? 'Sending...' : 'Send'}
+                      </button>
+                    </form>
+                    <button
+                      onClick={cancelHandoff}
+                      className="mt-2 text-xs text-zinc-500 hover:text-zinc-300"
+                    >
+                      Cancel
+                    </button>
+                  </motion.div>
+                )}
+
+                {handoffStatus === 'none' && !isVoiceConversationActive && (
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => requestHumanHandoff()}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-zinc-900/50 py-2.5 text-xs text-zinc-400 transition-colors hover:border-white/20 hover:bg-zinc-800/50 hover:text-zinc-200"
+                  >
+                    <Icon icon="lucide:user" className="h-3.5 w-3.5" />
+                    Talk to a human
+                  </motion.button>
+                )}
+
                 <div className="flex items-center gap-2">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -946,8 +1075,12 @@ export function CatChat() {
                         onKeyDown={handleKeyDown}
                         onFocus={() => setInputFocused(true)}
                         onBlur={() => setInputFocused(false)}
-                        placeholder="Type a message..."
-                        disabled={isTyping}
+                        placeholder={
+                          handoffStatus === 'human_joined'
+                            ? `Reply to ${assignedStaffName || 'human'}...`
+                            : 'Type a message...'
+                        }
+                        disabled={isTyping || handoffStatus === 'awaiting_email'}
                         rows={1}
                         className={`w-full resize-none rounded-2xl border border-white/10 bg-white/5 text-white placeholder-zinc-500 transition-all focus:border-white/20 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/10 disabled:opacity-50 ${
                           isMobile ? 'px-3 py-3 text-sm' : isTablet ? 'px-5 py-4 text-base' : 'px-4 py-3 text-sm'

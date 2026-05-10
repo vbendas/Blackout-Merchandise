@@ -30,7 +30,7 @@ export function Step5Success({ data }: Step5SuccessProps) {
   };
 
   const shareTwitter = () => {
-    const text = encodeURIComponent(`Just joined the waitlist for @merchfrom! Premium AI-powered merch for artists. Join me: ${shareUrl}`);
+    const text = encodeURIComponent(`Just joined the waitlist for @merchfrom! Premium ethical merch for artists. Zero upfront costs. Join me: ${shareUrl}`);
     window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
   };
 

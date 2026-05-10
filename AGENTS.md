@@ -18,7 +18,7 @@
 **Roadmap**: [Documentation/02-Roadmap/Roadmap.md](./Documentation/02-Roadmap/Roadmap.md) - Development phases, task breakdown
 
 ### 🤖 AI & Automation
-**AI System Prompts**: [Documentation/CAT_SUITE_PROMPTS.md](./Documentation/CAT_SUITE_PROMPTS.md) - Cat-Suite AI personality and system prompts
+**AI System Prompts**: [Documentation/CAT_SUITE_PROMPTS.md](./Documentation/CAT_SUITE_PROMPTS.md) - Cat-Suite personality and system prompts
 **Production Automation**: [Documentation/05-Shared/Production-Automation-Reference.md](./Documentation/05-Shared/Production-Automation-Reference.md) - Technical specs (Phase 8+)
 **Mockup System**: [Documentation/05-Shared/Mockup-Architecture-Reference.md](./Documentation/05-Shared/Mockup-Architecture-Reference.md) - Product visualization
 **ML Training**: [Documentation/04-ML-Training/](./Documentation/04-ML-Training/) - Expert panel workflow
@@ -219,11 +219,11 @@ T3: Main session (needs build verification)
 **Merch From** is an AI-powered premium merchandise platform for artists who care about quality.
 
 ### Key Differentiators
-1. **Cat-Suite AI Agents** — Leopoldo (Store Manager), Francisca (Art Director), Antonia (Operations Lead) guide artists through entire journey
-2. **In-House Production** — Own facility in Portugal, €113K equipment, quality control
-3. **Zero Risk Model** — Artists pay nothing upfront, only when products sell
-4. **Ethical First** — Vegan, fair-trade, organic blanks as standard
-5. **Proprietary Dataset** — Building world's only expert-scored screen print AI training data
+1. **In-House Production** — Own facility in Portugal, €113K equipment, quality control
+2. **Zero Risk Model** — Artists pay nothing upfront, only when products sell
+3. **Ethical First** — Vegan, fair-trade, organic blanks as standard
+4. **Expert Guidance** — Dedicated team (Leopoldo, Francisca, Antonia) handles everything for artists
+5. **Proprietary AI Pipeline** — Expert-scored dataset, EU-based technology (investor moat)
 
 ### Current Phase: Phase 3 - Frontend Content Suite (Jan 12-26, 2026)
 **Timeline**: 2 weeks
@@ -510,7 +510,7 @@ bunx drizzle-kit studio     # Open Drizzle Studio GUI
 - Discord, Meta, TikTok, Twitch catalog sync
 
 ### Phase 10: Accessories Expansion (Year 2 - 2027-2028)
-- 3D-printed jewelry (pendants, rings, bracelets) via Cat-Suite AI
+- 3D-printed jewelry (pendants, rings, bracelets) via Cat-Suite guided design
 - Meshy API for 3D generation + Python post-processing pipeline (port 8002)
 - Three.js/React Three Fiber 3D viewer in-app
 - Cast-resin-to-metal production at Portugal facility (Formlabs Form 4 + vacuum casting)
@@ -519,12 +519,12 @@ bunx drizzle-kit studio     # Open Drizzle Studio GUI
 
 ---
 
-## Cat-Suite AI Agents
+## Cat-Suite Team
 
-Three brand ambassadors with distinct roles:
+Three dedicated team members with distinct roles:
 
-| Agent | Role | Domain | Personality |
-|-------|------|--------|-------------|
+| Member | Role | Domain | Personality |
+|--------|------|--------|-------------|
 | **Leopoldo** | Store Manager | Onboarding, administration, sales | São Paulo street-smart, persistent, protective |
 | **Francisca** | Art Director | Design, catalog, visual identity | Porto princess, perfectionist, passionate |
 | **Antonia** | Operations Lead | Order tracking, shipping, support | Irish gypsy, optimistic, "the hunter" |
@@ -541,7 +541,7 @@ Three brand ambassadors with distinct roles:
 ### 📋 Must Read for All Work
 1. **[Documentation/PRD.md](./Documentation/PRD.md)** - Product requirements, AI agents, business model
 2. **[Documentation/02-Roadmap/Roadmap.md](./Documentation/02-Roadmap/Roadmap.md)** - What phase we're in
-3. **[Documentation/CAT_SUITE_PROMPTS.md](./Documentation/CAT_SUITE_PROMPTS.md)** - Cat-Suite AI personality directives
+3. **[Documentation/CAT_SUITE_PROMPTS.md](./Documentation/CAT_SUITE_PROMPTS.md)** - Cat-Suite personality directives
 
 ### 🤖 Read for Planning & Strategy
 1. **[Documentation/04-Crowdfunding-Landing/Overview.md](./Documentation/04-Crowdfunding-Landing/Overview.md)** - Crowdfunding campaign overview

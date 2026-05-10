@@ -2,7 +2,7 @@
 
 import type React from 'react';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import type { AgentId, ChatMessage, RoutingDecision } from '@/types/chat';
+import type { AgentId, ChatMessage, RoutingDecision, HandoffStatus } from '@/types/chat';
 import { AGENT_CONFIGS } from '@/types/chat';
 import type { DesignFlowStep } from '@/lib/ChatContext';
 import { getQuickActionsForStep } from '@/lib/designFlow';
@@ -60,6 +60,11 @@ interface ChatContextValue {
   suggestions: string[];
   quickActions: QuickAction[];
   designFlowStep: DesignFlowStep;
+  handoffStatus: HandoffStatus;
+  handoffTicketId?: string;
+  assignedStaffName?: string;
+  assignedStaffRole?: string;
+  contactEmail?: string;
   toggleChat: () => void;
   setAgent: (agent: AgentId) => void;
   setIsVoiceMode: (enabled: boolean) => void;
@@ -67,6 +72,9 @@ interface ChatContextValue {
   sendAudio: (audioBlob: Blob) => Promise<void>;
   clearMessages: () => void;
   setDesignFlowStep: (step: DesignFlowStep) => void;
+  requestHumanHandoff: (email?: string) => Promise<void>;
+  cancelHandoff: () => void;
+  setContactEmail: (email: string) => void;
 }
 
 const ChatContext = createContext<ChatContextValue | null>(null);
@@ -95,6 +103,12 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [designFlowStep, setDesignFlowStepState] = useState<DesignFlowStep>('idle');
   const [quickActions, setQuickActions] = useState<QuickAction[]>([]);
+  const [handoffStatus, setHandoffStatus] = useState<HandoffStatus>('none');
+  const [handoffTicketId, setHandoffTicketId] = useState<string | undefined>();
+  const [assignedStaffName, setAssignedStaffName] = useState<string | undefined>();
+  const [assignedStaffRole, setAssignedStaffRole] = useState<string | undefined>();
+  const [contactEmail, setContactEmailState] = useState<string>('');
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Update quick actions when agent or design flow step changes
   useEffect(() => {
@@ -197,7 +211,7 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
         const routingResult = await routeMessageServer({
           message: content,
           currentAgent,
-          history: conversationHistory,
+          history: conversationHistory.filter((m) => m.role !== 'human'),
         });
 
         // Never show clarification UI — route to best-guess agent or stay with current
@@ -316,11 +330,11 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
           agent: m.agent,
         }));
 
-        const routingResult = await routeMessageServer({
-          message: transcription,
-          currentAgent,
-          history: conversationHistory,
-        });
+    const routingResult = await routeMessageServer({
+      message: transcription,
+      currentAgent,
+      history: conversationHistory.filter((m) => m.role !== 'human'),
+    });
 
         if (transcription) {
           const userMessage: ChatMessage = {
@@ -425,6 +439,138 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
     setSuggestions([]);
   }, []);
 
+  const setContactEmail = useCallback((email: string) => {
+    setContactEmailState(email);
+  }, []);
+
+  const requestHumanHandoff = useCallback(
+    async (email?: string) => {
+      const emailToUse = email || contactEmail;
+      if (!emailToUse) {
+        setHandoffStatus('awaiting_email');
+        return;
+      }
+
+      setHandoffStatus('requested');
+
+      try {
+        const response = await fetch('/api/support/handoff', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agentId: currentAgent,
+            messages: messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+              agent: m.agent,
+            })),
+            contactEmail: emailToUse,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Handoff API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        setHandoffTicketId(data.ticketId);
+        setHandoffStatus('queued');
+        setAssignedStaffName(data.assignedStaffName);
+        setAssignedStaffRole(data.assignedStaffRole);
+
+        // Add system message about handoff
+        const handoffMessage: ChatMessage = {
+          id: `handoff-system-${Date.now()}`,
+          role: 'assistant',
+          content: data.message,
+          type: 'text',
+          timestamp: Date.now(),
+          agent: currentAgent,
+        };
+        setMessages((prev) => [...prev, handoffMessage]);
+      } catch (error) {
+        console.error('Handoff error:', error);
+        setHandoffStatus('none');
+        const errorMessage: ChatMessage = {
+          id: `handoff-error-${Date.now()}`,
+          role: 'assistant',
+          content: "Sorry, I couldn't connect you with a human right now. Please try again in a moment.",
+          type: 'text',
+          timestamp: Date.now(),
+          agent: currentAgent,
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      }
+    },
+    [currentAgent, messages, contactEmail]
+  );
+
+  const cancelHandoff = useCallback(() => {
+    setHandoffStatus('none');
+    setHandoffTicketId(undefined);
+    setAssignedStaffName(undefined);
+    setAssignedStaffRole(undefined);
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  }, []);
+
+  // Polling for ticket status updates
+  useEffect(() => {
+    if (
+      handoffStatus === 'queued' ||
+      handoffStatus === 'assigned'
+    ) {
+      pollingIntervalRef.current = setInterval(async () => {
+        if (!handoffTicketId) return;
+
+        try {
+          const response = await fetch(
+            `/api/support/handoff?ticketId=${handoffTicketId}`
+          );
+          if (!response.ok) return;
+
+          const data = await response.json();
+
+          if (data.status === 'in_progress') {
+            setHandoffStatus('human_joined');
+            // Add system message that human has joined
+            const joinMessage: ChatMessage = {
+              id: `human-joined-${Date.now()}`,
+              role: 'assistant',
+              content: `${data.assignedStaffName || 'A team member'} has joined the conversation.`,
+              type: 'text',
+              timestamp: Date.now(),
+              agent: currentAgent,
+            };
+            setMessages((prev) => [...prev, joinMessage]);
+          } else if (data.status === 'resolved') {
+            setHandoffStatus('resolved');
+          }
+        } catch (error) {
+          console.error('Polling error:', error);
+        }
+      }, 10000); // Poll every 10 seconds
+
+      return () => {
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+        }
+      };
+    }
+  }, [handoffStatus, handoffTicketId, currentAgent]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -461,6 +607,11 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
     suggestions,
     quickActions,
     designFlowStep,
+    handoffStatus,
+    handoffTicketId,
+    assignedStaffName,
+    assignedStaffRole,
+    contactEmail,
     toggleChat,
     setAgent,
     setIsVoiceMode,
@@ -468,6 +619,9 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
     sendAudio,
     clearMessages,
     setDesignFlowStep,
+    requestHumanHandoff,
+    cancelHandoff,
+    setContactEmail,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

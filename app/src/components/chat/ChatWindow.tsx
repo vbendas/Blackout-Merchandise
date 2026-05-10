@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { CHAT_CONFIG } from '@/lib/chat/config';
 
 interface ChatWindowProps {
   isOpen: boolean;
@@ -41,7 +42,7 @@ export function ChatWindow({
             isDesktop
               ? isStudio
                 ? {
-                    width: '380px',
+                    width: `${CHAT_CONFIG.ui.studioWidth}px`,
                     maxWidth: 'calc(100vw - 48px)',
                     height: '100vh',
                     top: 0,
@@ -49,7 +50,7 @@ export function ChatWindow({
                     borderRadius: 0,
                   }
                 : {
-                    width: '420px',
+                    width: `${CHAT_CONFIG.ui.desktopWidth}px`,
                     maxWidth: 'calc(100vw - 48px)',
                     height: 'auto',
                     minHeight: '400px',

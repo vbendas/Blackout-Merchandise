@@ -3,9 +3,11 @@ import { sanitizePromptInput } from '@/lib/sanitize/prompt-sanitize';
 import { ROUTING_KNOWLEDGE_BASE } from './agentKnowledgeBase';
 import { routerProvider } from './routerProvider';
 
+import { CHAT_CONFIG } from '@/lib/chat/config';
+
 export class ContextRouter {
-  private readonly CONFIDENCE_THRESHOLD = 70;
-  private readonly HISTORY_CONTEXT_WINDOW = 5;
+  private readonly CONFIDENCE_THRESHOLD = CHAT_CONFIG.thresholds.confidence * 100; // config is 0-1, router uses 0-100
+  private readonly HISTORY_CONTEXT_WINDOW = CHAT_CONFIG.limits.historyContextWindow;
   private readonly ENABLE_LLM_ROUTING = (() => {
     try {
       const { env } = require('@/lib/env');
@@ -122,7 +124,8 @@ export class ContextRouter {
       .slice(-this.HISTORY_CONTEXT_WINDOW)
       .map((m) => {
         const agentName = m.agent ? this.capitalize(m.agent) : 'Assistant';
-        return `${m.role === 'user' ? 'User' : agentName}: ${m.content}`;
+        const safeContent = sanitizePromptInput(m.content);
+        return `${m.role === 'user' ? 'User' : agentName}: ${safeContent}`;
       })
       .join('\n');
 

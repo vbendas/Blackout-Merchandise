@@ -18,7 +18,10 @@
     "zod": "^4.3.6"
   },
   "scripts": {
-    "upload:assets": "bun scripts/upload-assets.ts"
+    "upload:assets": "bun scripts/upload-assets.ts",
+    "seed:staff": "bun src/db/seed/staff.ts",
+    "db:migrate": "bunx drizzle-kit migrate",
+    "db:studio": "bunx drizzle-kit studio"
   },
   "type": "module",
   "devDependencies": {

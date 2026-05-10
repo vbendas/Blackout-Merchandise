@@ -93,7 +93,7 @@ export type CardType = 'product' | 'mockup' | 'design';
 
 export interface ChatMessage {
   id: string;
-  role: MessageRole;
+  role: MessageRole | 'human';
   type: MessageType;
   content: string;
   timestamp: number;
@@ -105,6 +105,9 @@ export interface ChatMessage {
   clarificationData?: {
     options: ClarificationOption[];
   };
+  handoffData?: HumanHandoffData;
+  senderName?: string;
+  senderRole?: string;
 }
 
 export interface MessageMetadata {
@@ -245,4 +248,116 @@ export const AGENT_GREETINGS: Record<AgentId, string[]> = {
     "What's the craic? How can I help? 🎭",
     "Stuck? Let's figure it out together! 🚀"
   ]
+};
+
+// ============================================================================
+// HUMAN HANDOFF TYPES
+// ============================================================================
+
+export type HandoffStatus =
+  | 'none'
+  | 'awaiting_email'
+  | 'requested'
+  | 'queued'
+  | 'assigned'
+  | 'human_joined'
+  | 'resolved';
+
+export interface HumanHandoffData {
+  ticketId: string;
+  status: HandoffStatus;
+  assignedStaffName?: string;
+  assignedStaffRole?: string;
+  estimatedWaitMinutes?: number;
+  contactEmail?: string;
+}
+
+export interface Staff {
+  id: string;
+  userId?: string;
+  name: string;
+  email: string;
+  role: string;
+  department?: string;
+  avatarUrl?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AgentStaffAssignment {
+  id: string;
+  agentId: AgentName;
+  staffId: string;
+  isPrimary: boolean;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  staff?: Staff;
+}
+
+export interface SupportTicket {
+  id: string;
+  sessionId?: string;
+  userId?: string;
+  visitorToken?: string;
+  agentId: AgentName;
+  assignedStaffId?: string;
+  status: string;
+  priority: string;
+  subject: string;
+  description?: string;
+  source: string;
+  contactEmail?: string;
+  visitorName?: string;
+  estimatedWaitMinutes?: number;
+  metadata?: Record<string, unknown>;
+  assignedAt?: Date;
+  resolvedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  assignedStaff?: Staff;
+  messages?: TicketMessage[];
+}
+
+export interface TicketMessage {
+  id: string;
+  ticketId: string;
+  senderType: 'user' | 'ai' | 'human' | 'system';
+  senderId?: string;
+  content: string;
+  isInternal: boolean;
+  createdAt: Date;
+  senderName?: string;
+  senderRole?: string;
+}
+
+export interface HandoffRequestBody {
+  sessionId?: string;
+  agentId: AgentId;
+  messages: Array<{
+    role: 'user' | 'assistant';
+    content: string;
+    agent?: AgentId;
+  }>;
+  contactEmail: string;
+  visitorName?: string;
+  subject?: string;
+  userId?: string;
+  visitorToken?: string;
+}
+
+export interface HandoffResponse {
+  ticketId: string;
+  status: string;
+  assignedStaffName?: string;
+  assignedStaffRole?: string;
+  estimatedWaitMinutes?: number;
+  message: string;
+}
+
+export const AGENT_TO_STAFF_ROLE: Record<AgentId, string> = {
+  leopoldo: 'head_of_operations',
+  francisca: 'head_of_design',
+  antonia: 'head_of_customer_success',
 };

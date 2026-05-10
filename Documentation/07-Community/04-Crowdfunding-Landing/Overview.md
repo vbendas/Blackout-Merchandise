@@ -222,7 +222,7 @@
 - Founder story: 9 years in print shop, Meta/Google clients
 - Mission: Ethical production, fair wages, vegan/organic materials
 - Problem: Artists stuck between expensive minimums or low-quality drop-shipping
-- Solution: Premium quality, zero upfront cost, AI-powered simplicity
+- Solution: Premium quality, zero upfront cost, expert-guided simplicity
 
 ### 3. Visual Proof
 - Professional demo storefront (live, functional)
@@ -277,7 +277,7 @@
 
 - **"Your Art. Your Merch Empire. Zero Upfront Costs."**
 - **"Premium Ethical Merch for Artists Who Give a Damn."**
-- **"Screen Printing Meets AI. Artists Keep the Profits."**
+- **"Screen Printing Meets Craft. Artists Keep the Profits."**
 - **"The Merch Platform That Pays Fair Wages. Including Ours."**
 - **"Back Us Today. Use Your Coins Forever. No Expiry. No Tricks."**
 

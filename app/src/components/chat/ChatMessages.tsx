@@ -58,7 +58,6 @@ export function ChatMessages({ messages, currentAgent, isTyping, scrollRef }: Ch
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                layout
                 className={`flex items-end gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
               >
                 <div

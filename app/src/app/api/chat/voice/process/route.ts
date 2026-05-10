@@ -3,6 +3,7 @@ import { requireChatAuth } from '@/lib/auth/chat-auth';
 import { requireChatAccess } from '@/lib/auth/require-chat-access';
 import { miniMaxM2HerProvider } from '@/lib/ai/minimax-m2her';
 import { miniMaxSpeechProvider } from '@/lib/ai/minimax-speech';
+import { withCors } from '@/lib/cors';
 import type { AgentId } from '@/types/chat';
 
 interface VoiceRequestBody {
@@ -11,11 +12,13 @@ interface VoiceRequestBody {
 }
 
 export async function POST(request: NextRequest) {
+  const origin = request.headers.get('origin');
+
   const authResult = await requireChatAuth();
-  if (authResult instanceof NextResponse) return authResult;
+  if (authResult instanceof NextResponse) return withCors(authResult, origin);
 
   const rateLimitResult = await requireChatAccess(authResult, 'voice');
-  if (rateLimitResult instanceof NextResponse) return rateLimitResult;
+  if (rateLimitResult instanceof NextResponse) return withCors(rateLimitResult, origin);
 
   try {
     const formData = await request.formData();
@@ -33,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!audioFile) {
-      return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
+      return withCors(NextResponse.json({ error: 'No audio file provided' }, { status: 400 }), origin);
     }
 
     // ─── File Validation ─────────────────────────────────────────────────────
@@ -50,17 +53,17 @@ export async function POST(request: NextRequest) {
     ];
 
     if (audioFile.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
+      return withCors(NextResponse.json(
         { error: `File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB.` },
         { status: 413 }
-      );
+      ), origin);
     }
 
     if (!ALLOWED_TYPES.includes(audioFile.type)) {
-      return NextResponse.json(
+      return withCors(NextResponse.json(
         { error: `Invalid file type: ${audioFile.type}. Allowed: ${ALLOWED_TYPES.join(', ')}` },
         { status: 415 }
-      );
+      ), origin);
     }
     // ──────────────────────────────────────────────────────────────────────────
 
@@ -72,11 +75,11 @@ export async function POST(request: NextRequest) {
     const transcription = await miniMaxSpeechProvider.transcribeAudio(audioBlob);
 
     if (!transcription) {
-      return NextResponse.json({
+      return withCors(NextResponse.json({
         transcription: '',
         response: "I didn't catch that. Could you try speaking again?",
         audioData: null,
-      });
+      }), origin);
     }
 
     // Step 2: Get AI response using M2-her
@@ -101,13 +104,13 @@ export async function POST(request: NextRequest) {
       audioData = `data:audio/mp3;base64,${buffer.toString('base64')}`;
     }
 
-    return NextResponse.json({
+    return withCors(NextResponse.json({
       transcription,
       response: aiResponse.content,
       audioData,
-    });
+    }), origin);
   } catch (error) {
     console.error('[Voice API] Error:', error);
-    return NextResponse.json({ error: 'Failed to process voice request' }, { status: 500 });
+    return withCors(NextResponse.json({ error: 'Failed to process voice request' }, { status: 500 }), origin);
   }
 }

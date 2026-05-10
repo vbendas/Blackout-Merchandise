@@ -80,7 +80,10 @@ export function validateNoInjection(input: string): string {
 
   for (const pattern of injectionPatterns) {
     if (pattern.test(input)) {
-      throw new Error(`Potential prompt injection detected: pattern matched ${pattern.source}`);
+      // Log the specific pattern server-side only
+      console.error('[PromptSanitizer] Injection pattern matched:', pattern.source);
+      // Return generic error to client (don't leak pattern details)
+      throw new Error('Invalid input: potentially harmful content detected.');
     }
   }
 

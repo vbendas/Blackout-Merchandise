@@ -24,7 +24,7 @@ This is the **master navigation document** for the Merch From Product Requiremen
 → [[02-Architecture/AI-Stack]] — AI model routing, costs, scaling economics  
 → [[02-Architecture/Database-Schema]] — Drizzle ORM schema (source of truth)
 
-### AI Agents (Cat-Suite)
+### Cat-Suite Team
 → [[03-Cat-Suite/System-Prompts]] — Full system prompts  
 → [[03-Cat-Suite/Leopoldo-Detailed]] — Extended Leopoldo personality  
 → [[03-Cat-Suite/README]] — Agent overview and expression system

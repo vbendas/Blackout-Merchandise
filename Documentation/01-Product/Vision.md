@@ -4,11 +4,11 @@
   > **Purpose:** Concise investor overview. For detailed breakdowns, see **Section 0: Executive Quick Reference**.
   
   ### At-a-Glance
-  - **One-liner:** AI-powered premium merch platform for artists who care about quality
+  - **One-liner:** Premium merchandise platform for artists who care about quality — designed, sourced, and supplied with zero upfront costs
   - **Market:** $12B European Creator Merch, $50M SOM target
   - **Ask:** €300K for 16-18% equity, 24 months runway
   - **Founder Summary:** 9 years craft + CS degree + AI MBA = triple-threat founder
-  - **Key Differentiators:** Cat-Suite AI, in-house production, ethical-first
+  - **Key Differentiators:** In-house production, expert-guided design, ethical-first
   
   > **See Section 0 for:** Cat-Suite roles, competitive positioning, founder credentials, customer validation framework
 
@@ -36,9 +36,9 @@
 
   ## 1. Project Overview
 
-  **Merch From** is a conversational commerce platform that empowers artists, bands, and creators to manage their merchandise business through natural AI-powered conversation. While the **Visual Editor** handles the store's aesthetic customization, AI agents actively manage operations, product creation, and sales strategy.
+  **Merch From** is a conversational commerce platform that empowers artists, bands, and creators to manage their merchandise business through natural conversation with their dedicated team. While the **Visual Editor** handles the store's aesthetic customization, Leopoldo, Francisca, and Antonia actively manage operations, product creation, and sales strategy.
 
-  **Mission:** Help artists, brands, and companies design, source, and sell premium quality merchandise through an AI-managed platform with professional visual tools. Creates focus on the product, while the artist controls the brand experience.
+  **Mission:** Help artists, brands, and companies design, source, and sell premium quality merchandise with expert guidance and professional visual tools. Creates focus on the product, while the artist controls the brand experience.
 
   **Core Values:** Vegan, fair-trade, eco-friendly products with premium quality focus, direct in-house production, and no upfront costs for qualified creators.
 
@@ -71,7 +71,7 @@
   - 200M+ creators worldwide actively seeking monetization paths
   - 70%+ of Gen Z/Millennial consumers prefer sustainable/ethical products
   - Existing POD platforms (Printful, Printify, Redbubble) prioritize volume over quality
-  - Gap in market: No premium, ethical, AI-powered merch platform exists
+  - Gap in market: No premium, ethical merch platform with in-house production exists
 
   ---
 
@@ -126,7 +126,7 @@
   |-----------|--------------------------------|
   | **Founder Expertise** | 9 years screen printing + CS degree + 12 years marketing = triple-threat doesn't exist elsewhere |
   | **€113K Owned Equipment** | Competitors outsource; we have invested capital in production infrastructure |
-  | **Cat-Suite AI Personality** | Unique brand narrative (Leopoldo, Francisca, Antônia) creates emotional connection |
+  | **Cat-Suite Brand Narrative** | Unique character-driven experience (Leopoldo, Francisca, Antônia) creates emotional connection |
   | **Expert-Scored Dataset** | Validated by **Expert A (6,600+ students)** & Expert Panel - no competitor has this quality depth |
   | **Showroom vs Workshop UX** | Genuine product innovation: Apple-esque "Showroom" frontend vs gritty "Workshop" backend |
   | **Ethical-First Positioning** | Not an "add-on" tier—core brand value attracts values-aligned artists |
@@ -138,14 +138,14 @@
 
   | Category | Examples | Why We Win |
   |----------|----------|------------|
-  | **Traditional Merch Companies** | Bandwear UK, Hello Merch | We're AI-powered, zero upfront cost; they require MOQs and manual processes |
+  | **Traditional Merch Companies** | Bandwear UK, Hello Merch | Zero upfront cost, expert-guided; they require MOQs and manual processes |
   | **Design Marketplaces** | 99designs, Fiverr | We integrate design + production; they only do design |
   | **Local Print Shops** | Various | We handle e-commerce, fulfillment, global shipping; they're local-only |
   | **Big Box Merch** | Amazon Merch, Zazzle | We're premium + ethical; they're volume + generic |
 
   ### Positioning Statement
 
-  > **For independent artists and ethical brands** who want premium merchandise without the complexity, **Merch From** is the **AI-powered conversational commerce platform** that **designs, produces, and fulfills in-house with zero upfront cost**. Unlike Printful or Redbubble which outsource production and offer generic quality, **we combine owned manufacturing, expert screen printing, and a unique AI personality to deliver merch that actually matches your brand's values.**
+  > **For independent artists and ethical brands** who want premium merchandise without the complexity, **Merch From** is the **premium merchandise platform** that **designs, produces, and fulfills in-house with zero upfront cost**. Unlike Printful or Redbubble which outsource production and offer generic quality, **we combine owned manufacturing, expert screen printing, and a unique brand narrative to deliver merch that actually matches your brand's values.**
 
    ### AI Safety Nets (Hallucination Mitigation)
    We prioritize customer satisfaction over AI autonomy. To mitigate "hallucinations" or unprintable designs:

@@ -56,7 +56,7 @@ function EmptyState() {
         </div>
         <h2 className="text-xl font-semibold text-white mb-2">Welcome to Merch From</h2>
         <p className="text-zinc-400 max-w-md mx-auto">
-          Your AI-powered merchandise studio. Browse products, create designs, or manage your store.
+          Your merchandise studio. Browse products, create designs with Leopoldo & Francisca, or manage your store.
         </p>
       </div>
       <div className="mb-8">

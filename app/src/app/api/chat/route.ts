@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { requireChatAuth } from '@/lib/auth/chat-auth';
 import { requireChatAccess } from '@/lib/auth/require-chat-access';
+import { withCors } from '@/lib/cors';
 import { contextRouter } from '@/lib/ai/contextRouter';
 import type { AgentId, RoutingContext } from '@/types/chat';
 
@@ -23,11 +24,13 @@ interface RouteRequestBody {
  * Returns a full RoutingDecision with handoff logic.
  */
 export async function POST(request: NextRequest) {
+  const origin = request.headers.get('origin');
+
   const authResult = await requireChatAuth();
-  if (authResult instanceof NextResponse) return authResult;
+  if (authResult instanceof NextResponse) return withCors(authResult, origin);
 
   const rateLimitResult = await requireChatAccess(authResult, 'chat');
-  if (rateLimitResult instanceof NextResponse) return rateLimitResult;
+  if (rateLimitResult instanceof NextResponse) return withCors(rateLimitResult, origin);
 
   const requestId = crypto.randomUUID();
 
@@ -36,11 +39,11 @@ export async function POST(request: NextRequest) {
     const { message, currentAgent, history = [], pathname, buttonTrigger } = body;
 
     if (!message || typeof message !== 'string') {
-      return NextResponse.json({ error: 'Missing message' }, { status: 400 });
+      return withCors(NextResponse.json({ error: 'Missing message' }, { status: 400 }), origin);
     }
 
     if (!currentAgent || !['leopoldo', 'francisca', 'antonia'].includes(currentAgent)) {
-      return NextResponse.json({ error: 'Invalid currentAgent' }, { status: 400 });
+      return withCors(NextResponse.json({ error: 'Invalid currentAgent' }, { status: 400 }), origin);
     }
 
     const routingContext: RoutingContext = {
@@ -54,12 +57,12 @@ export async function POST(request: NextRequest) {
 
     console.log(`[${requestId}] Routed to ${decision.agent} (confidence: ${decision.confidence}, handoff: ${decision.shouldHandoff})`);
 
-    return NextResponse.json(decision);
+    return withCors(NextResponse.json(decision), origin);
   } catch (error) {
     console.error(`[${requestId}] Routing error:`, error);
 
     // Safe fallback — ask for clarification
-    return NextResponse.json({
+    return withCors(NextResponse.json({
       agent: 'unknown',
       confidence: 0,
       reason: 'Server error — defaulted to clarification',
@@ -70,6 +73,6 @@ export async function POST(request: NextRequest) {
         { agent: 'francisca', label: 'Design & Products', description: 'Artwork, catalog, mockups, print quality' },
         { agent: 'antonia', label: 'Orders & Support', description: 'Tracking, shipping, returns, issues' },
       ],
-    });
+    }), origin);
   }
 }

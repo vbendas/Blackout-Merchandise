@@ -1,4 +1,4 @@
-# LEOPOLDO: AI Chief Recruitment Officer System
+# LEOPOLDO: Chief Recruitment Officer System
 ## Strategic Interview Platform for Merch From Waiting List
 
 **Version:** 2.0  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-**Leopoldo** is Merch From's AI-powered CEO and the face of the brand—an interactive conversational agent deployed on the waiting list landing page to replace traditional signup forms. Instead of asking artists to fill out static fields, Leopoldo conducts a **natural, multi-stage interview** that:
+**Leopoldo** is Merch From's CEO and the face of the brand—an interactive conversational agent deployed on the waiting list landing page to replace traditional signup forms. Instead of asking artists to fill out static fields, Leopoldo conducts a **natural, multi-stage interview** that:
 
 - **Qualifies artists** based on touring status, follower count, current merch pain points, and values alignment
 - **Clusters leads** into tiers: *High-Potential (pilot candidates)*, *Medium-Value*, *Long-Tail*
@@ -361,15 +361,17 @@ info needed, just shows you're part of the movement.
 
 Suggested post caption:
 'Just got interviewed by Leopoldo, the CEO of Merch From. 
-AI-powered ethical merch with no minimums. 
-Join the waiting list and get interviewed too: [link]'"
+Premium ethical merch with no minimums. Zero upfront costs. 
+This is actually different.
+
+Join the waiting list: [link]'"
 ```
 
 **Social Card Options:**
 1. **Generic Waitlist Card:**
    - Merch From branding + Leopoldo illustration
    - Text: "I'm part of the Merch From waiting list"
-   - Subtext: "Ethical AI-Powered Merch Platform"
+   - Subtext: "Ethical Premium Merch Platform"
    - Generated via Cloudinary (no personal data)
 
 2. **Founding Artist Card (High-Potential Only):**

@@ -2,6 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { requireChatAuth } from '@/lib/auth/chat-auth';
 import { requireChatAccess } from '@/lib/auth/require-chat-access';
 import { miniMaxM2HerProvider } from '@/lib/ai/minimax-m2her';
+import { sanitizePromptInput } from '@/lib/sanitize/prompt-sanitize';
+import { withCors } from '@/lib/cors';
 import type { AgentId } from '@/types/chat';
 import { AGENT_CONFIGS } from '@/types/chat';
 
@@ -11,18 +13,20 @@ interface SuggestionsRequestBody {
 }
 
 export async function POST(request: NextRequest) {
+  const origin = request.headers.get('origin');
+
   const authResult = await requireChatAuth();
-  if (authResult instanceof NextResponse) return authResult;
+  if (authResult instanceof NextResponse) return withCors(authResult, origin);
 
   const rateLimitResult = await requireChatAccess(authResult, 'chat');
-  if (rateLimitResult instanceof NextResponse) return rateLimitResult;
+  if (rateLimitResult instanceof NextResponse) return withCors(rateLimitResult, origin);
 
   try {
     const body: SuggestionsRequestBody = await request.json();
     const { history, agent } = body;
 
     if (!agent) {
-      return NextResponse.json({ error: 'Missing agent' }, { status: 400 });
+      return withCors(NextResponse.json({ error: 'Missing agent' }, { status: 400 }), origin);
     }
 
     const agentConfig = AGENT_CONFIGS[agent];
@@ -38,7 +42,11 @@ Return ONLY a JSON array of strings, nothing else. Example: ["Ask about pricing"
 Conversation history:
 ${history
   .slice(-6)
-  .map((m) => `${m.role === 'user' ? 'User' : agentConfig.name}: ${m.content}`)
+  .map((m) => {
+    const prefix = m.role === 'user' ? 'User' : agentConfig.name;
+    const safeContent = sanitizePromptInput(m.content);
+    return `${prefix}: ${safeContent}`;
+  })
   .join('\n')}`;
 
     const response = await miniMaxM2HerProvider.chat({
@@ -51,7 +59,7 @@ ${history
     try {
       const suggestions = JSON.parse(response.content);
       if (Array.isArray(suggestions)) {
-        return NextResponse.json({ suggestions: suggestions.slice(0, 4) });
+        return withCors(NextResponse.json({ suggestions: suggestions.slice(0, 4) }), origin);
       }
     } catch {
       // If parsing fails, return fallback suggestions
@@ -64,11 +72,11 @@ ${history
       francisca: ['Browse catalog', 'Create design', 'Product info'],
     };
 
-    return NextResponse.json({
+    return withCors(NextResponse.json({
       suggestions: fallbackSuggestions[agent] || fallbackSuggestions.antonia,
-    });
+    }), origin);
   } catch (error) {
     console.error('[Suggestions API] Error:', error);
-    return NextResponse.json({ error: 'Failed to generate suggestions' }, { status: 500 });
+    return withCors(NextResponse.json({ error: 'Failed to generate suggestions' }, { status: 500 }), origin);
   }
 }

@@ -1,13 +1,13 @@
 # Cat-Suite
 
-The three AI brand ambassadors that guide artists through the Merch From platform.
+The three dedicated team members that guide artists through the Merch From platform.
 
 ---
 
-## The Agents
+## The Team
 
-| Agent | Role | Domain | Personality |
-|-------|------|--------|-------------|
+| Member | Role | Domain | Personality |
+|--------|------|--------|-------------|
 | **Leopoldo** | Store Manager | Onboarding, sales, strategy | São Paulo street-smart, persistent, protective |
 | **Francisca** | Art Director | Design, catalog, visual identity | Porto princess, perfectionist, passionate |
 | **Antonia** | Operations Lead | Orders, shipping, support | Irish gypsy, optimistic, "the hunter" |

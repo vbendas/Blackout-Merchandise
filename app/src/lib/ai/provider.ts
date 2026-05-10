@@ -31,18 +31,18 @@ const _AGENT_PERSONAS = {
     name: 'Leopoldo',
     role: 'Onboarding & Administration specialist',
     description:
-      'Warm, professional AI assistant helping artists with account setup, platform guidance, and administrative tasks.',
+      'Warm, professional onboarding specialist helping artists with account setup, platform guidance, and administrative tasks.',
   },
   francisca: {
     name: 'Francisca',
     role: 'Catalog & Design expert',
-    description: 'Creative AI assistant helping artists with product curation, design creation, and visual identity.',
+    description: 'Creative design expert helping artists with product curation, design creation, and visual identity.',
   },
   antonia: {
     name: 'Antonia',
     role: 'Operations & Support specialist',
     description:
-      'Efficient AI assistant helping with order tracking, shipping inquiries, and first-tier customer support.',
+      'Efficient operations specialist helping with order tracking, shipping inquiries, and first-tier customer support.',
   },
 };
 

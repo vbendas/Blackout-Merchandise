@@ -1,9 +1,13 @@
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
-// ─── Configuration ───────────────────────────────────────────────────────────
+// ─── Lazy Redis Initialization ──────────────────────────────────────────────
 
-// Lazy import to avoid circular dependency issues during build
+/**
+ * Get Redis credentials lazily to avoid circular dependency issues
+ * and support serverless environments where env vars may not be
+ * available at module load time.
+ */
 function getRedisCredentials() {
   try {
     const { env } = require('@/lib/env');
@@ -20,17 +24,19 @@ function getRedisCredentials() {
   }
 }
 
-const { url: redisUrl, token: redisToken } = getRedisCredentials();
+let _redis: Redis | null = null;
+let _hasAttemptedInit = false;
 
-// Check if Redis credentials are available (skip rate limiting if not)
-const hasRedisCredentials = redisUrl && redisToken;
+function getRedis(): Redis | null {
+  if (_hasAttemptedInit) return _redis;
+  _hasAttemptedInit = true;
 
-const redis = hasRedisCredentials
-  ? new Redis({
-      url: redisUrl,
-      token: redisToken,
-    })
-  : null;
+  const { url, token } = getRedisCredentials();
+  if (url && token) {
+    _redis = new Redis({ url, token });
+  }
+  return _redis;
+}
 
 // ─── Rate Limiters ───────────────────────────────────────────────────────────
 
@@ -38,28 +44,42 @@ const redis = hasRedisCredentials
  * General chat requests: 20 per minute per user
  * Covers: /api/chat, /api/chat/unified, /api/chat/suggestions
  */
-export const chatRateLimit = redis
-  ? new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(20, '1m'),
-      analytics: true,
-      prefix: 'ratelimit:chat',
-    })
-  : null;
+let _chatRateLimit: Ratelimit | null = null;
+export function getChatRateLimit(): Ratelimit | null {
+  if (_chatRateLimit) return _chatRateLimit;
+  const redis = getRedis();
+  if (!redis) return null;
+  _chatRateLimit = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(20, '1m'),
+    analytics: true,
+    prefix: 'ratelimit:chat',
+  });
+  return _chatRateLimit;
+}
 
 /**
  * Voice processing requests: 5 per minute per user
  * Covers: /api/chat/voice, /api/chat/voice/process
  * Lower limit because voice is expensive (transcription + TTS + LLM)
  */
-export const voiceRateLimit = redis
-  ? new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(5, '1m'),
-      analytics: true,
-      prefix: 'ratelimit:voice',
-    })
-  : null;
+let _voiceRateLimit: Ratelimit | null = null;
+export function getVoiceRateLimit(): Ratelimit | null {
+  if (_voiceRateLimit) return _voiceRateLimit;
+  const redis = getRedis();
+  if (!redis) return null;
+  _voiceRateLimit = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, '1m'),
+    analytics: true,
+    prefix: 'ratelimit:voice',
+  });
+  return _voiceRateLimit;
+}
+
+// Backward-compatible exports (deprecated — use getter functions)
+export const chatRateLimit = null;
+export const voiceRateLimit = null;
 
 /**
  * Helper to check rate limit and return appropriate response

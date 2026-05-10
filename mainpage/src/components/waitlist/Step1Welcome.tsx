@@ -43,7 +43,7 @@ export function Step1Welcome({ onStart }: Step1WelcomeProps) {
         {[
           'Zero upfront cost',
           'Premium quality',
-          'AI-powered',
+          'Expert-guided',
           'Ethical production',
         ].map((badge) => (
           <span

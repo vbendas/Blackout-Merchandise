@@ -17,7 +17,7 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: 'Merch From | Premium Creator Commerce',
-  description: 'AI-powered merch platform for artists who care about quality.',
+  description: 'Premium merchandise platform for artists who care about quality. Design, source, and sell with zero upfront costs.',
 };
 
 export default function RootLayout({

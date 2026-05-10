@@ -18,12 +18,12 @@
 **Alternative Taglines:**
 - *"We don't work with everyone. But if you care about craft, we want to talk."*
 - *"Premium Ethical Merch for Artists Who Give a Damn."*
-- *"Screen Printing Meets AI. Artists Keep the Profits."*
+- *"Screen Printing Meets Craft. Artists Keep the Profits."*
 - *"Buy Less, Buy Better."*
 - *"If you know, you know."*
 
 ### Mission
-Help artists, brands, and companies design, source, and sell premium quality merchandise through an AI-managed platform with professional visual tools.
+Help artists, brands, and companies design, source, and sell premium quality merchandise with expert guidance and professional visual tools.
 
 ### Core Values
 - **Vegan & Fair-Trade**: Only ethical, sustainable products
@@ -221,7 +221,7 @@ Our public homepage should create **intrigue and exclusivity**, not marketing co
 
 - Keep 40-60% margins (vs 10-20% on Redbubble)
 - Premium organic blanks as standard
-- AI-guided design assistance
+- Expert-guided design assistance (Leopoldo & Francisca at your service)
 - In-house production quality control
 
 ### For Fans/Customers
@@ -235,7 +235,7 @@ Our public homepage should create **intrigue and exclusivity**, not marketing co
 
 ### For Investors
 
-> **"The AI-powered merch platform with in-house production and zero artist risk."**
+> **"The premium merch platform with in-house production, proprietary AI pipeline, and zero artist risk."**
 
 - TAM: $340B global licensed merchandise
 - Proprietary AI training data
@@ -259,6 +259,32 @@ Our public homepage should create **intrigue and exclusivity**, not marketing co
 - Beg for signups or purchases
 - Use light mode anywhere
 - Make the characters too cute or childish
+- Lead with "AI-powered" or "AI platform" in customer-facing copy
+
+### AI Language Guidelines
+
+> **Core Principle:** AI is our invisible engine, not our headline. The Cat-Suite characters are team members — Leopoldo, Francisca, Antonia — not "AI assistants." Lead with what artists care about: quality, zero upfront costs, ethical production, in-house manufacturing.
+
+**When talking to artists (customer-facing):**
+- ✅ "Your dedicated team handles everything"
+- ✅ "Leopoldo manages your store. Francisca handles design. Antonia tracks your orders."
+- ✅ "Expert-guided design assistance"
+- ✅ "Your Merch Studio — designed, sourced, and supplied."
+- ❌ "AI-powered platform"
+- ❌ "AI assistants" or "AI team"
+- ❌ "AI-guided" as a value proposition
+
+**When talking to investors:**
+- ✅ "Proprietary AI pipeline built on EU technology (Mistral, Paris)"
+- ✅ "Expert-scored training dataset — world's only screen print AI training data"
+- ✅ "Conversational UX powered by our AI stack"
+- ✅ "AI is our moat, not our brand"
+- The AI is a competitive advantage, not the customer-facing promise.
+
+**When talking to press/media:**
+- ✅ "Built with European technology"
+- ✅ "Intelligent automation handles the complexity so artists focus on their art"
+- ❌ "AI-powered" as a primary descriptor
 
 ### Writing Examples
 

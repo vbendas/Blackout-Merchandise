@@ -67,11 +67,9 @@ export function ChatInput({
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onMouseDown={onStartRecording}
-          onMouseUp={onStopRecording}
-          onMouseLeave={onStopRecording}
-          onTouchStart={onStartRecording}
-          onTouchEnd={onStopRecording}
+          onPointerDown={onStartRecording}
+          onPointerUp={onStopRecording}
+          onPointerLeave={onStopRecording}
           className={`flex items-center justify-center rounded-full transition-all ${
             isRecording ? 'animate-pulse' : ''
           } ${isMobile ? 'h-16 w-16' : isTablet ? 'h-24 w-24' : 'h-20 w-20'}`}

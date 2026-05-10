@@ -13,12 +13,12 @@ export function Features() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* AI Design Card */}
+          {/* Design Studio Card */}
           <Card className="glass border border-white/10 bg-black/40 backdrop-blur-md">
             <CardHeader className="flex-col items-start gap-2 pb-2">
               <div className="flex items-center gap-2">
                 <Icon icon="solar:magic-stick-3-bold-duotone" className="w-6 h-6 text-[#FFD700]" />
-                <h3 className="text-xl font-semibold text-white">AI Design Studio</h3>
+                <h3 className="text-xl font-semibold text-white">Design Studio</h3>
               </div>
             </CardHeader>
             <CardBody className="space-y-4 pt-1">

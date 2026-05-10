@@ -47,7 +47,7 @@ export function Step1Welcome({ onNext }: Step1WelcomeProps) {
       >
         {[
           { icon: 'lucide:leaf', text: 'Eco-friendly materials' },
-          { icon: 'lucide:zap', text: 'AI-powered design' },
+          { icon: 'lucide:zap', text: 'Expert-guided design' },
           { icon: 'lucide:shield-check', text: 'Premium quality' },
         ].map((item, index) => (
           <div

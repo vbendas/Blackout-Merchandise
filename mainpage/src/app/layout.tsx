@@ -41,7 +41,7 @@ const caveat = Caveat({
 export const metadata: Metadata = {
   title: 'Merch From | Premium Merchandise for Artists',
   description:
-    'AI-powered premium merchandise platform. We help artists produce, design, and source exceptional merch.',
+    'Premium merchandise for artists who care about quality. Design, source, and sell — zero upfront costs, ethical production, in-house in Portugal.',
   keywords: ['merchandise', 'artist merch', 'premium clothing', 'streetwear', 'custom apparel'],
 };
 

@@ -33,10 +33,12 @@ export interface ClassifyOptions {
   timeoutMs?: number;
 }
 
+import { CHAT_CONFIG } from '@/lib/chat/config';
+
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const CONFIDENCE_THRESHOLD = 0.7;
-const CLASSIFY_TIMEOUT_MS = 1200;
+const CONFIDENCE_THRESHOLD = CHAT_CONFIG.thresholds.confidence;
+const CLASSIFY_TIMEOUT_MS = CHAT_CONFIG.timeouts.intentClassification;
 
 const INTENT_TO_AGENT: Record<IntentCategory, AgentId | 'context'> = {
   onboarding: 'leopoldo',
@@ -59,7 +61,7 @@ const INTENT_DESCRIPTIONS: Record<IntentCategory, string> = {
     'Greetings, small talk, platform overview, unclear requests, multiple topics, asking what agents can do, vague questions',
 };
 
-const SYSTEM_PROMPT = `You are an intent classification system for MerchFrom, an AI-powered merchandise platform.
+const SYSTEM_PROMPT = `You are an intent classification system for MerchFrom, a premium merchandise platform for artists.
 
 Classify the user's message into exactly ONE of these intent categories:
 - onboarding: ${INTENT_DESCRIPTIONS.onboarding}

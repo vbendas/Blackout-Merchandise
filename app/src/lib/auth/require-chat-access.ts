@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { requireChatAuth } from './chat-auth';
-import { chatRateLimit, voiceRateLimit, checkRateLimit } from '../rate-limit/chat-rate-limit';
+import {
+  getChatRateLimit,
+  getVoiceRateLimit,
+  checkRateLimit,
+} from '../rate-limit/chat-rate-limit';
 
 /**
  * Combined auth + rate limit check for chat routes.
@@ -13,7 +17,7 @@ export async function requireChatAccess(
   userIdentifier: string,
   type: 'chat' | 'voice' = 'chat'
 ): Promise<string | NextResponse> {
-  const limiter = type === 'voice' ? voiceRateLimit : chatRateLimit;
+  const limiter = type === 'voice' ? getVoiceRateLimit() : getChatRateLimit();
   const result = await checkRateLimit(limiter, userIdentifier);
 
   if (!result.allowed) {
