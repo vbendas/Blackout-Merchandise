@@ -15,7 +15,8 @@ This is the **master navigation document** for the Merch From Product Requiremen
 ## Document Map
 
 ### Product Vision & Strategy
-→ [[01-Product/Vision]] — Mission, market analysis, competitive positioning, moats  
+→ [[01-Product/Vision]] — Mission, competitive positioning, moats  
+→ [[01-Product/Market-Analysis]] — Comprehensive market sizing, TAM/SAM/SOM, competitive landscape, creator economics  
 → [[01-Product/Business-Model]] — Pricing, revenue model, Merch Coins, exit strategy  
 → [[01-Product/User-Journeys]] — Personas, day-in-the-life, waitlist flow
 
