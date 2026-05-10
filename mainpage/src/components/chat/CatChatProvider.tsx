@@ -28,6 +28,7 @@ interface ChatContextValue {
   setIsVoiceMode: (enabled: boolean) => void;
   sendMessage: (content: string) => Promise<void>;
   sendAudio: (audioBlob: Blob) => Promise<void>;
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   clearMessages: () => void;
   requestHumanHandoff: (email?: string) => Promise<void>;
   cancelHandoff: () => void;
@@ -474,6 +475,7 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
     setIsVoiceMode,
     sendMessage,
     sendAudio,
+    setMessages,
     clearMessages,
     requestHumanHandoff,
     cancelHandoff,

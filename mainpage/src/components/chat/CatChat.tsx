@@ -123,13 +123,17 @@ export function CatChat() {
     isTyping,
     suggestions,
     quickActions,
-    handoffStatus,
-    assignedStaffName,
     toggleChat,
     sendMessage,
     sendAudio,
+    setMessages,
     requestHumanHandoff,
     cancelHandoff,
+    setContactEmail,
+    handoffStatus,
+    handoffTicketId,
+    assignedStaffName,
+    contactEmail,
   } = useChat();
   const { currentGreeting } = useAgentGreeting(currentAgent);
 
@@ -148,11 +152,18 @@ export function CatChat() {
   const holdThresholdTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isHoldingRef = useRef(false);
   const micTooltipTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingStopRef = useRef(false);
    
   // Voice conversation state
   const [isVoiceConversationActive, setIsVoiceConversationActive] = useState(false);
   const [voiceConversationStatus, setVoiceConversationStatus] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
   const [audioLevel, setAudioLevel] = useState(0);
+  const isVoiceConversationActiveRef = useRef(false);
+
+  // Keep ref in sync with state for async callbacks
+  useEffect(() => {
+    isVoiceConversationActiveRef.current = isVoiceConversationActive;
+  }, [isVoiceConversationActive]);
   
   // VAD refs
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -164,6 +175,11 @@ export function CatChat() {
   const voiceAudioChunksRef = useRef<Blob[]>([]);
   const isRecordingVoiceRef = useRef(false);
   const isProcessingVoiceRef = useRef(false);
+
+  // Refs to break circular dependencies in voice conversation callbacks
+  const startVoiceRecordingRef = useRef<(() => void) | null>(null);
+  const stopVoiceRecordingRef = useRef<(() => void) | null>(null);
+  const startVoiceListeningRef = useRef<(() => void) | null>(null);
    
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -364,6 +380,12 @@ export function CatChat() {
         const audioBlob = new Blob(inlineAudioChunksRef.current, { type: 'audio/webm' });
         stream.getTracks().forEach((track) => track.stop());
 
+        // Skip very short recordings (less than 1KB = ~100ms of audio)
+        if (audioBlob.size < 1024) {
+          console.warn('[Inline Mic] Recording too short, skipping transcription');
+          return;
+        }
+
         // Send to transcribe API
         try {
           const formData = new FormData();
@@ -373,6 +395,12 @@ export function CatChat() {
             method: 'POST',
             body: formData,
           });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('[Inline Mic] Transcription API error:', response.status, errorData.error);
+            return;
+          }
 
           const data = await response.json();
           
@@ -388,6 +416,12 @@ export function CatChat() {
       };
 
       mediaRecorder.start();
+      
+      // Check if stop was requested while we were waiting for mic access
+      if (pendingStopRef.current) {
+        pendingStopRef.current = false;
+        mediaRecorder.stop();
+      }
     } catch (error) {
       console.error('Microphone access denied:', error);
     }
@@ -396,6 +430,9 @@ export function CatChat() {
   const stopInlineRecording = useCallback(() => {
     if (inlineMediaRecorderRef.current && inlineMediaRecorderRef.current.state === 'recording') {
       inlineMediaRecorderRef.current.stop();
+    } else {
+      // Recorder not ready yet — flag it to stop immediately when ready
+      pendingStopRef.current = true;
     }
   }, []);
 
@@ -478,30 +515,79 @@ export function CatChat() {
     });
   }, []);
 
+  // ── Voice Conversation Callbacks (circular deps broken via refs) ────
+
   const processVoiceTurn = useCallback(async (audioBlob: Blob) => {
     if (isProcessingVoiceRef.current) return;
     isProcessingVoiceRef.current = true;
     setVoiceConversationStatus('thinking');
 
     try {
-      await sendAudio(audioBlob);
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'audio.webm');
+      formData.append('agent', currentAgent);
+      formData.append(
+        'history',
+        JSON.stringify(
+          messages.slice(-10).map((m) => ({ role: m.role, content: m.content }))
+        )
+      );
+
+      const response = await fetch('/api/chat/voice/process', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('[Voice Conversation] API error:', response.status, errorData.error);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.transcription) {
+        const userMessage = {
+          id: Date.now().toString(),
+          role: 'user' as const,
+          content: data.transcription.trim(),
+          type: 'audio' as const,
+          audioBlob,
+          timestamp: Date.now(),
+          agent: currentAgent,
+        };
+        setMessages((prev) => [...prev, userMessage]);
+      }
+
+      if (data.response) {
+        const assistantMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant' as const,
+          content: data.response,
+          type: 'audio' as const,
+          audioUrl: data.audioData || undefined,
+          timestamp: Date.now(),
+          agent: currentAgent,
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+      }
+
+      if (data.audioData) {
+        setVoiceConversationStatus('speaking');
+        await playAudioResponse(data.audioData);
+      }
     } catch (err) {
-      console.error('[Voice Conversation] sendAudio failed:', err);
+      console.error('[Voice Conversation] Processing failed:', err);
     } finally {
       isProcessingVoiceRef.current = false;
-      // After sendAudio completes, the AI response is added to messages.
-      // We rely on the ChatProvider to handle TTS audio playback via the
-      // existing voice message infrastructure (audioUrl in message).
-      setVoiceConversationStatus('speaking');
-      // Give TTS a moment to be ready, then go back to listening
-      setTimeout(() => {
-        if (isVoiceConversationActive) {
-          setVoiceConversationStatus('listening');
-          startVoiceListening();
-        }
-      }, 2000);
+      if (isVoiceConversationActiveRef.current) {
+        setVoiceConversationStatus('listening');
+        startVoiceListeningRef.current?.();
+      } else {
+        setVoiceConversationStatus('idle');
+      }
     }
-  }, [sendAudio, isVoiceConversationActive]);
+  }, [currentAgent, messages, playAudioResponse]);
 
   const startVoiceRecording = useCallback(() => {
     if (!microphoneStreamRef.current || isRecordingVoiceRef.current) return;
@@ -522,16 +608,15 @@ export function CatChat() {
       if (blob.size > 1000) {
         processVoiceTurn(blob);
       } else {
-        // Too short — resume listening
-        if (isVoiceConversationActive) {
+        if (isVoiceConversationActiveRef.current) {
           setVoiceConversationStatus('listening');
-          startVoiceListening();
+          startVoiceListeningRef.current?.();
         }
       }
     };
 
     recorder.start();
-  }, [processVoiceTurn, isVoiceConversationActive]);
+  }, [processVoiceTurn]);
 
   const stopVoiceRecording = useCallback(() => {
     if (voiceMediaRecorderRef.current && voiceMediaRecorderRef.current.state === 'recording') {
@@ -540,15 +625,15 @@ export function CatChat() {
   }, []);
 
   const startVoiceListening = useCallback(() => {
-    if (!analyserRef.current || !isVoiceConversationActive) return;
+    if (!analyserRef.current || !isVoiceConversationActiveRef.current) return;
 
     const analyser = analyserRef.current;
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    const threshold = 15; // RMS threshold for speech detection
-    const silenceDelay = 1200; // ms of silence before stopping
+    const threshold = 15;
+    const silenceDelay = 1200;
 
     const detect = () => {
-      if (!isVoiceConversationActive) return;
+      if (!isVoiceConversationActiveRef.current) return;
 
       analyser.getByteFrequencyData(dataArray);
       let sum = 0;
@@ -557,18 +642,16 @@ export function CatChat() {
       setAudioLevel(avg);
 
       if (avg > threshold) {
-        // Speech detected
         if (!isRecordingVoiceRef.current) {
-          startVoiceRecording();
+          startVoiceRecordingRef.current?.();
         }
         if (silenceTimerRef.current) {
           clearTimeout(silenceTimerRef.current);
           silenceTimerRef.current = null;
         }
       } else if (isRecordingVoiceRef.current && !silenceTimerRef.current) {
-        // Silence started — schedule stop
         silenceTimerRef.current = setTimeout(() => {
-          stopVoiceRecording();
+          stopVoiceRecordingRef.current?.();
           silenceTimerRef.current = null;
         }, silenceDelay);
       }
@@ -577,7 +660,14 @@ export function CatChat() {
     };
 
     vadFrameRef.current = requestAnimationFrame(detect);
-  }, [isVoiceConversationActive, startVoiceRecording, stopVoiceRecording]);
+  }, []);
+
+  // Keep callback refs in sync to break circular dependencies
+  useEffect(() => {
+    startVoiceRecordingRef.current = startVoiceRecording;
+    stopVoiceRecordingRef.current = stopVoiceRecording;
+    startVoiceListeningRef.current = startVoiceListening;
+  });
 
   const startVoiceConversation = useCallback(async () => {
     try {

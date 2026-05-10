@@ -3,35 +3,45 @@ import type { AgentId } from '@/types/chat';
 const ELEVENLABS_BASE_URL = 'https://api.elevenlabs.io/v1';
 const REQUEST_TIMEOUT_MS = 30000;
 
-const AGENT_VOICES: Record<AgentId, string> = {
-  leopoldo: process.env.ELEVENLABS_VOICE_LEOPOLDO!,
-  francisca: process.env.ELEVENLABS_VOICE_FRANCISCA!,
-  antonia: process.env.ELEVENLABS_VOICE_ANTONIA!,
+const AGENT_VOICES: Record<AgentId, string | undefined> = {
+  leopoldo: process.env.ELEVENLABS_VOICE_LEOPOLDO,
+  francisca: process.env.ELEVENLABS_VOICE_FRANCISCA,
+  antonia: process.env.ELEVENLABS_VOICE_ANTONIA,
 };
 
 class ElevenLabsTTSProvider {
   private apiKey: string;
+  private isConfigured: boolean;
 
   constructor() {
     this.apiKey = process.env.ELEVENLABS_API_KEY ?? '';
 
-    if (!process.env.ELEVENLABS_API_KEY) {
-      console.warn('[ElevenLabsTTS] Missing ELEVENLABS_API_KEY - TTS will be unavailable');
-    }
-    if (!process.env.ELEVENLABS_VOICE_LEOPOLDO) {
-      console.warn('[ElevenLabsTTS] Missing ELEVENLABS_VOICE_LEOPOLDO');
-    }
-    if (!process.env.ELEVENLABS_VOICE_FRANCISCA) {
-      console.warn('[ElevenLabsTTS] Missing ELEVENLABS_VOICE_FRANCISCA');
-    }
-    if (!process.env.ELEVENLABS_VOICE_ANTONIA) {
-      console.warn('[ElevenLabsTTS] Missing ELEVENLABS_VOICE_ANTONIA');
+    // Validate all required credentials
+    const missing: string[] = [];
+    if (!this.apiKey) missing.push('ELEVENLABS_API_KEY');
+    if (!AGENT_VOICES.leopoldo) missing.push('ELEVENLABS_VOICE_LEOPOLDO');
+    if (!AGENT_VOICES.francisca) missing.push('ELEVENLABS_VOICE_FRANCISCA');
+    if (!AGENT_VOICES.antonia) missing.push('ELEVENLABS_VOICE_ANTONIA');
+
+    this.isConfigured = missing.length === 0;
+
+    if (missing.length > 0) {
+      console.warn(
+        `[ElevenLabsTTS] Missing required environment variables: ${missing.join(', ')}. ` +
+        'TTS will be unavailable until these are configured in .env.local'
+      );
+    } else {
+      console.log('[ElevenLabsTTS] Configured with voices:', Object.keys(AGENT_VOICES).join(', '));
     }
   }
 
+  get configured(): boolean {
+    return this.isConfigured;
+  }
+
   async generateSpeech(text: string, agent: AgentId): Promise<string | null> {
-    if (!this.apiKey) {
-      console.warn('[ElevenLabsTTS] No API key, returning null');
+    if (!this.isConfigured) {
+      console.warn('[ElevenLabsTTS] Provider not fully configured, returning null');
       return null;
     }
 

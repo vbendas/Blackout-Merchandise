@@ -70,6 +70,7 @@ interface ChatContextValue {
   setIsVoiceMode: (enabled: boolean) => void;
   sendMessage: (content: string, metadata?: import('@/types/chat').MessageMetadata) => Promise<void>;
   sendAudio: (audioBlob: Blob) => Promise<void>;
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   clearMessages: () => void;
   setDesignFlowStep: (step: DesignFlowStep) => void;
   requestHumanHandoff: (email?: string) => Promise<void>;
@@ -622,6 +623,7 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
     setIsVoiceMode,
     sendMessage,
     sendAudio,
+    setMessages,
     clearMessages,
     setDesignFlowStep,
     requestHumanHandoff,

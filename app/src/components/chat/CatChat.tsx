@@ -185,6 +185,7 @@ export function CatChat() {
     setIsVoiceMode,
     sendMessage,
     sendAudio,
+    setMessages,
     requestHumanHandoff,
     cancelHandoff,
     setContactEmail,
@@ -254,6 +255,11 @@ export function CatChat() {
   const voiceAudioChunksRef = useRef<Blob[]>([]);
   const isRecordingVoiceRef = useRef(false);
   const isProcessingVoiceRef = useRef(false);
+
+  // Refs to break circular dependencies in voice conversation callbacks
+  const startVoiceRecordingRef = useRef<(() => void) | null>(null);
+  const stopVoiceRecordingRef = useRef<(() => void) | null>(null);
+  const startVoiceListeningRef = useRef<(() => void) | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -602,20 +608,76 @@ export function CatChat() {
     setVoiceConversationStatus('thinking');
 
     try {
-      await sendAudio(audioBlob);
+      // Call voice pipeline directly for real-time conversation
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'audio.webm');
+      formData.append('agent', currentAgent);
+      formData.append(
+        'history',
+        JSON.stringify(
+          messages.slice(-10).map((m) => ({ role: m.role, content: m.content }))
+        )
+      );
+
+      const response = await fetch('/api/chat/voice/process', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('[Voice Conversation] API error:', response.status, errorData.error);
+        return;
+      }
+
+      const data = await response.json();
+
+      // Add user transcription message to chat
+      if (data.transcription) {
+        const userMessage = {
+          id: Date.now().toString(),
+          role: 'user' as const,
+          content: data.transcription.trim(),
+          type: 'voice' as const,
+          audioBlob,
+          timestamp: Date.now(),
+          agent: currentAgent,
+        };
+        setMessages((prev) => [...prev, userMessage]);
+      }
+
+      // Add assistant response to chat
+      if (data.response) {
+        const assistantMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant' as const,
+          content: data.response,
+          type: 'voice' as const,
+          audioUrl: data.audioData || undefined,
+          timestamp: Date.now(),
+          agent: currentAgent,
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+      }
+
+      // Auto-play TTS audio response
+      if (data.audioData) {
+        setVoiceConversationStatus('speaking');
+        await playAudioResponse(data.audioData);
+      }
     } catch (err) {
-      console.error('[Voice Conversation] sendAudio failed:', err);
+      console.error('[Voice Conversation] Processing failed:', err);
     } finally {
       isProcessingVoiceRef.current = false;
-      setVoiceConversationStatus('speaking');
-      setTimeout(() => {
-        if (isVoiceConversationActive) {
-          setVoiceConversationStatus('listening');
-          startVoiceListening();
-        }
-      }, 2000);
+      // Resume listening if still active
+      if (isVoiceConversationActiveRef.current) {
+        setVoiceConversationStatus('listening');
+        startVoiceListeningRef.current?.();
+      } else {
+        setVoiceConversationStatus('idle');
+      }
     }
-  }, [sendAudio, isVoiceConversationActive]);
+  }, [currentAgent, messages, playAudioResponse]);
 
   const startVoiceRecording = useCallback(() => {
     if (!microphoneStreamRef.current || isRecordingVoiceRef.current) return;
@@ -636,15 +698,15 @@ export function CatChat() {
       if (blob.size > 1000) {
         processVoiceTurn(blob);
       } else {
-        if (isVoiceConversationActive) {
+        if (isVoiceConversationActiveRef.current) {
           setVoiceConversationStatus('listening');
-          startVoiceListening();
+          startVoiceListeningRef.current?.();
         }
       }
     };
 
     recorder.start();
-  }, [processVoiceTurn, isVoiceConversationActive]);
+  }, [processVoiceTurn]);
 
   const stopVoiceRecording = useCallback(() => {
     if (voiceMediaRecorderRef.current && voiceMediaRecorderRef.current.state === 'recording') {
@@ -653,7 +715,7 @@ export function CatChat() {
   }, []);
 
   const startVoiceListening = useCallback(() => {
-    if (!analyserRef.current || !isVoiceConversationActive) return;
+    if (!analyserRef.current || !isVoiceConversationActiveRef.current) return;
 
     const analyser = analyserRef.current;
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -661,7 +723,7 @@ export function CatChat() {
     const silenceDelay = 1200;
 
     const detect = () => {
-      if (!isVoiceConversationActive) return;
+      if (!isVoiceConversationActiveRef.current) return;
 
       analyser.getByteFrequencyData(dataArray);
       let sum = 0;
@@ -671,7 +733,7 @@ export function CatChat() {
 
       if (avg > threshold) {
         if (!isRecordingVoiceRef.current) {
-          startVoiceRecording();
+          startVoiceRecordingRef.current?.();
         }
         if (silenceTimerRef.current) {
           clearTimeout(silenceTimerRef.current);
@@ -679,7 +741,7 @@ export function CatChat() {
         }
       } else if (isRecordingVoiceRef.current && !silenceTimerRef.current) {
         silenceTimerRef.current = setTimeout(() => {
-          stopVoiceRecording();
+          stopVoiceRecordingRef.current?.();
           silenceTimerRef.current = null;
         }, silenceDelay);
       }
@@ -688,7 +750,14 @@ export function CatChat() {
     };
 
     vadFrameRef.current = requestAnimationFrame(detect);
-  }, [isVoiceConversationActive, startVoiceRecording, stopVoiceRecording]);
+  }, []);
+
+  // Keep callback refs in sync to break circular dependencies
+  useEffect(() => {
+    startVoiceRecordingRef.current = startVoiceRecording;
+    stopVoiceRecordingRef.current = stopVoiceRecording;
+    startVoiceListeningRef.current = startVoiceListening;
+  });
 
   const startVoiceConversation = useCallback(async () => {
     try {

@@ -1,9 +1,13 @@
 # MerchFrom Master Roadmap
 
-> **Document Version:** 2.11  
+> **Document Version:** 2.12  
 > **Last Updated:** May 10, 2026  
 > **Status:** P0 Demo Hardening (Crowdfunding Sprint) — Day 1-2 COMPLETE  
 > **Timeline to Crowdfunding Launch:** ~7 weeks (May 9 → June 30)
+
+> **🚨 Research Gap Analysis Available:** See [`Roadmap-Research-Gaps.md`](./Roadmap-Research-Gaps.md) for critical gaps identified from market research (traffic layer, AI moat conversion, creator success enablement, EU compliance, business metrics, premium art products).
+
+> **Key Insight:** Customer acquisition (traffic/discovery) is the #1 creator pain point — yet the current roadmap has zero traffic generation features. This must be addressed post-crowdfunding.
 
 ---
 
@@ -21,12 +25,16 @@
 10. [Phase 5.5: Mockup Generation System](#phase-55-mockup-generation-system)
 11. [Phase 6: Commerce](#phase-6-commerce)
 12. [Phase 7: Beta Launch](#phase-7-beta-launch)
-12. [Phase 8: Public Launch](#phase-8-public-launch)
-13. [Phase 9: Social Commerce Hub](#phase-9-social-commerce-hub)
-12. [Deferred Features](#deferred-features)
-13. [Agent Assignments Summary](#agent-assignments-summary)
-14. [Success Criteria](#success-criteria)
-15. [Verification Plan](#verification-plan)
+13. [Phase 7.5: Creator Success & Analytics](#phase-75-creator-success--analytics)
+14. [Phase 8: Public Launch](#phase-8-public-launch)
+15. [Phase 8.5: Traffic & Discovery Layer](#phase-85-traffic--discovery-layer)
+16. [Phase 9: Social Commerce Hub](#phase-9-social-commerce-hub)
+17. [Phase 9.5: AI Moat Conversion](#phase-95-ai-moat-conversion)
+18. [Phase 10: Accessories Expansion](#phase-10-accessories-expansion)
+19. [Deferred Features](#deferred-features)
+20. [Agent Assignments Summary](#agent-assignments-summary)
+21. [Success Criteria](#success-criteria)
+22. [Verification Plan](#verification-plan)
 
 ---
 
@@ -91,11 +99,14 @@ Building a throwaway "Demo" and then a separate "Production" app wastes time. In
 | **5.5** | Mockup Generation | Realistic product mockups with halftone | 2 Weeks | ⏳ Mar 12 → Mar 26 |
 | **6** | Prod MVP: Commerce | Stripe, Orders, Artist Dashboard | 3 Weeks | ⏳ Mar 26 → Apr 16 |
 | **7** | Beta Launch | Onboard 10-100 artists, gather data | 9 Months | ⏳ Apr 2026 → Dec 2026 |
+| **7.5** | Creator Success & Analytics | Profit dashboard, onboarding education, benchmarking | 4 Weeks | ⏳ Jun 2026 |
 | **8** | Public Launch | Final polish, marketing, profitability | 1 Month | ⏳ Dec 2026 |
+| **8.5** | Traffic & Discovery Layer | SEO storefronts, social automation, cross-promotion | 6 Weeks | ⏳ Jan-Feb 2027 |
 | **9** | Social Commerce Hub | Discord, Meta, TikTok, Twitch catalog sync | 17 Weeks | ⏳ Jan-May 2027 |
+| **9.5** | AI Moat Conversion | Style tracking, design-to-conversion data, artist training | Ongoing | ⏳ Feb 2027+ |
 | **10** | Accessories Expansion | 3D-printed jewelry (pendants, rings, bracelets) via Cat-Suite AI | Year 2 | ⏳ 2027-2028 |
 
-**Total Estimated Time:** ~58 weeks (MVP: 15 weeks + Beta: 36 weeks + Polish: 4 weeks + Social: 17 weeks)
+**Total Estimated Time:** ~72 weeks (MVP: 15 weeks + Beta: 36 weeks + Creator Success: 4 weeks + Polish: 4 weeks + Traffic: 6 weeks + Social: 17 weeks + AI Moat: ongoing)
 
 ---
 
@@ -915,6 +926,36 @@ Before onboarding any external artists, run a comprehensive security audit using
 
 ---
 
+## Phase 7.5: Creator Success & Analytics
+
+### Overview
+Address the research finding that **only 24% of POD stores survive 3 years** by building creator success-enablement tools. The platform that cracks creator success wins the fastest-growing segment.
+
+### Timeline
+**Weeks: 4 weeks (June 2026)**
+
+### Key Tasks
+- **Unified profit analytics dashboard**: Ad spend, platform fees, shipping, refunds in one view
+- **Creator onboarding education**: Design best practices, niche selection, pricing strategy
+- **Performance benchmarking**: Compare to platform averages and similar niches
+- **Success milestone notifications**: First sale, $100 month, 10th design, etc.
+- **Cohort retention tracking**: Identify what makes creators successful
+
+### Research Basis
+- 65% of creators earn less than $100/year (Precedence Research)
+- The 24% three-year survival rate makes retention existential (POD report Section 5.3)
+- Neither Printful nor Printify provides comprehensive profit tracking (POD report Section 6.3)
+
+### Success Criteria
+- ✅ Unified profit analytics dashboard live
+- ✅ Creator onboarding education modules deployed
+- ✅ Performance benchmarking system active
+- ✅ Success milestone notifications working
+- ✅ Cohort retention tracking implemented
+- **🆕 Business Metric:** Creator churn reduced to <50% (from 76% industry baseline)
+
+---
+
 ## Phase 8: Public Launch
 
 ### Overview
@@ -935,6 +976,36 @@ Remove beta restrictions, launch publicly, achieve profitability.
 - ✅ €10,000+ monthly revenue
 - ✅ <5% defect rate
 - ✅ >85% artist satisfaction
+- **🆕 Business Metric:** Seed fundraise trigger: 1,000 artists OR $100K monthly GMV
+
+---
+
+## Phase 8.5: Traffic & Discovery Layer
+
+### Overview
+Address the **#1 creator pain point**: customer acquisition. Research confirms that fulfillment platforms yield 40-60% margins but require $300-1,000/month in advertising. No platform offers both zero upfront cost and meaningful traffic generation. This phase closes that gap.
+
+### Timeline
+**Weeks: 6 weeks (Jan-Feb 2027)**
+
+### Key Tasks
+- **SEO-optimized creator storefronts**: Structured product data, automatic sitemaps, Core Web Vitals, schema markup
+- **Social media automation pipeline**: Auto-generate Instagram carousels, TikTok videos, Pinterest pins from new listings
+- **Artist cross-promotion discovery feed**: "Related artists" surfacing complementary work to buyers
+- **Multi-channel publishing**: Simultaneous listing on Etsy, Amazon, TikTok Shop
+
+### Research Basis
+- Customer acquisition, not design, is the #1 creator pain point (POD report Section 8.3)
+- 65% of creators earn < $100/year because they can't find buyers (Precedence Research)
+- Fourthwall comes closest but provides no systematic traffic generation (POD report Section 8.3.2)
+- Next.js 16 SSR creates genuine SEO advantage over Printful's basic storefronts
+
+### Success Criteria
+- ✅ SEO-optimized storefronts with structured data and schema markup
+- ✅ Social media automation pipeline generating carousels and videos
+- ✅ Artist cross-promotion discovery feed live
+- ✅ Multi-channel publishing (Etsy, Amazon, TikTok Shop) active
+- **🆕 Business Metric:** 30% organic traffic share; $15K monthly GMV
 
 ---
 
@@ -961,6 +1032,35 @@ Enable artists to syndicate their MerchFrom catalog to Discord, Meta, TikTok, Tw
 - ✅ Inventory stays in sync across platforms
 - ✅ Orders aggregate to single dashboard
 - ✅ Fulfillment updates propagate to all channels
+
+---
+
+## Phase 9.5: AI Moat Conversion
+
+### Overview
+The AI advantage has an estimated **12-month half-life**. The moat converts from "having AI" to "AI + proprietary workflow data + artist-specific training." This phase builds the defensible data moat before incumbents close the gap.
+
+### Timeline
+**Ongoing (starting February 2027)**
+
+### Key Tasks
+- **Artist style preference tracking** (opt-in): Preferred styles, colors, themes for personalized recommendations
+- **Design-to-conversion correlation database**: Track which designs → sales by niche, style, price point
+- **Successful design pattern recognition**: ML model identifying high-conversion patterns
+- **Artist-specific training data collection**: Curated datasets for fine-tuning (with explicit consent)
+- **Print-readiness validation pipeline**: Automated DPI, CMYK, bleed-check, color separation
+
+### Research Basis
+- AI image generation is commoditizing rapidly — available on every major platform (POD report Section 6.2)
+- The sustainable moat is workflow integration, not generation (POD report Section 8.1.4)
+- Only ~20% of consumers trust AI; "AI-designed" labeling reduces purchase intention (NIM research)
+- No competitor offers comprehensive print-readiness validation (POD report Section 6.2)
+
+### Success Criteria
+- ✅ Artist style preference tracking (opt-in) collecting data
+- ✅ Design-to-conversion correlation database established
+- ✅ Print-readiness validation pipeline (DPI, CMYK, bleed-check) deployed
+- **🆕 Business Metric:** 10,000+ design-to-sale correlations in proprietary dataset
 
 ---
 
@@ -1090,6 +1190,7 @@ For detailed breakdowns, see the Agent Assignment documents in `/Documentation/0
 - ✅ Stripe test payments working
 - ✅ ~~Admin dashboard operational~~ **REPLACED** - MerchStation TUI operational with production pipeline
 - ✅ Support system ready
+- **🆕 Business Metric:** First transaction completed; $1K monthly GMV target
 
 ### Beta Success (End of Phase 7)
 - ✅ Shannon pentest completed with 0 unresolved Critical/High findings
@@ -1098,6 +1199,15 @@ For detailed breakdowns, see the Agent Assignment documents in `/Documentation/0
 - ✅ >2.5/3 satisfaction rating
 - ✅ 10,000+ training examples collected
 - ✅ Model improvements validated
+- **🆕 Business Metric:** $5K monthly GMV; 20% 30-day creator retention
+
+### Phase 7.5: Creator Success & Analytics Success
+- ✅ Unified profit analytics dashboard live
+- ✅ Creator onboarding education modules deployed
+- ✅ Performance benchmarking system active
+- ✅ Success milestone notifications working
+- ✅ Cohort retention tracking implemented
+- **🆕 Business Metric:** Creator churn reduced to <50% (from 76% industry baseline)
 
 ### Public Launch Success (End of Phase 8)
 - ✅ 100+ active artists
@@ -1105,6 +1215,20 @@ For detailed breakdowns, see the Agent Assignment documents in `/Documentation/0
 - ✅ <5% defect rate
 - ✅ >85% artist satisfaction
 - ✅ Profitability achieved
+- **🆕 Business Metric:** Seed fundraise trigger: 1,000 artists OR $100K monthly GMV
+
+### Phase 8.5: Traffic & Discovery Layer Success
+- ✅ SEO-optimized storefronts with structured data and schema markup
+- ✅ Social media automation pipeline generating carousels and videos
+- ✅ Artist cross-promotion discovery feed live
+- ✅ Multi-channel publishing (Etsy, Amazon, TikTok Shop) active
+- **🆕 Business Metric:** 30% organic traffic share; $15K monthly GMV
+
+### Phase 9.5: AI Moat Conversion Success
+- ✅ Artist style preference tracking (opt-in) collecting data
+- ✅ Design-to-conversion correlation database established
+- ✅ Print-readiness validation pipeline (DPI, CMYK, bleed-check) deployed
+- **🆕 Business Metric:** 10,000+ design-to-sale correlations in proprietary dataset
 
 ---
 
