@@ -6,6 +6,7 @@
  */
 
 import type { AgentId } from '@/types/chat';
+import { sanitizePromptInput } from '@/lib/sanitize/prompt-sanitize';
 
 // ─── Intent Categories ───────────────────────────────────────────────────────
 
@@ -150,8 +151,8 @@ async function classifyWithLLM(options: ClassifyOptions): Promise<IntentClassifi
     .map((m) => `${m.role === 'user' ? 'User' : m.agent ?? 'Agent'}: ${m.content}`)
     .join('\n') ?? '';
 
-  // Escape quotes to prevent prompt injection
-  const safeMessage = options.message.replace(/"/g, '\\"');
+  // Sanitize user input to prevent prompt injection
+  const safeMessage = sanitizePromptInput(options.message);
 
   const userPrompt = `CONVERSATION HISTORY:
 ${historyContext || '(No history)'}

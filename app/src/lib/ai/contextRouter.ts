@@ -1,4 +1,5 @@
 import type { AgentId, ClarificationOption, RoutingContext, RoutingDecision } from '@/types/chat';
+import { sanitizePromptInput } from '@/lib/sanitize/prompt-sanitize';
 import { ROUTING_KNOWLEDGE_BASE } from './agentKnowledgeBase';
 import { routerProvider } from './routerProvider';
 
@@ -120,6 +121,8 @@ export class ContextRouter {
 
     const knowledgeBase = JSON.stringify(ROUTING_KNOWLEDGE_BASE, null, 2);
 
+    const safeMessage = sanitizePromptInput(context.message);
+
     return `AGENT KNOWLEDGE BASE (condensed):
 ${knowledgeBase}
 
@@ -127,7 +130,7 @@ CONVERSATION HISTORY (last ${this.HISTORY_CONTEXT_WINDOW} messages):
 ${recentHistory || '(No history)'}
 
 CURRENT AGENT: ${context.currentAgent}
-USER MESSAGE: "${context.message}"
+USER MESSAGE: "${safeMessage}"
 
 ROUTING RULES:
 1. EXPLICIT INTENT TAKES PRIORITY: If user says "I want to track", "help me design", "question about pricing" - route to appropriate agent REGARDLESS of conversation history.
