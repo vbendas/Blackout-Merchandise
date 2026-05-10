@@ -9,6 +9,7 @@ const isProtectedRoute = createRouteMatcher([
   '/app/shop/customize', // Shop customization (artist only)
   '/api/checkout(.*)', // Checkout API
   '/api/ai/(.*)', // AI chat endpoints
+  '/api/chat(.*)', // Chat API endpoints - requires auth
   '/api/pricing(.*)', // Pricing API
   '/api/print-prepare(.*)', // Print preparation API
   '/api/shop/customize', // Shop customization API

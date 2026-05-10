@@ -1,4 +1,4 @@
-import { getAuth } from '@clerk/nextjs/server';
+import { requireChatAuth } from '@/lib/auth/chat-auth';
 import { type NextRequest, NextResponse } from 'next/server';
 import { MiniMaxSpeechProvider } from '@/lib/ai/minimax-speech';
 import { miniMaxProvider } from '@/lib/ai/provider';
@@ -12,12 +12,10 @@ const agentMap = {
 } as const;
 
 export async function POST(req: NextRequest) {
-  try {
-    const { userId } = getAuth(req);
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  const userId = await requireChatAuth();
+  if (userId instanceof NextResponse) return userId;
 
+  try {
     const body = await req.json();
     const { audio, agent }: { audio: string; agent: keyof typeof agentMap } = body;
 

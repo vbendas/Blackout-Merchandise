@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { requireChatAuth } from '@/lib/auth/chat-auth';
 import { miniMaxM2HerProvider } from '@/lib/ai/minimax-m2her';
 import { miniMaxSpeechProvider } from '@/lib/ai/minimax-speech';
 import type { AgentId } from '@/types/chat';
@@ -9,6 +10,9 @@ interface VoiceRequestBody {
 }
 
 export async function POST(request: NextRequest) {
+  const userId = await requireChatAuth();
+  if (userId instanceof NextResponse) return userId;
+
   try {
     const formData = await request.formData();
     const audioFile = formData.get('audio') as File | null;

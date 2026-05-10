@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { requireChatAuth } from '@/lib/auth/chat-auth';
 import { miniMaxM2HerProvider } from '@/lib/ai/minimax-m2her';
 import type { AgentId } from '@/types/chat';
 
@@ -9,6 +10,9 @@ interface ChatRequestBody {
 }
 
 export async function POST(request: NextRequest) {
+  const userId = await requireChatAuth();
+  if (userId instanceof NextResponse) return userId;
+
   try {
     const body: ChatRequestBody = await request.json();
     const { message, history, agent } = body;
