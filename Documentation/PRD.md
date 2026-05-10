@@ -60,12 +60,27 @@ The complete v3.2 PRD (7,000+ lines, all update summaries from v1.0 → v3.2) is
 ## Quick Reference
 
 | | |
-|---|---|
+|---|---|---|
 | **Mission** | Help artists design, source, and sell premium merchandise |
 | **Investment** | €300,000 for 16-18% equity |
 | **MVP Launch** | March 30, 2026 |
 | **Tech Stack** | Next.js 16, Neon PostgreSQL, Clerk, Stripe, Mistral AI, BFL API |
 | **AI Stack** | Mistral Large 3, Mistral Small 4, Voxtral STT/TTS, FLUX 2 |
+
+## Market Context
+
+> **Data Sources**: [Market Analysis Report](09-Reseach/merchandise-market-research.md) | [POD Competition Report](09-Reseach/pod_competition_report.md)
+
+| Metric | Value | Source |
+|--------|-------|--------|
+| **Creator Merch Market (2025)** | $6.8 billion | Dataintelo, Grand View Research |
+| **POD Market Growth** | 23.6% CAGR → $57.5B by 2033 | Grand View Research |
+| **EU POD Market** | $1.97B → $13.69B by 2033, 24.06% CAGR | Ecomm.Design |
+| **D2C Channel Share** | 41.3% of distribution | Market research consensus |
+| **Artist D2C Margin** | 60-75% retention vs 15-30% retail | Industry analysis |
+| **Gen Z Sustainability Premium** | 76% willing to pay more for sustainable products | Consumer research |
+| **Marketplace Collapse** | Redbubble -98% share price, Society6 5-10% royalties | Competitive intelligence |
+| **Fyul Merger Window** | 18-24 months reduced innovation velocity | Historical precedent |
 
 ---
 

@@ -28,6 +28,10 @@
 ### 💰 Marketing & Business
 **Crowdfunding Overview**: [Documentation/04-Crowdfunding-Landing/Overview.md](./Documentation/04-Crowdfunding-Landing/Overview.md) - Campaign overview, timeline
 
+### 📊 Research & Market Intelligence
+**Market Analysis**: [Documentation/09-Reseach/merchandise-market-research.md](./Documentation/09-Reseach/merchandise-market-research.md) - $6.8B creator merch market data
+**POD Competition**: [Documentation/09-Reseach/pod_competition_report.md](./Documentation/09-Reseach/pod_competition_report.md) - Competitive intelligence, Fyul analysis
+
 ### 🎨 Design & Brand
 **Design System**: [Documentation/05-Shared/Design-System.md](./Documentation/05-Shared/Design-System.md) - Colors, typography, components
 **Brand Guidelines**: [Documentation/05-Shared/Brand-Guidelines.md](./Documentation/05-Shared/Brand-Guidelines.md) - Cat-Suite voices, tone, messaging
@@ -233,6 +237,13 @@ T3: Main session (needs build verification)
 **Branch**: `feat/crowdfunding-demo`
 **See**: [Roadmap-Crowdfunding-v1.0.md](./Documentation/05-Roadmap/Roadmap-Crowdfunding-v1.0.md) for full day-by-day plan
 
+**Market Timing Context:**
+- **Fyul merger window**: 18-24 months of reduced innovation (Printful+Printify merged Nov 2024)
+- **Marketplace collapse**: Redbubble (-98% share price), Society6 (5-10% royalties), Zazzle (35-50% fees)
+- **AI differentiation**: 12-month category-exclusive window for multi-modal AI (text + image + voice)
+- **EU regulatory tailwind**: EPR regulations (Oct 2025) favor zero-inventory POD models
+- **Market size**: $6.8B creator merch market, $10.78B POD market growing at 23.6% CAGR
+
 ---
 
 ## Monorepo Structure
@@ -375,6 +386,13 @@ T3: Main session (needs build verification)
 - **Mistral Voxtral TTS**: Text-to-speech with zero-shot voice cloning (~90ms, Apache 2.0)
 - **Real-Time Conversation**: Full Mistral voice pipeline for continuous Cat-Suite dialogue
 
+**AI Moat Context:**
+- Multi-modal AI stack (text + image + voice) is **category-exclusive** today — no competitor combines all three
+- 12-month window before incumbents (Printify, Gelato, Canva) close the gap
+- Sustainable moat: proprietary expert-scored dataset + workflow integration, not just image generation
+- EU data sovereignty: all inference stays in Europe (GDPR-native)
+- Open weights (Apache 2.0): self-hostable at scale, no vendor lock-in
+
 ### UI & Styling
 - **Tailwind CSS v4**: Utility-first styling
 - **HeroUI**: React component library (premium aesthetics)
@@ -496,6 +514,13 @@ bunx drizzle-kit studio     # Open Drizzle Studio GUI
 - ⏳ Days 15-17: Storefront, product grid, cart, integration testing
 
 **Deliverable**: Working AI chat + voice + design gen + storefront for crowdfunding video
+
+**Competitive Context:**
+- **Fyul (Printful+Printify)**: Post-merger distraction window — 18-24 months of reduced R&D
+- **Marketplace collapse**: Redbubble/Society6/Zazzle fee increases driving artist migration
+- **AI window**: 12-month category-exclusive advantage for multi-modal AI (text + image + voice)
+- **EU advantage**: EPR regulations (Oct 2025) favor sustainable on-demand production
+- **Target market**: $6.8B creator merch, $1.97B EU POD growing at 24.06% CAGR
 
 ---
 

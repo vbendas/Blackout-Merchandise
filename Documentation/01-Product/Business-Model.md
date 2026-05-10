@@ -226,6 +226,92 @@
   - Distinct from Merch Coins (no stacking with coins)
   - Traditional discount codes and promotional campaigns
 
+  ---
+
+  ### Market Context & Economics
+
+  > **Data Sources**: [Market Analysis Report](../09-Reseach/merchandise-market-research.md) | [POD Competition Report](../09-Reseach/pod_competition_report.md)
+
+  #### TAM/SAM/SOM
+
+  | Level | Definition | Size (2025) | Source |
+  |-------|------------|-------------|--------|
+  | **TAM** | Licensed merchandise globally (sports, fashion, corporate, entertainment) | $351.2 billion | Industry consensus |
+  | **SAM** | Entertainment + artist merch including physical music | $13.4 billion | MIDiA Research, Dataintelo |
+  | **SOM** | Captureable by major merch operators and platforms | $2-3 billion | Analyst estimates |
+
+  **POD Market Specifics:**
+  - Global POD market: **$10.78 billion (2025)** → projected **$57.49 billion by 2033** at **23.6% CAGR** (Grand View Research)
+  - EU POD market: **$1.97 billion (2024)** → **$13.69 billion by 2033** at **24.06% CAGR** (Ecomm.Design)
+  - Software platforms command **69.6%** of total POD revenue (Mordor Intelligence)
+
+  #### Revenue Model Comparison (Market Data)
+
+  | Model | Artist Retention | Gross Margin | $35 T-Shirt Net | Best For |
+  |-------|-----------------|--------------|-----------------|----------|
+  | **D2C Webstore** | 60-75% | 60-75% | $24-28.50 | Established artists with audience |
+  | **POD (Standard)** | 44-61% | Varies | $17.50 | Entry-level, zero upfront cost |
+  | **POD (Bulk 50+)** | 44-61% | Varies | $24.85 | Touring artists, volume orders |
+  | **Traditional Retail** | 15-30% | Volume-driven | $10.50 | Mass market, established brands |
+  | **Label 360 Deal** | 18-25% | After deductions | $8.75-14.00 | Signed artists (limited control) |
+
+  **Key Insight**: D2C yields a **60-70% income advantage** over signed artists trapped in 360 deals. One t-shirt sale ($35) generates the equivalent revenue of **8,750 Spotify streams**.
+
+  #### Creator Economics Justification for Zero Upfront Cost
+
+  **The Problem (Data-Backed):**
+  - **65% of creators earn less than $100/year** from merchandise (Precedence Research)
+  - **Only 5% operate full-time** — the barrier is not design difficulty but customer acquisition
+  - Fulfillment platforms yield 40-60% margins but require **$300-1,000/month** in advertising
+  - Marketplace platforms provide traffic but extract **50-95% of revenue**
+
+  **The Solution:**
+  Merch From's zero-upfront-cost model eliminates the capital barrier that prevents 95% of creators from monetizing their audience. By combining:
+  - **AI-driven design** (reduces design costs by 70%)
+  - **In-house production** (captures 40-60% margins vs outsourcing)
+  - **D2C infrastructure** (artists retain 60-75% vs 15-30% retail)
+  - **Zero inventory risk** (POD for entry, bulk for scale)
+
+  #### Market Timing: Why Now?
+
+  **1. Fyul Merger Window (18-24 months)**
+  - Printful + Printify merged November 2024 into Fyul ($1.3-1.5B valuation)
+  - Historical precedent: post-merger innovation velocity declines **30-50%** for 12-24 months
+  - Printify's 34% Premium price increase (Feb 2026) signals margin pressure and user vulnerability
+
+  **2. Marketplace Collapse (Largest Artist Migration in History)**
+  - Redbubble: 50% platform fee + excess markup → creator net earnings compressed to **5-10%**
+  - Society6: Fixed royalties at **5-10%** after mass artist purges
+  - Zazzle: 35-50% Marketing Royalty Fee → **29% decline** in average royalty per sale
+  - These changes are **structural, not cyclical** — the traffic-for-margin model is failing
+
+  **3. AI Differentiation Window (12 months)**
+  - Merch From's multi-modal AI stack (text + image + voice) is **category-exclusive today**
+  - Printify offers 15 free OpenAI generations daily; Gelato has AI mockups; Canva entering POD
+  - **Sustainable moat**: workflow integration + proprietary artist training data + network effects
+
+  **4. EU Regulatory Tailwind**
+  - EPR regulations for textiles effective October 2025, full compliance by 2028
+  - POD's zero-inventory model reduces manufacturing waste by **30-50%**
+  - **80% of European consumers** will pay a **9.7% premium** for sustainable goods
+  - Most US-centric platforms are unprepared — creating a compliance moat
+
+  #### EU Beachhead Rationale
+
+  **Why Europe First:**
+  1. **Market Size**: $1.97B EU POD market growing at **24.06% CAGR** — faster than North America
+  2. **Weaker Incumbent Dominance**: Fyul has less infrastructure penetration in EU vs US
+  3. **Sustainability Premium**: European consumers demonstrate highest willingness-to-pay for ethical products
+  4. **Regulatory Advantage**: EPR compliance is mandatory — platforms built with sustainability from day one win
+  5. **Grant Accessibility**: Portugal 2030 interior incentives recover **50% of equipment costs** (~€56.5K)
+
+  **Growth Trajectory:**
+  - Germany: **26.8% CAGR** (fastest in EU)
+  - UK: **22.1% CAGR**
+  - Portugal: Strategic hub for EU distribution with Castelo Branco facility
+
+  ---
+
   ### 2.7 AI Store Designer (v0 API Integration)
   - **Conversational Store Customization:** Artists describe their desired aesthetic via voice or text prompts
   - **v0 API Code Generation:** Generate production-ready Next.js components for custom store layouts

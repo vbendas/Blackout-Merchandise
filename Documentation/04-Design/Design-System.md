@@ -244,6 +244,53 @@ Desktop: 1200px (with padding)
 
 ---
 
+## 🧠 Consumer Psychology Notes
+
+> **Source**: [Market Analysis Report](../09-Reseach/merchandise-market-research.md)
+
+### Color Psychology Validation
+
+**Gold Sheen (Premium Positioning):**
+- Gold gradient CTAs signal luxury and quality — validated by market data showing **25-30% premium pricing tolerance** for sustainable/ethical products
+- Gen Z consumers (core demographic: $450B global purchasing power) associate gold with authenticity and craftsmanship
+- Gold glow effects create "halo of quality" perception that differentiates from generic POD competitors
+
+**Dark Mode Only:**
+- Aligns with Gen Z aesthetic preferences — 75% of Gen Z purchases are in fashion, favoring bold/minimal aesthetics
+- Dark backgrounds reduce cognitive load during creative tasks (design generation, store customization)
+- Premium positioning: dark mode is associated with high-end applications (Adobe suite, Figma, professional tools)
+- Accessibility: reduces eye strain during extended creative sessions
+
+**Recording Red (#E11D48) for Action States:**
+- Red triggers urgency and action — supports conversion optimization
+- Aligns with urgency-driven purchase behavior in creator economy (limited drops, flash sales)
+- Differentiates primary actions from secondary (zinc-800) and tertiary (outline) buttons
+- Cultural association with "record" button reinforces creative/production context
+
+### Design Decisions Backed by Data
+
+| Design Choice | Consumer Behavior Evidence | Business Impact |
+|---------------|---------------------------|-----------------|
+| **Dark mode** | Gen Z prefers bold aesthetics; 75% fashion purchases | Premium positioning, reduced churn |
+| **Gold accents** | 25-30% premium tolerance for sustainable products | Higher perceived value, willingness to pay |
+| **Red CTAs** | Urgency-driven purchase behavior | Increased conversion rates |
+| **Minimal UI** | Superfans spend $200-1,000+ annually; value simplicity | Faster task completion, higher satisfaction |
+| **Avatar expressions** | Identity-based merch is counterfeit-proof; emotional connection | Brand loyalty, switching costs |
+
+### Gen Z-Specific Considerations
+
+**The Gen Z Paradox:**
+- 82% plan to buy "dupes" (affordable alternatives) BUT 76% willing to pay premium for sustainable products
+- **Resolution**: Gen Z pays more for *demonstrated, verifiable sustainability* tied to artists they trust — not generic branded merchandise
+- Design implication: Emphasize ethical sourcing, transparent production, artist stories — not just price
+
+**Purchase Drivers:**
+- 80% purchased after seeing on social media → Design for shareability (social cards, "Just Bought" assets)
+- 64% pay extra for authentic brand loyalty → Authenticity signaling through design quality
+- Physical music buyers are 128% more likely to be superfans → Target music/creative community aesthetics
+
+---
+
 ## 🌍 Dark Mode
 
 **All designs are dark mode only.**

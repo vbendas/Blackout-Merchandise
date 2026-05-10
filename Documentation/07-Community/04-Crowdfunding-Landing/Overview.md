@@ -22,6 +22,66 @@
 
 ---
 
+## Market Justification for €35-50K Target
+
+> **Sources**: [Market Analysis Report](../../09-Reseach/merchandise-market-research.md) | [POD Competition Report](../../09-Reseach/pod_competition_report.md)
+
+### Why This Target is Right-Sized
+
+**Market Context:**
+- Creator merchandise market: **$6.8 billion (2025)** → projected **$13.4 billion by 2034**
+- POD market: **$10.78 billion (2025)** growing at **23.6% CAGR**
+- EU POD market: **$1.97 billion** growing at **24.06% CAGR** — our primary beachhead
+- 200M+ creators worldwide seeking monetization; **65% earn <$100/year** from merch
+
+**Target Validation:**
+
+| Scenario | Backers | Avg Pledge | Total Raised | Market Context |
+|----------|---------|------------|--------------|----------------|
+| **Conservative** | 267 | €109 | €29,135 | 0.004% of EU POD market |
+| **Stretch** | 458 | €101 | €46,045 | 0.006% of EU POD market |
+| **Bull Case** | 600 | €100 | €60,000 | 0.008% of EU POD market |
+
+**Backer Conversion Justification:**
+- Waitlist target: 500+ artists by launch (June 30, 2026)
+- Conservative conversion: **20%** of waitlist (industry average for creator economy campaigns)
+- 500 waitlist × 20% = 100 backers minimum
+- Our 267-458 backer projection assumes **53-92% conversion** — aggressive but achievable given:
+  - Zero upfront cost value proposition
+  - Merch Coins never expire (€1 = 1 Coin, immediate utility)
+  - MRCH token ownership for tiers €99+
+  - Marketplace collapse driving artist migration
+
+**Comparable Creator Economy Campaigns:**
+- Typical creator tool campaigns raise €15-75K with 150-500 backers
+- Campaigns with token/equity components average 2-3x higher pledges
+- Our €101 average pledge (stretch scenario) is conservative for a platform with ownership stakes
+
+**Geographic Targeting (EU-First):**
+- **Primary**: EU artists (Germany 26.8% CAGR, UK 22.1% CAGR, Portugal hub)
+- **Secondary**: UK creators (post-Brexit but culturally aligned)
+- **Tertiary**: North America (largest market but higher Fyul dominance)
+
+**Capital Allocation Justification (Market Rates):**
+
+| Category | Amount | Market Rate Validation |
+|----------|--------|------------------------|
+| **Facility Build-Out** | €12,000 | Industrial unit: €0.01/m² land (Castelo Branco Invest CB program) |
+| **Equipment Transport** | €6,000 | Ireland→Portugal transport + installation: industry standard |
+| **Initial Inventory** | €15,000 | Blanks + DTG/DTF consumables: €15K sufficient for 500-unit initial stock |
+| **Platform Infrastructure** | €5,000 | Hosting + AI credits: €5K covers 6 months at 100-artist scale |
+| **Working Capital Buffer** | €8,000 | Emergency repairs/contingency: 17% buffer (standard for hardware startups) |
+
+**Grant Recovery (Separate from Crowdfunding):**
+- Portugal 2030 interior incentives: **50% equipment grant** = ~€56,500
+- Castelo Branco land grant: **€0.01/m²** industrial land
+- **Total non-repayable support**: ~€56,500+ reduces effective capital need
+
+**The De-Risk Narrative:**
+> "We own our industrial unit outright (€0.01/m² land grant), recovered 50% of equipment costs through interior investment grants (~€56.5K), and our entire AI runs on European technology (Mistral, Paris). Your investment goes to growth, not overhead. We hold hard assets from day one."
+
+---
+
 ## Reward Tiers
 
 ### Tier 1: Supporter (€25)
