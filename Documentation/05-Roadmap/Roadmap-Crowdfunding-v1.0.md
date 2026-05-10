@@ -4,7 +4,7 @@
 > **Last Updated**: May 10, 2026  
 > **Platform**: Indiegogo (Flexible Funding — keep what you raise)  
 > **Strategy Shift**: From "build production backend first" to "build polished demo → crowdfund → build production with validated demand"
-> **Current Sprint**: P0 Demo Hardening — Day 1-2 COMPLETE ✅
+> **Current Sprint**: P0 Demo Hardening — Day 1-3 COMPLETE ✅
 
 ---
 
@@ -191,17 +191,38 @@ The video must make viewers think: *"This already exists and it's amazing. I nee
 
 ---
 
-#### Day 3 — Sunday, May 11
-**Sprint**: Real LLM Integration + Chat History  
-**Hours**: 6
+#### Day 3 — Sunday, May 11 ✅ COMPLETE
+**Sprint**: Unified Wave Voice UX + Voice Pipeline Hardening
+**Hours**: 8
 
-| # | Task | Time | Acceptance |
-|---|------|------|------------|
-| 1 | Integrate Mistral Large 3 API for agent responses | 2.5h | Send prompt with agent personality → receive streaming response |
-| 2 | Implement streaming response display | 1.5h | Text appears word-by-word (typewriter effect), not all at once |
-| 3 | Persist conversations to `chat_sessions` table via Drizzle | 2h | Each message saved with: role, content, agent_id, timestamp. Conversation loads on page refresh |
+| # | Task | Time | Status |
+|---|------|------|--------|
+| 1 | Implement stable wave button hold-to-speak | 2.5h | ✅ DONE |
+| 2 | Add pointer capture + 200ms hold threshold | 1.5h | ✅ DONE |
+| 3 | Fix voice pipeline: persona system prompt + custom voices | 2h | ✅ DONE |
+| 4 | Remove dead code (AudioMessageComponent, inline mic, etc.) | 1.5h | ✅ DONE |
+| 5 | Add voice subtitle overlay during speaking | 1h | ✅ DONE |
+| 6 | Convert voice messages to plain text in chat history | 0.5h | ✅ DONE |
 
-**End of day**: Real LLM responses, streaming display, persistence working.
+**Major fixes completed:**
+
+| Fix | What Was Broken | Solution |
+|-----|----------------|----------|
+| **Wave button** | Hold-to-speak didn't work at all — React re-renders replaced DOM element | Stable DOM structure (both SVG + bars always rendered, toggle opacity) + `setPointerCapture` + 200ms threshold |
+| **Wrong topic** | AI responded about unrelated topics (not MerchFrom) | Added agent persona system prompt to voice API route |
+| **Wrong voice** | Generic ElevenLabs voice instead of custom voices | Switched model to `eleven_multilingual_v2` + added voice diagnostics |
+| **Slow responses** | 3 sequential API calls with no timing control | Added timing logs + reduced `maxTokens` to 256 |
+| **Autoplay blocked** | Audio sometimes failed to play | Added audio context unlock on pointer down |
+
+**Architecture changes:**
+- **CatChat.tsx**: −449 lines (removed dead code), +wave subtitles state, +cancellation ref
+- **ChatInput.tsx**: Replaced mic button with wave icon, added pointer events, removed Framer Motion `whileTap`
+- **Voice API route**: Added agent persona, timing logs, shorter responses
+- **ElevenLabs TTS**: Custom voice diagnostics, multilingual model
+
+**GitHub Issues**: #24, #25, #26 closed
+
+**End of day**: Wave button hold-to-speak works reliably. Voice pipeline uses correct agent persona and custom ElevenLabs voices. Subtitles display during speaking. All voice messages convert to plain text in chat history. Build passes cleanly.
 
 ---
 
