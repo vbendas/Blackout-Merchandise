@@ -1,45 +1,55 @@
+/**
+ * Environment Variable Validation
+ *
+ * Validates all required environment variables at application startup.
+ * Fails fast with clear error messages if any required variable is missing.
+ *
+ * This is imported at the top of middleware.ts to ensure validation runs
+ * before any routes are served.
+ */
+
 import { z } from 'zod';
 
+// Define required and optional environment variables
 const envSchema = z.object({
-  // Database
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-
-  // Clerk Auth
+  // ─── Required ─────────────────────────────────────────────────────────────
+  MISTRAL_API_KEY: z.string().min(1, 'MISTRAL_API_KEY is required for AI chat'),
+  OPENROUTER_API_KEY: z.string().min(1, 'OPENROUTER_API_KEY is required for intent classification'),
+  CLERK_SECRET_KEY: z.string().min(1, 'CLERK_SECRET_KEY is required for authentication'),
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1, 'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is required'),
-  CLERK_SECRET_KEY: z.string().min(1, 'CLERK_SECRET_KEY is required'),
-  CLERK_WEBHOOK_SECRET: z.string().min(1, 'CLERK_WEBHOOK_SECRET is required'),
 
-  // Stripe
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1, 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is required'),
-  STRIPE_SECRET_KEY: z.string().min(1, 'STRIPE_SECRET_KEY is required'),
-  STRIPE_WEBHOOK_SECRET: z.string().min(1, 'STRIPE_WEBHOOK_SECRET is required'),
+  // ─── Optional (with defaults) ─────────────────────────────────────────────
+  UPSTASH_REDIS_REST_URL: z.string().url().optional().or(z.literal('')),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional().or(z.literal('')),
 
-  // AI
-  OPENROUTER_API_KEY: z.string().min(1, 'OPENROUTER_API_KEY is required'),
-
-  // Voice
-  DEEPGRAM_API_KEY: z.string().optional(),
-
-  // Media
-  NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z.string().min(1, 'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME is required'),
-
-  // Cache
-  UPSTASH_REDIS_REST_URL: z.string().url('UPSTASH_REDIS_REST_URL must be a valid URL'),
-  UPSTASH_REDIS_REST_TOKEN: z.string().min(1, 'UPSTASH_REDIS_REST_TOKEN is required'),
-
-  // App
-  NEXT_PUBLIC_APP_URL: z.string().url().optional().default('http://localhost:3000'),
+  // ─── Optional (feature flags) ─────────────────────────────────────────────
+  ENABLE_LLM_ROUTING: z.enum(['true', 'false']).default('false'),
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
 
-function validateEnv() {
-  const result = envSchema.safeParse(process.env);
+// Parse and validate
+let env: z.infer<typeof envSchema>;
 
-  if (!result.success) {
-    const missing = result.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
-    throw new Error(`Missing or invalid environment variables:\n${missing}`);
+try {
+  env = envSchema.parse(process.env);
+} catch (error) {
+  if (error instanceof z.ZodError) {
+    const issues = error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
+    throw new Error(`Environment validation failed:\n${issues}\n\nPlease check your .env.local file.`);
   }
-
-  return result.data;
+  throw error;
 }
 
-export const env = validateEnv();
+// Export typed env
+export { env };
+
+// Re-export specific values for convenience
+export const MISTRAL_API_KEY = env.MISTRAL_API_KEY;
+export const OPENROUTER_API_KEY = env.OPENROUTER_API_KEY;
+export const CLERK_SECRET_KEY = env.CLERK_SECRET_KEY;
+export const NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+export const UPSTASH_REDIS_REST_URL = env.UPSTASH_REDIS_REST_URL;
+export const UPSTASH_REDIS_REST_TOKEN = env.UPSTASH_REDIS_REST_TOKEN;
+export const ENABLE_LLM_ROUTING = env.ENABLE_LLM_ROUTING === 'true';
+export const IS_PRODUCTION = env.NODE_ENV === 'production';
+export const IS_DEVELOPMENT = env.NODE_ENV === 'development';

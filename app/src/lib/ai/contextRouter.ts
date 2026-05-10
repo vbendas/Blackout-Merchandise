@@ -6,7 +6,14 @@ import { routerProvider } from './routerProvider';
 export class ContextRouter {
   private readonly CONFIDENCE_THRESHOLD = 70;
   private readonly HISTORY_CONTEXT_WINDOW = 5;
-  private readonly ENABLE_LLM_ROUTING = process.env.ENABLE_LLM_ROUTING === 'true';
+  private readonly ENABLE_LLM_ROUTING = (() => {
+    try {
+      const { env } = require('@/lib/env');
+      return env.ENABLE_LLM_ROUTING === 'true';
+    } catch {
+      return process.env.ENABLE_LLM_ROUTING === 'true';
+    }
+  })();
 
   async analyzeContext(context: RoutingContext): Promise<RoutingDecision> {
     const startTime = Date.now();

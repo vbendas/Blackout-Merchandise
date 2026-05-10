@@ -6,6 +6,35 @@ export const userRoleEnum = pgEnum('user_role', ['artist', 'customer', 'admin'])
 export const orderStatusEnum = pgEnum('order_status', ['pending', 'paid', 'processing', 'shipped', 'fulfilled', 'cancelled']);
 export const agentNameEnum = pgEnum('agent_name', ['Leopoldo', 'Francisca', 'Antônia']);
 
+// Support / Human Handoff Enums
+export const staffRoleEnum = pgEnum('staff_role', [
+  'head_of_operations',
+  'head_of_design',
+  'head_of_customer_success',
+  'support_agent',
+  'admin',
+  'viewer',
+]);
+export const ticketStatusEnum = pgEnum('ticket_status', [
+  'pending',
+  'assigned',
+  'in_progress',
+  'resolved',
+  'closed',
+]);
+export const ticketPriorityEnum = pgEnum('ticket_priority', [
+  'low',
+  'medium',
+  'high',
+  'urgent',
+]);
+export const senderTypeEnum = pgEnum('sender_type', [
+  'user',
+  'ai',
+  'human',
+  'system',
+]);
+
 // GDPR Enums
 export const consentTypeEnum = pgEnum('consent_type', ['essential', 'analytics', 'marketing']);
 export const requestTypeEnum = pgEnum('request_type', ['access', 'deletion', 'portability']);
@@ -107,10 +136,14 @@ export const chatSessions = pgTable('chat_sessions', {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: uuid('user_id').references(() => users.id),
     messages: jsonb('messages').notNull(), // Using JSONB for array of message objects
+    supportTicketId: uuid('support_ticket_id'),
+    humanHandoffRequestedAt: timestamp('human_handoff_requested_at'),
+    humanHandoffStatus: text('human_handoff_status'), // 'pending' | 'assigned' | 'joined' | 'resolved'
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
     userIdIdx: index('chat_sessions_user_id_idx').on(table.userId),
+    supportTicketIdIdx: index('chat_sessions_support_ticket_id_idx').on(table.supportTicketId),
 }));
 
 // GDPR Consents Table
@@ -169,6 +202,94 @@ export const waitlist = pgTable('waitlist', {
 }, (table) => ({
     statusIdx: index('waitlist_status_idx').on(table.status),
     positionIdx: index('waitlist_position_idx').on(table.position),
+}));
+
+// ============================================================================
+// SUPPORT / HUMAN HANDOFF TABLES
+// ============================================================================
+
+// Staff Table (Human team members)
+export const staff = pgTable('staff', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').references(() => users.id), // Optional link to app user
+    name: text('name').notNull(),
+    email: text('email').notNull().unique(),
+    role: staffRoleEnum('role').notNull(),
+    department: text('department'), // e.g. "Operations", "Design", "Support"
+    avatarUrl: text('avatar_url'),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+    emailIdx: index('staff_email_idx').on(table.email),
+    roleIdx: index('staff_role_idx').on(table.role),
+    isActiveIdx: index('staff_is_active_idx').on(table.isActive),
+}));
+
+// Agent-to-Staff Assignments (which human handles which AI agent)
+export const agentStaffAssignments = pgTable('agent_staff_assignments', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    agentId: agentNameEnum('agent_id').notNull(), // 'Leopoldo', 'Francisca', 'Antônia'
+    staffId: uuid('staff_id').references(() => staff.id, { onDelete: 'cascade' }).notNull(),
+    isPrimary: boolean('is_primary').default(false).notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+    agentIdIdx: index('agent_staff_agent_id_idx').on(table.agentId),
+    staffIdIdx: index('agent_staff_staff_id_idx').on(table.staffId),
+    // Partial unique index: only one primary assignment per agent
+    primaryAssignmentIdx: {
+        columns: [table.agentId],
+        name: 'agent_staff_primary_unique',
+        unique: true,
+        where: sql`${table.isPrimary} = true AND ${table.isActive} = true`,
+    },
+}));
+
+// Support Tickets (Human handoff queue)
+export const supportTickets = pgTable('support_tickets', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    sessionId: uuid('session_id').references(() => chatSessions.id, { onDelete: 'set null' }),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+    visitorToken: text('visitor_token'), // For anonymous users from mainpage
+    agentId: agentNameEnum('agent_id').notNull(), // Which AI agent was active
+    assignedStaffId: uuid('assigned_staff_id').references(() => staff.id, { onDelete: 'set null' }),
+    status: ticketStatusEnum('status').default('pending').notNull(),
+    priority: ticketPriorityEnum('priority').default('medium').notNull(),
+    subject: text('subject').notNull(),
+    description: text('description'),
+    source: text('source').default('chat').notNull(), // 'chat', 'email', 'discord', etc.
+    contactEmail: text('contact_email'), // For reaching user if they leave
+    visitorName: text('visitor_name'),   // Optional name for anonymous users
+    estimatedWaitMinutes: integer('estimated_wait_minutes'),
+    metadata: jsonb('metadata'), // Chat snapshot, context, etc.
+    assignedAt: timestamp('assigned_at'),
+    resolvedAt: timestamp('resolved_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+    statusIdx: index('support_tickets_status_idx').on(table.status),
+    agentIdIdx: index('support_tickets_agent_id_idx').on(table.agentId),
+    assignedStaffIdIdx: index('support_tickets_assigned_staff_id_idx').on(table.assignedStaffId),
+    userIdIdx: index('support_tickets_user_id_idx').on(table.userId),
+    visitorTokenIdx: index('support_tickets_visitor_token_idx').on(table.visitorToken),
+    createdAtIdx: index('support_tickets_created_at_idx').on(table.createdAt),
+}));
+
+// Ticket Messages (conversation within a support ticket)
+export const ticketMessages = pgTable('ticket_messages', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    ticketId: uuid('ticket_id').references(() => supportTickets.id, { onDelete: 'cascade' }).notNull(),
+    senderType: senderTypeEnum('sender_type').notNull(),
+    senderId: uuid('sender_id'), // FK to users.id or staff.id depending on senderType
+    content: text('content').notNull(),
+    isInternal: boolean('is_internal').default(false).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    ticketIdIdx: index('ticket_messages_ticket_id_idx').on(table.ticketId),
+    senderTypeIdx: index('ticket_messages_sender_type_idx').on(table.senderType),
+    createdAtIdx: index('ticket_messages_created_at_idx').on(table.createdAt),
 }));
 
 // Product Blanks Table (Catalog of producible items)
@@ -264,6 +385,58 @@ export const dataSubjectRequestsRelations = relations(dataSubjectRequests, ({ on
     user: one(users, {
         fields: [dataSubjectRequests.userId],
         references: [users.id],
+    }),
+}));
+
+// Support / Human Handoff Relations
+export const staffRelations = relations(staff, ({ one, many }) => ({
+    user: one(users, {
+        fields: [staff.userId],
+        references: [users.id],
+    }),
+    assignedTickets: many(supportTickets),
+    agentAssignments: many(agentStaffAssignments),
+}));
+
+export const agentStaffAssignmentsRelations = relations(agentStaffAssignments, ({ one }) => ({
+    staff: one(staff, {
+        fields: [agentStaffAssignments.staffId],
+        references: [staff.id],
+    }),
+}));
+
+export const supportTicketsRelations = relations(supportTickets, ({ one, many }) => ({
+    session: one(chatSessions, {
+        fields: [supportTickets.sessionId],
+        references: [chatSessions.id],
+    }),
+    user: one(users, {
+        fields: [supportTickets.userId],
+        references: [users.id],
+    }),
+    assignedStaff: one(staff, {
+        fields: [supportTickets.assignedStaffId],
+        references: [staff.id],
+    }),
+    messages: many(ticketMessages),
+}));
+
+export const ticketMessagesRelations = relations(ticketMessages, ({ one }) => ({
+    ticket: one(supportTickets, {
+        fields: [ticketMessages.ticketId],
+        references: [supportTickets.id],
+    }),
+}));
+
+// Chat Sessions Relations (update existing)
+export const chatSessionsRelations = relations(chatSessions, ({ one }) => ({
+    user: one(users, {
+        fields: [chatSessions.userId],
+        references: [users.id],
+    }),
+    supportTicket: one(supportTickets, {
+        fields: [chatSessions.supportTicketId],
+        references: [supportTickets.id],
     }),
 }));
 

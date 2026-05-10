@@ -30,7 +30,9 @@ class MistralClient {
   private apiKey: string;
 
   constructor() {
-    this.apiKey = process.env.MISTRAL_API_KEY ?? '';
+    // Lazy import to avoid circular dependency issues during build
+    const { env } = require('@/lib/env');
+    this.apiKey = env.MISTRAL_API_KEY;
   }
 
   private get headers(): Record<string, string> {

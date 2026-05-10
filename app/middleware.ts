@@ -1,4 +1,7 @@
 
+// Validate environment variables at startup (fails fast if missing)
+import '@/lib/env';
+
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';

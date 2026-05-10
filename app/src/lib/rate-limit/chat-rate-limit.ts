@@ -3,8 +3,24 @@ import { Redis } from '@upstash/redis';
 
 // ─── Configuration ───────────────────────────────────────────────────────────
 
-const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+// Lazy import to avoid circular dependency issues during build
+function getRedisCredentials() {
+  try {
+    const { env } = require('@/lib/env');
+    return {
+      url: env.UPSTASH_REDIS_REST_URL,
+      token: env.UPSTASH_REDIS_REST_TOKEN,
+    };
+  } catch {
+    // Fallback to process.env if env.ts hasn't been imported yet
+    return {
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    };
+  }
+}
+
+const { url: redisUrl, token: redisToken } = getRedisCredentials();
 
 // Check if Redis credentials are available (skip rate limiting if not)
 const hasRedisCredentials = redisUrl && redisToken;
