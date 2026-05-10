@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MiniMaxSpeechClient } from '@/lib/ai/minimax-speech';
-import { OpenRouterProvider } from '@/lib/ai/openrouter';
+import { voxtralSpeechProvider } from '@/lib/ai/voxtral-speech';
+import { elevenLabsTTSProvider } from '@/lib/ai/elevenlabs-tts';
+import { mistralClient } from '@/lib/ai/mistral-client';
 import { determineAgent } from '@/lib/chat/agentRouter';
 import type { LegacyAgent, AgentId } from '@/types/chat';
-
-const speechClient = new MiniMaxSpeechClient(process.env.MINIMAX_API_KEY!);
-const aiProvider = new OpenRouterProvider(process.env.OPENROUTER_API_KEY!);
 
 const AGENT_SYSTEM_PROMPTS: Record<LegacyAgent, string> = {
   Leopoldo: `You are Leopoldo, the Store Manager for Merch From. Warm, slightly Brazilian accent, passionate about helping artists succeed. Keep responses conversational and under 80 words.`,
@@ -38,10 +36,14 @@ export async function POST(req: NextRequest) {
 
     if (audio) {
       try {
-        const arrayBuffer = await audio.arrayBuffer();
-        const base64 = Buffer.from(arrayBuffer).toString('base64');
-        
-        userText = await speechClient.speechToText(base64);
+        const audioBlob = new Blob([await audio.arrayBuffer()], {
+          type: audio.type || 'audio/webm',
+        });
+
+        const transcription = await voxtralSpeechProvider.transcribeAudio(audioBlob);
+        if (transcription) {
+          userText = transcription;
+        }
       } catch (sttError) {
         console.error('STT error:', sttError);
         return NextResponse.json({
@@ -85,23 +87,19 @@ export async function POST(req: NextRequest) {
       prompt = `Previous conversation:\n${conversationContext}\n\nUser: ${userText}`;
     }
 
-    const aiResponse = await aiProvider.chat({
-      model: 'minimax/m2.5',
+    const aiResponse = await mistralClient.chat({
       messages: [
         { role: 'system', content: AGENT_SYSTEM_PROMPTS[legacyAgent] },
         { role: 'user', content: prompt }
       ],
       temperature: 0.8,
-      max_tokens: 150,
+      maxTokens: 150,
     });
 
-    const aiText = aiResponse.choices[0].message.content;
+    const aiText = aiResponse.content;
 
     try {
-      audioUrl = await speechClient.textToSpeech(aiText, {
-        voice: 'leopoldo_male',
-        speed: 1.0,
-      });
+      audioUrl = await elevenLabsTTSProvider.generateSpeech(aiText, finalAgent);
     } catch (ttsError) {
       console.error('TTS error:', ttsError);
     }
@@ -109,7 +107,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       response: aiText,
       transcription: userText,
-      audioUrl: audioUrl ? `data:audio/mp3;base64,${audioUrl}` : null,
+      audioUrl,
       agent: finalAgent,
       agentChanged: finalAgent !== currentAgent,
     });

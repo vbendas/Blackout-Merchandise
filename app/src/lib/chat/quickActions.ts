@@ -48,6 +48,17 @@ const AGENT_QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
   ],
 };
 
+export const HUMAN_HANDOFF_ACTION: QuickAction = {
+  id: 'talk-to-human',
+  label: 'Talk to a human',
+  icon: 'lucide:user',
+  action: '__HANDOFF__',
+};
+
+export function withHumanHandoff(actions: QuickAction[]): QuickAction[] {
+  return [...actions, HUMAN_HANDOFF_ACTION];
+}
+
 export function getAgentQuickActions(agent: AgentId): QuickAction[] {
   return AGENT_QUICK_ACTIONS[agent] || [];
 }

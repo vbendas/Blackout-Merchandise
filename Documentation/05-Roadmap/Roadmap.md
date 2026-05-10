@@ -1,9 +1,9 @@
 # MerchFrom Master Roadmap
 
-> **Document Version:** 2.10 (Updated)  
-> **Last Updated:** February 24, 2026  
-> **Status:** Phase 6 (Commerce) - STARTING  
-> **Timeline to MVP:** 3-5 weeks
+> **Document Version:** 2.11  
+> **Last Updated:** May 10, 2026  
+> **Status:** P0 Demo Hardening (Crowdfunding Sprint) — Day 1-2 COMPLETE  
+> **Timeline to Crowdfunding Launch:** ~7 weeks (May 9 → June 30)
 
 ---
 
@@ -41,14 +41,24 @@
 - ✅ Phase 3.5-3.6 ~95% Complete (Audio, cards, waitlist AI interview)
 - ✅ Phase 3.7 COMPLETE (Context-aware agent routing with M2-Her)
 - ✅ Phase 3.8 COMPLETE (Product catalog database - 11 tables, operations, AI queries)
-- ⏳ Phase 4+ Ready to begin (Backend core, AI integration, commerce, launch)
+- ✅ Phase 4 Backend Core COMPLETE (Auth, database ops, rate limiting, env validation)
+- ✅ Phase 5 AI Integration COMPLETE (Mistral Large LLM, agent routing, voice pipeline)
+- ✅ Phase 5.5 Mockup Generation 83% Complete (Python service, halftone, compositing)
+- ✅ Phase 5.6 Color Separation COMPLETE (K-means, Pantone mapping, halftone layers)
+- ✅ Phase 6 Commerce Core COMPLETE (Stripe webhooks, cart, checkout, order management)
+- 🚧 **P0 Demo Hardening IN PROGRESS** — Crowdfunding-first strategy (see Roadmap-Crowdfunding-v1.0.md)
+  - ✅ Day 1 (May 9): Intent classification, agent routing, Mistral rebuild, voice VAD, quick actions
+  - ✅ Day 2 (May 10): Security hardening (23 issues closed), component refactoring, RBAC, rate limiting, build fixes
+  - ⏳ Day 3 (May 11): Real LLM streaming, chat history persistence, typewriter display
 
 **Key Deliverables (Next 2 Weeks):**
-- ✅ Context-aware agent routing with M2-Her (just completed)
-- ✅ Product Catalog Database (11 tables, operations, AI-optimized queries)
-- Waitlist landing page with AI interview (text + voice options) - 95% complete
-- Inline product, mockup, and design cards
-- Full product catalog lightbox with filters
+- ✅ Context-aware agent routing with auto-handoff (no manual switcher needed)
+- ✅ Security hardening: auth, rate limiting, prompt injection, RBAC, CORS, env validation
+- ⏳ Real LLM streaming responses with typewriter effect
+- ⏳ Chat history persistence to database
+- ⏳ Voice-to-voice full pipeline (STT → LLM → TTS)
+- ⏳ FLUX 2 design generation integration
+- ⏳ Artist storefront preview
 
 ---
 
@@ -1175,10 +1185,13 @@ For detailed breakdowns, see the Agent Assignment documents in `/Documentation/0
 ---
 
 **Roadmap Owner:** Victor Bendas  
-**Last Updated:** May 4, 2026  
-**Next Review:** Weekly during Phase 6 implementation
+**Last Updated:** May 10, 2026  
+**Next Review:** Daily during P0 Demo Hardening sprint
 
 **Recent Changes:**
+- 🚧 **May 10, 2026:** P0 Demo Hardening Day 2 — Security & Infrastructure Sprint. Closed 23 GitHub issues (#1-#23). Added Clerk auth to all chat APIs, Upstash rate limiting, prompt injection sanitization, RBAC middleware, Zod env validation, CORS on all routes, centralized CHAT_CONFIG, structured logger, ChatErrorBoundary. Extracted hooks (useVoiceConversation, useAudioRecording) and sub-components (ChatMessages, ChatInput, ChatWindow, ChatHeader). Deduplicated mainpage chat code. Fixed ghost recording, circular deps, stale closures. Both /app and /mainpage build successfully.
+- 🚧 **May 9, 2026:** P0 Demo Hardening Day 1 — Agent Router Foundation. Intent classification module (Mistral), agent routing middleware, 10 test cases. Mistral integration rebuilt. Quick actions expanded to 9/agent with carousel. Avatar preloading + widget visibility. Live voice conversation with VAD. Voice pipeline updated: ElevenLabs TTS replaces Voxtral TTS. Assets cleanup.
+- 🆕 **May 8, 2026:** STRATEGIC PIVOT — Crowdfunding-First Strategy. New roadmap: build polished demo → crowdfund on Indiegogo → use funds + traction → pitch investors. 7-week sprint to campaign launch (June 30). See Roadmap-Crowdfunding-v1.0.md for full day-by-day plan.
 - 🆕 **May 4, 2026:** Added Phase 10: Accessories Expansion — 3D-printed jewelry (pendants, rings, bracelets) using Meshy API + Cat-Suite AI. Pre-crowdfunding 3D viewer prototype prioritized. Cast-resin-to-metal production at Portugal facility. Pilot program with 5-10 artists for data collection + future model fine-tuning.
 - 🔄 **Feb 25, 2026:** STRATEGIC PIVOT - AI Stack: MiniMax → Mistral (full pipeline: LLM + STT + TTS). EU sovereignty, open weights, voice cloning, 50%+ cost reduction.
 - 🔄 **Feb 25, 2026:** STRATEGIC PIVOT - Facility: Porto → Castelo Branco. 50% equipment grant, €0.01/m² industrial land, own facility instead of rent. De-risk crowdfunding pitch.
@@ -1200,10 +1213,14 @@ For detailed breakdowns, see the Agent Assignment documents in `/Documentation/0
 - ✅ **Feb 8, 2026:** Added Pre-Beta Security Audit task using Shannon AI pentester to Phase 7
 - ✅ **Feb 4, 2026:** Internal admin web dashboard replaced by MerchStation TUI (see `/Documentation/04-TUI/MerchStation-Plan.md`)
 
-**Current Focus (This Week):**
-- 🚧 Phase 6 Commerce: Cart system, Checkout, Stripe Connect
-- 🔄 T1: Cart System (Zustand + localStorage)
-- 🔄 T2: Checkout Flow (Stripe Checkout)
+**Current Focus (This Week — P0 Demo Hardening):**
+- ✅ Day 1 (May 9): Intent classification, agent routing, Mistral rebuild, voice VAD, quick actions carousel
+- ✅ Day 2 (May 10): Security hardening (23 issues closed), component refactoring, RBAC, rate limiting
+- ⏳ Day 3 (May 11): Real LLM streaming + chat history persistence + typewriter effect
+- ⏳ Day 4 (May 12): Typing indicator + message animations
+- ⏳ Day 5 (May 13): Demo mode + fallback responses
+- ⏳ Day 6 (May 14): Polish + mobile chat
+- ⏳ Day 7 (May 15): Week 1 review + voice prep
 
 ---
 

@@ -15,6 +15,7 @@ import { ProductCardInline } from './ProductCardInline';
 import { MockupCardInline } from './MockupCardInline';
 import { DesignCardInline } from './DesignCardInline';
 import { QuickActionsCarousel } from './QuickActionsCarousel';
+import { ChatInput } from './ChatInput';
 
 
 function formatTime(timestamp: number): string {
@@ -220,10 +221,24 @@ export function CatChat() {
   const [localIsPlaying, setLocalIsPlaying] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
 
+  // Inline mic hold-to-speak state
+  const [isInlineRecording, setIsInlineRecording] = useState(false);
+  const [showMicTooltip, setShowMicTooltip] = useState(false);
+  const holdThresholdTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isHoldingRef = useRef(false);
+  const micTooltipTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingStopRef = useRef(false);
+
   // Voice conversation state
   const [isVoiceConversationActive, setIsVoiceConversationActive] = useState(false);
   const [voiceConversationStatus, setVoiceConversationStatus] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
   const [audioLevel, setAudioLevel] = useState(0);
+  const isVoiceConversationActiveRef = useRef(false);
+
+  // Keep ref in sync with state for async callbacks
+  useEffect(() => {
+    isVoiceConversationActiveRef.current = isVoiceConversationActive;
+  }, [isVoiceConversationActive]);
 
   // Human handoff email form state
   const [emailInput, setEmailInput] = useState('');
@@ -357,6 +372,12 @@ export function CatChat() {
 
   const handleQuickAction = (action: string) => {
     if (!action.trim() || isTyping) return;
+
+    if (action === '__HANDOFF__') {
+      requestHumanHandoff();
+      return;
+    }
+
     sendMessage(action.trim());
     setInputValue('');
   };
@@ -409,9 +430,143 @@ export function CatChat() {
     }
   };
 
+  // ── Inline Mic Hold-to-Speak (STT → Text Input → Auto Send) ─────────
+
+  const inlineMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const inlineAudioChunksRef = useRef<Blob[]>([]);
+
+  const startInlineRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      inlineMediaRecorderRef.current = mediaRecorder;
+      inlineAudioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          inlineAudioChunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(inlineAudioChunksRef.current, { type: 'audio/webm' });
+        stream.getTracks().forEach((track) => track.stop());
+
+        // Skip very short recordings (less than 1KB = ~100ms of audio)
+        if (audioBlob.size < 1024) {
+          console.warn('[Inline Mic] Recording too short, skipping transcription');
+          return;
+        }
+
+        // Send to transcribe API
+        try {
+          const formData = new FormData();
+          formData.append('audio', audioBlob, 'audio.webm');
+
+          const response = await fetch('/api/chat/transcribe', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('[Inline Mic] Transcription API error:', response.status, errorData.error);
+            return;
+          }
+
+          const data = await response.json();
+          
+          if (data.transcription) {
+            // Send transcription directly as text message
+            await sendMessage(data.transcription.trim());
+          } else {
+            console.warn('[Inline Mic] No transcription received');
+          }
+        } catch (error) {
+          console.error('[Inline Mic] Transcription error:', error);
+        }
+      };
+
+      mediaRecorder.start();
+      
+      // Check if stop was requested while we were waiting for mic access
+      if (pendingStopRef.current) {
+        pendingStopRef.current = false;
+        mediaRecorder.stop();
+      }
+    } catch (error) {
+      console.error('Microphone access denied:', error);
+    }
+  }, [sendMessage]);
+
+  const stopInlineRecording = useCallback(() => {
+    if (inlineMediaRecorderRef.current && inlineMediaRecorderRef.current.state === 'recording') {
+      inlineMediaRecorderRef.current.stop();
+    } else {
+      // Recorder not ready yet — flag it to stop immediately when ready
+      pendingStopRef.current = true;
+    }
+  }, []);
+
+  const handleMicMouseDown = useCallback(async () => {
+    isHoldingRef.current = true;
+    holdThresholdTimerRef.current = setTimeout(() => {
+      if (isHoldingRef.current) {
+        setIsInlineRecording(true);
+        startInlineRecording();
+      }
+    }, 300); // 300ms threshold to distinguish click from hold
+  }, [startInlineRecording]);
+
+  const handleMicMouseUp = useCallback(() => {
+    const wasHolding = isHoldingRef.current;
+    isHoldingRef.current = false;
+
+    if (holdThresholdTimerRef.current) {
+      clearTimeout(holdThresholdTimerRef.current);
+      holdThresholdTimerRef.current = null;
+    }
+
+    if (isInlineRecording) {
+      setIsInlineRecording(false);
+      stopInlineRecording();
+    } else if (wasHolding) {
+      // It was a click (release before threshold) — show tooltip
+      setShowMicTooltip(true);
+      micTooltipTimerRef.current = setTimeout(() => {
+        setShowMicTooltip(false);
+      }, 3000);
+    }
+  }, [isInlineRecording, stopInlineRecording]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (holdThresholdTimerRef.current) clearTimeout(holdThresholdTimerRef.current);
+      if (micTooltipTimerRef.current) clearTimeout(micTooltipTimerRef.current);
+    };
+  }, []);
+
   const handlePlayPause = () => {
     setLocalIsPlaying(!localIsPlaying);
   };
+
+  // ── Audio Playback Helper ───────────────────────────────────────────
+
+  const playAudioResponse = useCallback((audioDataUrl: string): Promise<void> => {
+    return new Promise((resolve) => {
+      const audio = new Audio(audioDataUrl);
+      audio.onended = () => resolve();
+      audio.onerror = () => {
+        console.error('[Voice Conversation] Audio playback error');
+        resolve();
+      };
+      audio.play().catch((err) => {
+        console.error('[Voice Conversation] Audio play() failed:', err);
+        resolve();
+      });
+    });
+  }, []);
 
   // ── Voice Conversation ──────────────────────────────────────────────
 
@@ -922,203 +1077,64 @@ export function CatChat() {
             <div className={`border-t border-white/10 bg-zinc-950/50 backdrop-blur-xl ${
               isMobile ? 'p-3' : isTablet ? 'p-5' : 'p-4'
             }`}>
-              {isVoiceMode ? (
+              <ChatInput
+                inputValue={inputValue}
+                onInputChange={setInputValue}
+                onSend={handleSend}
+                onKeyDown={handleKeyDown}
+                isTyping={isTyping}
+                isVoiceConversationActive={isVoiceConversationActive}
+                voiceConversationStatus={voiceConversationStatus}
+                audioLevel={audioLevel}
+                quickActions={quickActions}
+                onQuickAction={handleQuickAction}
+                isMobile={isMobile}
+                isTablet={isTablet}
+                agentColor={agentConfig.color}
+                isInlineRecording={isInlineRecording}
+                onMicHoldStart={handleMicMouseDown}
+                onMicHoldEnd={handleMicMouseUp}
+                showHoldTooltip={showMicTooltip}
+              />
+
+              {/* Human Handoff UI */}
+              {handoffStatus === 'awaiting_email' && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex flex-col items-center gap-3"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-3 rounded-xl border border-white/10 bg-zinc-900/80 p-4 backdrop-blur-xl"
                 >
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onMouseDown={startListening}
-                    onMouseUp={stopListening}
-                    onMouseLeave={stopListening}
-                    onTouchStart={startListening}
-                    onTouchEnd={stopListening}
-                    className={`flex items-center justify-center rounded-full transition-all ${
-                      isRecording ? 'animate-pulse' : ''
-                    } ${isMobile ? 'h-16 w-16' : isTablet ? 'h-24 w-24' : 'h-20 w-20'}`}
-                    style={{
-                      backgroundColor: isRecording ? '#EF4444' : agentConfig.color,
-                      boxShadow: `0 0 30px ${isRecording ? '#EF4444' : agentConfig.color}50`,
-                    }}
-                  >
-                    <motion.div
-                      animate={isRecording ? { scale: [1, 1.2, 1] } : {}}
-                      transition={{ duration: 0.5, repeat: isRecording ? Infinity : 0 }}
-                    >
-                      <Icon icon="lucide:mic" className={`text-white ${isMobile ? 'h-6 w-6' : isTablet ? 'h-10 w-10' : 'h-8 w-8'}`} />
-                    </motion.div>
-                  </motion.button>
-                  <p className={`text-zinc-400 ${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-xs'}`}>
-                    {isRecording ? `Recording... ${formatDuration(recordingDuration)}` : 'Hold to speak'}
+                  <p className="mb-3 text-sm text-zinc-300">
+                    We'll connect you with {assignedStaffName || 'a human'}.
+                    What's your email so we can reach you?
                   </p>
-                </motion.div>
-              ) : (
-                <>
-                {/* Voice Conversation Overlay */}
-                <AnimatePresence>
-                  {isVoiceConversationActive && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mb-3 flex flex-col items-center gap-2"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-0.5 h-8">
-                          {[...Array(12)].map((_, i) => (
-                            <motion.div
-                              key={i}
-                              className="w-1 rounded-full bg-white/80"
-                              animate={{
-                                height: voiceConversationStatus === 'listening'
-                                  ? [4, Math.max(4, audioLevel * 0.8 + Math.random() * 20), 4]
-                                  : voiceConversationStatus === 'speaking'
-                                    ? [4, 20 + Math.random() * 12, 4]
-                                    : [4, 8, 4],
-                              }}
-                              transition={{
-                                duration: 0.3 + Math.random() * 0.2,
-                                repeat: Infinity,
-                                repeatType: 'reverse',
-                                delay: i * 0.03,
-                              }}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-xs text-zinc-400 capitalize">
-                          {voiceConversationStatus === 'idle' && 'Ready'}
-                          {voiceConversationStatus === 'listening' && 'Listening...'}
-                          {voiceConversationStatus === 'thinking' && 'Thinking...'}
-                          {voiceConversationStatus === 'speaking' && `${agentConfig.name} is speaking...`}
-                        </span>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {!isVoiceConversationActive && (
-                  <QuickActionsCarousel actions={quickActions} onAction={handleQuickAction} />
-                )}
-
-                {/* Human Handoff UI */}
-                {handoffStatus === 'awaiting_email' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="rounded-xl border border-white/10 bg-zinc-900/80 p-4 backdrop-blur-xl"
-                  >
-                    <p className="mb-3 text-sm text-zinc-300">
-                      We'll connect you with {assignedStaffName || 'a human'}.
-                      What's your email so we can reach you?
-                    </p>
-                    <form onSubmit={handleEmailSubmit} className="flex gap-2">
-                      <input
-                        type="email"
-                        value={emailInput}
-                        onChange={(e) => setEmailInput(e.target.value)}
-                        placeholder="you@example.com"
-                        required
-                        className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-white/20 focus:outline-none"
-                      />
-                      <button
-                        type="submit"
-                        disabled={isSubmittingHandoff || !emailInput.trim()}
-                        className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-950 transition-colors hover:bg-zinc-200 disabled:opacity-50"
-                      >
-                        {isSubmittingHandoff ? 'Sending...' : 'Send'}
-                      </button>
-                    </form>
+                  <form onSubmit={handleEmailSubmit} className="flex gap-2">
+                    <input
+                      type="email"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      placeholder="you@example.com"
+                      required
+                      className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-white/20 focus:outline-none"
+                    />
                     <button
-                      onClick={cancelHandoff}
-                      className="mt-2 text-xs text-zinc-500 hover:text-zinc-300"
+                      type="submit"
+                      disabled={isSubmittingHandoff || !emailInput.trim()}
+                      className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-950 transition-colors hover:bg-zinc-200 disabled:opacity-50"
                     >
-                      Cancel
+                      {isSubmittingHandoff ? 'Sending...' : 'Send'}
                     </button>
-                  </motion.div>
-                )}
-
-                {handoffStatus === 'none' && !isVoiceConversationActive && (
-                  <motion.button
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => requestHumanHandoff()}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-zinc-900/50 py-2.5 text-xs text-zinc-400 transition-colors hover:border-white/20 hover:bg-zinc-800/50 hover:text-zinc-200"
+                  </form>
+                  <button
+                    onClick={cancelHandoff}
+                    className="mt-2 text-xs text-zinc-500 hover:text-zinc-300"
                   >
-                    <Icon icon="lucide:user" className="h-3.5 w-3.5" />
-                    Talk to a human
-                  </motion.button>
-                )}
-
-                <div className="flex items-center gap-2">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setIsVoiceMode(!isVoiceMode)}
-                    className={`flex shrink-0 items-center justify-center rounded-full transition-all ${
-                      isVoiceMode ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-                    } ${isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'}`}
-                    title={isVoiceMode ? 'Text mode' : 'Voice mode'}
-                  >
-                    <Icon icon={isVoiceMode ? 'lucide:message-square' : 'lucide:mic'} className={isMobile ? 'h-4 w-4' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} />
-                  </motion.button>
-
-                  <div className="relative flex-1">
-                      <textarea
-                        ref={inputRef}
-                        value={inputValue}
-                        onChange={handleInputChange}
-                        onKeyDown={handleKeyDown}
-                        onFocus={() => setInputFocused(true)}
-                        onBlur={() => setInputFocused(false)}
-                        placeholder={
-                          handoffStatus === 'human_joined'
-                            ? `Reply to ${assignedStaffName || 'human'}...`
-                            : 'Type a message...'
-                        }
-                        disabled={isTyping || handoffStatus === 'awaiting_email'}
-                        rows={1}
-                        className={`w-full resize-none rounded-2xl border border-white/10 bg-white/5 text-white placeholder-zinc-500 transition-all focus:border-white/20 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/10 disabled:opacity-50 ${
-                          isMobile ? 'px-3 py-3 text-sm' : isTablet ? 'px-5 py-4 text-base' : 'px-4 py-3 text-sm'
-                        }`}
-                        style={{ minHeight: isMobile ? '44px' : isTablet ? '56px' : '48px', maxHeight: '100px' }}
-                      />
-                      <AnimatePresence>
-                        {inputValue.length > 0 && (
-                          <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className={`absolute right-3 text-zinc-500 ${
-                              isMobile ? 'bottom-3 text-[10px]' : isTablet ? 'bottom-4 text-xs' : 'bottom-3 text-[10px]'
-                            }`}
-                          >
-                            {inputValue.length}
-                          </motion.span>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleSend}
-                      disabled={!inputValue.trim() || isTyping}
-                      className={`flex shrink-0 items-center justify-center rounded-full transition-all ${
-                        !inputValue.trim() || isTyping
-                          ? 'cursor-not-allowed bg-zinc-800 text-zinc-600'
-                          : 'bg-white text-zinc-950 hover:bg-zinc-200 shadow-lg shadow-white/10'
-                      } ${isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'}`}
-                      aria-label="Send message"
-                    >
-                      <Icon icon="lucide:send" className={isMobile ? 'h-4 w-4' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} />
-                    </motion.button>
-                  </div>
-                </>
+                    Cancel
+                  </button>
+                </motion.div>
               )}
+
+
             </div>
           </motion.div>
         )}

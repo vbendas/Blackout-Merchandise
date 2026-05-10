@@ -7,7 +7,7 @@ import { AGENT_CONFIGS } from '@/types/chat';
 import type { DesignFlowStep } from '@/lib/ChatContext';
 import { getQuickActionsForStep } from '@/lib/designFlow';
 import type { QuickAction } from '@/lib/chat/quickActions';
-import { getAgentQuickActions } from '@/lib/chat/quickActions';
+import { getAgentQuickActions, withHumanHandoff } from '@/lib/chat/quickActions';
 
 const HANDOFF_DELAY_MS = 400;
 
@@ -112,21 +112,22 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
 
   // Update quick actions when agent or design flow step changes
   useEffect(() => {
+    let actions: QuickAction[];
     const agentActions = getAgentQuickActions(currentAgent);
     if (designFlowStep !== 'idle' && currentAgent === 'francisca') {
       const flowActions = getQuickActionsForStep(designFlowStep);
       // Convert InlineChatAction to QuickAction format
-      const converted: QuickAction[] = flowActions.map((a) => ({
+      actions = flowActions.map((a) => ({
         id: a.id,
         label: a.label,
         icon: a.icon || 'lucide:message-square',
         action: a.action,
       }));
-      setQuickActions(converted);
     } else {
-      setQuickActions(agentActions);
+      actions = agentActions;
     }
-  }, [currentAgent, designFlowStep]);
+    setQuickActions(handoffStatus === 'none' ? withHumanHandoff(actions) : actions);
+  }, [currentAgent, designFlowStep, handoffStatus]);
 
   const _mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);

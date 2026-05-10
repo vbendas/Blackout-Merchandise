@@ -1,8 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { requireChatAuth } from '@/lib/auth/chat-auth';
 import { requireChatAccess } from '@/lib/auth/require-chat-access';
-import { miniMaxM2HerProvider } from '@/lib/ai/minimax-m2her';
-import { miniMaxSpeechProvider } from '@/lib/ai/minimax-speech';
+import { mistralClient } from '@/lib/ai/mistral-client';
+import { voxtralSpeechProvider } from '@/lib/ai/voxtral-speech';
+import { elevenLabsTTSProvider } from '@/lib/ai/elevenlabs-tts';
 import { withCors } from '@/lib/cors';
 import type { AgentId } from '@/types/chat';
 
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Step 1: Transcribe audio
-    const transcription = await miniMaxSpeechProvider.transcribeAudio(audioBlob);
+    const transcription = await voxtralSpeechProvider.transcribeAudio(audioBlob);
 
     if (!transcription) {
       return withCors(NextResponse.json({
@@ -82,27 +83,20 @@ export async function POST(request: NextRequest) {
       }), origin);
     }
 
-    // Step 2: Get AI response using M2-her
+    // Step 2: Get AI response using Mistral
     const formattedHistory = history.map((msg) => ({
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
     }));
 
-    const aiResponse = await miniMaxM2HerProvider.chat({
+    const aiResponse = await mistralClient.chat({
       messages: [...formattedHistory, { role: 'user', content: transcription }],
-      agent,
       temperature: 0.7,
       maxTokens: 1024,
     });
 
     // Step 3: Generate audio response
-    const audioArrayBuffer = await miniMaxSpeechProvider.generateSpeech(aiResponse.content, agent);
-
-    let audioData: string | null = null;
-    if (audioArrayBuffer) {
-      const buffer = Buffer.from(audioArrayBuffer);
-      audioData = `data:audio/mp3;base64,${buffer.toString('base64')}`;
-    }
+    const audioData = await elevenLabsTTSProvider.generateSpeech(aiResponse.content, agent);
 
     return withCors(NextResponse.json({
       transcription,

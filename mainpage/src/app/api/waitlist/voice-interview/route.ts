@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MiniMaxSpeechClient } from '@/lib/ai/minimax-speech';
-import { OpenRouterProvider } from '@/lib/ai/openrouter';
+import { voxtralSpeechProvider } from '@/lib/ai/voxtral-speech';
+import { elevenLabsTTSProvider } from '@/lib/ai/elevenlabs-tts';
+import { mistralClient } from '@/lib/ai/mistral-client';
 import {
   interviewQuestions,
   getNextQuestionId,
@@ -8,9 +9,6 @@ import {
   getQuestionById,
   InterviewResponse
 } from '@/lib/waitlist/interview-questions';
-
-const speechClient = new MiniMaxSpeechClient(process.env.MINIMAX_API_KEY!);
-const aiProvider = new OpenRouterProvider(process.env.OPENROUTER_API_KEY!);
 
 const LEOPOLDO_SYSTEM_PROMPT = `You are Leopoldo, the onboarding agent for Merch From - a premium merchandise platform for artists.
 
@@ -28,6 +26,16 @@ Your goal in voice mode:
 - Make them feel heard and excited
 - Don't be repetitive - vary your responses
 - End with warmth and anticipation for the next question`;
+
+function base64ToBlob(base64: string, type = 'audio/webm'): Blob {
+  const byteCharacters = atob(base64);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  return new Blob([byteArray], { type });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,25 +67,21 @@ First Question: ${firstQuestion.question}
 
 Keep it conversational - this is voice, so short and natural!`;
 
-      const aiResponse = await aiProvider.chat({
-        model: 'minimax/m2.5',
+      const aiResponse = await mistralClient.chat({
         messages: [
           { role: 'system', content: LEOPOLDO_SYSTEM_PROMPT },
           { role: 'user', content: greetingPrompt }
         ],
         temperature: 0.8,
-        max_tokens: 150,
+        maxTokens: 150,
       });
 
-      const aiText = aiResponse.choices[0].message.content;
+      const aiText = aiResponse.content;
 
       // Convert to speech
       let aiAudio: string | null = null;
       try {
-        aiAudio = await speechClient.textToSpeech(aiText, {
-          voice: 'leopoldo_male',
-          speed: 1.0,
-        });
+        aiAudio = await elevenLabsTTSProvider.generateSpeech(aiText, 'leopoldo');
       } catch (ttsError) {
         console.error('TTS error on initial:', ttsError);
       }
@@ -104,7 +108,12 @@ Keep it conversational - this is voice, so short and natural!`;
       // Step 1: Speech to Text
       let transcribedText: string;
       try {
-        transcribedText = await speechClient.speechToText(audio);
+        const audioBlob = base64ToBlob(audio);
+        const result = await voxtralSpeechProvider.transcribeAudio(audioBlob);
+        if (!result) {
+          throw new Error('Transcription failed');
+        }
+        transcribedText = result;
       } catch (sttError) {
         console.error('STT error:', sttError);
         return NextResponse.json({
@@ -139,25 +148,21 @@ ${isLastQuestion(questionId)
 }`;
 
       // Step 4: Get AI response
-      const aiResponse = await aiProvider.chat({
-        model: 'minimax/m2.5',
+      const aiResponse = await mistralClient.chat({
         messages: [
           { role: 'system', content: LEOPOLDO_SYSTEM_PROMPT },
           { role: 'user', content: prompt }
         ],
         temperature: 0.8,
-        max_tokens: 150,
+        maxTokens: 150,
       });
 
-      const aiText = aiResponse.choices[0].message.content;
+      const aiText = aiResponse.content;
 
       // Step 5: Convert to speech
       let aiAudio: string | null = null;
       try {
-        aiAudio = await speechClient.textToSpeech(aiText, {
-          voice: 'leopoldo_male',
-          speed: 1.0,
-        });
+        aiAudio = await elevenLabsTTSProvider.generateSpeech(aiText, 'leopoldo');
       } catch (ttsError) {
         console.error('TTS error:', ttsError);
       }

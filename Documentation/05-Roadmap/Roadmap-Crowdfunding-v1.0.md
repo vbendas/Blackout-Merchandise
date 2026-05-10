@@ -1,9 +1,10 @@
 # Roadmap: Crowdfunding-First Strategy
 
-> **Version**: 1.0  
-> **Last Updated**: May 8, 2026  
+> **Version**: 1.1  
+> **Last Updated**: May 10, 2026  
 > **Platform**: Indiegogo (Flexible Funding — keep what you raise)  
 > **Strategy Shift**: From "build production backend first" to "build polished demo → crowdfund → build production with validated demand"
+> **Current Sprint**: P0 Demo Hardening — Day 1-2 COMPLETE ✅
 
 ---
 
@@ -83,31 +84,63 @@ The video must make viewers think: *"This already exists and it's amazing. I nee
 
 **Focus**: Agent routing, switching, avatar state sync, real LLM calls, chat history.
 
-#### Day 1 — Friday, May 9
+#### Day 1 — Friday, May 9 ✅ COMPLETE
 **Sprint**: Agent Router Foundation  
-**Hours**: 6
+**Hours**: 6 → Actually ~12h (overshoot due to momentum + evening sprint)
 
-| # | Task | Time | Acceptance |
-|---|------|------|------------|
-| 1 | Set up intent classification module using Mistral Small 4 | 3h | Can classify 5 test messages into correct agent (Leopoldo/Francisca/Antonia) with >80% accuracy |
-| 2 | Create agent routing middleware (`/api/chat/route.ts`) | 2h | Route incoming messages to correct agent handler |
-| 3 | Write 10 test cases for intent classification | 1h | Cover: onboarding, design request, order tracking, general chat, billing |
+| # | Task | Time | Status |
+|---|------|------|--------|
+| 1 | Set up intent classification module using Mistral Small 4 | 3h | ✅ DONE |
+| 2 | Create agent routing middleware (`/api/chat/route.ts`) | 2h | ✅ DONE |
+| 3 | Write 10 test cases for intent classification | 1h | ✅ DONE |
 
-**End of day**: Run tests, verify routing works, commit.
+**Additional work completed (evening sprint):**
+- ✅ Rebuilt Mistral integration (was completely missing)
+- ✅ Expanded quick actions from 4 to 9 per agent with carousel component
+- ✅ Avatar image preloading + widget visibility improvements
+- ✅ Input alignment fixes + quick actions overlap prevention
+- ✅ Live voice conversation with VAD (Voice Activity Detection) + widget UI polish
+- ✅ Voice pipeline update: ElevenLabs TTS replaces Voxtral TTS
+- ✅ Assets cleanup (removed `/Assets/` from git tracking)
+- ✅ Docs restructure + mainpage hero 3D model checkpoint
+
+**End of day**: Intent classification working, agent routing middleware deployed, Mistral client rebuilt, voice conversation pipeline functional with VAD.
 
 ---
 
-#### Day 2 — Saturday, May 10
-**Sprint**: Agent Switcher UI + Avatar States  
-**Hours**: 6
+#### Day 2 — Saturday, May 10 ✅ COMPLETE
+**Sprint**: Agent Switcher UI + Avatar States → Became Security & Infrastructure Sprint  
+**Hours**: 6 → Actually ~14h (major security hardening + refactor sprint)
 
-| # | Task | Time | Acceptance |
-|---|------|------|------------|
-| 1 | Build Agent Switcher component (sidebar or dropdown) | 2.5h | Click agent name → avatar changes, chat context switches, welcome message from new agent |
-| 2 | Create Avatar component with expression states | 2h | States: neutral, thinking, speaking, happy. Smooth transitions between states |
-| 3 | Integrate avatar state with message lifecycle | 1.5h | When agent generates response: thinking → speaking → happy. When idle: neutral |
+| # | Task | Time | Status |
+|---|------|------|--------|
+| 1 | Build Agent Switcher component (sidebar or dropdown) | 2.5h | ✅ DONE (auto-routing removes manual switcher — routing is automatic) |
+| 2 | Create Avatar component with expression states | 2h | ✅ DONE (20 expressions per character, context-aware sentiment mapping) |
+| 3 | Integrate avatar state with message lifecycle | 1.5h | ✅ DONE (thinking → speaking → happy → neutral lifecycle) |
 
-**End of day**: Can switch agents mid-conversation, avatar reacts to messages.
+**Major unplanned work completed (Security & Infrastructure Sprint):**
+
+| Category | Work Done | Issues Closed |
+|----------|-----------|---------------|
+| **Authentication** | Clerk auth on all 5 chat API routes | — |
+| **Rate Limiting** | Upstash Redis rate limiting (20/min chat, 5/min voice) with 429 responses | #21 |
+| **Prompt Injection** | Comprehensive sanitization pipeline (control chars, quotes, backticks, injection patterns) | #3, #4, #19 |
+| **RBAC** | requireStaffRole() middleware on support endpoints | #20 |
+| **Env Validation** | Zod schema for all required environment variables | #6 |
+| **File Upload** | 10MB limit, MIME whitelist, agent validation | — |
+| **CORS** | Helpers created + wired into all 5 chat API routes | #9, #15 |
+| **Config** | Centralized CHAT_CONFIG replacing scattered magic numbers | #7, #17 |
+| **Logging** | Structured logger with sanitization (active in production) | #8 |
+| **Error Boundary** | ChatErrorBoundary with retry limit (max 3) | #13 |
+| **Refactoring** | Extracted hooks (useVoiceConversation, useAudioRecording), sub-components (ChatMessages, ChatInput, ChatWindow, ChatHeader) | #10, #11, #12, #14 |
+| **Deduplication** | Mainpage chat components replaced with re-exports from /app | #16 |
+| **Critical Bugs** | Ghost recording fix, circular useCallback deps, stale closures | #1, #2, #5 |
+| **Build Fixes** | Both /app and /mainpage build successfully | #22, #23 |
+| **Docs** | Voice pipeline updated: ElevenLabs TTS replaces Voxtral TTS | — |
+
+**GitHub Issues Closed**: #1 through #23 (23 issues resolved)
+
+**End of day**: Full security hardening complete, component architecture cleaned up, both apps building cleanly. Auto-routing replaces manual agent switching. Ready for Day 3 (Real LLM Integration + Chat History).
 
 ---
 

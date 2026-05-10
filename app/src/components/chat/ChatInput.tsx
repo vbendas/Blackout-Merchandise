@@ -12,8 +12,6 @@ interface ChatInputProps {
   onSend: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   isTyping: boolean;
-  isVoiceMode: boolean;
-  onToggleVoiceMode: () => void;
   isVoiceConversationActive: boolean;
   voiceConversationStatus: string;
   audioLevel: number;
@@ -22,16 +20,10 @@ interface ChatInputProps {
   isMobile: boolean;
   isTablet: boolean;
   agentColor: string;
-  isRecording: boolean;
-  recordingDuration: number;
-  onStartRecording: () => Promise<void>;
-  onStopRecording: () => void;
-}
-
-function formatDuration(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
+  isInlineRecording: boolean;
+  onMicHoldStart: () => Promise<void>;
+  onMicHoldEnd: () => void;
+  showHoldTooltip: boolean;
 }
 
 export function ChatInput({
@@ -40,8 +32,6 @@ export function ChatInput({
   onSend,
   onKeyDown,
   isTyping,
-  isVoiceMode,
-  onToggleVoiceMode,
   isVoiceConversationActive,
   voiceConversationStatus,
   audioLevel,
@@ -50,47 +40,12 @@ export function ChatInput({
   isMobile,
   isTablet,
   agentColor,
-  isRecording,
-  recordingDuration,
-  onStartRecording,
-  onStopRecording,
+  isInlineRecording,
+  onMicHoldStart,
+  onMicHoldEnd,
+  showHoldTooltip,
 }: ChatInputProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  if (isVoiceMode) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="flex flex-col items-center gap-3"
-      >
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onPointerDown={onStartRecording}
-          onPointerUp={onStopRecording}
-          onPointerLeave={onStopRecording}
-          className={`flex items-center justify-center rounded-full transition-all ${
-            isRecording ? 'animate-pulse' : ''
-          } ${isMobile ? 'h-16 w-16' : isTablet ? 'h-24 w-24' : 'h-20 w-20'}`}
-          style={{
-            backgroundColor: isRecording ? '#EF4444' : agentColor,
-            boxShadow: `0 0 30px ${isRecording ? '#EF4444' : agentColor}50`,
-          }}
-        >
-          <motion.div
-            animate={isRecording ? { scale: [1, 1.2, 1] } : {}}
-            transition={{ duration: 0.5, repeat: isRecording ? Infinity : 0 }}
-          >
-            <Icon icon="lucide:mic" className={`text-white ${isMobile ? 'h-6 w-6' : isTablet ? 'h-10 w-10' : 'h-8 w-8'}`} />
-          </motion.div>
-        </motion.button>
-        <p className={`text-zinc-400 ${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-xs'}`}>
-          {isRecording ? `Recording... ${formatDuration(recordingDuration)}` : 'Hold to speak'}
-        </p>
-      </motion.div>
-    );
-  }
 
   return (
     <>
@@ -142,17 +97,51 @@ export function ChatInput({
       )}
 
       <div className="flex items-center gap-2">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onToggleVoiceMode}
-          className={`flex shrink-0 items-center justify-center rounded-full transition-all ${
-            isVoiceMode ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-          } ${isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'}`}
-          title={isVoiceMode ? 'Text mode' : 'Voice mode'}
-        >
-          <Icon icon={isVoiceMode ? 'lucide:message-square' : 'lucide:mic'} className={isMobile ? 'h-4 w-4' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} />
-        </motion.button>
+        {/* Mic Button with Hold-to-Speak */}
+        <div className="relative">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onMouseDown={onMicHoldStart}
+            onMouseUp={onMicHoldEnd}
+            onMouseLeave={onMicHoldEnd}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              onMicHoldStart();
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              onMicHoldEnd();
+            }}
+            className={`flex shrink-0 items-center justify-center rounded-full transition-all ${
+              isInlineRecording
+                ? 'bg-rose-600 text-white animate-pulse'
+                : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+            } ${isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'}`}
+            aria-label="Hold to speak"
+          >
+            <Icon 
+              icon="lucide:mic" 
+              className={`${isMobile ? 'h-4 w-4' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} ${isInlineRecording ? 'text-white' : ''}`} 
+            />
+          </motion.button>
+
+          {/* Hold to Speak Tooltip */}
+          <AnimatePresence>
+            {showHoldTooltip && (
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 5 }}
+                transition={{ duration: 0.2 }}
+                className="absolute -top-10 left-1/2 -translate-x-1/2 bg-zinc-800 text-white text-xs px-2 py-1.5 rounded-lg whitespace-nowrap pointer-events-none z-50"
+              >
+                Hold to speak
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-800 rotate-45" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         <div className="relative flex-1">
           <textarea

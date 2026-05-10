@@ -2,9 +2,9 @@
 
 > **Purpose**: This is the primary context file for OpenCode CLI. OpenCode will use this to understand the entire Merch From project structure, goals, and development strategy before starting any work session.
 
-> **Project State**: Phase 3 (Frontend Content Suite) - Jan 12-26, 2026
+> **Project State**: P0 Demo Hardening (Crowdfunding Sprint) - Day 1-2 Complete, May 9-10, 2026
 > **Working Directory**: `/Users/victorbendas/Documents/GitHub/Merch-From`
-> **Last Updated**: February 18, 2026
+> **Last Updated**: May 10, 2026
 
 ---
 
@@ -15,7 +15,8 @@
 
 ### 📋 Core Documents
 **Product Vision**: [Documentation/PRD.md](./Documentation/PRD.md) - Full product requirements, AI agents, business model
-**Roadmap**: [Documentation/02-Roadmap/Roadmap.md](./Documentation/02-Roadmap/Roadmap.md) - Development phases, task breakdown
+**Roadmap**: [Documentation/05-Roadmap/Roadmap.md](./Documentation/05-Roadmap/Roadmap.md) - Development phases, task breakdown
+**Crowdfunding Roadmap**: [Documentation/05-Roadmap/Roadmap-Crowdfunding-v1.0.md](./Documentation/05-Roadmap/Roadmap-Crowdfunding-v1.0.md) - Day-by-day crowdfunding sprint plan
 
 ### 🤖 AI & Automation
 **AI System Prompts**: [Documentation/CAT_SUITE_PROMPTS.md](./Documentation/CAT_SUITE_PROMPTS.md) - Cat-Suite personality and system prompts
@@ -225,10 +226,12 @@ T3: Main session (needs build verification)
 4. **Expert Guidance** — Dedicated team (Leopoldo, Francisca, Antonia) handles everything for artists
 5. **Proprietary AI Pipeline** — Expert-scored dataset, EU-based technology (investor moat)
 
-### Current Phase: Phase 3 - Frontend Content Suite (Jan 12-26, 2026)
-**Timeline**: 2 weeks
-**Goal**: Build real, pixel-perfect frontends for ALL key surfaces
-**Status**: Main website production-ready (desktop/mobile), tablet adjustment in progress
+### Current Phase: P0 Demo Hardening (Crowdfunding Sprint) — May 9 → May 25, 2026
+**Timeline**: 2.5 weeks
+**Goal**: Working AI chat, voice, design gen, storefront for crowdfunding video
+**Status**: Day 1-2 COMPLETE (May 9-10). Agent routing, security hardening, 23 issues closed.
+**Branch**: `feat/crowdfunding-demo`
+**See**: [Roadmap-Crowdfunding-v1.0.md](./Documentation/05-Roadmap/Roadmap-Crowdfunding-v1.0.md) for full day-by-day plan
 
 ---
 
@@ -414,7 +417,10 @@ bunx drizzle-kit studio     # Open Drizzle Studio GUI
 
 ---
 
-## Current Phase (Phase 3: Frontend Content Suite)
+## Current Phase: P0 Demo Hardening (Crowdfunding Sprint)
+
+> **Branch**: `feat/crowdfunding-demo`
+> **Full plan**: [Roadmap-Crowdfunding-v1.0.md](./Documentation/05-Roadmap/Roadmap-Crowdfunding-v1.0.md)
 
 ### 3.1 Main Marketing Website (/) ✅ COMPLETE
 **Status**: Production-ready for Desktop and Mobile. Tablet adjustment in progress.
@@ -433,80 +439,81 @@ bunx drizzle-kit studio     # Open Drizzle Studio GUI
 **In Progress:**
 - Tablet view adjustment (optimizing for iPad/Android tablets)
 
-### 3.2 App Front-End Structure (/app) ⏳ PENDING
-**Goal**: Build REAL AI chat interface with working OpenRouter integration
+### 3.2 App AI Chat Interface (/app) 🚧 IN PROGRESS (P0 Sprint)
+**Goal**: Working AI chat with real LLM responses, voice, and agent routing
 
-**Components to Build:**
-- Collapsible sidebar with agent switcher (Leopoldo, Francisca, Antonia)
-- Rich message bubbles (text, images, product cards)
-- Multi-modal input (text + mic + upload)
-- Real AI backend connection (OpenRouter API)
-- Agent routing logic (topic-based handoffs)
-- Chat history persistence
-- Avatar state sync with AI responses
+**Completed (Day 1-2, May 9-10):**
+- ✅ Intent classification module (Mistral-based agent routing)
+- ✅ Agent routing middleware with automatic handoff
+- ✅ Mistral client integration (rebuilt from scratch)
+- ✅ Quick actions expanded to 9 per agent with carousel
+- ✅ Voice conversation with VAD (Voice Activity Detection)
+- ✅ Avatar expressions with context-aware sentiment mapping
+- ✅ Clerk auth on all chat API routes
+- ✅ Upstash rate limiting (20/min chat, 5/min voice)
+- ✅ Prompt injection sanitization
+- ✅ RBAC middleware for staff endpoints
+- ✅ Zod env validation, CORS, structured logger
+- ✅ Component extraction: ChatMessages, ChatInput, ChatWindow, ChatHeader
+- ✅ Hook extraction: useVoiceConversation, useAudioRecording
+- ✅ Error boundary, centralized CHAT_CONFIG
+- ✅ 23 GitHub issues closed (#1-#23)
+- ✅ Both /app and /mainpage build successfully
 
-### 3.3 App UI Integration to Main Website ⏳ PENDING
-**Goal**: Embed real App AI Chat Interface into main website
+**Next (Day 3+, May 11+):**
+- ⏳ Real LLM streaming responses with typewriter effect
+- ⏳ Chat history persistence to database
+- ⏳ Voice-to-voice full pipeline (STT → LLM → TTS)
+- ⏳ FLUX 2 design generation integration
+- ⏳ Demo mode with scripted responses for video
 
-**Integration Points:**
-- Embed app UI into main website layout
-- Shared state between main website and app
-- Navigation flow (main website → app → back to main)
-- Context preservation across views
+### 3.3 App UI Integration to Main Website ✅ DONE (widget)
+**Status**: CatChat widget embedded on mainpage with shared components
 
-### 3.4 Waitlist Landing Page (/waitlist) ⏳ PENDING
-**Goal**: Build simple waitlist capture page after app UI is complete
-
-**Components:**
-- Clean, centered layout with "Access Request" form
-- Form: Name, Email, Social Link (for vetting)
-- Form validation & error handling
-- Email integration (Mailgun, SendGrid, Brevo, or Loops)
-- Progress counter (e.g., "2,847 interested")
+### 3.4 Waitlist Landing Page (/waitlist) ✅ UI COMPLETE
+**Status**: 5-step form flow complete, API integration pending
 
 ### 3.5 Crowdfunding Landing Page (/invest) ⏳ PENDING
-**Goal**: Build crowdfunding campaign page
-
-**Components:**
-- Pitch Deck Scroller (interactive storytelling)
-- Video placeholder for pitch video
-- "Invest" CTA (links to crowdfunding platform)
-- Campaign progress tracker (goal vs raised)
+**Goal**: Build crowdfunding campaign page (P3 phase, June 9-22)
 
 ---
 
-## 2-Week Timeline (Jan 12-26, 2026)
+## P0 Sprint Timeline (May 9 → May 25, 2026)
 
-### Week 1 (Jan 12-19)
-- ✅ Complete main website (desktop/mobile)
-- ⏸ Complete app front-end structure (real AI UI)
-- ⏸ Start app AI backend integration
+### Week 1 — AI Chat Core (May 9-15)
+- ✅ Day 1 (May 9): Intent classification, agent routing, Mistral rebuild, voice VAD
+- ✅ Day 2 (May 10): Security hardening (23 issues), component refactoring, RBAC
+- ⏳ Day 3 (May 11): Real LLM streaming + chat history + typewriter
+- ⏳ Day 4 (May 12): Typing indicator + message animations
+- ⏳ Day 5 (May 13): Demo mode + fallback responses
+- ⏳ Day 6 (May 14): Polish + mobile chat
+- ⏳ Day 7 (May 15): Week 1 review + voice prep
 
-### Week 2 (Jan 19-26)
-- ⏸ Complete app AI backend integration
-- ⏸ Integrate app UI into main website
-- ⏸ Build waitlist landing page
-- ⏸ Build crowdfunding landing page
+### Week 2 — Voice + Design Generation (May 16-22)
+- ⏳ Days 8-14: Voice STT/TTS, FLUX 2 design gen, refinement loop, storefront
 
-**Deliverable**: Working AI chat embedded in main website + separate waitlist/crowdfunding landing pages
+### Week 3 — Storefront + Integration (May 23-25)
+- ⏳ Days 15-17: Storefront, product grid, cart, integration testing
+
+**Deliverable**: Working AI chat + voice + design gen + storefront for crowdfunding video
 
 ---
 
 ## Roadmap Phases (Future Reference)
 
-### Phase 4: Production MVP - Backend Core (Jan 26 → Feb 9)
+### Phase 4: Production MVP - Backend Core ✅ COMPLETE
 - Neon + Clerk, Auth, Real Data Architecture
 
-### Phase 5: Production MVP - AI Agents (Feb 9 → Feb 23)
-- Connect Cat-Suite agents to real AI backends via Vercel Functions
+### Phase 5: Production MVP - AI Agents ✅ COMPLETE
+- Mistral Large LLM, agent routing, voice pipeline
 
-### Phase 6: Production MVP - Commerce (Feb 23 → Mar 16)
-- Stripe, Orders, Artist Dashboard
+### Phase 6: Production MVP - Commerce ✅ CORE COMPLETE
+- Stripe webhooks, cart, checkout, order management
 
-### Phase 7: Production MVP - Launch (Mar 16 → Mar 30)
+### Phase 7: Production MVP - Launch ⏳ POST-CROWDFUNDING
 - Testing, Artist Onboarding
 
-### Phase 8: Social Commerce Integration Hub (Apr-Jul 2026)
+### Phase 8: Social Commerce Integration Hub ⏳ 2027
 - Discord, Meta, TikTok, Twitch catalog sync
 
 ### Phase 10: Accessories Expansion (Year 2 - 2027-2028)

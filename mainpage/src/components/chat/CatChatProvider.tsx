@@ -1,11 +1,11 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
-import type { AgentId, ChatMessage } from '@/types/chat';
+import type { AgentId, ChatMessage, HandoffStatus } from '@/types/chat';
 import { AGENT_CONFIGS } from '@/types/chat';
 import { determineAgent, generateHandoffMessage } from '@/lib/chat/agentRouter';
 import type { QuickAction } from '@/lib/chat/quickActions';
-import { getAgentQuickActions } from '@/lib/chat/quickActions';
+import { getAgentQuickActions, withHumanHandoff } from '@/lib/chat/quickActions';
 
 const HANDOFF_DELAY_MS = 400;
 
@@ -19,12 +19,19 @@ interface ChatContextValue {
   isTyping: boolean;
   suggestions: string[];
   quickActions: QuickAction[];
+  handoffStatus: HandoffStatus;
+  handoffTicketId?: string;
+  assignedStaffName?: string;
+  contactEmail?: string;
   toggleChat: () => void;
   setAgent: (agent: AgentId) => void;
   setIsVoiceMode: (enabled: boolean) => void;
   sendMessage: (content: string) => Promise<void>;
   sendAudio: (audioBlob: Blob) => Promise<void>;
   clearMessages: () => void;
+  requestHumanHandoff: (email?: string) => Promise<void>;
+  cancelHandoff: () => void;
+  setContactEmail: (email: string) => void;
 }
 
 const ChatContext = createContext<ChatContextValue | null>(null);
@@ -53,10 +60,17 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [quickActions, setQuickActions] = useState<QuickAction[]>([]);
 
+  // Human handoff state
+  const [handoffStatus, setHandoffStatus] = useState<HandoffStatus>('none');
+  const [handoffTicketId, setHandoffTicketId] = useState<string | undefined>();
+  const [assignedStaffName, setAssignedStaffName] = useState<string | undefined>();
+  const [contactEmail, setContactEmailState] = useState<string>('');
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   // Update quick actions when agent changes
   useEffect(() => {
-    setQuickActions(getAgentQuickActions(currentAgent));
-  }, [currentAgent]);
+    setQuickActions(handoffStatus === 'none' ? withHumanHandoff(getAgentQuickActions(currentAgent)) : getAgentQuickActions(currentAgent));
+  }, [currentAgent, handoffStatus]);
 
   const _mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -288,6 +302,138 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
     setSuggestions([]);
   }, []);
 
+  // ── Human Handoff ───────────────────────────────────────────────────
+
+  const setContactEmail = useCallback((email: string) => {
+    setContactEmailState(email);
+  }, []);
+
+  const requestHumanHandoff = useCallback(
+    async (email?: string) => {
+      const emailToUse = email || contactEmail;
+      if (!emailToUse) {
+        setHandoffStatus('awaiting_email');
+        return;
+      }
+
+      setHandoffStatus('requested');
+
+      try {
+        const response = await fetch('/api/support/handoff', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agentId: currentAgent,
+            messages: messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+              agent: m.agent,
+            })),
+            contactEmail: emailToUse,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Handoff API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        setHandoffTicketId(data.ticketId);
+        setHandoffStatus('queued');
+        setAssignedStaffName(data.assignedStaffName);
+
+        // Add system message about handoff
+        const handoffMessage: ChatMessage = {
+          id: `handoff-system-${Date.now()}`,
+          role: 'assistant',
+          content: data.message,
+          type: 'text',
+          timestamp: Date.now(),
+          agent: currentAgent,
+        };
+        setMessages((prev) => [...prev, handoffMessage]);
+      } catch (error) {
+        console.error('Handoff error:', error);
+        setHandoffStatus('none');
+        const errorMessage: ChatMessage = {
+          id: `handoff-error-${Date.now()}`,
+          role: 'assistant',
+          content: "Sorry, I couldn't connect you with a human right now. Please try again in a moment.",
+          type: 'text',
+          timestamp: Date.now(),
+          agent: currentAgent,
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      }
+    },
+    [currentAgent, messages, contactEmail]
+  );
+
+  const cancelHandoff = useCallback(() => {
+    setHandoffStatus('none');
+    setHandoffTicketId(undefined);
+    setAssignedStaffName(undefined);
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  }, []);
+
+  // Polling for ticket status updates
+  useEffect(() => {
+    if (
+      handoffStatus === 'queued' ||
+      handoffStatus === 'assigned'
+    ) {
+      pollingIntervalRef.current = setInterval(async () => {
+        if (!handoffTicketId) return;
+
+        try {
+          const response = await fetch(
+            `/api/support/handoff?ticketId=${handoffTicketId}`
+          );
+          if (!response.ok) return;
+
+          const data = await response.json();
+
+          if (data.status === 'in_progress') {
+            setHandoffStatus('human_joined');
+            // Add system message that human has joined
+            const joinMessage: ChatMessage = {
+              id: `human-joined-${Date.now()}`,
+              role: 'assistant',
+              content: `${data.assignedStaffName || 'A team member'} has joined the conversation.`,
+              type: 'text',
+              timestamp: Date.now(),
+              agent: currentAgent,
+            };
+            setMessages((prev) => [...prev, joinMessage]);
+          } else if (data.status === 'resolved') {
+            setHandoffStatus('resolved');
+          }
+        } catch (error) {
+          console.error('Polling error:', error);
+        }
+      }, 10000); // Poll every 10 seconds
+
+      return () => {
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+        }
+      };
+    }
+  }, [handoffStatus, handoffTicketId, currentAgent]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -319,12 +465,19 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
     isTyping,
     suggestions,
     quickActions,
+    handoffStatus,
+    handoffTicketId,
+    assignedStaffName,
+    contactEmail,
     toggleChat,
     setAgent,
     setIsVoiceMode,
     sendMessage,
     sendAudio,
     clearMessages,
+    requestHumanHandoff,
+    cancelHandoff,
+    setContactEmail,
   };
 
   return (
