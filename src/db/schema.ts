@@ -1,5 +1,5 @@
-import { pgTable, text, boolean, integer, jsonb, timestamp, uuid, pgEnum, index, sql } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { pgTable, text, boolean, integer, jsonb, timestamp, uuid, pgEnum, index } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
 
 // Enums
 export const userRoleEnum = pgEnum('user_role', ['artist', 'customer', 'admin']);
