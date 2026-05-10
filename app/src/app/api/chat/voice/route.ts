@@ -1,10 +1,12 @@
-import { requireChatAuth } from '@/lib/auth/chat-auth';
-import { requireChatAccess } from '@/lib/auth/require-chat-access';
 import { type NextRequest, NextResponse } from 'next/server';
 import { MiniMaxSpeechProvider } from '@/lib/ai/minimax-speech';
 import { miniMaxProvider } from '@/lib/ai/provider';
 import { sanitizePromptInput } from '@/lib/sanitize/prompt-sanitize';
 import { withCors } from '@/lib/cors';
+
+/**
+ * Demo mode: Auth is bypassed for chat API routes during crowdfunding sprint.
+ */
 
 const speechClient = new MiniMaxSpeechProvider();
 
@@ -16,12 +18,6 @@ const agentMap = {
 
 export async function POST(req: NextRequest) {
   const origin = req.headers.get('origin');
-
-  const authResult = await requireChatAuth();
-  if (authResult instanceof NextResponse) return withCors(authResult, origin);
-
-  const rateLimitResult = await requireChatAccess(authResult, 'voice');
-  if (rateLimitResult instanceof NextResponse) return withCors(rateLimitResult, origin);
 
   try {
     const body = await req.json();

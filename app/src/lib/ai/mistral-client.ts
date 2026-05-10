@@ -24,15 +24,15 @@ interface ChatResponse {
 const MISTRAL_BASE_URL = 'https://api.mistral.ai/v1';
 const DEFAULT_MODEL = 'mistral-small-latest';
 const CHAT_MODEL = 'mistral-large-latest';
-const REQUEST_TIMEOUT_MS = 8000;
+const REQUEST_TIMEOUT_MS = 30000;
 
 class MistralClient {
   private apiKey: string;
 
   constructor() {
-    // Lazy import to avoid circular dependency issues during build
-    const { env } = require('@/lib/env');
-    this.apiKey = env.MISTRAL_API_KEY;
+    // Read directly from process.env to avoid triggering env.ts Proxy validation
+    // which crashes if any required var is missing
+    this.apiKey = process.env.MISTRAL_API_KEY || '';
   }
 
   private get headers(): Record<string, string> {

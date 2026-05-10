@@ -1,9 +1,11 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { requireChatAuth } from '@/lib/auth/chat-auth';
-import { requireChatAccess } from '@/lib/auth/require-chat-access';
 import { withCors } from '@/lib/cors';
 import { contextRouter } from '@/lib/ai/contextRouter';
 import type { AgentId, RoutingContext } from '@/types/chat';
+
+/**
+ * Demo mode: Auth is bypassed for chat API routes during crowdfunding sprint.
+ */
 
 interface RouteRequestBody {
   message: string;
@@ -25,12 +27,6 @@ interface RouteRequestBody {
  */
 export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin');
-
-  const authResult = await requireChatAuth();
-  if (authResult instanceof NextResponse) return withCors(authResult, origin);
-
-  const rateLimitResult = await requireChatAccess(authResult, 'chat');
-  if (rateLimitResult instanceof NextResponse) return withCors(rateLimitResult, origin);
 
   const requestId = crypto.randomUUID();
 

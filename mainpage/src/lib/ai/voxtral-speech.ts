@@ -1,5 +1,5 @@
 const MISTRAL_BASE_URL = 'https://api.mistral.ai/v1';
-const DEFAULT_MODEL = 'voxtral';
+const DEFAULT_MODEL = 'voxtral-mini-latest';
 const REQUEST_TIMEOUT_MS = 30000;
 
 class VoxtralSpeechProvider {
@@ -12,6 +12,11 @@ class VoxtralSpeechProvider {
   }
 
   async transcribeAudio(audioBlob: Blob): Promise<string | null> {
+    if (!this.apiKey) {
+      console.error('[Voxtral STT] MISTRAL_API_KEY is not configured');
+      return null;
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
@@ -20,7 +25,8 @@ class VoxtralSpeechProvider {
       formData.append('file', audioBlob, 'audio.webm');
       formData.append('model', this.model);
       formData.append('language', 'en');
-      formData.append('response_format', 'json');
+
+      console.log(`[Voxtral STT] Transcribing with model: ${this.model}`);
 
       const response = await fetch(`${MISTRAL_BASE_URL}/audio/transcriptions`, {
         method: 'POST',
@@ -34,15 +40,21 @@ class VoxtralSpeechProvider {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        console.error(`Voxtral STT error ${response.status}: ${await response.text()}`);
+        const errorText = await response.text();
+        console.error(`[Voxtral STT] API error ${response.status}: ${errorText}`);
         return null;
       }
 
       const data = (await response.json()) as { text?: string };
+      console.log(`[Voxtral STT] Transcription result: "${data.text?.substring(0, 100)}"`);
       return data.text || null;
     } catch (error) {
       clearTimeout(timeoutId);
-      console.error('Voxtral STT transcription failed:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('[Voxtral STT] Request timed out after', REQUEST_TIMEOUT_MS, 'ms');
+      } else {
+        console.error('[Voxtral STT] Transcription failed:', error);
+      }
       return null;
     }
   }

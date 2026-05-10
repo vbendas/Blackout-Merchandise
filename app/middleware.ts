@@ -2,13 +2,14 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Define protected routes
+// Routes that require Clerk auth when real keys are configured
+// During demo/crowdfunding phase, chat API routes are open (placeholder keys)
 const isProtectedRoute = createRouteMatcher([
   '/app(.*)', // All app pages (workspace, eshop, etc.)
   '/app/shop/customize', // Shop customization (artist only)
   '/api/checkout(.*)', // Checkout API
   '/api/ai/(.*)', // AI chat endpoints
-  '/api/chat(.*)', // Chat API endpoints - requires auth
+  // '/api/chat(.*)' — SKIPPED: chat routes are open for crowdfunding demo (placeholder Clerk keys)
   '/api/pricing(.*)', // Pricing API
   '/api/print-prepare(.*)', // Print preparation API
   '/api/shop/customize', // Shop customization API

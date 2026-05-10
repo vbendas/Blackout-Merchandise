@@ -30,7 +30,7 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.string().url().optional().or(z.literal('')),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional().or(z.literal('')),
 
-  VOXTRAL_STT_MODEL: z.string().optional().or(z.literal('')).default('voxtral'),
+  VOXTRAL_STT_MODEL: z.string().optional().or(z.literal('')).default('voxtral-mini-latest'),
 
   ENABLE_LLM_ROUTING: z.enum(['true', 'false']).default('false'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -51,7 +51,7 @@ const rawEnv = result.success
       ELEVENLABS_VOICE_ANTONIA: '',
       UPSTASH_REDIS_REST_URL: '',
       UPSTASH_REDIS_REST_TOKEN: '',
-      VOXTRAL_STT_MODEL: 'voxtral',
+      VOXTRAL_STT_MODEL: 'voxtral-mini-latest',
       ENABLE_LLM_ROUTING: 'false',
       NODE_ENV: (process.env.NODE_ENV || 'development') as 'development' | 'production' | 'test',
     };

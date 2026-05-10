@@ -179,6 +179,19 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
           agent,
         }),
       });
+
+      if (!response.ok) {
+        console.warn('[Suggestions] API returned', response.status);
+        return;
+      }
+
+      // Guard against non-JSON responses (e.g., HTML from redirects)
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        console.warn('[Suggestions] Non-JSON response:', contentType);
+        return;
+      }
+
       const data = await response.json();
       if (data.suggestions) {
         setSuggestions(data.suggestions);
@@ -268,6 +281,10 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
           }),
         });
 
+        if (!response.ok) {
+          throw new Error(`Chat API error: ${response.status}`);
+        }
+
         const data = await response.json();
 
         // Check if API response includes card data
@@ -324,6 +341,10 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
           method: 'POST',
           body: formData,
         });
+
+        if (!response.ok) {
+          throw new Error(`Voice API error: ${response.status}`);
+        }
 
         const data = await response.json();
         const transcription = data.transcription || '';
@@ -403,6 +424,11 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
             method: 'POST',
             body: newAgentFormData,
           });
+
+          if (!newAgentResponse.ok) {
+            throw new Error(`Voice API (handoff) error: ${newAgentResponse.status}`);
+          }
+
           const newAgentData = await newAgentResponse.json();
 
           if (newAgentData.response) {

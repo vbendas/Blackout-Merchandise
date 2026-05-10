@@ -231,35 +231,18 @@ export function CatChat() {
   const pendingStopRef = useRef(false);
 
   // Voice conversation state
-  const [isVoiceConversationActive, setIsVoiceConversationActive] = useState(false);
   const [voiceConversationStatus, setVoiceConversationStatus] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
   const [audioLevel, setAudioLevel] = useState(0);
-  const isVoiceConversationActiveRef = useRef(false);
-
-  // Keep ref in sync with state for async callbacks
-  useEffect(() => {
-    isVoiceConversationActiveRef.current = isVoiceConversationActive;
-  }, [isVoiceConversationActive]);
 
   // Human handoff email form state
   const [emailInput, setEmailInput] = useState('');
   const [isSubmittingHandoff, setIsSubmittingHandoff] = useState(false);
 
-  // VAD refs
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const microphoneStreamRef = useRef<MediaStream | null>(null);
-  const vadFrameRef = useRef<number | null>(null);
-  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Voice pipeline refs (wave hold-to-speak)
   const voiceMediaRecorderRef = useRef<MediaRecorder | null>(null);
   const voiceAudioChunksRef = useRef<Blob[]>([]);
-  const isRecordingVoiceRef = useRef(false);
   const isProcessingVoiceRef = useRef(false);
-
-  // Refs to break circular dependencies in voice conversation callbacks
-  const startVoiceRecordingRef = useRef<(() => void) | null>(null);
-  const stopVoiceRecordingRef = useRef<(() => void) | null>(null);
-  const startVoiceListeningRef = useRef<(() => void) | null>(null);
+  const wavePendingStopRef = useRef(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -443,8 +426,21 @@ export function CatChat() {
 
   const startInlineRecording = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          sampleRate: 16000,
+        },
+      });
+
+      // Pick best supported MIME type for speech
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+          ? 'audio/webm'
+          : 'audio/mp4';
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       inlineMediaRecorderRef.current = mediaRecorder;
       inlineAudioChunksRef.current = [];
 
@@ -455,20 +451,25 @@ export function CatChat() {
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(inlineAudioChunksRef.current, { type: 'audio/webm' });
+        const audioBlob = new Blob(inlineAudioChunksRef.current, { type: mimeType });
         stream.getTracks().forEach((track) => track.stop());
+
+        console.log(`[Inline Mic] Recording captured: ${audioBlob.size} bytes, type: ${mimeType}`);
 
         // Skip very short recordings (less than 1KB = ~100ms of audio)
         if (audioBlob.size < 1024) {
           console.warn('[Inline Mic] Recording too short, skipping transcription');
+          setIsInlineRecording(false);
           return;
         }
 
         // Send to transcribe API
         try {
+          const fileExtension = mimeType.includes('mp4') ? 'audio.mp4' : 'audio.webm';
           const formData = new FormData();
-          formData.append('audio', audioBlob, 'audio.webm');
+          formData.append('audio', audioBlob, fileExtension);
 
+          console.log('[Inline Mic] Sending to /api/chat/transcribe...');
           const response = await fetch('/api/chat/transcribe', {
             method: 'POST',
             body: formData,
@@ -482,18 +483,22 @@ export function CatChat() {
 
           const data = await response.json();
           
+          console.log(`[Inline Mic] Transcription result: "${data.transcription || '(empty)'}"`);
+
           if (data.transcription) {
             // Send transcription directly as text message
             await sendMessage(data.transcription.trim());
           } else {
-            console.warn('[Inline Mic] No transcription received');
+            console.warn('[Inline Mic] No transcription received — audio may not contain speech');
           }
         } catch (error) {
           console.error('[Inline Mic] Transcription error:', error);
         }
       };
 
-      mediaRecorder.start();
+      // Start with timeslice=100ms to get data chunks every 100ms
+      // This ensures ondataavailable fires during recording, not just on stop
+      mediaRecorder.start(100);
       
       // Check if stop was requested while we were waiting for mic access
       if (pendingStopRef.current) {
@@ -501,7 +506,8 @@ export function CatChat() {
         mediaRecorder.stop();
       }
     } catch (error) {
-      console.error('Microphone access denied:', error);
+      console.error('[Inline Mic] Microphone access denied:', error);
+      setIsInlineRecording(false);
     }
   }, [sendMessage]);
 
@@ -577,28 +583,10 @@ export function CatChat() {
   // ── Voice Conversation ──────────────────────────────────────────────
 
   const cleanupVoiceConversation = useCallback(() => {
-    if (vadFrameRef.current) {
-      cancelAnimationFrame(vadFrameRef.current);
-      vadFrameRef.current = null;
-    }
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
-    if (microphoneStreamRef.current) {
-      microphoneStreamRef.current.getTracks().forEach((t) => t.stop());
-      microphoneStreamRef.current = null;
-    }
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
-    }
     if (voiceMediaRecorderRef.current && voiceMediaRecorderRef.current.state === 'recording') {
       voiceMediaRecorderRef.current.stop();
     }
-    isRecordingVoiceRef.current = false;
     isProcessingVoiceRef.current = false;
-    setAudioLevel(0);
     setVoiceConversationStatus('idle');
   }, []);
 
@@ -610,7 +598,8 @@ export function CatChat() {
     try {
       // Call voice pipeline directly for real-time conversation
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'audio.webm');
+      const fileExt = audioBlob.type.includes('mp4') ? 'audio.mp4' : 'audio.webm';
+      formData.append('audio', audioBlob, fileExt);
       formData.append('agent', currentAgent);
       formData.append(
         'history',
@@ -669,125 +658,72 @@ export function CatChat() {
       console.error('[Voice Conversation] Processing failed:', err);
     } finally {
       isProcessingVoiceRef.current = false;
-      // Resume listening if still active
-      if (isVoiceConversationActiveRef.current) {
-        setVoiceConversationStatus('listening');
-        startVoiceListeningRef.current?.();
-      } else {
-        setVoiceConversationStatus('idle');
-      }
+      setVoiceConversationStatus('idle');
     }
   }, [currentAgent, messages, playAudioResponse]);
 
-  const startVoiceRecording = useCallback(() => {
-    if (!microphoneStreamRef.current || isRecordingVoiceRef.current) return;
+  // ── Wave Icon Hold-to-Speak (STT → LLM → TTS) ─────────────────────
 
-    const recorder = new MediaRecorder(microphoneStreamRef.current);
-    voiceMediaRecorderRef.current = recorder;
-    voiceAudioChunksRef.current = [];
-    isRecordingVoiceRef.current = true;
-    setVoiceConversationStatus('listening');
+  const handleWaveHoldStart = useCallback(async () => {
+    if (isProcessingVoiceRef.current) return;
 
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) voiceAudioChunksRef.current.push(e.data);
-    };
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, sampleRate: 16000 },
+      });
 
-    recorder.onstop = () => {
-      isRecordingVoiceRef.current = false;
-      const blob = new Blob(voiceAudioChunksRef.current, { type: 'audio/webm' });
-      if (blob.size > 1000) {
-        processVoiceTurn(blob);
-      } else {
-        if (isVoiceConversationActiveRef.current) {
-          setVoiceConversationStatus('listening');
-          startVoiceListeningRef.current?.();
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+          ? 'audio/webm'
+          : 'audio/mp4';
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      voiceMediaRecorderRef.current = mediaRecorder;
+      voiceAudioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) voiceAudioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(voiceAudioChunksRef.current, { type: mimeType });
+        stream.getTracks().forEach((t) => t.stop());
+
+        console.log(`[Wave Voice] Captured: ${blob.size} bytes, type: ${mimeType}`);
+
+        if (blob.size < 1024) {
+          console.warn('[Wave Voice] Recording too short, skipping');
+          setVoiceConversationStatus('idle');
+          return;
         }
-      }
-    };
 
-    recorder.start();
+        await processVoiceTurn(blob);
+      };
+
+      setVoiceConversationStatus('listening');
+      mediaRecorder.start(100);
+
+      // If stop was requested while waiting for mic access
+      if (wavePendingStopRef.current) {
+        wavePendingStopRef.current = false;
+        mediaRecorder.stop();
+      }
+    } catch (error) {
+      console.error('[Wave Voice] Mic access denied:', error);
+      setVoiceConversationStatus('idle');
+    }
   }, [processVoiceTurn]);
 
-  const stopVoiceRecording = useCallback(() => {
+  const handleWaveHoldEnd = useCallback(() => {
     if (voiceMediaRecorderRef.current && voiceMediaRecorderRef.current.state === 'recording') {
       voiceMediaRecorderRef.current.stop();
+    } else {
+      wavePendingStopRef.current = true;
     }
   }, []);
 
-  const startVoiceListening = useCallback(() => {
-    if (!analyserRef.current || !isVoiceConversationActiveRef.current) return;
-
-    const analyser = analyserRef.current;
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    const threshold = 15;
-    const silenceDelay = 1200;
-
-    const detect = () => {
-      if (!isVoiceConversationActiveRef.current) return;
-
-      analyser.getByteFrequencyData(dataArray);
-      let sum = 0;
-      for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-      const avg = sum / dataArray.length;
-      setAudioLevel(avg);
-
-      if (avg > threshold) {
-        if (!isRecordingVoiceRef.current) {
-          startVoiceRecordingRef.current?.();
-        }
-        if (silenceTimerRef.current) {
-          clearTimeout(silenceTimerRef.current);
-          silenceTimerRef.current = null;
-        }
-      } else if (isRecordingVoiceRef.current && !silenceTimerRef.current) {
-        silenceTimerRef.current = setTimeout(() => {
-          stopVoiceRecordingRef.current?.();
-          silenceTimerRef.current = null;
-        }, silenceDelay);
-      }
-
-      vadFrameRef.current = requestAnimationFrame(detect);
-    };
-
-    vadFrameRef.current = requestAnimationFrame(detect);
-  }, []);
-
-  // Keep callback refs in sync to break circular dependencies
-  useEffect(() => {
-    startVoiceRecordingRef.current = startVoiceRecording;
-    stopVoiceRecordingRef.current = stopVoiceRecording;
-    startVoiceListeningRef.current = startVoiceListening;
-  });
-
-  const startVoiceConversation = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      microphoneStreamRef.current = stream;
-
-      const audioContext = new AudioContext();
-      audioContextRef.current = audioContext;
-
-      const source = audioContext.createMediaStreamSource(stream);
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.8;
-      source.connect(analyser);
-      analyserRef.current = analyser;
-
-      setIsVoiceConversationActive(true);
-      setVoiceConversationStatus('listening');
-      startVoiceListening();
-    } catch (error) {
-      console.error('[Voice Conversation] Microphone access denied:', error);
-      setIsVoiceConversationActive(false);
-    }
-  }, [startVoiceListening]);
-
-  const stopVoiceConversation = useCallback(() => {
-    setIsVoiceConversationActive(false);
-    cleanupVoiceConversation();
-  }, [cleanupVoiceConversation]);
-
+  // Cleanup on unmount
   useEffect(() => {
     return () => cleanupVoiceConversation();
   }, [cleanupVoiceConversation]);
@@ -957,26 +893,23 @@ export function CatChat() {
                 background: 'linear-gradient(135deg, rgba(161, 161, 170, 0.12) 0%, rgba(161, 161, 170, 0.04) 100%)',
               }}
             >
-              {/* Voice Conversation Toggle - Left side */}
+              {/* Voice Hold-to-Speak - Left side */}
               <div className="absolute left-4 flex items-center">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    if (isVoiceConversationActive) {
-                      stopVoiceConversation();
-                    } else {
-                      startVoiceConversation();
-                    }
-                  }}
-                  className={`flex items-center justify-center rounded-full transition-all ${
-                    isVoiceConversationActive
+                  whileTap={{ scale: 0.9 }}
+                  onMouseDown={handleWaveHoldStart}
+                  onMouseUp={handleWaveHoldEnd}
+                  onMouseLeave={handleWaveHoldEnd}
+                  onTouchStart={(e) => { e.preventDefault(); handleWaveHoldStart(); }}
+                  onTouchEnd={handleWaveHoldEnd}
+                  className={`flex items-center justify-center rounded-full transition-all select-none ${
+                    voiceConversationStatus !== 'idle'
                       ? 'text-red-400 animate-pulse'
                       : 'text-zinc-400 hover:text-white'
                   } ${isMobile ? 'h-8 w-8' : 'h-9 w-9'}`}
-                  title={isVoiceConversationActive ? 'End voice conversation' : 'Start voice conversation'}
+                  title="Hold to speak"
                 >
-                  {isVoiceConversationActive ? (
+                  {voiceConversationStatus !== 'idle' ? (
                     <div className="flex items-center gap-[3px] h-5">
                       {[0.6, 1, 0.7, 0.4, 0.8].map((scale, i) => (
                         <motion.div
@@ -1152,7 +1085,7 @@ export function CatChat() {
                 onSend={handleSend}
                 onKeyDown={handleKeyDown}
                 isTyping={isTyping}
-                isVoiceConversationActive={isVoiceConversationActive}
+                isVoiceConversationActive={voiceConversationStatus !== 'idle'}
                 voiceConversationStatus={voiceConversationStatus}
                 audioLevel={audioLevel}
                 quickActions={quickActions}
