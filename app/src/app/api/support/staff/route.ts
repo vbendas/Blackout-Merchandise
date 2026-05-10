@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import {
   createStaff,
   getAllActiveStaff,
 } from '@db-root/staff';
+import { requireStaffRole } from '@/lib/auth/require-staff-role';
 
 const staffSchema = z.object({
   name: z.string().min(1),
@@ -26,13 +26,17 @@ const staffSchema = z.object({
  * GET /api/support/staff
  *
  * List all active staff members.
+ * Requires admin, head_of_operations, head_of_customer_success, or support_agent role.
  */
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const staffCheck = await requireStaffRole([
+      'admin',
+      'head_of_operations',
+      'head_of_customer_success',
+      'support_agent',
+    ]);
+    if (staffCheck instanceof NextResponse) return staffCheck;
 
     const staff = await getAllActiveStaff();
     return NextResponse.json({ staff });
@@ -49,15 +53,12 @@ export async function GET(request: NextRequest) {
  * POST /api/support/staff
  *
  * Create a new staff member.
+ * Requires admin or head_of_operations role.
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add admin role check
+    const staffCheck = await requireStaffRole(['admin', 'head_of_operations']);
+    if (staffCheck instanceof NextResponse) return staffCheck;
 
     const body = await request.json();
     const parsed = staffSchema.safeParse(body);

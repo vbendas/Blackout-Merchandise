@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { assignTicket } from '@db-root/supportTickets';
+import { requireStaffRole } from '@/lib/auth/require-staff-role';
 
 const assignSchema = z.object({
   staffId: z.string().uuid(),
@@ -11,16 +11,19 @@ const assignSchema = z.object({
  * POST /api/support/tickets/[id]/assign
  *
  * Assign a ticket to a staff member.
+ * Requires admin, head_of_operations, or head_of_customer_success role.
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const staffCheck = await requireStaffRole([
+      'admin',
+      'head_of_operations',
+      'head_of_customer_success',
+    ]);
+    if (staffCheck instanceof NextResponse) return staffCheck;
 
     const { id } = await params;
     const body = await request.json();

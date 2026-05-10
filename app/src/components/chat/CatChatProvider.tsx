@@ -579,7 +579,7 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  });
+  }, [messages]);
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {

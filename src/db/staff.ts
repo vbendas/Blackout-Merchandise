@@ -42,6 +42,15 @@ export async function getStaffByEmail(email: string): Promise<Staff | null> {
   return result || null;
 }
 
+export async function getStaffByUserId(userId: string): Promise<Staff | null> {
+  const [result] = await db
+    .select()
+    .from(staff)
+    .where(and(eq(staff.userId, userId), eq(staff.isActive, true)))
+    .limit(1);
+  return result || null;
+}
+
 export async function getActiveStaffByRole(role: string): Promise<Staff[]> {
   return db
     .select()

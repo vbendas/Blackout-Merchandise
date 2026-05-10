@@ -1,11 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import {
   getRecentTickets,
   getTicketsByStatus,
-  getTicketWithDetails,
 } from '@db-root/supportTickets';
+import { requireStaffRole } from '@/lib/auth/require-staff-role';
 
 const listSchema = z.object({
   status: z.string().optional(),
@@ -19,17 +18,17 @@ const listSchema = z.object({
  * GET /api/support/tickets
  *
  * List support tickets with optional filtering.
- * Requires admin or support role.
+ * Requires admin, head_of_operations, head_of_customer_success, or support_agent role.
  */
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add role-based access control (check if user is admin/support)
-    // For now, allow any authenticated user to list tickets
+    const staffCheck = await requireStaffRole([
+      'admin',
+      'head_of_operations',
+      'head_of_customer_success',
+      'support_agent',
+    ]);
+    if (staffCheck instanceof NextResponse) return staffCheck;
 
     const { searchParams } = new URL(request.url);
     const parsed = listSchema.safeParse({

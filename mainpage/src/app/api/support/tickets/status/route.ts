@@ -1,6 +1,11 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getTicketById } from '@db-root/supportTickets';
+import {
+  getHandoffRateLimit,
+  checkRateLimit,
+  getRateLimitIdentifier,
+} from '@/lib/rate-limit/chat-rate-limit';
 
 const statusSchema = z.object({
   ticketId: z.string().uuid(),
@@ -31,6 +36,18 @@ export async function GET(request: NextRequest) {
   const { ticketId } = parsed.data;
 
   try {
+    // Rate limiting check
+    const rateLimit = getHandoffRateLimit();
+    const identifier = getRateLimitIdentifier(request);
+    const rateLimitResult = await checkRateLimit(rateLimit, identifier);
+
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429, headers: rateLimitResult.headers }
+      );
+    }
+
     const ticket = await getTicketById(ticketId);
 
     if (!ticket) {

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { updateStaff, deactivateStaff } from '@db-root/staff';
+import { requireStaffRole } from '@/lib/auth/require-staff-role';
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
@@ -23,18 +23,15 @@ const updateSchema = z.object({
  * PUT /api/support/staff/[id]
  *
  * Update a staff member.
+ * Requires admin or head_of_operations role.
  */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add admin role check
+    const staffCheck = await requireStaffRole(['admin', 'head_of_operations']);
+    if (staffCheck instanceof NextResponse) return staffCheck;
 
     const { id } = await params;
     const body = await request.json();
@@ -70,18 +67,15 @@ export async function PUT(
  * DELETE /api/support/staff/[id]
  *
  * Deactivate a staff member (soft delete).
+ * Requires admin role only.
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add admin role check
+    const staffCheck = await requireStaffRole(['admin']);
+    if (staffCheck instanceof NextResponse) return staffCheck;
 
     const { id } = await params;
     await deactivateStaff(id);

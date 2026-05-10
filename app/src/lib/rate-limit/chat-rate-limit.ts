@@ -77,6 +77,41 @@ export function getVoiceRateLimit(): Ratelimit | null {
   return _voiceRateLimit;
 }
 
+/**
+ * Handoff requests: 3 per 10 minutes for anonymous, 10 per minute for authenticated
+ * Covers: /api/support/handoff (mainpage anonymous)
+ */
+let _handoffRateLimit: Ratelimit | null = null;
+export function getHandoffRateLimit(): Ratelimit | null {
+  if (_handoffRateLimit) return _handoffRateLimit;
+  const redis = getRedis();
+  if (!redis) return null;
+  _handoffRateLimit = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(3, '10m'),
+    analytics: true,
+    prefix: 'ratelimit:handoff',
+  });
+  return _handoffRateLimit;
+}
+
+/**
+ * Get a stable identifier for rate limiting from a request.
+ * For authenticated users, use their user ID.
+ * For anonymous users, use the forwarded IP or fallback.
+ */
+export function getRateLimitIdentifier(
+  req: Request,
+  userId?: string
+): string {
+  if (userId) {
+    return `auth:${userId}`;
+  }
+  const forwarded = req.headers.get('x-forwarded-for');
+  const ip = forwarded?.split(',')[0]?.trim() || 'anonymous';
+  return `ip:${ip}`;
+}
+
 // Backward-compatible exports (deprecated — use getter functions)
 export const chatRateLimit = null;
 export const voiceRateLimit = null;

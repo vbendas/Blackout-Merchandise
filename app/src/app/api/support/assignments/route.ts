@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import {
   setPrimaryAssignment,
   getAllAssignments,
 } from '@db-root/agentAssignments';
+import { requireStaffRole } from '@/lib/auth/require-staff-role';
 
 const assignmentSchema = z.object({
   agentId: z.enum(['Leopoldo', 'Francisca', 'Antônia']),
@@ -15,13 +15,16 @@ const assignmentSchema = z.object({
  * GET /api/support/assignments
  *
  * List all active agent-staff assignments.
+ * Requires admin, head_of_operations, or head_of_customer_success role.
  */
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const staffCheck = await requireStaffRole([
+      'admin',
+      'head_of_operations',
+      'head_of_customer_success',
+    ]);
+    if (staffCheck instanceof NextResponse) return staffCheck;
 
     const assignments = await getAllAssignments();
     return NextResponse.json({ assignments });
@@ -38,15 +41,16 @@ export async function GET(request: NextRequest) {
  * POST /api/support/assignments
  *
  * Set/update primary agent-staff assignment.
+ * Requires admin, head_of_operations, or head_of_customer_success role.
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add admin role check
+    const staffCheck = await requireStaffRole([
+      'admin',
+      'head_of_operations',
+      'head_of_customer_success',
+    ]);
+    if (staffCheck instanceof NextResponse) return staffCheck;
 
     const body = await request.json();
     const parsed = assignmentSchema.safeParse(body);

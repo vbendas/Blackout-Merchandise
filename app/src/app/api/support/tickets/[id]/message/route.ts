@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { addTicketMessage } from '@db-root/supportTickets';
+import { requireStaffRole } from '@/lib/auth/require-staff-role';
 
 const messageSchema = z.object({
   content: z.string().min(1),
@@ -14,16 +14,20 @@ const messageSchema = z.object({
  * POST /api/support/tickets/[id]/message
  *
  * Add a message to a ticket.
+ * Requires admin, head_of_operations, head_of_customer_success, or support_agent role.
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const staffCheck = await requireStaffRole([
+      'admin',
+      'head_of_operations',
+      'head_of_customer_success',
+      'support_agent',
+    ]);
+    if (staffCheck instanceof NextResponse) return staffCheck;
 
     const { id } = await params;
     const body = await request.json();

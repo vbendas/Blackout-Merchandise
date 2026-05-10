@@ -7,7 +7,11 @@ import {
 } from '@db-root/supportTickets';
 import { getPrimaryStaffForAgent } from '@db-root/agentAssignments';
 import { linkSessionToTicket, updateSessionHandoffStatus } from '@db-root/chat';
-import type { AgentId } from '@/types/chat';
+import {
+  getHandoffRateLimit,
+  checkRateLimit,
+  getRateLimitIdentifier,
+} from '@/lib/rate-limit/chat-rate-limit';
 
 const handoffSchema = z.object({
   sessionId: z.string().optional(),
@@ -35,6 +39,18 @@ export async function POST(request: NextRequest) {
   const requestId = crypto.randomUUID();
 
   try {
+    // Rate limiting check
+    const rateLimit = getHandoffRateLimit();
+    const identifier = getRateLimitIdentifier(request);
+    const rateLimitResult = await checkRateLimit(rateLimit, identifier);
+
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429, headers: rateLimitResult.headers }
+      );
+    }
+
     const body = await request.json();
     const parsed = handoffSchema.safeParse(body);
 
@@ -135,6 +151,18 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Rate limiting check
+    const rateLimit = getHandoffRateLimit();
+    const identifier = getRateLimitIdentifier(request);
+    const rateLimitResult = await checkRateLimit(rateLimit, identifier);
+
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429, headers: rateLimitResult.headers }
+      );
+    }
+
     const ticket = await getTicketById(ticketId);
 
     if (!ticket) {

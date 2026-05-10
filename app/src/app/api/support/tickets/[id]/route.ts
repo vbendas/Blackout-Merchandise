@@ -1,21 +1,25 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { getTicketWithDetails } from '@db-root/supportTickets';
+import { requireStaffRole } from '@/lib/auth/require-staff-role';
 
 /**
  * GET /api/support/tickets/[id]
  *
  * Get a single ticket with all details and messages.
+ * Requires admin, head_of_operations, head_of_customer_success, or support_agent role.
  */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const staffCheck = await requireStaffRole([
+      'admin',
+      'head_of_operations',
+      'head_of_customer_success',
+      'support_agent',
+    ]);
+    if (staffCheck instanceof NextResponse) return staffCheck;
 
     const { id } = await params;
     const ticket = await getTicketWithDetails(id);
@@ -26,8 +30,6 @@ export async function GET(
         { status: 404 }
       );
     }
-
-    // TODO: Add authorization check — only ticket owner, assigned staff, or admin
 
     return NextResponse.json(ticket);
   } catch (error) {
