@@ -1,7 +1,7 @@
 # Brand Guidelines
 
-**Last Updated**: January 17, 2026
-**Version**: 2.0
+**Last Updated**: May 10, 2026
+**Version**: 2.1
 
 ---
 
@@ -12,25 +12,32 @@
 
 ### Brand Taglines
 
-**Primary (Aggressive):**
-> *"Your fans wear your art. Why dress them in garbage?"*
+**Primary (Research-Validated):**
+> *"Describe your vision. Get premium merch in minutes."*
 
 **Alternative Taglines:**
-- *"We don't work with everyone. But if you care about craft, we want to talk."*
-- *"Premium Ethical Merch for Artists Who Give a Damn."*
-- *"Screen Printing Meets Craft. Artists Keep the Profits."*
-- *"Buy Less, Buy Better."*
-- *"If you know, you know."*
+- *"You made the art. You keep the margin."* — Economic justice angle
+- *"Premium merch, zero compromise on ethics."* — Sustainability angle
+- *"Wear your identity. Support real artists."* — Community/identity angle
+- *"If you know, you know."* — Exclusivity angle (retained)
+
+**Retired Taglines (Pre-May 2026):**
+> The following taglines are retired per research findings:
+> - ❌ *"Your fans wear your art. Why dress them in garbage?"* — Too aggressive, doesn't convey value prop
+> - ❌ *"Premium Ethical Merch for Artists Who Give a Damn."* — Generic sustainability claim (ECGT non-compliant)
+> - ❌ *"Screen Printing Meets Craft. Artists Keep the Profits."* — Outdated process focus
+>
+> See `Brand-Messaging-Research.md` for full rationale.
 
 ### Mission
 Help artists, brands, and companies design, source, and sell premium quality merchandise with expert guidance and professional visual tools.
 
 ### Core Values
-- **Vegan & Fair-Trade**: Only ethical, sustainable products
-- **Premium Quality**: No cheap merchandise
-- **Artist-Centric**: Fair payouts, creative control
-- **Zero Commission**: Direct artist-to-fan model
-- **In-House Production**: Quality control over entire process
+- **Ethical by Default**: GOTS-certified organic cotton, OEKO-TEX tested, vegan & fair-trade — never an upsell
+- **Premium Quality**: No cheap merchandise. Kornit Atlas MAX, 2 Delta-E color accuracy, 0.19% reshipment rate
+- **Artist-First Economics**: You keep 50%+ vs. Society6's 5%. One t-shirt = 8,750 Spotify streams
+- **Zero Upfront Risk**: No inventory, no minimums, no subscription fees
+- **In-House Production**: Zero-waste production in Portugal. Every item made on-demand
 
 ---
 
@@ -213,34 +220,88 @@ Our public homepage should create **intrigue and exclusivity**, not marketing co
 
 ---
 
-## Messaging Pillars
+## Messaging Pillars (Research-Backed — May 2026)
 
 ### For Artists
 
-> **"Your Art. Your Merch Empire. Zero Upfront Costs."**
+> **"You made the art. You keep the margin. We handle the rest."**
 
-- Keep 40-60% margins (vs 10-20% on Redbubble)
-- Premium organic blanks as standard
-- Expert-guided design assistance (Leopoldo & Francisca at your service)
-- In-house production quality control
+- Keep 50%+ vs. Society6's 5% (one t-shirt = 8,750 Spotify streams)
+- GOTS-certified organic cotton as standard — never an upsell
+- Expert-guided design: describe your vision, get merch in minutes
+- Zero inventory, zero upfront costs, zero subscription fees
 
-### For Fans/Customers
+**Research Basis**: Economic justice resonates. 45.6% of creators earn $10K-$100K — target the middle, not just the top. "Passive income" is a red flag; 65% earn <$100/year.
 
-> **"Premium merchandise from artists you love. Support them directly."**
+### For Fans/Customers (Backers)
 
-- Vegan, fair-trade products
-- Unique, limited designs
-- Direct support to creators
-- Quality you can feel
+> **"Wear your identity. Support real artists. Every purchase goes directly to the creator."**
+
+- GOTS-certified organic cotton, OEKO-TEX tested, made in Portugal
+- Every item made on-demand — zero overstock, 30-50% less waste
+- Limited editions, not mass production
+- Identity-based merchandise: counterfeit-proof because it's community-driven
+
+**Research Basis**: Identity > function. Artist connection increases willingness to pay by 50%. 80% of EU consumers pay premium for verified sustainability. Counterfeits satisfy functional needs but not identity needs.
 
 ### For Investors
 
-> **"The premium merch platform with in-house production, proprietary AI pipeline, and zero artist risk."**
+> **"The $13.4B creator merchandise market that puts artists first."**
 
-- TAM: $340B global licensed merchandise
-- Proprietary AI training data
-- €113K owned equipment
-- Founder with 9 years craft + 12 years growth marketing
+- Market: $13.4B artist merch (7.8% CAGR) + $11.4B POD (23.6% CAGR)
+- Proprietary workflow data: artist style preferences, design-to-conversion correlations
+- 12-month AI differentiation window (voice-driven design = category exclusive)
+- Capital efficient: €300K seed vs. Printful's $130M (433x efficiency)
+- Marketplace collapse driving largest artist migration in history
+
+**Research Basis**: Lead with market size and timing. Frame AI as workflow moat, not feature. Emphasize capital efficiency and the 18-24 month Fyul merger distraction window.
+
+---
+
+## Research-Backed Messaging (May 2026)
+
+This section summarizes the key research findings that inform all Merch From messaging. For the complete analysis, see **`Brand-Messaging-Research.md`**.
+
+### The Five Principles
+
+1. **AI Is Invisible Infrastructure** — Never lead with "AI-powered." Only ~20% of consumers trust AI (NIM). "AI-designed" reduces purchase intention (Auburn University). Lead with outcomes: speed, quality, ease.
+
+2. **Sustainability Must Be Specific** — EU ECGT Directive (Sept 2026) bans generic claims ("eco-friendly," "green," "sustainable"). Use specific certifications: GOTS, OEKO-TEX, FSC. Penalties: up to 4% of annual turnover.
+
+3. **Identity > Function** — Purchase drivers: artist connection (+50%), scarcity (+40%), social proof (+35%). Counterfeit-proof strategy: community, limited editions, direct artist support.
+
+4. **Economic Justice Resonates** — Society6 pays 5%. Redbubble takes 50%. Be explicit: "Keep 50%+" not "great payouts." One t-shirt = 8,750 Spotify streams.
+
+5. **Target the Creator Middle Class** — 45.6% earn $10K-$100K. Not the top 5%, not hobbyists. "Built for the creators doing the real work."
+
+### Forbidden Language
+
+| Avoid | Why | Say Instead |
+|-------|-----|-------------|
+| "AI-powered" / "AI-generated" | Reduces purchase intention | "Describe your vision, we handle the rest" |
+| "Eco-friendly" / "Green" / "Sustainable" (without proof) | Banned by EU ECGT Directive | "GOTS-certified organic cotton" |
+| "Disrupting the industry" | Generic, overused | "Fixing the math for artists" |
+| "Print-on-demand" (as primary label) | Commodity association | "Premium merchandise, made to order" |
+| "Marketplace" | Association with failing platforms | "Creator platform" / "Artist-first commerce" |
+| "Passive income" | 65% earn <$100/year — red flag | "Build a sustainable creative income" |
+| "Best quality" / "Highest quality" (without specifics) | Unverifiable superlative | "0.19% reshipment rate" / "2 Delta-E accuracy" |
+
+### Three Messaging Tracks
+
+**Track 1: Artist/Creator**
+- Primary: Economic empowerment + creative control
+- Stats: "Keep 50%+ vs. Society6's 5%", "One t-shirt = 8,750 Spotify streams"
+- Tone: Empowering, direct, protective (Leopoldo)
+
+**Track 2: Backer/Supporter**
+- Primary: Join a movement + ethical premium + exclusive access
+- Stats: "80% of EU consumers choose verified sustainable", "Every purchase goes to the artist"
+- Tone: Inclusive, aspirational, community (Francisca)
+
+**Track 3: Investor**
+- Primary: Market timing + AI moat + capital efficiency
+- Stats: "$13.4B market, 7.8% CAGR", "12-month AI window", "433x capital efficiency vs. Printful"
+- Tone: Data-driven, strategic, confident
 
 ---
 
@@ -254,37 +315,44 @@ Our public homepage should create **intrigue and exclusivity**, not marketing co
 - Embrace the aggressive, confident tone
 
 ### Don't:
-- Use corporate jargon or buzzwords
+- Use corporate jargon or buzzwords ("synergy," "paradigm shift," "leverage")
 - Explain every feature (let them discover)
 - Beg for signups or purchases
 - Use light mode anywhere
 - Make the characters too cute or childish
 - Lead with "AI-powered" or "AI platform" in customer-facing copy
+- Use generic sustainability claims ("eco-friendly," "green," "sustainable" without certification)
+- Promise "passive income" (65% of creators earn <$100/year — use "sustainable creative income")
+- Use "marketplace" (association with failing platforms — use "creator platform")
+- Use unverifiable superlatives ("best quality," "highest quality" without specifics)
 
-### AI Language Guidelines
+### AI Language Guidelines (Research-Backed)
 
-> **Core Principle:** AI is our invisible engine, not our headline. The Cat-Suite characters are team members — Leopoldo, Francisca, Antonia — not "AI assistants." Lead with what artists care about: quality, zero upfront costs, ethical production, in-house manufacturing.
+> **Core Principle:** AI is our invisible engine, not our headline. Research from NIM (1,000 respondents/country) and Auburn University (505 US consumers) confirms: only ~20% of consumers trust AI explicitly, and "AI-designed" labeling reduces purchase intention. The Cat-Suite characters are team members — Leopoldo, Francisca, Antonia — not "AI assistants."
 
 **When talking to artists (customer-facing):**
 - ✅ "Your dedicated team handles everything"
 - ✅ "Leopoldo manages your store. Francisca handles design. Antonia tracks your orders."
 - ✅ "Expert-guided design assistance"
+- ✅ "Describe your vision. Get premium merch in minutes."
 - ✅ "Your Merch Studio — designed, sourced, and supplied."
 - ❌ "AI-powered platform"
 - ❌ "AI assistants" or "AI team"
 - ❌ "AI-guided" as a value proposition
+- ❌ "AI-generated designs" (label products by artist name, not process)
 
 **When talking to investors:**
-- ✅ "Proprietary AI pipeline built on EU technology (Mistral, Paris)"
-- ✅ "Expert-scored training dataset — world's only screen print AI training data"
-- ✅ "Conversational UX powered by our AI stack"
+- ✅ "Proprietary workflow data: artist style preferences, design-to-conversion correlations"
+- ✅ "Conversational UX powered by EU technology (Mistral, Paris)"
 - ✅ "AI is our moat, not our brand"
-- The AI is a competitive advantage, not the customer-facing promise.
+- ✅ "12-month differentiation window on voice-driven design"
+- The AI is a competitive advantage and data moat, not the customer-facing promise.
 
 **When talking to press/media:**
 - ✅ "Built with European technology"
 - ✅ "Intelligent automation handles the complexity so artists focus on their art"
 - ❌ "AI-powered" as a primary descriptor
+- ❌ "AI merch platform" (implies products are AI-made, not artist-directed)
 
 ### Writing Examples
 
@@ -336,12 +404,15 @@ Our public homepage should create **intrigue and exclusivity**, not marketing co
 
 ## Related Documents
 
+- **Brand Messaging Research**: `Brand-Messaging-Research.md` — Research-backed messaging framework, taglines, persona tracks, forbidden language
 - **Design System**: [[Design-System]] - Colors, typography, spacing
 - **PRD**: [[../00-PRD-Roadmap/PRD]] - Product vision
 - **Cat-Suite Context**: [[../01-PWA/Claude-Context]] - AI implementation
+- **Market Research**: [[../09-Reseach/merchandise-market-research.md]] - 300+ source market analysis
+- **POD Competition**: [[../09-Reseach/pod_competition_report.md]] - 16-platform competitive intelligence
 
 ---
 
 **Owner**: Victor Bendas
-**Last Updated**: January 17, 2026
+**Last Updated**: May 10, 2026
 **Status**: Active
