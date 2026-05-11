@@ -3,10 +3,18 @@ import type { AgentId } from '@/types/chat';
 const ELEVENLABS_BASE_URL = 'https://api.elevenlabs.io/v1';
 const REQUEST_TIMEOUT_MS = 30000;
 
-const AGENT_VOICES: Record<AgentId, string | undefined> = {
-  leopoldo: process.env.ELEVENLABS_VOICE_LEOPOLDO,
-  francisca: process.env.ELEVENLABS_VOICE_FRANCISCA,
-  antonia: process.env.ELEVENLABS_VOICE_ANTONIA,
+// Hardcoded voice IDs — custom ElevenLabs voices for each agent.
+// Env vars can override if needed, but defaults ensure demo works without .env.local.
+const DEFAULT_AGENT_VOICES: Record<AgentId, string> = {
+  leopoldo: 'c43ywN69sd2QZPOi12As',
+  francisca: 'uCG8NgE9eo2MZqeaE3Yw',
+  antonia: 'gNmLxtK9mWUnIfR6E6DB',
+};
+
+const AGENT_VOICES: Record<AgentId, string> = {
+  leopoldo: process.env.ELEVENLABS_VOICE_LEOPOLDO || DEFAULT_AGENT_VOICES.leopoldo,
+  francisca: process.env.ELEVENLABS_VOICE_FRANCISCA || DEFAULT_AGENT_VOICES.francisca,
+  antonia: process.env.ELEVENLABS_VOICE_ANTONIA || DEFAULT_AGENT_VOICES.antonia,
 };
 
 class ElevenLabsTTSProvider {
@@ -16,22 +24,21 @@ class ElevenLabsTTSProvider {
   constructor() {
     this.apiKey = process.env.ELEVENLABS_API_KEY ?? '';
 
-    // Validate all required credentials
-    const missing: string[] = [];
-    if (!this.apiKey) missing.push('ELEVENLABS_API_KEY');
-    if (!AGENT_VOICES.leopoldo) missing.push('ELEVENLABS_VOICE_LEOPOLDO');
-    if (!AGENT_VOICES.francisca) missing.push('ELEVENLABS_VOICE_FRANCISCA');
-    if (!AGENT_VOICES.antonia) missing.push('ELEVENLABS_VOICE_ANTONIA');
+    // Only API key is required — voice IDs have hardcoded defaults
+    this.isConfigured = !!this.apiKey;
 
-    this.isConfigured = missing.length === 0;
-
-    if (missing.length > 0) {
+    if (!this.apiKey) {
       console.warn(
-        `[ElevenLabsTTS] Missing required environment variables: ${missing.join(', ')}. ` +
-        'TTS will be unavailable until these are configured in .env.local'
+        '[ElevenLabsTTS] Missing ELEVENLABS_API_KEY. ' +
+        'TTS will be unavailable until this is configured in .env.local'
       );
     } else {
       console.log('[ElevenLabsTTS] Configured with voices:', Object.keys(AGENT_VOICES).join(', '));
+      console.log('[ElevenLabsTTS] Voice IDs:', {
+        leopoldo: AGENT_VOICES.leopoldo,
+        francisca: AGENT_VOICES.francisca,
+        antonia: AGENT_VOICES.antonia,
+      });
     }
   }
 

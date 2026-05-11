@@ -197,7 +197,7 @@ export function ChatInput({
             />
           </svg>
           <div
-            className={`flex items-center gap-[2px] h-5 absolute inset-0 m-auto transition-opacity duration-150 pointer-events-none ${
+            className={`flex items-center justify-center gap-[2px] h-5 absolute inset-0 m-auto transition-opacity duration-150 pointer-events-none ${
               isVoiceConversationActive ? 'opacity-100' : 'opacity-0'
             }`}
           >
