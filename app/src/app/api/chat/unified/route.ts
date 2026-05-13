@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { miniMaxM2HerProvider } from '@/lib/ai/minimax-m2her';
+import { mistralChatProvider } from '@/lib/ai/mistral-chat';
 import { withCors } from '@/lib/cors';
 import type { AgentId } from '@/types/chat';
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     ];
 
     console.log('[Chat API] Calling AI provider with', messages.length, 'messages');
-    const response = await miniMaxM2HerProvider.chat({
+    const response = await mistralChatProvider.chat({
       messages,
       agent,
       temperature: 0.7,

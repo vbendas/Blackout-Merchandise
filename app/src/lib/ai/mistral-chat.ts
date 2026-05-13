@@ -25,10 +25,10 @@ export interface ChatResponse {
 }
 
 function getSystemPrompt(agent: AgentId): string {
-  return AGENT_CONFIGS[agent].persona;
+  return `${AGENT_CONFIGS[agent].persona}\n\nStay in character. CRITICAL: ALWAYS respond in the SAME LANGUAGE the user is speaking.`;
 }
 
-export class MiniMaxM2HerProvider {
+export class MistralChatProvider {
   async chat(request: ChatRequest): Promise<ChatResponse> {
     const systemMessage = getSystemPrompt(request.agent);
 
@@ -70,4 +70,4 @@ export class MiniMaxM2HerProvider {
   }
 }
 
-export const miniMaxM2HerProvider = new MiniMaxM2HerProvider();
+export const mistralChatProvider = new MistralChatProvider();

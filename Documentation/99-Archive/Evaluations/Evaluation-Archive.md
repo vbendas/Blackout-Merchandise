@@ -3204,5 +3204,77 @@ mainpage/src/db/schema.ts              (still exists — schema duplication unre
 
 ---
 
+## EVALUATION #16: May 11, 2026
+
+**Evaluator:** GLM-5.1 Code Review Agent
+**Status:** P0 Demo Hardening (Crowdfunding Sprint) — Day 3 Complete
+**Previous Evaluation:** February 24, 2026 (8.9/10)
+**Full Evaluation:** `Documentation/00-Evaluations/Evaluation-May-11-2026.md`
+
+### Overall Score: **9.0/10** — Up from 8.9/10
+
+| Aspect | Feb 24 | May 11 | Δ |
+|--------|--------|--------|---|
+| Vision & Strategy | 9.5 | **9.7** | +0.2 |
+| Business Model | 8.5 | **9.0** | +0.5 |
+| Technical Architecture | 8.2 | **9.2** | +1.0 |
+| Market Opportunity | 7.5 | **8.0** | +0.5 |
+| Founder-Market Fit | 9.5 | **9.8** | +0.3 |
+| Competitive Moats | 8.0 | **8.5** | +0.5 |
+| Execution Progress | 8.8 | **9.5** | +0.7 |
+| Investment Readiness | 7.5 | **8.5** | +1.0 |
+
+### Key Metrics Since Feb 24 (76 Days)
+
+| Metric | Value |
+|--------|-------|
+| Overall score | **9.0/10** (first time in project history) |
+| Code lines | 75,317 (+30,317 since Feb 24) |
+| TypeScript/TSX files | 592 (+242 since Feb 24) |
+| API routes | 59 (+24 since Feb 24) |
+| Git commits (since Jan 1) | 116 (62 in May alone) |
+| Documentation files | 120 (72,412 lines) |
+| GitHub issues closed | 31 (all tagged fixed) |
+
+### Major Milestones
+
+1. **Crowdfunding-first strategic pivot** — From "build everything then launch" to "demo → crowdfund → validate → build"
+2. **P0 Demo Hardening sprint** — 62 commits in 11 days (May 9-11):
+   - Day 1: Intent classification, agent routing, Mistral rebuild, voice VAD
+   - Day 2: Full security hardening — RBAC, rate limiting, prompt injection, CORS, 23 issues closed
+   - Day 3: Unified wave voice UX, ElevenLabs voice fixes, hold-to-speak
+3. **75,317 lines of production code** — From ~50 lines (Jan 2) in 129 days
+4. **Working AI + voice pipeline** — Mistral + ElevenLabs TTS + Deepgram STT with VAD
+5. **Full commerce stack** — Stripe Connect Express, cart (Zustand), checkout, webhooks
+6. **Comprehensive product catalog** — 11 DB tables, 127 Stanley Stella products, 3,344 images
+7. **Color separation system** — Complete Python microservice (2,293 lines)
+
+### Founder Ratings
+
+- **As Developer:** 8.5/10 — Full-stack capability, security-first, component architecture. Needs testing discipline.
+- **As CEO:** 9.5/10 — Strategic clarity, market intelligence, self-correction, documentation discipline. Persistent blind spot: zero customer conversations (16/16 evaluations flagged).
+
+### Critical Concerns
+
+1. **Zero customer validation** — 129 days, 16 evaluations, no interviews 🔴
+2. **No demo video** — Planned for Week 5 (June 9-15) 🟠
+3. **No tests running** — Vitest + Playwright configured but unused 🟡
+4. **Solo founder risk** — Bus factor = 1 🟡
+5. **Schema duplication** — `mainpage/src/db/schema.ts` still exists after 5 evaluations 🟢
+
+### Path to 9.5/10
+
+| Action | Impact | Timeline |
+|--------|--------|----------|
+| Launch waitlist + 50 signups | +0.2 | This week |
+| Record 90-sec demo video | +0.15 | Week 5 |
+| 5 customer interviews | +0.2 | Next 2 weeks |
+| Complete FLUX 2 design gen | +0.1 | Week 2 |
+| Launch crowdfunding campaign | +0.3 | June 30 |
+
+**Verdict:** Merch From crossed the threshold from "well-documented idea" to "functional product with market timing." The next 7 weeks determine whether it becomes "funded startup."
+
+---
+
 *Co-Authored-By: Antigravity (google/antigravity-claude-sonnet-4-6)*
 

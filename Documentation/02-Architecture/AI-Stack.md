@@ -35,20 +35,26 @@
      - **Voice Design:** Unique per-agent voices — Leopoldo (warm Brazilian), Francisca (refined Portuguese), Antonia (Irish lilt)
      - **Fallback:** Browser speechSynthesis API if ElevenLabs unavailable
 
-       | Task Type | Model | Cost | Why |
-       |-----------|-------|------|-----|
-       | **Draft / iterate / sketch** | FLUX 2 Flex (BFL API) | ~$0.008/image | Fast iteration, on-demand quality |
-       | **Final mockup / catalog** | FLUX 2 Pro (BFL API) | ~$0.020/image | Best-in-class fabric texture realism |
-       | **Premium / best quality** | FLUX 2 Max (BFL API) | ~$0.050/image | Absolute highest fidelity for hero releases |
-       | **Image edit / variation** | FLUX 2 Flex img2img (BFL API) | ~$0.008/image | Iterative refinement, same-model consistency |
+        | Task Type | Model | Cost | Why |
+        |-----------|-------|------|-----|
+        | **Generate with style (LoRA)** | FLUX 2 Dev + LoRA (fal.ai) | ~$0.050/image | Custom-trained LoRAs for consistent merch styles |
+        | **Iterative editing (rounds 1-3)** | Kontext Pro (fal.ai) | ~$0.040/image | Multi-turn editing, fast iteration |
+        | **Iterative editing (round 4+)** | Kontext MAX (fal.ai) | ~$0.080/image | Higher fidelity for compound edits |
+        | **Upscale to print resolution** | FLUX 2 Upscaler (fal.ai) | ~$0.030/image | 2048→4096+ for screen printing |
+        | **Background removal** | Remove Background (fal.ai) | ~$0.020/image | Transparent PNG for mockups/print |
+        | **LoRA training** | FLUX 2 Trainer (fal.ai) | ~$8/LoRA | Custom style training on Expert's archive |
 
-     **API-Only Strategy:**
-     - **No self-hosting.** All FLUX 2 models consumed via BFL API directly (or OpenRouter as unified fallback)
-     - **Single provider:** One integration, one license, one bill — operational simplicity
-     - **Consistent aesthetic:** All output shares FLUX 2 visual DNA — premium, cohesive brand feel
-     - **Automatic scaling:** Handles viral spikes without provisioning GPUs
-     - **Cost at scale:** ~$0.015/image weighted average; still <0.5% of revenue at 10,000+ artists
-     - **All generation** runs through Cloudinary for immediate optimization (f_auto, q_auto, WebP/AVIF)
+      **fal.ai Strategy (v7.0 — Single Vendor):**
+      - **No self-hosting.** All image generation via fal.ai API
+      - **Single provider:** One API key for training, generation, editing, upscaling, background removal
+      - **LoRA support:** Up to 3 custom LoRAs simultaneously for style blending
+      - **Kontext editing:** Multi-turn iterative editing — the CORE artist workflow (5-10 edit rounds per design)
+      - **Smart routing:** Kontext Pro for rounds 1-3 (fast/cheap), Kontext MAX for rounds 4+ (high fidelity)
+      - **Branching strategy:** Store all intermediates, branch from earlier round when quality degrades
+      - **Sharp post-processing:** Free, deterministic sharpening + contrast after every AI edit round
+      - **Cost at scale:** ~$0.30/image realistic average (including edits, upscale, bg removal); still <0.5% of revenue
+      - **All generation** runs through Cloudinary for immediate optimization (f_auto, q_auto, WebP/AVIF)
+      - **Full architecture doc:** [Image-Generation-Architecture.md](../05-Shared/Image-Generation-Architecture.md)
 
 7.  **OpenCV (Python) — COLOR SEPARATION + HALFTONING**
      - **Purpose:** Mathematical color separation and halftone generation
@@ -72,7 +78,7 @@
 | **Mistral Small 4** (LLM) | ~$0.15/1M input, ~$0.60/1M output | Mistral API | FAQ, order tracking, simple queries (~70% of traffic) |
 | **Voxtral Transcribe 2** (STT) | $0.003/min | Mistral API | Real-time voice transcription |
 | **ElevenLabs TTS** (TTS) | ~$0.00/min (grant-covered) | ElevenLabs API | Premium character voice synthesis |
-| **Image Generation** (BFL API) | $0.008–0.050/image | BFL API | FLUX 2 Flex / Pro / Max by task complexity |
+| **Image Generation** (fal.ai) | $0.04–0.08/image | fal.ai API | FLUX 2 Dev/LoRA + Kontext iterative editing |
 
 ### Cost Scenarios
 
@@ -163,7 +169,7 @@
       - Customer clicks preferred aesthetic (e.g., "American Traditional")
       - System selects appropriate fine-tuned LoRA behind the scenes
   2.  **Asset Prep:** User uploads a logo -> OpenCV processes background -> Francisca confirms clarity.
-  3.  **Generation:** Francisca constructs prompt with trigger word + user description, calls Replicate API with selected LoRA
+   3. **Generation:** Francisca constructs prompt with trigger word + user description, calls fal.ai API with selected LoRA
   4.  **Refinement:** User says "Make the snake green." → Regenerates with same LoRA, modified prompt
   5.  **Finalize:** User approves → Real-ESRGAN upscales to 4K → U-Net color separation → Halftoning → Print-ready files
 
@@ -231,13 +237,14 @@
   - **Conversation (Mistral Small 4):** ~$0.0003 per simple interaction (70% of traffic)
   - **Conversation (Mistral Large 3):** ~$0.001 per complex interaction (30% of traffic)
   - **Image Analysis (Mistral Large 3 vision):** ~$0.01 per uploaded artwork analysis
-  - **Image Generation (BFL API):** ~$0.015 per image avg (FLUX 2 Flex / Pro / Max by complexity)
-  - **Refinement Loop:** Avg 2 runs = ~$0.024
+  - **Image Generation (fal.ai):** ~$0.05 per image generation, ~$0.04 per Kontext edit round, ~$0.03 upscale
+  - **Refinement Loop:** Avg 4 edit rounds = ~$0.21 + $0.05 generation + $0.03 upscale = ~$0.29 total
   - **Color Separation (OpenCV):** $0 (rule-based, deterministic)
   - **Halftoning (OpenCV):** $0 (rule-based, deterministic)
-  - **Total AI Cost Per Design:** **~$0.04 - $0.06**
-  - **Impact:** Negligible (<0.5% of revenue) for a service that replaces €45/design manual work
+  - **Total AI Cost Per Design:** **~$0.30** (generation + 4 edit rounds + upscale + bg removal)
+  - **Impact:** Still <0.5% of revenue for a service that replaces €45/design manual work
   - **Cost Reduction:** 85% savings vs original plan (MiMo/GLM era)
+  - **Full architecture:** See [Image-Generation-Architecture.md](../05-Shared/Image-Generation-Architecture.md) for complete pipeline details
 
   ### 2.4 Bulk Order Service
   - **Quote Requests:** Voice/text bulk order inquiries ("Get quote for 500 black hoodies with this logo")
@@ -4523,7 +4530,7 @@
 | **Mistral Small 4** (LLM) | ~$0.15/1M input, ~$0.60/1M output | Mistral API | FAQ, order tracking, simple queries (~70% of traffic) |
 | **Voxtral Transcribe 2** (STT) | $0.003/min | Mistral API | Real-time voice transcription |
 | **ElevenLabs TTS** (TTS) | ~$0.00/min (grant-covered) | ElevenLabs API | Premium character voice synthesis |
-| **Image Generation** (BFL API) | $0.008–0.050/image | BFL API | FLUX 2 Flex / Pro / Max by task complexity |
+| **Image Generation** (fal.ai) | $0.04–0.08/image | fal.ai API | FLUX 2 Dev/LoRA + Kontext iterative editing |
 
 ### Cost Scenarios
 
@@ -4614,7 +4621,7 @@
       - Customer clicks preferred aesthetic (e.g., "American Traditional")
       - System selects appropriate fine-tuned LoRA behind the scenes
   2.  **Asset Prep:** User uploads a logo -> OpenCV processes background -> Francisca confirms clarity.
-  3.  **Generation:** Francisca constructs prompt with trigger word + user description, calls Replicate API with selected LoRA
+   3. **Generation:** Francisca constructs prompt with trigger word + user description, calls fal.ai API with selected LoRA
   4.  **Refinement:** User says "Make the snake green." → Regenerates with same LoRA, modified prompt
   5.  **Finalize:** User approves → Real-ESRGAN upscales to 4K → U-Net color separation → Halftoning → Print-ready files
 
@@ -4682,13 +4689,14 @@
   - **Conversation (Mistral Small 4):** ~$0.0003 per simple interaction (70% of traffic)
   - **Conversation (Mistral Large 3):** ~$0.001 per complex interaction (30% of traffic)
   - **Image Analysis (Mistral Large 3 vision):** ~$0.01 per uploaded artwork analysis
-  - **Image Generation (BFL API):** ~$0.015 per image avg (FLUX 2 Flex / Pro / Max by complexity)
-  - **Refinement Loop:** Avg 2 runs = ~$0.024
+  - **Image Generation (fal.ai):** ~$0.05 per image generation, ~$0.04 per Kontext edit round, ~$0.03 upscale
+  - **Refinement Loop:** Avg 4 edit rounds = ~$0.21 + $0.05 generation + $0.03 upscale = ~$0.29 total
   - **Color Separation (OpenCV):** $0 (rule-based, deterministic)
   - **Halftoning (OpenCV):** $0 (rule-based, deterministic)
-  - **Total AI Cost Per Design:** **~$0.04 - $0.06**
-  - **Impact:** Negligible (<0.5% of revenue) for a service that replaces €45/design manual work
+  - **Total AI Cost Per Design:** **~$0.30** (generation + 4 edit rounds + upscale + bg removal)
+  - **Impact:** Still <0.5% of revenue for a service that replaces €45/design manual work
   - **Cost Reduction:** 85% savings vs original plan (MiMo/GLM era)
+  - **Full architecture:** See [Image-Generation-Architecture.md](../05-Shared/Image-Generation-Architecture.md) for complete pipeline details
 
   ### 2.4 Bulk Order Service
   - **Quote Requests:** Voice/text bulk order inquiries ("Get quote for 500 black hoodies with this logo")

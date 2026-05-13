@@ -8,7 +8,7 @@ Development phases, milestones, and planning.
 
 | Document | Purpose |
 |----------|---------|
-| [[Roadmap]] | Full development roadmap with phases and deliverables |
+| [[Roadmap]] | **Single source of truth** — all phases (0-10), crowdfunding sprint (P0-P7), research gaps, training data strategy, day-by-day plan |
 | [[Accessories-Expansion]] | Phase 10: 3D-printed jewelry accessories plan |
 | [[IMPLEMENTATION-PLAN-Mockup-Generation]] | Mockup generation implementation plan |
 | [[Agent-Assignments/README]] | Agent assignment guide for distributed development |
@@ -19,20 +19,23 @@ Development phases, milestones, and planning.
 
 | Phase | Name | Status | Timeline |
 |-------|------|--------|----------|
-| 0 | Foundations | ✅ Complete | Week 1 |
-| 1 | Demo MVP: Core Shell | ✅ Complete | Week 2-3 |
-| 2 | Demo MVP: Interactive | ✅ Complete | Week 4-5 |
-| 3 | Frontend Content Suite | ✅ Complete | Jan 12-26 |
-| 3.5-3.6 | App Enhancement + Waitlist | ✅ ~95% Complete | |
-| 3.7 | Context-Aware Routing | ✅ Complete | |
-| 3.8 | Product Catalog Database | ✅ Complete | |
-| 4 | Prod MVP: Backend | ⏳ Ready | Feb 9 → Feb 23 |
-| 5 | Prod MVP: AI Agents | ⏳ Pending | Feb 26 → Mar 12 |
-| 6 | Commerce | ⏳ Pending | Mar 16 → Mar 30 |
-| 7 | Beta Launch | ⏳ Pending | |
-| 8 | Public Launch | ⏳ Pending | |
-| 9 | Social Commerce Hub | ⏳ Pending | Apr-Jul 2026 |
+| 0-3.4 | Foundations → Frontend Suite | ✅ Complete | Jan-Feb 2026 |
+| 3.5-3.6 | App Enhancement + Waitlist | ✅ ~95% Complete | Feb 2026 |
+| 3.7 | Context-Aware Routing | ✅ Complete | Feb 2026 |
+| 3.8 | Product Catalog Database | ✅ Complete | Feb 2026 |
+| 4 | Prod MVP: Backend | ✅ Complete | Feb 2026 |
+| 5 | Prod MVP: AI Agents | ✅ Complete | Feb-Mar 2026 |
+| 5.5 | Mockup Generation | ✅ 83% Complete | Feb-Mar 2026 |
+| 5.6 | Color Separation | ✅ Complete | Feb 2026 |
+| 6 | Commerce | ✅ Core Complete | Feb-Mar 2026 |
+| **P0** | **Demo Hardening** | 🚧 **IN PROGRESS** | **May 9 → June 8** |
+| P1-P7 | Crowdfunding Campaign | ⏳ Pending | June → Oct 2026 |
+| 7 | Beta Launch | ⏳ Pending | Late 2026 |
+| 8 | Public Launch | ⏳ Pending | Jan 2027 |
+| 8.5 | Traffic & Discovery | ⏳ Pending | Jan-Feb 2027 |
+| 9 | Social Commerce Hub | ⏳ Pending | 2027 |
+| 10 | Accessories Expansion | ⏳ Pending | 2027-2028 |
 
 ---
 
-*Last Updated: May 2026*
+*Last Updated: May 13, 2026*

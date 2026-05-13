@@ -772,3 +772,15 @@ export const productBatchesRelations = relations(productBatches, ({ one }) => ({
         references: [productVariants.id],
     }),
 }));
+
+// ─── App Settings ───────────────────────────────────────────────────────────
+
+export const appSettings = pgTable('app_settings', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    key: text('key').notNull().unique(),
+    value: text('value').notNull(),
+    description: text('description'),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+    keyIdx: index('app_settings_key_idx').on(table.key),
+}));

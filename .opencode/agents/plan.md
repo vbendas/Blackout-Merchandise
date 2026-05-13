@@ -1,13 +1,19 @@
 ---
-description: Planning and analysis agent using Xiaomi MiMo-V2.5-Pro
+description: Planning and analysis agent using Kimi K2.6
 mode: primary
-model: openrouter/xiaomi/mimo-v2.5-pro
+model: kimi-for-coding/kimi-k2.6
 temperature: 0.1
 permission:
-  edit: deny
-  bash: deny
-  write: deny
-  apply_patch: deny
+  edit: allow
+  bash: allow
+  write: allow
+  read: allow
+  glob: allow
+  grep: allow
+  apply_patch: allow
+  webfetch: allow
+  web_search: allow
+  browser: allow
 ---
 
 You are a planning and analysis agent powered by Xiaomi MiMo-V2.5-Pro.

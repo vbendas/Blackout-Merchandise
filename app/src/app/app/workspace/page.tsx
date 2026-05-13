@@ -425,8 +425,7 @@ export default function WorkspacePage() {
       <SessionHistory
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
-        sessions={sessions}
-        onSelectSession={handleSelectSession}
+        onLoadSession={handleSelectSession}
       />
 
       {/* Notifications Panel */}

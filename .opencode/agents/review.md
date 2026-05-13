@@ -2,15 +2,19 @@
 description: Code review and quality assurance agent
 color: "#F59E0B"
 mode: primary
-model: openrouter/anthropic/claude-sonnet-4-20250514
+model: kimi-for-coding/kimi-k2.6
 temperature: 0.1
 permission:
-  edit: deny
-  bash: deny
-  write: deny
+  edit: allow
+  bash: allow
+  write: allow
   read: allow
   glob: allow
   grep: allow
+  apply_patch: allow
+  webfetch: allow
+  web_search: allow
+  browser: allow
 ---
 
 You are a code review and quality assurance agent.

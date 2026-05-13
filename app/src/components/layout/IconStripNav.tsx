@@ -308,7 +308,7 @@ export function IconStripNav() {
               onMouseEnter={() => setHoveredBottomItem('history')}
               onMouseLeave={() => setHoveredBottomItem(null)}
               className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800/40 backdrop-blur-sm border border-white/5 text-zinc-500 transition-colors hover:bg-zinc-700/60 hover:text-zinc-300 hover:border-white/10"
-              aria-label="Session History"
+              aria-label="Conversation Story"
             >
               <Icon icon="lucide:rotate-ccw" className="h-4 w-4" />
             </button>
@@ -325,7 +325,7 @@ export function IconStripNav() {
                   <div className="flex items-center">
                     <div className="h-2 w-2 rotate-45 border-b border-l border-zinc-800 bg-zinc-900" />
                     <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 shadow-xl">
-                      <span className="text-sm font-medium text-white">Session History</span>
+                      <span className="text-sm font-medium text-white">Conversation Story</span>
                     </div>
                   </div>
                 </motion.div>
@@ -479,31 +479,9 @@ export function IconStripNav() {
       <SessionHistory
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
-        sessions={[
-          {
-            id: 'session-1',
-            title: 'Product Design Review',
-            agent: 'Francisca',
-            timestamp: new Date(Date.now() - 3600000),
-            preview: "Let's discuss the new collection design",
-          },
-          {
-            id: 'session-2',
-            title: 'Store Setup Guide',
-            agent: 'Leopoldo',
-            timestamp: new Date(Date.now() - 7200000),
-            preview: "Welcome! Let's get your store configured",
-          },
-          {
-            id: 'session-3',
-            title: 'Bulk Order Discussion',
-            agent: 'Antônia',
-            timestamp: new Date(Date.now() - 10800000),
-            preview: 'Let me help you with your bulk order inquiries',
-          },
-        ]}
-        onSelectSession={(sessionId) => {
-          console.log('Selected session:', sessionId);
+        onLoadSession={(sessionId) => {
+          // Navigate to studio with the session
+          navigate('studio');
           setIsHistoryOpen(false);
         }}
       />

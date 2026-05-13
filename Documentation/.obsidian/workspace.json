@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "01-Product/Business-Model.md",
+                "file": "05-Roadmap/IMPLEMENTATION-PLAN-Mockup-Generation.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Business-Model"
+              "title": "IMPLEMENTATION-PLAN-Mockup-Generation"
             }
           }
         ]
@@ -185,12 +185,31 @@
   },
   "active": "4ccf6a8ac8bcc8b0",
   "lastOpenFiles": [
-    "09-Reseach/Merch_From_Revenue_Stream_Research.docx",
+    "99-Archive/Roadmap/Sprint-Plan-Crowdfunding-v1.0.md",
+    "99-Archive/Roadmap/Roadmap-Research-Gaps.md",
+    "99-Archive/Roadmap/Roadmap-Crowdfunding-v1.0.md",
+    "99-Archive/Roadmap/Plan-Unified-Wave-Voice.md",
+    "99-Archive/Roadmap",
+    "99-Archive/OpenCode-Plans/demo-polish-chat-mvp.md",
+    "99-Archive/OpenCode-Plans",
+    "05-Roadmap/README.md",
     "05-Roadmap/Plan-Unified-Wave-Voice.md",
+    "05-Roadmap/Sprint-Plan-Crowdfunding-v1.0.md",
+    "05-Roadmap/Roadmap-Research-Gaps.md",
+    "05-Roadmap/Roadmap.md",
+    "01-Product/Business-Model.md",
+    "05-Shared/Image-Generation-Architecture.md",
+    "05-Shared",
+    "Dev/Plans/merch-studio-conversational-refactor.md",
+    "Dev/Plans",
+    "Dev",
+    "09-Reseach/cmcb_manual-investidor-portugues.pdf",
+    "00-Evaluations/Evaluation-May-11-2026.md",
+    "00-Evaluations",
+    "09-Reseach/Merch_From_Revenue_Stream_Research.docx",
     "09-Reseach/MerchFrom_100_Tattoo_Artists.xlsx",
     "09-Reseach/merch_from_influencers_beta.xlsx",
     "04-Design/Brand-Messaging-Research.md",
-    "05-Roadmap/Roadmap-Research-Gaps.md",
     "07-Community/04-Crowdfunding-Landing/Social-Proof-Data.md",
     "01-Product/Investor-Pitch-Data.md",
     "07-Community/04-Crowdfunding-Landing/Landing-Page-Copy.md",
@@ -201,25 +220,6 @@
     "09-Reseach/plans/08-crowdfunding-landing-content.md",
     "09-Reseach/plans/07-existing-docs-enrichment.md",
     "09-Reseach/plans/06-brand-messaging-refresh.md",
-    "09-Reseach/plans/05-competitive-battlecard.md",
-    "09-Reseach/plans/04-roadmap-gap-analysis.md",
-    "09-Reseach/plans/03-crowdfunding-campaign-upgrade.md",
-    "09-Reseach/plans/02-investor-pitch-enhancement.md",
-    "09-Reseach/plans/01-market-analysis-document.md",
-    "09-Reseach/plans",
-    "09-Reseach/merchandise-market-research.md",
-    "09-Reseach/pod_competition_report.md",
-    "09-Reseach/pod_competition_report.agent.final.pdf",
-    "09-Reseach/merchandise-market-research.docx",
-    "09-Reseach",
-    "untitled folder",
-    "00-Index/README.md",
-    "00-Index/Project-Status.md",
-    "08-Development/ADRs/ADR-003-Voice-Conversation.md",
-    "05-Roadmap/Sprint-Plan-Crowdfunding-v1.0.md",
-    "08-Development/ADRs/ADR-001-Mistral-Adoption.md",
-    "00-Evaluations/Evaluation-Archive.md.backup",
-    "05-Shared",
-    "04-Crowdfunding-Landing"
+    "09-Reseach/plans/05-competitive-battlecard.md"
   ]
 }

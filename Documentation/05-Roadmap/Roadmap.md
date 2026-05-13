@@ -1,13 +1,14 @@
 # MerchFrom Master Roadmap
 
-> **Document Version:** 2.12  
-> **Last Updated:** May 10, 2026  
-> **Status:** P0 Demo Hardening (Crowdfunding Sprint) — Day 1-2 COMPLETE  
-> **Timeline to Crowdfunding Launch:** ~7 weeks (May 9 → June 30)
+> **Document Version:** 3.0 — CONSOLIDATED  
+> **Last Updated:** May 13, 2026  
+> **Status:** P0 Demo Hardening (Crowdfunding Sprint) — Day 1-3 COMPLETE  
+> **Timeline to Crowdfunding Launch:** ~7 weeks (May 9 → June 30)  
+> **Branch:** `feat/crowdfunding-demo`
 
-> **🚨 Research Gap Analysis Available:** See [`Roadmap-Research-Gaps.md`](./Roadmap-Research-Gaps.md) for critical gaps identified from market research (traffic layer, AI moat conversion, creator success enablement, EU compliance, business metrics, premium art products).
-
-> **Key Insight:** Customer acquisition (traffic/discovery) is the #1 creator pain point — yet the current roadmap has zero traffic generation features. This must be addressed post-crowdfunding.
+> **Key Insight:** Customer acquisition (traffic/discovery) is the #1 creator pain point — addressed in Phase 8.5 (post-crowdfunding).  
+> **Research Gaps:** GAP 1-6 integrated as Phases 7.5, 8.5, 9.5 (see corresponding sections below).  
+> **Day-by-Day Sprint Plan:** P0-P7 detailed in [Crowdfunding Sprint](#crowdfunding-sprint-p0-p7) section below.
 
 ---
 
@@ -47,25 +48,26 @@
 **Current Status:**
 - ✅ Phases 0-3.4 COMPLETE (Core shell, interactive demo, frontend content suite)
 - ✅ Phase 3.5-3.6 ~95% Complete (Audio, cards, waitlist AI interview)
-- ✅ Phase 3.7 COMPLETE (Context-aware agent routing with M2-Her)
+- ✅ Phase 3.7 COMPLETE (Context-aware agent routing with Mistral Large)
 - ✅ Phase 3.8 COMPLETE (Product catalog database - 11 tables, operations, AI queries)
 - ✅ Phase 4 Backend Core COMPLETE (Auth, database ops, rate limiting, env validation)
 - ✅ Phase 5 AI Integration COMPLETE (Mistral Large LLM, agent routing, voice pipeline)
 - ✅ Phase 5.5 Mockup Generation 83% Complete (Python service, halftone, compositing)
 - ✅ Phase 5.6 Color Separation COMPLETE (K-means, Pantone mapping, halftone layers)
 - ✅ Phase 6 Commerce Core COMPLETE (Stripe webhooks, cart, checkout, order management)
-- 🚧 **P0 Demo Hardening IN PROGRESS** — Crowdfunding-first strategy (see Roadmap-Crowdfunding-v1.0.md)
+- 🚧 **P0 Demo Hardening IN PROGRESS** — Crowdfunding-first strategy
   - ✅ Day 1 (May 9): Intent classification, agent routing, Mistral rebuild, voice VAD, quick actions
-  - ✅ Day 2 (May 10): Security hardening (23 issues closed), component refactoring, RBAC, rate limiting, build fixes
-  - ⏳ Day 3 (May 11): Real LLM streaming, chat history persistence, typewriter display
+  - ✅ Day 2 (May 10): Security hardening (23 issues closed), component refactoring, RBAC, rate limiting
+  - ✅ Day 3 (May 11): Unified Wave Voice UX, stable hold-to-speak, voice pipeline hardening
+  - ⏳ Day 4-7: Typing indicator, demo mode, mobile polish, voice cleanup
 
 **Key Deliverables (Next 2 Weeks):**
-- ✅ Context-aware agent routing with auto-handoff (no manual switcher needed)
+- ✅ Context-aware agent routing with auto-handoff
 - ✅ Security hardening: auth, rate limiting, prompt injection, RBAC, CORS, env validation
+- ✅ Voice pipeline: Voxtral STT → Mistral LLM → ElevenLabs TTS
 - ⏳ Real LLM streaming responses with typewriter effect
 - ⏳ Chat history persistence to database
-- ⏳ Voice-to-voice full pipeline (STT → LLM → TTS)
-- ⏳ FLUX 2 design generation integration
+- ⏳ fal.ai design generation with custom LoRAs
 - ⏳ Artist storefront preview
 
 ---
@@ -173,9 +175,9 @@ Complete the app AI chat interface with voice input, inline product suggestions,
 | **Portal Component** | Portal wrapper for proper overlay positioning | `/app/src/components/ui/portal.tsx` | **30 min** |
 | Create `useSpeechToText` hook | Web Speech API with browser permission handling | `/app/src/hooks/useSpeechToText.ts` | 1 hour |
 | Recording indicator | Pulsing animation, recording state | `/app/src/components/ui/RecordingIndicator.tsx` | 45 min |
-| Deepgram STT API route | Transcribe audio to text via Deepgram | `/app/src/app/api/speech/transcribe/route.ts` | 1.5 hours |
+| Deepgram STT API route | Transcribe audio to text via Voxtral (Mistral) | `/app/src/app/api/speech/transcribe/route.ts` | 1.5 hours |
 | Voice mode toggle | Text/voice conversation mode switch | `/app/src/components/chat/VoiceModeToggle.tsx` | 45 min |
-| Voice-to-voice API (Deepgram) | Full pipeline: audio → STT → MiMo → TTS → audio | `/app/src/app/api/speech/voice-agent/route.ts` | 2 hours |
+| Voice-to-voice API | Full pipeline: audio → STT → Mistral LLM → TTS → audio | `/app/src/app/api/chat/voice/route.ts` | 2 hours |
 | Fallback to Web Speech API | Browser native speech recognition | Hook enhancement | 30 min |
 
 **Total: 10-11 hours** | **Agent: Frontend + API Specialist**
@@ -191,13 +193,13 @@ Complete the app AI chat interface with voice input, inline product suggestions,
 
 **Voice-to-Voice Architecture:**
 ```
-User Audio → MiniMax Speech 2.6 Real-Time
-          → MiniMax M2-her (LLM)
-          → MiniMax Speech 2.6 Real-Time (response)
-          → User Speakers
+User Audio → Voxtral STT (Mistral, sub-200ms)
+           → Mistral Large (LLM + agent personality)
+           → ElevenLabs TTS (character voice, ~200-400ms)
+           → User Speakers
 ```
 
-**Cost:** ~$0.03-0.05/min (pure MiniMax - no external STT/TTS)
+**Cost:** ~$0.03-0.05/min (Mistral + ElevenLabs combined)
 
 ---
 
@@ -326,8 +328,8 @@ Build a multi-step waitlist experience where users go through a conversational f
 | **Step 4 AI Interview** | | | |
 | Step4Interview component | Main interview UI with text/voice toggle | `/app/src/components/waitlist/Step4Interview.tsx` | 3 hours |
 | Interview questions config | 5 questions array | `/app/src/lib/waitlist/interview-questions.ts` | 45 min |
-| Text interview API (MiMo) | OpenRouter integration for text responses | `/app/src/app/api/waitlist/interview/route.ts` | 1.5 hours |
-| Voice interview API (Deepgram) | Voice-to-voice full pipeline | `/app/src/app/api/waitlist/voice-interview/route.ts` | 2 hours |
+| Text interview API (Mistral) | Mistral Large integration for text responses | `/app/src/app/api/waitlist/interview/route.ts` | 1.5 hours |
+| Voice interview API (Voxtral) | Voice-to-voice full pipeline via Mistral | `/app/src/app/api/waitlist/voice-interview/route.ts` | 2 hours |
 | Text/voice toggle UI | Switch between modes in interview | Step4Interview component | 45 min |
 | **Step 5 Success** | | | |
 | Step5Success component | Confirmation page | `/app/src/components/waitlist/Step5Success.tsx` | 1 hour |
@@ -458,8 +460,8 @@ Build a multi-step waitlist experience where users go through a conversational f
 - `useAudioRecording.ts` hook - MediaRecorder API with base64 export
 - `MiniMaxOrb.tsx` - Animated orb visualization with status-aware colors
 - `RecordingButton.tsx` - Recording button with pulsing ring animations
-- `minimax-speech.ts` - MiniMax STT/TTS client for voice pipeline
-- `/api/chat/voice/route.ts` - Voice chat API (Clerk auth → STT → MiniMax LLM → TTS)
+- `voxtral-speech.ts` - Voxtral STT client for voice pipeline
+- `/api/chat/voice/route.ts` - Voice chat API (Clerk auth → STT → Mistral LLM → TTS)
 - Updated `AudioConversationLightbox.tsx` - Real voice pipeline replacing mock setTimeout logic, with transcript bubbles
 - Updated `ChatInput.tsx` - Added voice conversation button (AudioWaveform icon) opening lightbox
 
@@ -467,9 +469,9 @@ Build a multi-step waitlist experience where users go through a conversational f
 ```
 User Audio → useAudioRecording (MediaRecorder)
            → /api/chat/voice (Clerk auth)
-           → MiniMax STT (speech-to-text)
-           → MiniMax M2.1 (LLM with agent personality)
-           → MiniMax TTS (text-to-speech)
+           → Voxtral STT (speech-to-text)
+           → Mistral Large (LLM with agent personality)
+           → ElevenLabs TTS (text-to-speech)
            → Audio playback in lightbox
 ```
 
@@ -492,7 +494,7 @@ User Audio → useAudioRecording (MediaRecorder)
 ### Phase 3.7: Context-Aware Agent Routing (NEW)
 
 #### Overview
-Implemented intelligent agent routing using MiniMax M2-Her to replace brittle keyword-based routing. The system analyzes conversation context and user intent to route to the appropriate agent.
+Implemented intelligent agent routing using Mistral Large to replace brittle keyword-based routing. The system analyzes conversation context and user intent to route to the appropriate agent.
 
 #### What Was Implemented
 
@@ -653,12 +655,12 @@ Connect real AI models (Mistral Large, SDXL, Mistral Voxtral, OpenCV) to the pla
 **Weeks: 2 weeks (Feb 26 - Mar 12, 2026)**
 
 ### Key Tasks
-- Mistral Large integration for chat (replaces MiniMax M2-her)
-- Mistral Voxtral Transcribe 2 for STT (replaces Deepgram)
-- ElevenLabs TTS for voice synthesis (replaces MiniMax TTS) — 33M-min startup grant
+- Mistral Large integration for chat
+- Mistral Voxtral Transcribe 2 for STT
+- ElevenLabs TTS for voice synthesis — 33M-min startup grant
 - Voice cloning: record 30s samples per Cat-Suite character (ElevenLabs zero-shot cloning)
 - Real-time conversation mode ("Talk" button in CatChat)
-- SDXL + Custom LoRAs setup for image generation (replaces Flux)
+- **fal.ai** for image generation (FLUX.2-dev base + custom LoRAs)
 - OpenCV for color separation + halftoning
 - AI routing logic (determine which agent/model)
 - Chat API with streaming responses
@@ -1276,9 +1278,9 @@ For detailed breakdowns, see the Agent Assignment documents in `/Documentation/0
 ### AI & Voice
 - **LLM (Chat):** Mistral Large via Mistral API (EU-based, GDPR-native, open weights available)
 - **STT (Speech-to-Text):** Mistral Voxtral Transcribe 2 ($0.003/min, sub-200ms, Apache 2.0)
-- **TTS (Text-to-Speech):** ElevenLabs TTS (zero-shot voice cloning, ~90ms, Apache 2.0)
-- **Real-Time Conversation:** Full Mistral voice pipeline -- continuous back-and-forth dialogue
-- **Image Generation:** SDXL via Replicate + Custom LoRAs
+- **TTS (Text-to-Speech):** ElevenLabs TTS (zero-shot voice cloning, ~90ms, hardcoded voice IDs per agent)
+- **Real-Time Conversation:** Full Mistral voice pipeline — continuous back-and-forth dialogue
+- **Image Generation:** fal.ai (FLUX.2-dev base + 6 custom LoRAs, Kontext iterative editing)
 - **Color Separation + Halftoning:** OpenCV (Python)
 
 ### Payments
@@ -1286,14 +1288,134 @@ For detailed breakdowns, see the Agent Assignment documents in `/Documentation/0
 
 ---
 
-## Related Documents
+## Crowdfunding Sprint: P0-P7 (May 9 → October 2026)
 
-- **PRD:** `/Documentation/01-PRD/PRD.md` - Product vision and features
-- **Agent Assignments:** `/Documentation/02-Roadmap/Agent-Assignments/` - Detailed task breakdowns by agent
-- **Evaluations:** `/Documentation/03-Evaluations/` - Progress evaluations and decisions
-- **Archive:** `/Documentation/07-Archive/` - Previous versions for reference
-- **MerchStation TUI Plan:** `/Documentation/04-TUI/MerchStation-Plan.md` - Admin terminal control center (replaces web admin dashboard)
-- **Campaign Management MCP:** `/Documentation/04-TUI/Campaign-Management-MCP-Plan.md` - Meta/TikTok Ads integration with auto-pause
+> **Strategy**: Build polished demo with expert-trained LoRAs → crowdfund on Indiegogo → fast path to production → pitch investors with real data  
+> **Platform**: Indiegogo (Flexible Funding)  
+> **Campaign Launch**: June 30, 2026  
+> **Target**: €50,000 stretch goal  
+
+### Why This Timing
+
+| Factor | Detail | Implication |
+|--------|--------|-------------|
+| **Fyul Merger Window** | Printful+Printify merged Nov 2024 | 18-24 months of reduced R&D — capture displaced artists |
+| **Marketplace Collapse** | Redbubble (-98%), Society6 (5-10%), Zazzle (35-50%) | Structural, not cyclical — artists migrating |
+| **AI Differentiation** | Multi-modal AI stack is category-exclusive | 12-month head start before incumbents close gap |
+| **EU Regulatory Tailwind** | EPR regulations favor zero-inventory POD | 80% of EU consumers pay 9.7% premium for sustainable |
+
+### Two-Track Execution (Weeks 2-4)
+
+| Track | Who | What | When |
+|-------|-----|------|------|
+| **Track A — Engineering** | OpenCode + subagents | fal.ai wiring, Kontext editing, storefront, demo mode | All week |
+| **Track B — Training Data** | Victor (10+ yr screen print expert) | Generate 50 images/style → Photoshop → Separation Studio NXT → dataset | Weeks 2-3 |
+
+### Phase Overview
+
+| Phase | Name | Duration | Goal |
+|-------|------|----------|------|
+| **P0** | Demo Hardening + Training Data | May 9 → June 8 (4.5 weeks) | Working AI chat, voice, LoRA design gen, storefront, 300-image dataset |
+| **P1** | Essential Polish | June 9 → June 15 (1 week) | Core animations, mobile perfection, demo-ready |
+| **P2** | Video Production | June 16 → June 22 (1 week) | Shoot, edit, render final video |
+| **P3** | Campaign Prep | June 9 → June 22 (parallel) | /invest page, email sequences, influencer outreach |
+| **P4** | Pre-Launch Warmup | June 23 → June 29 (1 week) | Waitlist activation, social tease, press outreach |
+| **P5** | Campaign Live | June 30 → July 30 (30 days) | Indiegogo live, InDemand post-campaign |
+| **P6** | Post-Campaign | Aug → Sep (6 weeks) | Fulfill rewards, investor deck, facility prep |
+| **P7** | Investor Pitch | Sep → Oct (4 weeks) | Pitch with crowdfunding data |
+
+### P0 Week-by-Week Summary
+
+#### Week 1 (May 9-15): AI Chat Core ✅ Day 1-3 COMPLETE
+- ✅ Day 1: Intent classification, agent routing, Mistral rebuild, voice VAD
+- ✅ Day 2: Security hardening (23 issues), component refactoring, RBAC
+- ✅ Day 3: Unified Wave Voice UX, voice pipeline hardening
+- ⏳ Day 4: Typing indicator + message animations
+- ⏳ Day 5: Demo mode + fallback responses + action executor
+- ⏳ Day 6: Mobile chat polish
+- ⏳ Day 7: Week 1 review + voice cleanup
+
+#### Week 2 (May 16-22): Voice + Design Gen + Dataset Start
+- Day 8: Voxtral STT integration, voice input pipeline
+- Day 9: ElevenLabs TTS integration, mute/unmute toggle
+- Day 10: **fal.ai client setup**, generateDesign(), postProcessImage(), generation progress UI
+- Day 11: DesignCard component, design history, save to session
+- Day 12: **Kontext iterative editing**, side-by-side comparison
+- Day 13: Pre-generate 20 demo designs, full pipeline test
+- Day 14: Week 2 review, storefront shell
+
+#### Week 3 (May 23-29): Storefront + Dataset Completion
+- Day 15: StorefrontHero + ArtistBio + theme customization
+- Day 16: ProductCard + ProductGrid + filtering
+- Day 17: CartDrawer + cart state management + demo mode checkout
+- Day 18: Integration testing + cross-device testing
+- Day 19: Landing page polish + waitlist finish
+- Day 20: End-to-end demo recording
+- Day 21: Week 3 review + handoff
+
+#### Week 4 (May 30-June 5): LoRA Integration + Essential Polish
+- Day 22-24: Wire trained LoRAs, A/B test, enhancement pipeline
+- Day 25-28: Framer Motion transitions, animations, mobile test, performance audit
+
+#### Week 5 (June 6-8): Final Polish
+- Day 29-31: Full demo with LoRA-quality designs, branded loading, scroll animations, **P0 COMPLETE**
+
+### Training Data Strategy (6 MVP LoRA Styles)
+
+| Style | Images | Time (Victor) |
+|-------|--------|---------------|
+| American Traditional | 50 | ~10h |
+| Japanese | 50 | ~10h |
+| Blackwork | 50 | ~10h |
+| Vintage 90's | 50 | ~10h |
+| Realism | 50 | ~10h |
+| Dark Art | 50 | ~10h |
+| **Total** | **300** | **~60-85h** |
+
+**Pipeline**: Generated Image → Photoshop Treatment (LoRA training) → Separation Studio NXT (U-Net training)
+
+**Three Assets Produced**:
+| Asset | Training Data | Moat Level |
+|-------|--------------|------------|
+| 6 Style LoRAs | 50 enhanced images each | Medium — replicable with effort |
+| Color Separation U-Net | 300 input/output separation pairs | **High** — proprietary dataset |
+| Enhancement Pipeline | 300 raw → enhanced pairs | **High** — tacit knowledge capture |
+
+### Definition of Done (Crowdfunding Demo)
+
+- [ ] New user can visit site, see Leopoldo greet them, have a 3-message conversation
+- [ ] User can switch to Francisca and request a t-shirt design in a specific LoRA style
+- [ ] Design generates in <10 seconds with LoRA-enhanced quality
+- [ ] User can refine design with text or voice (Kontext editing)
+- [ ] User can preview an artist storefront with products
+- [ ] Voice mode works: speak → transcribe → respond → speak back
+- [ ] Demo mode produces predictable responses for video recording
+- [ ] Mobile experience is flawless (iPhone 14 + Pixel 7 tested)
+- [ ] Every animation is smooth (60fps, no jank)
+- [ ] Zero console errors, zero build warnings
+- [ ] 6 LoRAs trained and integrated
+- [ ] 300-image dataset on HuggingFace
+
+### Key Metrics
+
+| Metric | Target | Why |
+|--------|--------|-----|
+| Video completion rate | >60% | Watch to end = conversion |
+| Waitlist → backer conversion | >20% | 500 waitlist → 100 backers min |
+| Average pledge | >€100 | Higher tiers = more capital |
+| Day 1 funding % | >30% | Algorithm boost + momentum |
+
+---
+
+- **PRD:** [`/Documentation/PRD.md`](../PRD.md) - Product vision and features
+- **AI Stack:** [`/Documentation/02-Architecture/AI-Stack.md`](../02-Architecture/AI-Stack.md) - All AI model routing
+- **Image Generation:** [`/Documentation/05-Shared/Image-Generation-Architecture.md`](../05-Shared/Image-Generation-Architecture.md) - fal.ai pipeline, LoRA strategy
+- **Design System:** [`/Documentation/05-Shared/Design-System.md`](../05-Shared/Design-System.md) - Colors, typography, components
+- **Database Schema:** [`/Documentation/05-Shared/Database-Schema.md`](../05-Shared/Database-Schema.md) - Drizzle tables
+- **Cat-Suite Prompts:** [`/Documentation/CAT_SUITE_PROMPTS.md`](../CAT_SUITE_PROMPTS.md) - Agent personalities
+- **Agent Assignments:** `Agent-Assignments/` - Detailed task breakdowns by agent
+- **Accessories Expansion:** [`Accessories-Expansion.md`](./Accessories-Expansion.md) - Phase 10 detail
+- **Mockup Generation:** [`IMPLEMENTATION-PLAN-Mockup-Generation.md`](./IMPLEMENTATION-PLAN-Mockup-Generation.md) - Mockup system plan
 
 ---
 
@@ -1301,50 +1423,32 @@ For detailed breakdowns, see the Agent Assignment documents in `/Documentation/0
 
 **This document is the single source of truth for the MerchFrom roadmap.**
 
+All roadmap information (phases 0-10, crowdfunding sprint P0-P7, research gaps, training data strategy, day-by-day plan) is consolidated here.
+
 - Update status weekly during standup meetings
-- Add new phases/tasks to Agent Assignments folder as they emerge
 - Link to this document from all project management tools
-- Archive old roadmap versions in `/Documentation/07-Archive/Roadmap-Archive/`
+- Archived roadmap versions in `/Documentation/99-Archive/Roadmap/`
 
 ---
 
 **Roadmap Owner:** Victor Bendas  
-**Last Updated:** May 10, 2026  
+**Last Updated:** May 13, 2026  
 **Next Review:** Daily during P0 Demo Hardening sprint
 
 **Recent Changes:**
-- 🚧 **May 10, 2026:** P0 Demo Hardening Day 2 — Security & Infrastructure Sprint. Closed 23 GitHub issues (#1-#23). Added Clerk auth to all chat APIs, Upstash rate limiting, prompt injection sanitization, RBAC middleware, Zod env validation, CORS on all routes, centralized CHAT_CONFIG, structured logger, ChatErrorBoundary. Extracted hooks (useVoiceConversation, useAudioRecording) and sub-components (ChatMessages, ChatInput, ChatWindow, ChatHeader). Deduplicated mainpage chat code. Fixed ghost recording, circular deps, stale closures. Both /app and /mainpage build successfully.
-- 🚧 **May 9, 2026:** P0 Demo Hardening Day 1 — Agent Router Foundation. Intent classification module (Mistral), agent routing middleware, 10 test cases. Mistral integration rebuilt. Quick actions expanded to 9/agent with carousel. Avatar preloading + widget visibility. Live voice conversation with VAD. Voice pipeline updated: ElevenLabs TTS replaces Voxtral TTS. Assets cleanup.
-- 🆕 **May 8, 2026:** STRATEGIC PIVOT — Crowdfunding-First Strategy. New roadmap: build polished demo → crowdfund on Indiegogo → use funds + traction → pitch investors. 7-week sprint to campaign launch (June 30). See Roadmap-Crowdfunding-v1.0.md for full day-by-day plan.
-- 🆕 **May 4, 2026:** Added Phase 10: Accessories Expansion — 3D-printed jewelry (pendants, rings, bracelets) using Meshy API + Cat-Suite AI. Pre-crowdfunding 3D viewer prototype prioritized. Cast-resin-to-metal production at Portugal facility. Pilot program with 5-10 artists for data collection + future model fine-tuning.
-- 🔄 **Feb 25, 2026:** STRATEGIC PIVOT - AI Stack: MiniMax → Mistral (full pipeline: LLM + STT + TTS). EU sovereignty, open weights, voice cloning, 50%+ cost reduction.
-- 🔄 **Feb 25, 2026:** STRATEGIC PIVOT - Facility: Porto → Castelo Branco. 50% equipment grant, €0.01/m² industrial land, own facility instead of rent. De-risk crowdfunding pitch.
-- 🔄 **Feb 25, 2026:** NEW FEATURE - Real-time voice conversation mode ("Talk" button). Continuous back-and-forth dialogue with Cat-Suite agents via Mistral Voxtral pipeline.
-- ✅ **Feb 24, 2026:** T1 Schema Deduplication COMPLETE - mainpage now uses shared @db-root/* imports from /src/db, upgraded drizzle-orm to ^0.45.1
-- ✅ **Feb 24, 2026:** Phase 6 Auth Fixes - Added middleware protection for /api/orders, /stripe-connect, /shipping routes, server-side auth guards
-- ✅ **Feb 24, 2026:** Phase 6 Webhook Fixes - Added payment_intent.payment_failed and charge.refunded handlers
-- ✅ **Feb 24, 2026:** eShop Analytics Fix - Replaced hardcoded €12,580 with real order data from API
-- ✅ **Feb 24, 2026:** Evaluation #15 complete - Score improved to 8.9/10
-- ✅ **Feb 24, 2026:** Phase 5.6 Color Separation System COMPLETE - Spot color separation Python service (K-means clustering, CIEDE2000 Delta E, Pantone mapping, garment filtering, layer separation, halftone). Next.js integration on port 8001. Users see mockups, print-ready files stored for MerchStation TUI production team.
-- ✅ **Feb 23, 2026:** Phase 5.5 Mockup System 83% complete - Python microservice (halftone, compositing, templates), 127 products organized (3,344 images), TypeScript client, Next.js API routes, UI components. Waiting on fabric textures ($5 Gumroad pack).
-- ✅ **Feb 21, 2026:** Added Phase 5.5: Mockup Generation System - Python microservice based on CTDave001's automated_mockups, extended with halftone integration, dual-resolution output, fabric textures, Stanley Stella catalog support. Bridges Phase 5 (AI) and Phase 6 (Commerce).
-- ✅ **Feb 20, 2026:** Context-Aware Agent Routing complete - M2-Her based routing with knowledge base, explicit intent detection, multi-intent clarification, feature flag (ENABLE_LLM_ROUTING)
-- ✅ **Feb 19, 2026:** App Audio Input System complete (WAVE2_4) - Full voice conversation pipeline with MiniMax STT/TTS, useAudioRecording hook, MiniMaxOrb, RecordingButton, /api/chat/voice route, ChatInput voice button
-- ✅ **Feb 19, 2026:** Waitlist UI implementation complete (Steps 1-3, 5) - 5-step form flow with Framer Motion animations, Zod validation
-- ✅ **Feb 19, 2026:** Added Campaign Management with MCP integration (Phase 4b) - Meta/TikTok Ads auto-pause on CAC/CPC limits, daily reports, Leopoldo AI alerts
-- ✅ **Feb 13, 2026:** Added Visitor Floating Chat with Antônia for mainpage (text + voice modes, 20 Cloudinary avatars, context-aware expressions)
-- ✅ **Feb 13, 2026:** Added Audio Conversation Lightbox with ElevenLabs components (Orb, LiveWaveform, ShimmeringText)
-- ✅ **Feb 8, 2026:** Added Pre-Beta Security Audit task using Shannon AI pentester to Phase 7
-- ✅ **Feb 4, 2026:** Internal admin web dashboard replaced by MerchStation TUI (see `/Documentation/04-TUI/MerchStation-Plan.md`)
+- 🔄 **May 13, 2026:** ROADMAP CONSOLIDATED — Merged Roadmap-Crowdfunding-v1.0.md, Sprint-Plan-Crowdfunding-v1.0.md, Roadmap-Research-Gaps.md, Plan-Unified-Wave-Voice.md into single Roadmap.md v3.0. Fixed all tech stack references (STT: Voxtral not Deepgram, TTS: ElevenLabs not MiniMax, Image: fal.ai not BFL/SDXL). Dead code cleanup: removed 6 unused hooks, Deepgram proxy, provider.ts. Renamed minimax-m2her.ts → mistral-chat.ts.
+- ✅ **May 11, 2026:** P0 Day 3 — Unified Wave Voice UX complete. Stable hold-to-speak, persona system prompt, custom voices, voice subtitle overlay. Issues #24-#26 closed.
+- 🚧 **May 10, 2026:** P0 Day 2 — Security & Infrastructure Sprint. Closed 23 GitHub issues (#1-#23). Clerk auth, Upstash rate limiting, prompt injection sanitization, RBAC, Zod env validation, CORS, centralized config, error boundary, extracted hooks and sub-components.
+- 🚧 **May 9, 2026:** P0 Day 1 — Agent Router Foundation. Intent classification (Mistral), agent routing middleware, 23/23 tests pass. Mistral integration rebuilt. Quick actions expanded to 9/agent with carousel. Avatar preloading. Voice VAD. Voice pipeline: ElevenLabs TTS replaces Voxtral TTS.
 
 **Current Focus (This Week — P0 Demo Hardening):**
 - ✅ Day 1 (May 9): Intent classification, agent routing, Mistral rebuild, voice VAD, quick actions carousel
 - ✅ Day 2 (May 10): Security hardening (23 issues closed), component refactoring, RBAC, rate limiting
-- ⏳ Day 3 (May 11): Real LLM streaming + chat history persistence + typewriter effect
+- ✅ Day 3 (May 11): Unified Wave Voice UX, stable hold-to-speak, voice pipeline hardening (#24-#26 closed)
 - ⏳ Day 4 (May 12): Typing indicator + message animations
-- ⏳ Day 5 (May 13): Demo mode + fallback responses
-- ⏳ Day 6 (May 14): Polish + mobile chat
-- ⏳ Day 7 (May 15): Week 1 review + voice prep
+- ⏳ Day 5 (May 13): Demo mode + fallback responses + action executor
+- ⏳ Day 6 (May 14): Mobile chat polish
+- ⏳ Day 7 (May 15): Week 1 review + voice cleanup
 
 ---
 

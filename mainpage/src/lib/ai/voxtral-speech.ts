@@ -24,7 +24,7 @@ class VoxtralSpeechProvider {
       const formData = new FormData();
       formData.append('file', audioBlob, 'audio.webm');
       formData.append('model', this.model);
-      formData.append('language', 'en');
+      // No language specified — let Voxtral auto-detect the spoken language
 
       console.log(`[Voxtral STT] Transcribing with model: ${this.model}`);
 

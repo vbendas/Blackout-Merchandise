@@ -22,6 +22,9 @@ interface ChatInputProps {
   agentColor: string;
   onWaveHoldStart: () => Promise<void>;
   onWaveHoldEnd: () => void;
+  isStudioMode?: boolean;
+  onImageUpload?: (file: File) => Promise<void>;
+  showImageUpload?: boolean;
 }
 
 export function ChatInput({
@@ -40,6 +43,9 @@ export function ChatInput({
   agentColor,
   onWaveHoldStart,
   onWaveHoldEnd,
+  isStudioMode,
+  onImageUpload,
+  showImageUpload,
 }: ChatInputProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const isHoldingRef = useRef(false);
@@ -218,6 +224,31 @@ export function ChatInput({
             ))}
           </div>
         </button>
+
+        {/* Image Upload Button (studio mode only) */}
+        {showImageUpload && (
+          <label
+            className={`flex shrink-0 items-center justify-center rounded-full cursor-pointer transition-all text-zinc-400 hover:bg-zinc-800 hover:text-white active:scale-95 ${
+              isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'
+            }`}
+            aria-label="Upload image"
+            title="Upload image"
+          >
+            <Icon icon="lucide:paperclip" className={isMobile ? 'h-5 w-5' : isTablet ? 'h-6 w-6' : 'h-5 w-5'} />
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={async (e) => {
+                const files = e.target.files;
+                if (files && files.length > 0 && onImageUpload) {
+                  await onImageUpload(files[0]);
+                }
+              }}
+            />
+          </label>
+        )}
 
         <div className="relative flex-1">
           <textarea

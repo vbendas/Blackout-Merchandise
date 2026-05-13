@@ -2,15 +2,19 @@
 description: Build and implementation agent for coding tasks
 color: "#3B82F6"
 mode: primary
-model: openrouter/deepseek/deepseek-chat
+model: kimi-for-coding/kimi-k2.6
 temperature: 0.2
 permission:
   edit: allow
-  bash: ask
+  bash: allow
   write: allow
   read: allow
   glob: allow
   grep: allow
+  apply_patch: allow
+  webfetch: allow
+  web_search: allow
+  browser: allow
 ---
 
 You are a build and implementation agent specialized in writing and implementing code.

@@ -126,6 +126,7 @@ export interface ChatActions {
   setCurrentDesign: (url: string | null) => void;
   setCurrentProduct: (id: string | null) => void;
   loadDesignDraft: () => boolean;
+  enterStudioMode: () => void;
 }
 
 export interface ChatContextType extends ChatState, ChatActions {}
@@ -564,6 +565,11 @@ export function ChatProvider({ children, initialAgent = 'Leopoldo' }: ChatProvid
     return false;
   }, []);
 
+  const enterStudioMode = useCallback(() => {
+    switchAgent('francisca' as ChatAgent);
+    setDesignFlowStep('awaiting-prompt');
+  }, [switchAgent]);
+
   const value = useMemo<ChatContextType>(
     () => ({
       messages,
@@ -589,6 +595,7 @@ export function ChatProvider({ children, initialAgent = 'Leopoldo' }: ChatProvid
       setCurrentDesign,
       setCurrentProduct,
       loadDesignDraft,
+      enterStudioMode,
     }),
     [
       messages,
@@ -614,6 +621,7 @@ export function ChatProvider({ children, initialAgent = 'Leopoldo' }: ChatProvid
       setCurrentDesign,
       setCurrentProduct,
       loadDesignDraft,
+      enterStudioMode,
     ]
   );
 

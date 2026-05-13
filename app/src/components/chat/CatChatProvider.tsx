@@ -76,6 +76,7 @@ interface ChatContextValue {
   requestHumanHandoff: (email?: string) => Promise<void>;
   cancelHandoff: () => void;
   setContactEmail: (email: string) => void;
+  enterStudioMode: () => void;
 }
 
 const ChatContext = createContext<ChatContextValue | null>(null);
@@ -655,6 +656,10 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
     requestHumanHandoff,
     cancelHandoff,
     setContactEmail,
+    enterStudioMode: () => {
+      setAgent('francisca');
+      setDesignFlowStep('awaiting-prompt');
+    },
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

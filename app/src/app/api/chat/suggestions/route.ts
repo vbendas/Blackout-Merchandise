@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { miniMaxM2HerProvider } from '@/lib/ai/minimax-m2her';
+import { mistralChatProvider } from '@/lib/ai/mistral-chat';
 import { sanitizePromptInput } from '@/lib/sanitize/prompt-sanitize';
 import { withCors } from '@/lib/cors';
 import type { AgentId } from '@/types/chat';
@@ -45,7 +45,7 @@ ${history
   })
   .join('\n')}`;
 
-    const response = await miniMaxM2HerProvider.chat({
+    const response = await mistralChatProvider.chat({
       messages: [{ role: 'user', content: prompt }],
       agent,
       temperature: 0.9,

@@ -1,6 +1,5 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": [
-    "list"
-  ]
+  "model": "kimi-for-coding/kimi-k2.6",
+  "small_model": "kimi-for-coding/kimi-k2.6"
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { voxtralSpeechProvider } from '@/lib/ai/voxtral-speech';
 import { elevenLabsTTSProvider } from '@/lib/ai/elevenlabs-tts';
 import { mistralClient } from '@/lib/ai/mistral-client';
+import { AGENT_CONFIGS } from '@/types/chat';
 import type { AgentId } from '@/types/chat';
 
 interface VoiceRequestBody {
@@ -47,14 +48,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Step 2: Get AI response using Mistral
+    // Step 2: Get AI response using Mistral WITH agent persona
+    const agentConfig = AGENT_CONFIGS[agent];
+    const systemPrompt = `${agentConfig.persona}\n\nYou are ${agentConfig.name}, ${agentConfig.role} at MerchFrom. Stay in character. Be concise (2-3 sentences max).\n\nCRITICAL: ALWAYS respond in the SAME LANGUAGE the user is speaking.`;
+
     const formattedHistory = history.map((msg) => ({
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
     }));
 
     const aiResponse = await mistralClient.chat({
-      messages: [...formattedHistory, { role: 'user', content: transcription }],
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...formattedHistory,
+        { role: 'user', content: transcription },
+      ],
       temperature: 0.7,
       maxTokens: 1024,
     });

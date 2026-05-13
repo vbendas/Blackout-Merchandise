@@ -88,7 +88,7 @@ Be creative, helpful, and provide design-focused guidance. Ask about brand aesth
 };
 
 export type MessageRole = 'user' | 'assistant';
-export type MessageType = 'text' | 'card' | 'voice' | 'image';
+export type MessageType = 'text' | 'card' | 'voice' | 'image' | 'status_card' | 'image_result' | 'image_upload_prompt' | 'option_chips';
 export type CardType = 'product' | 'mockup' | 'design';
 
 export interface ChatMessage {
@@ -361,3 +361,47 @@ export const AGENT_TO_STAFF_ROLE: Record<AgentId, string> = {
   francisca: 'head_of_design',
   antonia: 'head_of_customer_success',
 };
+
+// ============================================================================
+// STUDIO FLOW TYPES
+// ============================================================================
+
+export type StudioPhase =
+  | 'greeting'
+  | 'garment_selection'
+  | 'design_intent'
+  | 'reference_gathering'
+  | 'design_generation'
+  | 'design_iteration'
+  | 'garment_application'
+  | 'mockup_generation'
+  | 'approval'
+  | 'next_item'
+  | 'complete';
+
+export interface GarmentStatus {
+  id: string;
+  name: string;
+  sku: string;
+  status: 'pending' | 'in_progress' | 'complete' | 'skipped' | 'approved';
+  designUrl?: string;
+}
+
+export interface StudioOption {
+  id: string;
+  label: string;
+  description?: string;
+  icon?: string;
+  imageUrl?: string;
+}
+
+export interface StudioMessageMetadata {
+  phase?: StudioPhase;
+  garmentId?: string;
+  designUrl?: string;
+  imageUrl?: string;
+  editRound?: number;
+  loraStyle?: string;
+  statusCard?: GarmentStatus[];
+  options?: StudioOption[];
+}

@@ -253,7 +253,7 @@ export function ChatInput() {
             }}
             className={`flex items-center justify-center rounded-xl transition-all ${
               isRecording
-                ? 'bg-rose-600 text-white animate-pulse'
+                ? 'bg-rose-600 text-white ring-[3px] ring-rose-400/60 shadow-[0_0_20px_rgba(225,29,72,0.4)] scale-110'
                 : 'p-3 text-zinc-400 hover:bg-zinc-800 hover:text-white'
             } ${isRecording ? 'p-3' : ''}`}
             aria-label="Hold to speak"

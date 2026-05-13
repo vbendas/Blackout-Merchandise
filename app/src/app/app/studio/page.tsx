@@ -2,39 +2,22 @@
 
 import { useEffect } from 'react';
 import { useNavigation } from '@/lib/NavigationContext';
-import { useViewportSize } from '@/hooks/useViewportSize';
-import { GarmentCanvas } from '@/components/studio/GarmentCanvas';
-import { StudioToolbar } from '@/components/studio/StudioToolbar';
-import { GarmentCarousel } from '@/components/studio/GarmentCarousel';
-import { cn } from '@/lib/utils';
+import { useChat } from '@/components/chat/CatChatProvider';
 
 export default function StudioPage() {
   const { setAgent } = useNavigation();
-  const { isDesktop } = useViewportSize();
+  const { enterStudioMode } = useChat();
 
   useEffect(() => {
     setAgent('Francisca');
-  }, [setAgent]);
+    enterStudioMode();
+  }, [setAgent, enterStudioMode]);
 
-  const isStudioChatOpen = isDesktop; // Chat is open by default on desktop
-
+  // The full-screen chat is rendered by CatChat component globally
+  // This page intentionally renders nothing — the chat IS the page content
   return (
-    <div className="relative h-full w-full">
-      {/* 3D Garment Scene - with right padding on desktop for chat panel */}
-      <div
-        className={cn(
-          'absolute inset-0 transition-all duration-300',
-          isDesktop && isStudioChatOpen ? 'right-[380px]' : 'right-0'
-        )}
-      >
-        <GarmentCanvas />
-      </div>
-
-      {/* Floating Toolbar */}
-      <StudioToolbar />
-
-      {/* Bottom Garment Carousel */}
-      <GarmentCarousel />
+    <div className="h-full w-full">
+      {/* Studio content is the full-screen chat handled by CatChatProvider/CatChat */}
     </div>
   );
 }

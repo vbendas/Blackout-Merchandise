@@ -71,6 +71,13 @@
       "when": 1746871320000,
       "tag": "0009_human_handoff_support",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1746871330000,
+      "tag": "0010_app_settings",
+      "breakpoints": true
     }
   ]
 }
