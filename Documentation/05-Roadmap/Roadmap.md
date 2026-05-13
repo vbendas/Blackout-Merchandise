@@ -1326,12 +1326,12 @@ For detailed breakdowns, see the Agent Assignment documents in `/Documentation/0
 
 ### P0 Week-by-Week Summary
 
-#### Week 1 (May 9-15): AI Chat Core ✅ Day 1-3 COMPLETE
+#### Week 1 (May 9-15): AI Chat Core ✅ Day 1-5 COMPLETE
 - ✅ Day 1: Intent classification, agent routing, Mistral rebuild, voice VAD
 - ✅ Day 2: Security hardening (23 issues), component refactoring, RBAC
 - ✅ Day 3: Unified Wave Voice UX, voice pipeline hardening
-- ⏳ Day 4: Typing indicator + message animations
-- ⏳ Day 5: Demo mode + fallback responses + action executor
+- ✅ Day 4: Typing indicator, message animations, SSE streaming, typewriter effect
+- ✅ Day 5: Demo mode + scripted responses (3 agents) + fallback system
 - ⏳ Day 6: Mobile chat polish
 - ⏳ Day 7: Week 1 review + voice cleanup
 
@@ -1445,8 +1445,8 @@ All roadmap information (phases 0-10, crowdfunding sprint P0-P7, research gaps, 
 - ✅ Day 1 (May 9): Intent classification, agent routing, Mistral rebuild, voice VAD, quick actions carousel
 - ✅ Day 2 (May 10): Security hardening (23 issues closed), component refactoring, RBAC, rate limiting
 - ✅ Day 3 (May 11): Unified Wave Voice UX, stable hold-to-speak, voice pipeline hardening (#24-#26 closed)
-- ⏳ Day 4 (May 12): Typing indicator + message animations
-- ⏳ Day 5 (May 13): Demo mode + fallback responses + action executor
+- ✅ Day 4 (May 12): Typing indicator + message animations + SSE streaming + typewriter
+- ✅ Day 5 (May 13): Demo mode + scripted responses (3 agents) + fallback system
 - ⏳ Day 6 (May 14): Mobile chat polish
 - ⏳ Day 7 (May 15): Week 1 review + voice cleanup
 

@@ -16,6 +16,7 @@ import { MockupCardInline } from './MockupCardInline';
 import { DesignCardInline } from './DesignCardInline';
 import { QuickActionsCarousel } from './QuickActionsCarousel';
 import { ChatInput } from './ChatInput';
+import { TypewriterText } from './TypewriterText';
 
 
 function formatTime(timestamp: number): string {
@@ -73,17 +74,37 @@ function TypingIndicator({ agentName }: { agentName: string }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
-      className="flex items-center gap-2"
+      transition={{ duration: 0.2 }}
+      className="flex items-end gap-2"
     >
-      <span className="text-xs text-zinc-500 italic">
-        {agentName} is typing
-        <motion.span
-          animate={{ opacity: [0, 1, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          ...
-        </motion.span>
-      </span>
+      <div className="h-6 w-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0">
+        <div className="flex gap-[2px]">
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              className="h-1 w-1 rounded-full bg-zinc-400"
+              animate={{ y: [0, -3, 0] }}
+              transition={{
+                duration: 0.6,
+                repeat: Infinity,
+                delay: i * 0.15,
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="rounded-2xl rounded-bl-sm bg-zinc-900/80 backdrop-blur-xl px-3 py-2">
+        <span className="text-xs text-zinc-500 italic flex items-center gap-1">
+          {agentName} is typing
+          <motion.span
+            animate={{ opacity: [0.3, 1, 0.3] }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            ...
+          </motion.span>
+        </span>
+      </div>
     </motion.div>
   );
 }
@@ -708,14 +729,22 @@ export function CatChat() {
             )}
 
             {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 safe-bottom">
               <div className="flex flex-col gap-4">
                 <AnimatePresence mode="popLayout">
-                  {messages.map((message) => {
+                  {messages.map((message, index) => {
                     const isUser = message.role === 'user';
                     const isHuman = message.role === 'human';
                     const messageAgent = message.agent || currentAgent;
                     const agentCfg = AGENT_CONFIGS[messageAgent];
+
+                    // Detect streaming: last assistant message with content being streamed
+                    const isStreaming =
+                      !isUser &&
+                      !isHuman &&
+                      message.content.length > 0 &&
+                      index === messages.length - 1 &&
+                      messages[messages.length - 1].role === 'assistant';
                     
                     return (
                       <motion.div
@@ -727,6 +756,19 @@ export function CatChat() {
                         layout
                         className={`flex items-end gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
                       >
+                        {/* Agent avatar badge for assistant messages */}
+                        {!isUser && !isHuman && (
+                          <div
+                            className="h-7 w-7 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold"
+                            style={{
+                              backgroundColor: `${agentCfg?.color || '#6B7280'}20`,
+                              border: `1.5px solid ${agentCfg?.color || '#6B7280'}40`,
+                              color: agentCfg?.color || '#6B7280',
+                            }}
+                          >
+                            {agentCfg?.name?.charAt(0) || '?'}
+                          </div>
+                        )}
                         <div
                           className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                             isUser
@@ -747,7 +789,16 @@ export function CatChat() {
                               </span>
                             </div>
                           )}
-                          <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                          {isStreaming ? (
+                            <TypewriterText
+                              text={message.content}
+                              isStreaming={true}
+                              speed={3}
+                              className="text-sm leading-relaxed whitespace-pre-wrap"
+                            />
+                          ) : (
+                            <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                          )}
                           {message.metadata?.cardData && (
                             <div className="mt-3">
                               <CardRenderer cardData={message.metadata.cardData} />
@@ -768,7 +819,7 @@ export function CatChat() {
 
             {/* Input */}
             <div className={`border-t border-white/10 bg-zinc-950/50 backdrop-blur-xl ${
-              isMobile ? 'p-3' : isTablet ? 'p-5' : 'p-4'
+              isMobile ? 'p-3 safe-bottom' : isTablet ? 'p-5 safe-bottom' : 'p-4'
             }`}>
               <ChatInput
                 inputValue={inputValue}

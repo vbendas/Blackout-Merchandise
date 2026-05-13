@@ -292,3 +292,16 @@
 .light .custom-scrollbar__button:active {
   background-color: rgba(0, 0, 0, 0.3);
 }
+
+/* Mobile chat safe area — handles iOS notch, dynamic island, and home indicator */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Prevent iOS bounce scroll when chat is open */
+.chat-open {
+  overscroll-behavior: none;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
