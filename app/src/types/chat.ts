@@ -141,7 +141,7 @@ export interface VoiceMessageData {
   audioUrl: string;
   duration: number; // In seconds
   transcription?: string;
-  model?: 'deepgram' | 'other';
+  model?: 'voxtral' | 'other';
 }
 
 /**

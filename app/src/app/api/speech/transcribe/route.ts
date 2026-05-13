@@ -1,9 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { voxtralSpeechProvider } from '@/lib/ai/voxtral-speech';
 
 /**
  * Speech-to-Text API Endpoint
- * Receives audio data and transcribes using Deepgram
- * Used in workspace chat and waitlist interview flows
+ * Receives audio data (base64) and transcribes using Voxtral (Mistral).
+ * Used in waitlist interview flow.
  */
 
 export async function POST(request: NextRequest) {
@@ -14,32 +15,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'No audio data provided' }, { status: 400 });
     }
 
-    // Convert base64 to buffer
+    // Convert base64 to Blob for Voxtral
     const audioBuffer = Buffer.from(audio, 'base64');
+    const audioBlob = new Blob([audioBuffer], { type: mimeType || 'audio/webm' });
 
-    // Call Deepgram API
-    const deepgramUrl = 'https://api.deepgram.com/v1/listen?model=nova-2&language=en-US';
-
-    const response = await fetch(deepgramUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: `Token ${process.env.DEEPGRAM_API_KEY}`,
-        'Content-Type': mimeType || 'audio/webm',
-      },
-      body: audioBuffer,
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Deepgram error:', error);
-      return NextResponse.json({ success: false, error: 'Transcription failed' }, { status: 500 });
-    }
-
-    const result = await response.json();
-
-    // Extract transcript from Deepgram response
-    // Format: { results: { channels: [{ alternatives: [{ transcript: "..." }] }] } }
-    const transcript = result.results?.channels?.[0]?.alternatives?.[0]?.transcript || '';
+    const transcript = await voxtralSpeechProvider.transcribeAudio(audioBlob);
 
     if (!transcript) {
       return NextResponse.json({ success: true, transcript: '' }, { status: 200 });
@@ -49,7 +29,6 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         transcript: transcript.trim(),
-        confidence: result.results?.channels?.[0]?.alternatives?.[0]?.confidence,
       },
       { status: 200 }
     );

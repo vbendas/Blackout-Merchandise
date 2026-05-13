@@ -1326,14 +1326,14 @@ For detailed breakdowns, see the Agent Assignment documents in `/Documentation/0
 
 ### P0 Week-by-Week Summary
 
-#### Week 1 (May 9-15): AI Chat Core ✅ Day 1-5 COMPLETE
+#### Week 1 (May 9-15): AI Chat Core ✅ COMPLETE
 - ✅ Day 1: Intent classification, agent routing, Mistral rebuild, voice VAD
 - ✅ Day 2: Security hardening (23 issues), component refactoring, RBAC
 - ✅ Day 3: Unified Wave Voice UX, voice pipeline hardening
 - ✅ Day 4: Typing indicator, message animations, SSE streaming, typewriter effect
 - ✅ Day 5: Demo mode + scripted responses (3 agents) + fallback system
-- ⏳ Day 6: Mobile chat polish
-- ⏳ Day 7: Week 1 review + voice cleanup
+- ✅ Day 6: Mobile chat polish, agent badges, iOS safe areas, typewriter in CatChat
+- ✅ Day 7: Voice cleanup — Deepgram fully removed, transcribe route uses Voxtral
 
 #### Week 2 (May 16-22): Voice + Design Gen + Dataset Start
 - Day 8: Voxtral STT integration, voice input pipeline

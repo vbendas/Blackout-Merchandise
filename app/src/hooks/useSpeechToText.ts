@@ -21,8 +21,8 @@ export interface UseSpeechToTextReturn {
 }
 
 /**
- * Custom hook for speech-to-text using Deepgram API
- * Used in workspace chat and waitlist interview flows
+ * Custom hook for speech-to-text using Voxtral (Mistral) API
+ * Used in waitlist interview flows
  *
  * Example usage:
  * ```tsx
@@ -82,7 +82,7 @@ export function useSpeechToText(options: SpeechToTextOptions = {}): UseSpeechToT
         const arrayBuffer = await audioBlob.arrayBuffer();
         const base64Audio = Buffer.from(arrayBuffer).toString('base64');
 
-        // Send to our Deepgram proxy endpoint
+        // Send to our Voxtral transcription endpoint
         const response = await fetch('/api/speech/transcribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
