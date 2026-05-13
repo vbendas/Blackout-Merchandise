@@ -164,8 +164,10 @@ export function CatChat() {
   const [inputFocused, setInputFocused] = useState(false);
 
   // Voice conversation state
-  const [voiceConversationStatus, setVoiceConversationStatus] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
+  const [voiceConversationStatus, setVoiceConversationStatus] = useState<'idle' | 'listening' | 'thinking' | 'speaking' | 'error'>('idle');
   const [waveSubtitles, setWaveSubtitles] = useState('');
+  const [micPermissionState, setMicPermissionState] = useState<'granted' | 'denied' | 'prompt' | 'unknown'>('unknown');
+  const [showMicInstructions, setShowMicInstructions] = useState(false);
 
   // Human handoff email form state
   const [emailInput, setEmailInput] = useState('');
@@ -228,6 +230,26 @@ export function CatChat() {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     }
   }, [isOpen]);
+
+  // Check microphone permission on mount
+  useEffect(() => {
+    const checkMicPermission = async () => {
+      try {
+        if (typeof navigator !== 'undefined' && navigator.permissions) {
+          const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          setMicPermissionState(result.state as 'granted' | 'denied' | 'prompt');
+          
+          result.addEventListener('change', () => {
+            setMicPermissionState(result.state as 'granted' | 'denied' | 'prompt');
+          });
+        }
+      } catch {
+        // permissions.query not supported in all browsers
+        setMicPermissionState('unknown');
+      }
+    };
+    checkMicPermission();
+  }, []);
 
   // Close chat when clicking outside (skip in studio mode)
   useEffect(() => {
@@ -435,10 +457,21 @@ export function CatChat() {
     isCancelledRef.current = false;
     unlockAudio();
 
+    // Check permission state before requesting
+    if (micPermissionState === 'denied') {
+      setShowMicInstructions(true);
+      setVoiceConversationStatus('error');
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, sampleRate: 16000 },
       });
+
+      // Update permission state on success
+      setMicPermissionState('granted');
+      setShowMicInstructions(false);
 
       // Check if cancelled during permission request
       if (isCancelledRef.current) {
@@ -481,10 +514,22 @@ export function CatChat() {
       setVoiceConversationStatus('listening');
       mediaRecorder.start(100);
     } catch (error) {
-      console.error('[Wave Voice] Mic access denied:', error);
+      console.error('[Wave Voice] Mic access error:', error);
+      
+      if (error instanceof DOMException) {
+        if (error.name === 'NotAllowedError') {
+          setMicPermissionState('denied');
+          setShowMicInstructions(true);
+          setVoiceConversationStatus('error');
+          return;
+        } else if (error.name === 'NotFoundError') {
+          console.error('[Wave Voice] No microphone found');
+        }
+      }
+      
       setVoiceConversationStatus('idle');
     }
-  }, [processVoiceTurn, unlockAudio]);
+  }, [processVoiceTurn, unlockAudio, micPermissionState]);
 
   const handleWaveHoldEnd = useCallback(() => {
     isCancelledRef.current = true;
@@ -837,6 +882,7 @@ export function CatChat() {
                 agentColor={agentConfig.color}
                 onWaveHoldStart={handleWaveHoldStart}
                 onWaveHoldEnd={handleWaveHoldEnd}
+                micPermissionState={micPermissionState}
               />
 
               {/* Human Handoff UI */}
@@ -876,6 +922,57 @@ export function CatChat() {
                 </motion.div>
               )}
 
+              {/* Microphone Permission Error */}
+              {showMicInstructions && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="mt-3 rounded-xl border border-rose-500/20 bg-rose-950/30 p-4 backdrop-blur-xl"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 h-5 w-5 shrink-0 text-rose-400">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-rose-200">
+                        Microphone access blocked
+                      </p>
+                      <p className="mt-1 text-xs text-rose-300/80">
+                        {navigator.platform.includes('Mac')
+                          ? 'System Preferences → Privacy & Security → Microphone → Enable your browser'
+                          : navigator.platform.includes('Win')
+                            ? 'Settings → Privacy → Microphone → Allow apps to access microphone'
+                            : 'Check your browser settings and system audio permissions'}
+                      </p>
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          onClick={() => {
+                            setMicPermissionState('unknown');
+                            setShowMicInstructions(false);
+                            setVoiceConversationStatus('idle');
+                          }}
+                          className="rounded-lg bg-rose-500/20 px-3 py-1.5 text-xs font-medium text-rose-300 transition-colors hover:bg-rose-500/30"
+                        >
+                          Try Again
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowMicInstructions(false);
+                            setVoiceConversationStatus('idle');
+                            inputRef.current?.focus();
+                          }}
+                          className="rounded-lg border border-rose-500/20 px-3 py-1.5 text-xs text-rose-300 transition-colors hover:bg-rose-500/10"
+                        >
+                          Type Instead
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
             </div>
           </motion.div>

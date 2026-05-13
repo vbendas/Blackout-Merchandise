@@ -22,6 +22,7 @@ interface ChatInputProps {
   agentColor: string;
   onWaveHoldStart: () => Promise<void>;
   onWaveHoldEnd: () => void;
+  micPermissionState?: 'granted' | 'denied' | 'prompt' | 'unknown';
   isStudioMode?: boolean;
   onImageUpload?: (file: File) => Promise<void>;
   showImageUpload?: boolean;
@@ -43,6 +44,7 @@ export function ChatInput({
   agentColor,
   onWaveHoldStart,
   onWaveHoldEnd,
+  micPermissionState,
   isStudioMode,
   onImageUpload,
   showImageUpload,
@@ -173,16 +175,18 @@ export function ChatInput({
         {/* Wave Button with Hold-to-Speak */}
         <button
           ref={buttonRef}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerLeave}
+          onPointerDown={micPermissionState === 'denied' ? undefined : handlePointerDown}
+          onPointerUp={micPermissionState === 'denied' ? undefined : handlePointerUp}
+          onPointerLeave={micPermissionState === 'denied' ? undefined : handlePointerLeave}
           className={`flex shrink-0 items-center justify-center rounded-full transition-all select-none relative ${
             isVoiceConversationActive
               ? 'bg-rose-600/20 text-rose-400 animate-pulse'
-              : 'text-zinc-400 hover:bg-zinc-800 hover:text-white active:scale-95'
+              : micPermissionState === 'denied'
+                ? 'text-zinc-600 cursor-not-allowed opacity-50'
+                : 'text-zinc-400 hover:bg-zinc-800 hover:text-white active:scale-95'
           } ${isMobile ? 'h-11 w-11' : isTablet ? 'h-14 w-14' : 'h-12 w-12'}`}
-          aria-label="Hold to speak"
-          title="Hold to speak"
+          aria-label={micPermissionState === 'denied' ? 'Microphone access denied' : 'Hold to speak'}
+          title={micPermissionState === 'denied' ? 'Microphone access denied. Click for instructions.' : 'Hold to speak'}
           style={{ touchAction: 'none' }}
         >
           <svg
