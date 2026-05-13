@@ -257,12 +257,12 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 ### Week 2 (May 16-22): Voice + Design Gen + Dataset Start
 
 #### Day 8 (May 16): Voice Pipeline Polish
-| Task | Description | Files | Est. |
-|------|-------------|-------|------|
-| Audio quality refinement | Noise cancellation, gain normalization, format optimization | `lib/ai/voxtral-speech.ts` | 2h |
-| Voice interruption | Stop TTS playback when user starts speaking | `components/chat/CatChat.tsx` | 2h |
-| STT accuracy tuning | Test with accents, noise, music terms; tune Voxtral settings | Manual testing | 1h |
-| Pipeline latency check | Measure STT→LLM→TTS total time, optimize | `app/api/chat/voice/process/route.ts` | 1h |
+| Task                     | Description                                                  | Files                                 | Est. |
+| ------------------------ | ------------------------------------------------------------ | ------------------------------------- | ---- |
+| Audio quality refinement | Noise cancellation, gain normalization, format optimization  | `lib/ai/voxtral-speech.ts`            | 2h   |
+| Voice interruption       | Stop TTS playback when user starts speaking                  | `components/chat/CatChat.tsx`         | 2h   |
+| STT accuracy tuning      | Test with accents, noise, music terms; tune Voxtral settings | Manual testing                        | 1h   |
+| Pipeline latency check   | Measure STT→LLM→TTS total time, optimize                     | `app/api/chat/voice/process/route.ts` | 1h   |
 
 **Acceptance:** Voice pipeline works end-to-end in <3 seconds. Audio quality is clear. User interruption works.
 
