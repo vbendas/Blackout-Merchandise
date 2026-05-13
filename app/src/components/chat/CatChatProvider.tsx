@@ -8,6 +8,7 @@ import type { DesignFlowStep } from '@/lib/ChatContext';
 import { getQuickActionsForStep } from '@/lib/designFlow';
 import type { QuickAction } from '@/lib/chat/quickActions';
 import { getAgentQuickActions, withHumanHandoff } from '@/lib/chat/quickActions';
+import { isDemoMode, getDemoResponse, getDemoGreeting } from '@/lib/ai/demoResponses';
 
 const HANDOFF_DELAY_MS = 400;
 
@@ -218,6 +219,85 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
       setIsTyping(true);
 
       try {
+        // DEMO MODE — use scripted responses, skip API calls
+        if (isDemoMode()) {
+          // Count messages for this agent in the current conversation
+          const agentMessageCount = messages.filter(
+            (m) => m.role === 'assistant' && m.agent === currentAgent
+          ).length;
+
+          const demoResponse = getDemoResponse(currentAgent, content, agentMessageCount);
+          const delay = demoResponse.delay || 800;
+
+          // Simulate thinking delay
+          await new Promise((resolve) => setTimeout(resolve, delay));
+
+          // Handle handoff
+          if (demoResponse.handoffTo) {
+            const handoffMsg = getHandoffMessage(currentAgent, demoResponse.handoffTo);
+            const handoffMessage: ChatMessage = {
+              id: `handoff-${Date.now()}`,
+              role: 'assistant',
+              content: handoffMsg,
+              type: 'text',
+              timestamp: Date.now(),
+              agent: currentAgent,
+            };
+            setMessages((prev) => [...prev, handoffMessage]);
+
+            await new Promise((resolve) => setTimeout(resolve, HANDOFF_DELAY_MS));
+            setCurrentAgent(demoResponse.handoffTo);
+
+            const welcomeMessage: ChatMessage = {
+              id: `welcome-${Date.now()}`,
+              role: 'assistant',
+              content: getDemoGreeting(demoResponse.handoffTo),
+              type: 'text',
+              timestamp: Date.now(),
+              agent: demoResponse.handoffTo,
+            };
+            setMessages((prev) => [...prev, welcomeMessage]);
+            setIsTyping(false);
+            return;
+          }
+
+          // Regular demo response — stream it
+          setIsTyping(false);
+          const assistantMessageId = (Date.now() + 1).toString();
+          const assistantMessage: ChatMessage = {
+            id: assistantMessageId,
+            role: 'assistant',
+            content: '',
+            type: demoResponse.cardData ? 'card' : 'text',
+            timestamp: Date.now(),
+            agent: currentAgent,
+            metadata: demoResponse.cardData ? { cardData: demoResponse.cardData as import('@/types/chat').CardMessageData } : undefined,
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+
+          // Simulate typewriter streaming for demo
+          let accumulated = '';
+          const chars = demoResponse.content.split('');
+          for (let i = 0; i < chars.length; i += 3) {
+            accumulated += chars.slice(i, i + 3).join('');
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantMessageId ? { ...m, content: accumulated } : m
+              )
+            );
+            await new Promise((resolve) => setTimeout(resolve, 16));
+          }
+
+          // Ensure full content is set
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantMessageId ? { ...m, content: demoResponse.content } : m
+            )
+          );
+          return;
+        }
+
+        // LIVE MODE — use real AI API
         const conversationHistory = messages
           .filter((m) => m.role !== 'human')
           .map((m) => ({
@@ -226,6 +306,7 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
             agent: m.agent,
           }));
 
+        // Phase 1: Route the message (fast, non-streaming)
         const routingResult = await routeMessageServer({
           message: content,
           currentAgent,
@@ -272,7 +353,24 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
           setCurrentAgent(routingResult.agent as AgentId);
         }
 
-        const response = await fetch('/api/chat/unified', {
+        // Phase 2: Stream the response with SSE
+        const assistantMessageId = (Date.now() + 1).toString();
+
+        // Add placeholder message for streaming
+        const assistantMessage: ChatMessage = {
+          id: assistantMessageId,
+          role: 'assistant',
+          content: '',
+          type: 'text',
+          timestamp: Date.now(),
+          agent: agentForApi,
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+
+        // Now hide the typing indicator — the streaming message itself shows progress
+        setIsTyping(false);
+
+        const response = await fetch('/api/chat/unified?stream=true', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -286,26 +384,57 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
           throw new Error(`Chat API error: ${response.status}`);
         }
 
-        const data = await response.json();
+        // Read the SSE stream
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error('No response body');
 
-        // Check if API response includes card data
-        const assistantMetadata: import('@/types/chat').MessageMetadata | undefined = data.cardData
-          ? { cardData: data.cardData }
-          : undefined;
+        const decoder = new TextDecoder();
+        let accumulated = '';
+        let buffer = '';
 
-        const assistantMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: data.response,
-          type: data.cardData ? 'card' : 'text',
-          timestamp: Date.now(),
-          agent: agentForApi,
-          metadata: assistantMetadata,
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed === 'data: [DONE]') continue;
+            if (!trimmed.startsWith('data: ')) continue;
+
+            try {
+              const parsed = JSON.parse(trimmed.slice(6));
+              if (parsed.error) {
+                throw new Error(parsed.error);
+              }
+              if (parsed.content) {
+                accumulated += parsed.content;
+                // Update the streaming message in place
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantMessageId ? { ...m, content: accumulated } : m
+                  )
+                );
+              }
+            } catch (parseError) {
+              // If it's our thrown error, re-throw
+              if (parseError instanceof Error && parseError.message !== 'Unexpected token') {
+                throw parseError;
+              }
+              // Skip malformed JSON
+            }
+          }
+        }
+
+        // Fetch suggestions with the complete history
+        const finalAssistantMessage: ChatMessage = {
+          ...assistantMessage,
+          content: accumulated,
         };
-
-        setMessages((prev) => [...prev, assistantMessage]);
-
-        const updatedHistory = [...messages, userMessage, assistantMessage];
+        const updatedHistory = [...messages, userMessage, finalAssistantMessage];
         fetchSuggestions(updatedHistory, agentForApi);
       } catch (error) {
         console.error('Chat error:', error);
@@ -318,7 +447,6 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
           agent: currentAgent,
         };
         setMessages((prev) => [...prev, errorMessage]);
-      } finally {
         setIsTyping(false);
       }
     },
@@ -612,10 +740,13 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
+      const greeting = isDemoMode()
+        ? getDemoGreeting(currentAgent)
+        : `Hi! I'm ${AGENT_CONFIGS[currentAgent].name}, ${AGENT_CONFIGS[currentAgent].role}. How can I help you today?`;
       const welcomeMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: `Hi! I'm ${AGENT_CONFIGS[currentAgent].name}, ${AGENT_CONFIGS[currentAgent].role}. How can I help you today?`,
+        content: greeting,
         type: 'text',
         timestamp: Date.now(),
         agent: currentAgent,

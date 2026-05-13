@@ -53,6 +53,32 @@ export class MistralChatProvider {
     }
   }
 
+  /**
+   * Stream a chat completion, yielding content chunks as they arrive.
+   * Falls back to the full fallback response on error.
+   */
+  async *streamChat(request: ChatRequest): AsyncGenerator<string, void, undefined> {
+    const systemMessage = getSystemPrompt(request.agent);
+    console.log('[Mistral Chat Stream] Agent:', request.agent, 'Messages:', request.messages.length);
+
+    try {
+      yield* mistralClient.streamChat({
+        messages: [
+          { role: 'system', content: systemMessage },
+          ...request.messages,
+        ],
+        model: 'mistral-large-latest',
+        temperature: request.temperature ?? 0.7,
+        maxTokens: request.maxTokens ?? 1024,
+      });
+    } catch (error) {
+      console.error('[Mistral Chat Stream] Failed:', error);
+      // Yield the fallback response as a single chunk
+      const fallback = this.getFallbackResponse(request.agent);
+      yield fallback.content;
+    }
+  }
+
   private getFallbackResponse(agent: AgentId): ChatResponse {
     const fallbackResponses: Record<AgentId, string> = {
       leopoldo:
