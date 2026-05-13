@@ -14,7 +14,9 @@
 
 Week 1 (AI Chat Core) is complete. The chat now has real-time streaming responses with typewriter effect, demo mode with scripted conversations for all 3 agents, mobile polish with iOS safe areas, and zero Deepgram references. TypeScript compiles clean across both `/app` and `/mainpage`.
 
-**This week's focus:** Voice pipeline refinement (Voxtral STT wire-up, mute toggle), fal.ai design generation setup, and storefront shell. **Blocker:** Need fal.ai account + FAL_API_KEY before Day 10.
+**This week's focus:** Voice pipeline polish (audio quality, interruption, latency), fal.ai design generation setup, and storefront shell. **Blocker:** Need fal.ai account + FAL_API_KEY before Day 10.
+
+**Note:** Voxtral STT is already wired into the wave hold-to-speak flow (STT → Mistral LLM → ElevenLabs TTS pipeline is complete). Day 8 is polish, not integration.
 
 **Active Tracks:**
 - **Track A — Engineering:** Voice cleanup, fal.ai integration, storefront components, demo mode refinement
@@ -254,15 +256,15 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 
 ### Week 2 (May 16-22): Voice + Design Gen + Dataset Start
 
-#### Day 8 (May 16): Voxtral STT Integration
+#### Day 8 (May 16): Voice Pipeline Polish
 | Task | Description | Files | Est. |
 |------|-------------|-------|------|
-| Wire Voxtral STT into wave flow | Replace current STT in hold-to-speak with Voxtral | `components/chat/CatChat.tsx`, `hooks/useSpeechToText.ts` | 2h |
-| Audio format optimization | Ensure WebM/Opus format for Voxtral compatibility | `lib/ai/voxtral-speech.ts` | 1h |
-| STT error handling | Fallback to text input on STT failure | `components/chat/CatChat.tsx` | 1h |
-| Transcription quality test | Test with accents, noise, music terms | Manual testing | 1h |
+| Audio quality refinement | Noise cancellation, gain normalization, format optimization | `lib/ai/voxtral-speech.ts` | 2h |
+| Voice interruption | Stop TTS playback when user starts speaking | `components/chat/CatChat.tsx` | 2h |
+| STT accuracy tuning | Test with accents, noise, music terms; tune Voxtral settings | Manual testing | 1h |
+| Pipeline latency check | Measure STT→LLM→TTS total time, optimize | `app/api/chat/voice/process/route.ts` | 1h |
 
-**Acceptance:** Hold wave → speak → accurate transcription appears in chat. Errors gracefully fallback to text.
+**Acceptance:** Voice pipeline works end-to-end in <3 seconds. Audio quality is clear. User interruption works.
 
 #### Day 9 (May 17): ElevenLabs TTS Polish
 | Task | Description | Files | Est. |
