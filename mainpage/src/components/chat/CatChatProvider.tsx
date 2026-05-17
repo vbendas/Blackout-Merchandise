@@ -170,13 +170,20 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
 
       const data = await response.json();
 
+      // If search results returned, render as product-card message
+      const hasSearchResults = data.searchResults && data.searchResults.length > 0;
+
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: data.response,
-        type: 'text',
+        type: hasSearchResults ? 'product-card' : 'text',
         timestamp: Date.now(),
         agent: agentForApi,
+        metadata: hasSearchResults ? {
+          searchResults: data.searchResults,
+          hasMoreResults: data.hasMoreResults,
+        } : undefined,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);

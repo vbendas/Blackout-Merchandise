@@ -8,14 +8,7 @@ import { CHAT_CONFIG } from '@/lib/chat/config';
 export class ContextRouter {
   private readonly CONFIDENCE_THRESHOLD = CHAT_CONFIG.thresholds.confidence * 100; // config is 0-1, router uses 0-100
   private readonly HISTORY_CONTEXT_WINDOW = CHAT_CONFIG.limits.historyContextWindow;
-  private readonly ENABLE_LLM_ROUTING = (() => {
-    try {
-      const { env } = require('@/lib/env');
-      return env.ENABLE_LLM_ROUTING === 'true';
-    } catch {
-      return process.env.ENABLE_LLM_ROUTING === 'true';
-    }
-  })();
+  private readonly ENABLE_LLM_ROUTING = process.env.ENABLE_LLM_ROUTING === 'true';
 
   async analyzeContext(context: RoutingContext): Promise<RoutingDecision> {
     const startTime = Date.now();

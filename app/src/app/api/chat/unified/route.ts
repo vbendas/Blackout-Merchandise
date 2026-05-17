@@ -2,6 +2,13 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { mistralChatProvider } from '@/lib/ai/mistral-chat';
 import { withCors } from '@/lib/cors';
 import type { AgentId } from '@/types/chat';
+import {
+  detectSearchIntent,
+  searchCatalogForAgent,
+  formatSearchResultsForPrompt,
+  type ProductSearchResult,
+} from '@/lib/ai/searchTool';
+import { isDemoMode } from '@/lib/ai/demoResponses';
 
 /**
  * Demo mode: Auth is bypassed for chat API routes during crowdfunding sprint.
@@ -38,6 +45,31 @@ export async function POST(request: NextRequest) {
       { role: 'user' as const, content: message },
     ];
 
+    // --- Search intent detection (skip in demo mode) ---
+    let searchContext: string | undefined;
+    let hasMoreResults = false;
+    let searchResults: ProductSearchResult[] = [];
+
+    if (!isDemoMode()) {
+      const searchIntent = detectSearchIntent(message);
+      if (
+        searchIntent.hasSearchIntent &&
+        ['francisca', 'leopoldo', 'antonia'].includes(agent)
+      ) {
+        console.log('[Chat API] Search intent detected:', searchIntent.query);
+        searchResults = await searchCatalogForAgent(
+          searchIntent.query,
+          searchIntent.filters,
+          6
+        );
+        if (searchResults.length > 0) {
+          searchContext = formatSearchResultsForPrompt(searchResults);
+          hasMoreResults = searchResults.length >= 6;
+          console.log('[Chat API] Search results:', searchResults.length);
+        }
+      }
+    }
+
     // --- Streaming mode ---
     if (isStreaming) {
       console.log('[Chat API] Streaming mode for agent:', agent);
@@ -51,6 +83,8 @@ export async function POST(request: NextRequest) {
               agent,
               temperature: 0.7,
               maxTokens: 1024,
+              searchContext,
+              hasMoreResults,
             })) {
               const sseMessage = `data: ${JSON.stringify({ content: chunk, agent })}\n\n`;
               controller.enqueue(encoder.encode(sseMessage));
@@ -87,6 +121,8 @@ export async function POST(request: NextRequest) {
       agent,
       temperature: 0.7,
       maxTokens: 1024,
+      searchContext,
+      hasMoreResults,
     });
 
     return withCors(
@@ -94,6 +130,8 @@ export async function POST(request: NextRequest) {
         response: response.content,
         agent,
         finishReason: response.finishReason,
+        searchResults: searchResults.length > 0 ? searchResults : undefined,
+        hasMoreResults: searchResults.length > 0 ? hasMoreResults : undefined,
       }),
       origin
     );

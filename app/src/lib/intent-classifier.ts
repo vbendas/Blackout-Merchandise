@@ -144,7 +144,7 @@ interface RawLLMResponse {
 
 async function classifyWithLLM(options: ClassifyOptions): Promise<IntentClassification> {
   // Lazy import to avoid circular dependency issues during build
-  const { env } = require('@/lib/env');
+  const { env } = await import('@/lib/env');
   const apiKey = env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new Error('OPENROUTER_API_KEY not configured');

@@ -10,10 +10,10 @@ import { Redis } from '@upstash/redis';
  */
 function getRedisCredentials() {
   try {
-    const { env } = require('@/lib/env');
+    // Use process.env directly to avoid circular dependency and lint errors
     return {
-      url: env.UPSTASH_REDIS_REST_URL,
-      token: env.UPSTASH_REDIS_REST_TOKEN,
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
     };
   } catch {
     // Fallback to process.env if env.ts hasn't been imported yet

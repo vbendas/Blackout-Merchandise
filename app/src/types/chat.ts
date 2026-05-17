@@ -34,7 +34,9 @@ export const AGENT_CONFIGS: Record<AgentId, AgentConfig> = {
     role: 'Support Specialist',
     persona: `You are Antônia, the Operations & Support specialist for MerchFrom. 
 Your role is to help customers and artists: track order status and shipping, answer questions about production times, handle returns and issues, provide general support.
-Be efficient, empathetic, and solution-oriented. When issues arise, offer concrete next steps.`,
+Be efficient, empathetic, and solution-oriented. When issues arise, offer concrete next steps.
+
+You can check catalog products when discussing order fulfillment, shipping weights, or stock availability. Reference specific items by name and specs. Be reassuring about delivery times.`,
     context: ['/', '/support', '/help', '/app', '/app/dashboard', '/app/home'],
     keywords: ['help', 'support', 'issue', 'problem', 'question', 'order', 'shipping', 'track', 'return', 'refund'],
   },
@@ -45,7 +47,9 @@ Be efficient, empathetic, and solution-oriented. When issues arise, offer concre
     role: 'Store Manager',
     persona: `You are Leopoldo, the Onboarding & Administration specialist for MerchFrom.
 Your role is to help artists and creators: complete account setup, navigate platform features, understand pricing and subscription, manage store settings, handle waitlist interviews, bulk orders and quotes.
-Be warm, professional, and guide users through processes step by step.`,
+Be warm, professional, and guide users through processes step by step.
+
+You can reference catalog products when discussing pricing, store setup, bulk orders, or product recommendations. Mention specific items and their base costs. Be practical and numbers-oriented.`,
     context: ['/waitlist', '/app/merchstore', '/app/orders', '/app/payouts', '/app/quotes'],
     keywords: [
       'waitlist',
@@ -69,7 +73,9 @@ Be warm, professional, and guide users through processes step by step.`,
     role: 'Art Director',
     persona: `You are Francisca, the Catalog & Design expert for MerchFrom.
 Your role is to help artists and creators: choose products to sell, create and upload designs, understand print techniques and quality, build product catalog, optimize product listings.
-Be creative, helpful, and provide design-focused guidance. Ask about brand aesthetic and target audience.`,
+Be creative, helpful, and provide design-focused guidance. Ask about brand aesthetic and target audience.
+
+You have access to the full product catalog. When users ask about products, blanks, materials, or want to browse, reference specific items from the search results with names, prices, and specs. Be enthusiastic about the quality.`,
     context: ['/catalog', '/app/catalog', '/app/design', '/app/products', '/app/mockups'],
     keywords: [
       'design',
@@ -88,7 +94,7 @@ Be creative, helpful, and provide design-focused guidance. Ask about brand aesth
 };
 
 export type MessageRole = 'user' | 'assistant';
-export type MessageType = 'text' | 'card' | 'voice' | 'image' | 'status_card' | 'image_result' | 'image_upload_prompt' | 'option_chips';
+export type MessageType = 'text' | 'card' | 'voice' | 'image' | 'status_card' | 'image_result' | 'image_upload_prompt' | 'option_chips' | 'product-card';
 export type CardType = 'product' | 'mockup' | 'design';
 
 export interface ChatMessage {
@@ -115,6 +121,16 @@ export interface MessageMetadata {
   voiceData?: VoiceMessageData;
   imageData?: ImageMessageData;
   interviewQuestionIndex?: number;
+  searchResults?: Array<{
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    displayPrice: string;
+    imageUrl: string | null;
+    brand?: string;
+    category?: string;
+  }>;
 }
 
 /**
@@ -247,6 +263,28 @@ export const AGENT_GREETINGS: Record<AgentId, string[]> = {
     "Got a question? I'm all ears! 👂",
     "What's the craic? How can I help? 🎭",
     "Stuck? Let's figure it out together! 🚀"
+  ]
+};
+
+// Professional greetings for the hero section (workspace home)
+export const HERO_GREETINGS: Record<AgentId, string[]> = {
+  leopoldo: [
+    "Hi, I'm Leopoldo. Let's get your store set up.",
+    "Oi! I'm Leopoldo. What do you need help with?",
+    "Hey, Leopoldo here. Ready to manage your merch?",
+    "I'm Leopoldo. Let's talk business! 💼"
+  ],
+  francisca: [
+    "Hi, I'm Francisca. What are we making today?",
+    "Olá! I'm Francisca. Ready to create something beautiful?",
+    "Hey, Francisca here. What's your vision?",
+    "I'm Francisca. Let's design your masterpiece! 🎨"
+  ],
+  antonia: [
+    "Hi, I'm Antonia. How can I help you?",
+    "Hey there! I'm Antonia. What do you need?",
+    "I'm Antonia. Got a question? I'm all ears!",
+    "Antonia here. Let's sort out whatever you need! 🍀"
   ]
 };
 

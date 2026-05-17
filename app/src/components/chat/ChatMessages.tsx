@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChatMessage, AgentId } from '@/types/chat';
 import { AGENT_CONFIGS } from '@/types/chat';
 import { TypewriterText } from './TypewriterText';
+import { ProductCardMessage } from './ProductCardMessage';
+import { ProductDetailModal } from './ProductDetailModal';
 
 function formatTime(timestamp: number): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -83,6 +86,37 @@ const messageTransition = {
 
 export function ChatMessages({ messages, currentAgent, isTyping, scrollRef }: ChatMessagesProps) {
   const agentConfig = AGENT_CONFIGS[currentAgent];
+  const [selectedProduct, setSelectedProduct] = useState<{
+    id: string;
+    name: string;
+    description?: string;
+    brand?: string;
+    material?: string;
+    weightG?: number;
+    baseCostEur: number;
+    suggestedRetailEur?: number;
+    imageUrl?: string;
+    status?: string;
+  } | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleProductSelect = (product: {
+    id: string;
+    name: string;
+    brand?: string;
+    material?: string;
+    baseCostEur: number;
+    imageUrl?: string;
+  }) => {
+    setSelectedProduct({
+      ...product,
+      description: undefined,
+      weightG: undefined,
+      suggestedRetailEur: undefined,
+      status: 'active',
+    });
+    setIsModalOpen(true);
+  };
 
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
@@ -130,7 +164,20 @@ export function ChatMessages({ messages, currentAgent, isTyping, scrollRef }: Ch
                       : 'rounded-bl-sm bg-zinc-900/80 text-zinc-100 backdrop-blur-xl'
                   }`}
                 >
-                  {isStreaming ? (
+                  {message.type === 'product-card' ? (
+                    <ProductCardMessage
+                      products={message.metadata?.searchResults?.map((p: any) => ({
+                        id: p.id,
+                        name: p.name,
+                        brand: p.brand,
+                        material: p.material,
+                        baseCostEur: p.baseCostEur / 100,
+                        imageUrl: p.imageUrl,
+                      })) || []}
+                      onProductSelect={handleProductSelect}
+                      onShowMore={() => console.log('Show more products')}
+                    />
+                  ) : isStreaming ? (
                     <TypewriterText
                       text={message.content}
                       isStreaming={true}
@@ -153,6 +200,14 @@ export function ChatMessages({ messages, currentAgent, isTyping, scrollRef }: Ch
           {isTyping && <TypingIndicator agentName={agentConfig.name} />}
         </AnimatePresence>
       </div>
+
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAddToQuote={(productId) => console.log('Add to quote:', productId)}
+        onStartDesign={(productId) => console.log('Start design:', productId)}
+      />
     </div>
   );
 }

@@ -12,6 +12,8 @@ export interface ChatRequest {
   agent: AgentId;
   temperature?: number;
   maxTokens?: number;
+  searchContext?: string;
+  hasMoreResults?: boolean;
 }
 
 export interface ChatResponse {
@@ -24,13 +26,31 @@ export interface ChatResponse {
   };
 }
 
-function getSystemPrompt(agent: AgentId): string {
-  return `${AGENT_CONFIGS[agent].persona}\n\nStay in character. CRITICAL: ALWAYS respond in the SAME LANGUAGE the user is speaking.`;
+function getSystemPrompt(
+  agent: AgentId,
+  searchContext?: string,
+  hasMoreResults?: boolean
+): string {
+  let prompt = `${AGENT_CONFIGS[agent].persona}\n\nStay in character. CRITICAL: ALWAYS respond in the SAME LANGUAGE the user is speaking.`;
+
+  if (searchContext) {
+    prompt += `\n\n⚠️ CRITICAL INSTRUCTION — CATALOG DATA BELOW ⚠️\n\nThe user is asking about products. You MUST answer using ONLY the products listed in the CATALOG SEARCH RESULTS section below.\n\nRULES:\n1. DO NOT invent product names, prices, materials, or specifications.\n2. DO NOT make up brands or features not listed below.\n3. Reference specific products by name and price when answering.\n4. If a product the user wants is NOT in the catalog, say you don't have it.\n5. Keep your response concise — mention 3-4 relevant products max.\n\nCATALOG SEARCH RESULTS:\n${searchContext}\n\nIf there are more results available, mention that you can show more products if the user asks.`;
+  }
+
+  if (hasMoreResults) {
+    prompt += `\n\nNOTE: There are additional products beyond what's shown above. Tell the user you can show more if they want.`;
+  }
+
+  return prompt;
 }
 
 export class MistralChatProvider {
   async chat(request: ChatRequest): Promise<ChatResponse> {
-    const systemMessage = getSystemPrompt(request.agent);
+    const systemMessage = getSystemPrompt(
+      request.agent,
+      request.searchContext,
+      request.hasMoreResults
+    );
 
     console.log('[Mistral Chat] Agent:', request.agent, 'Messages:', request.messages.length);
 
@@ -58,7 +78,11 @@ export class MistralChatProvider {
    * Falls back to the full fallback response on error.
    */
   async *streamChat(request: ChatRequest): AsyncGenerator<string, void, undefined> {
-    const systemMessage = getSystemPrompt(request.agent);
+    const systemMessage = getSystemPrompt(
+      request.agent,
+      request.searchContext,
+      request.hasMoreResults
+    );
     console.log('[Mistral Chat Stream] Agent:', request.agent, 'Messages:', request.messages.length);
 
     try {

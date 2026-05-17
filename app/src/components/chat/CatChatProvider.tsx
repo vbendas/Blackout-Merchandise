@@ -9,6 +9,8 @@ import { getQuickActionsForStep } from '@/lib/designFlow';
 import type { QuickAction } from '@/lib/chat/quickActions';
 import { getAgentQuickActions, withHumanHandoff } from '@/lib/chat/quickActions';
 import { isDemoMode, getDemoResponse, getDemoGreeting } from '@/lib/ai/demoResponses';
+import { detectSearchIntent } from '@/lib/ai/searchTool';
+import { getDemoSearchResults } from '@/lib/ai/demoSearchResponses';
 
 const HANDOFF_DELAY_MS = 400;
 
@@ -221,6 +223,62 @@ export function CatChatProvider({ children, initialAgent = 'leopoldo' }: ChatPro
       try {
         // DEMO MODE — use scripted responses, skip API calls
         if (isDemoMode()) {
+          // Check for product search intent first (before keyword triggers)
+          const searchIntent = detectSearchIntent(content);
+          if (searchIntent.hasSearchIntent) {
+            const results = getDemoSearchResults(searchIntent.query);
+
+            // Simulate thinking delay
+            await new Promise((resolve) => setTimeout(resolve, 600));
+
+            if (results.length > 0) {
+              const formattedResults = results
+                .map((p, i) => `${i + 1}. **${p.name}** — €${(p.baseCostEur / 100).toFixed(2)} (${p.material})`)
+                .join('\n');
+
+              const responseText = `Here are some products I found:\n\n${formattedResults}\n\nWould you like to see more, or get details on any of these?`;
+
+              setIsTyping(false);
+              const assistantMessageId = (Date.now() + 1).toString();
+              const assistantMessage: ChatMessage = {
+                id: assistantMessageId,
+                role: 'assistant',
+                content: responseText,
+                type: 'product-card',
+                timestamp: Date.now(),
+                agent: currentAgent,
+                metadata: {
+                  searchResults: results.map((p) => ({
+                    id: p.id,
+                    name: p.name,
+                    description: p.description,
+                    price: p.baseCostEur,
+                    displayPrice: `€${(p.baseCostEur / 100).toFixed(2)}`,
+                    imageUrl: p.imageUrl,
+                    brand: p.brand,
+                    category: p.category,
+                  })),
+                },
+              };
+              setMessages((prev) => [...prev, assistantMessage]);
+              return;
+            } else {
+              // No results found — fallback with helpful message
+              setIsTyping(false);
+              const assistantMessageId = (Date.now() + 1).toString();
+              const assistantMessage: ChatMessage = {
+                id: assistantMessageId,
+                role: 'assistant',
+                content: "I couldn't find any products matching that. Let me show you our full catalog instead.",
+                type: 'text',
+                timestamp: Date.now(),
+                agent: currentAgent,
+              };
+              setMessages((prev) => [...prev, assistantMessage]);
+              return;
+            }
+          }
+
           // Count messages for this agent in the current conversation
           const agentMessageCount = messages.filter(
             (m) => m.role === 'assistant' && m.agent === currentAgent
