@@ -4,6 +4,7 @@ import TextInput from 'ink-text-input';
 import Spinner from 'ink-spinner';
 import { useAppStore } from '../lib/store';
 import { sanitizeText } from '../lib/sanitize';
+import { formatDbError } from '../lib/format-error';
 
 interface ColorRow {
   id: string;
@@ -42,7 +43,7 @@ export function ColorsScreen({ maxHeight }: { maxHeight: number }) {
       const result = await getAllColors();
       setItems(result as ColorRow[]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load colors');
+      setError(formatDbError(err, 'load colors'));
     } finally {
       setLoading(false);
     }
@@ -68,7 +69,10 @@ export function ColorsScreen({ maxHeight }: { maxHeight: number }) {
     return max + 1;
   }, [items]);
 
+  const focusMode = useAppStore((s) => s.focusMode);
+
   useInput((input, key) => {
+    if (focusMode === 'sidebar' && (key.upArrow || key.downArrow || key.leftArrow || key.rightArrow)) return;
     if (mode !== 'list') return;
 
     if (key.upArrow) {

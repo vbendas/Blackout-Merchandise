@@ -4,6 +4,7 @@ import TextInput from 'ink-text-input';
 import Spinner from 'ink-spinner';
 import { useAppStore } from '../lib/store';
 import { sanitizeText } from '../lib/sanitize';
+import { formatDbError } from '../lib/format-error';
 
 interface CategoryRow {
   id: string;
@@ -51,7 +52,7 @@ export function CategoriesScreen({ maxHeight }: { maxHeight: number }) {
       const result = await getAllCategories();
       setItems(result as CategoryRow[]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load categories');
+      setError(formatDbError(err, 'load categories'));
     } finally {
       setLoading(false);
     }
@@ -69,7 +70,10 @@ export function CategoriesScreen({ maxHeight }: { maxHeight: number }) {
     await loadCategories();
   }, [loadCategories]);
 
+  const focusMode = useAppStore((s) => s.focusMode);
+
   useInput((input, key) => {
+    if (focusMode === 'sidebar' && (key.upArrow || key.downArrow || key.leftArrow || key.rightArrow)) return;
     if (mode !== 'list') return;
 
     if (key.upArrow) {

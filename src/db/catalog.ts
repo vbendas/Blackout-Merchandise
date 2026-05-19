@@ -1,8 +1,8 @@
 import { db } from './index';
-import { categories, categoryAttributes, colors, sizes, catalogProducts, productVariants, inventory, productImages, pricingHistory, pricingSchedules, productBatches } from './schema';
+import { categories, categoryAttributes, colors, sizes, catalogProducts, productVariants, inventory, productImages, pricingHistory, pricingSchedules, productBatches, supplierOrders, supplierOrderItems } from './schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 
-export type { categories, categoryAttributes, colors, sizes, catalogProducts, productVariants, inventory, productImages, pricingHistory, pricingSchedules, productBatches } from './schema';
+export type { categories, categoryAttributes, colors, sizes, catalogProducts, productVariants, inventory, productImages, pricingHistory, pricingSchedules, productBatches, supplierOrders, supplierOrderItems } from './schema';
 
 export type Category = typeof categories.$inferSelect;
 export type CategoryInsert = typeof categories.$inferInsert;
@@ -21,6 +21,10 @@ export type PricingHistory = typeof pricingHistory.$inferSelect;
 export type PricingSchedule = typeof pricingSchedules.$inferSelect;
 export type ProductBatch = typeof productBatches.$inferSelect;
 export type ProductBatchInsert = typeof productBatches.$inferInsert;
+export type SupplierOrder = typeof supplierOrders.$inferSelect;
+export type SupplierOrderInsert = typeof supplierOrders.$inferInsert;
+export type SupplierOrderItem = typeof supplierOrderItems.$inferSelect;
+export type SupplierOrderItemInsert = typeof supplierOrderItems.$inferInsert;
 
 // ============== CATEGORIES ==============
 

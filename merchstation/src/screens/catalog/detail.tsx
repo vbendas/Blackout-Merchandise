@@ -4,6 +4,7 @@ import TextInput from 'ink-text-input';
 import Spinner from 'ink-spinner';
 import { useAppStore } from '../../lib/store';
 import { sanitizeText } from '../../lib/sanitize';
+import { formatDbError } from '../../lib/format-error';
 
 interface VariantRow {
   sku: string;
@@ -145,7 +146,7 @@ export function CatalogDetailScreen({ maxHeight }: { maxHeight: number }) {
         status: data.status,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load product');
+      setError(formatDbError(err, 'load product'));
     } finally {
       setLoading(false);
     }
@@ -201,7 +202,10 @@ export function CatalogDetailScreen({ maxHeight }: { maxHeight: number }) {
     }
   }, [product, config, editValues, loadProduct]);
 
+  const focusMode = useAppStore((s) => s.focusMode);
+
   useInput((input, key) => {
+    if (focusMode === 'sidebar' && (key.upArrow || key.downArrow || key.leftArrow || key.rightArrow)) return;
     if (loading || saving) return;
 
     if (editMode) {

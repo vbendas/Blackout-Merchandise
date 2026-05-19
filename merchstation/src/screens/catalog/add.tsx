@@ -5,6 +5,7 @@ import Spinner from 'ink-spinner';
 import { useAppStore } from '../../lib/store';
 import { z } from 'zod';
 import { sanitizeText } from '../../lib/sanitize';
+import { formatDbError } from '../../lib/format-error';
 
 interface CategoryOption {
   id: string;
@@ -162,13 +163,16 @@ export function CatalogAddScreen({ maxHeight }: { maxHeight: number }) {
       setCreated({ id: (newProduct as any).id, name: (newProduct as any).name });
       setAwaitingImport(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create product');
+      setError(formatDbError(err, 'create product'));
     } finally {
       setSaving(false);
     }
   }, [values, config]);
 
+  const focusMode = useAppStore((s) => s.focusMode);
+
   useInput((input, key) => {
+    if (focusMode === 'sidebar' && (key.upArrow || key.downArrow || key.leftArrow || key.rightArrow)) return;
     if (saving || awaitingImport) {
       if (awaitingImport) {
         if (input === 'y' || input === 'Y' || key.return) {

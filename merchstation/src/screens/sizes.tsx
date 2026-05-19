@@ -4,6 +4,7 @@ import TextInput from 'ink-text-input';
 import Spinner from 'ink-spinner';
 import { useAppStore } from '../lib/store';
 import { sanitizeText } from '../lib/sanitize';
+import { formatDbError } from '../lib/format-error';
 
 interface CategoryInfo {
   id: string;
@@ -57,7 +58,7 @@ export function SizesScreen({ maxHeight }: { maxHeight: number }) {
       const result = await db.select().from(sizes).orderBy(sql`${sizes.displayOrder} asc nulls last`);
       setSizes(result as SizeRow[]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load sizes');
+      setError(formatDbError(err, 'load sizes'));
     } finally {
       setLoading(false);
     }
@@ -71,7 +72,7 @@ export function SizesScreen({ maxHeight }: { maxHeight: number }) {
       setCategories(cats.map((c) => ({ id: c.id, name: c.name, slug: c.slug })));
       await loadSizes();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
+      setError(formatDbError(err, 'load categories'));
       setLoading(false);
     }
   }, [loadSizes]);
@@ -96,7 +97,10 @@ export function SizesScreen({ maxHeight }: { maxHeight: number }) {
     return max + 1;
   }, [sizes]);
 
+  const focusMode = useAppStore((s) => s.focusMode);
+
   useInput((input, key) => {
+    if (focusMode === 'sidebar' && (key.upArrow || key.downArrow || key.leftArrow || key.rightArrow)) return;
     if (mode !== 'list') return;
 
     if (key.upArrow) {
@@ -132,7 +136,7 @@ export function SizesScreen({ maxHeight }: { maxHeight: number }) {
       setStatus(`${item.isActive ? 'Deactivated' : 'Activated'}: ${item.name}`);
       await loadAll();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Toggle failed');
+      setError(formatDbError(err, 'toggle size'));
     }
   };
 
@@ -180,7 +184,7 @@ export function SizesScreen({ maxHeight }: { maxHeight: number }) {
       setPendingCategory('');
       await loadAll();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Create failed');
+      setError(formatDbError(err, 'create size'));
       setMode('list');
     }
   };

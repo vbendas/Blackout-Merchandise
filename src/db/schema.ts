@@ -41,6 +41,8 @@ export const requestTypeEnum = pgEnum('request_type', ['access', 'deletion', 'po
 export const requestStatusEnum = pgEnum('request_status', ['pending', 'completed', 'rejected']);
 export const consentMethodEnum = pgEnum('consent_method', ['explicit_opt_in', 'implicit', 'withdrawn']);
 export const breachSeverityEnum = pgEnum('breach_severity', ['low', 'medium', 'high']);
+export const orderTypeEnum = pgEnum('order_type', ['individual', 'bulk_quote', 'wholesale']);
+export const supplierOrderStatusEnum = pgEnum('supplier_order_status', ['draft', 'placed', 'confirmed', 'shipped', 'received', 'cancelled']);
 
 // Users Table
 export const users = pgTable('users', {
@@ -107,6 +109,7 @@ export const orders = pgTable('orders', {
     id: uuid('id').defaultRandom().primaryKey(),
     storeId: uuid('store_id').references(() => artistStores.id).notNull(),
     customerId: uuid('customer_id').references(() => users.id).notNull(),
+    orderType: orderTypeEnum('order_type').default('individual').notNull(),
     status: orderStatusEnum('status').default('pending').notNull(),
     totalAmount: integer('total_amount').notNull(), // In cents
     stripePaymentIntentId: text('stripe_payment_intent_id'),
@@ -117,6 +120,7 @@ export const orders = pgTable('orders', {
     customerIdIdx: index('orders_customer_id_idx').on(table.customerId),
     stripePaymentIntentIdIdx: index('orders_stripe_payment_intent_id_idx').on(table.stripePaymentIntentId),
     statusIdx: index('orders_status_idx').on(table.status),
+    orderTypeIdx: index('orders_order_type_idx').on(table.orderType),
 }));
 
 // Order Items Table
@@ -124,11 +128,13 @@ export const orderItems = pgTable('order_items', {
     id: uuid('id').defaultRandom().primaryKey(),
     orderId: uuid('order_id').references(() => orders.id).notNull(),
     productId: uuid('product_id').references(() => products.id).notNull(),
+    variantId: uuid('variant_id').references(() => productVariants.id), // Nullable for backward compat
     quantity: integer('quantity').notNull(),
     priceAtPurchase: integer('price_at_purchase').notNull(),
 }, (table) => ({
     orderIdIdx: index('order_items_order_id_idx').on(table.orderId),
     productIdIdx: index('order_items_product_id_idx').on(table.productId),
+    variantIdIdx: index('order_items_variant_id_idx').on(table.variantId),
 }));
 
 // Chat Sessions Table (for AI Context)
@@ -371,6 +377,10 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
         fields: [orderItems.productId],
         references: [products.id],
     }),
+    variant: one(productVariants, {
+        fields: [orderItems.variantId],
+        references: [productVariants.id],
+    }),
 }));
 
 // GDPR Relations
@@ -593,6 +603,7 @@ export const inventory = pgTable('inventory', {
     variantId: uuid('variant_id').references(() => productVariants.id, { onDelete: 'cascade' }).notNull().unique(),
     quantityAvailable: integer('quantity_available').default(0).notNull(),
     quantityReserved: integer('quantity_reserved').default(0).notNull(), // For pending orders
+    quantityOnOrder: integer('quantity_on_order').default(0).notNull(), // Ordered from supplier, not yet received
     reorderPoint: integer('reorder_point').default(10), // Alert when below this
     warehouseLocation: text('warehouse_location'), // "A-12-3" for physical picking
     lastCountedAt: timestamp('last_counted_at'),
@@ -671,6 +682,42 @@ export const productBatches = pgTable('product_batches', {
 }, (table) => ({
     variantIdIdx: index('product_batches_variant_id_idx').on(table.variantId),
     batchCodeIdx: index('product_batches_batch_code_idx').on(table.batchCode),
+}));
+
+// ============================================================================
+// SUPPLIER ORDERS (Purchase Orders to suppliers)
+// ============================================================================
+
+// Supplier Orders Table (POs to Stanley/Stella, etc.)
+export const supplierOrders = pgTable('supplier_orders', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    poNumber: text('po_number').notNull().unique(), // "PO-2026-0042"
+    supplierName: text('supplier_name').notNull(), // "Stanley Stella", "Gildan"
+    orderDate: timestamp('order_date').defaultNow().notNull(),
+    expectedDeliveryDate: timestamp('expected_delivery_date'),
+    status: supplierOrderStatusEnum('status').default('draft').notNull(),
+    totalCostEur: integer('total_cost_eur').default(0).notNull(), // In cents
+    notes: text('notes'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+    poNumberIdx: index('supplier_orders_po_number_idx').on(table.poNumber),
+    statusIdx: index('supplier_orders_status_idx').on(table.status),
+    supplierNameIdx: index('supplier_orders_supplier_name_idx').on(table.supplierName),
+}));
+
+// Supplier Order Items Table (line items per PO)
+export const supplierOrderItems = pgTable('supplier_order_items', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    orderId: uuid('order_id').references(() => supplierOrders.id, { onDelete: 'cascade' }).notNull(),
+    variantId: uuid('variant_id').references(() => productVariants.id, { onDelete: 'restrict' }).notNull(),
+    quantity: integer('quantity').notNull(),
+    unitCostEur: integer('unit_cost_eur').notNull(), // In cents
+    receivedQuantity: integer('received_quantity').default(0).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    orderIdIdx: index('supplier_order_items_order_id_idx').on(table.orderId),
+    variantIdIdx: index('supplier_order_items_variant_id_idx').on(table.variantId),
 }));
 
 // ============================================================================
@@ -773,12 +820,29 @@ export const productBatchesRelations = relations(productBatches, ({ one }) => ({
     }),
 }));
 
+// Supplier Orders Relations
+export const supplierOrdersRelations = relations(supplierOrders, ({ many }) => ({
+    items: many(supplierOrderItems),
+}));
+
+export const supplierOrderItemsRelations = relations(supplierOrderItems, ({ one }) => ({
+    order: one(supplierOrders, {
+        fields: [supplierOrderItems.orderId],
+        references: [supplierOrders.id],
+    }),
+    variant: one(productVariants, {
+        fields: [supplierOrderItems.variantId],
+        references: [productVariants.id],
+    }),
+}));
+
 // ─── App Settings ───────────────────────────────────────────────────────────
 
 export const appSettings = pgTable('app_settings', {
     id: uuid('id').defaultRandom().primaryKey(),
     key: text('key').notNull().unique(),
     value: text('value').notNull(),
+    valueJson: jsonb('value_json'),
     description: text('description'),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
