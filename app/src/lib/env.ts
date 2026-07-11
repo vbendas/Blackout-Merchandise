@@ -30,6 +30,13 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.string().url().optional().or(z.literal('')),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional().or(z.literal('')),
 
+  // Typesense Search
+  TYPESENSE_API_KEY: z.string().optional().or(z.literal('')),
+  TYPESENSE_SEARCH_ONLY_API_KEY: z.string().optional().or(z.literal('')),
+  TYPESENSE_HOST: z.string().optional().or(z.literal('')),
+  TYPESENSE_PORT: z.string().optional().or(z.literal('')).default('443'),
+  TYPESENSE_PROTOCOL: z.enum(['http', 'https']).optional().default('https'),
+
   VOXTRAL_STT_MODEL: z.string().optional().or(z.literal('')).default('voxtral-mini-latest'),
 
   ENABLE_LLM_ROUTING: z.enum(['true', 'false']).default('false'),
@@ -51,6 +58,11 @@ const rawEnv = result.success
       ELEVENLABS_VOICE_ANTONIA: '',
       UPSTASH_REDIS_REST_URL: '',
       UPSTASH_REDIS_REST_TOKEN: '',
+      TYPESENSE_API_KEY: '',
+      TYPESENSE_SEARCH_ONLY_API_KEY: '',
+      TYPESENSE_HOST: '',
+      TYPESENSE_PORT: '443',
+      TYPESENSE_PROTOCOL: 'https' as const,
       VOXTRAL_STT_MODEL: 'voxtral-mini-latest',
       ENABLE_LLM_ROUTING: 'false',
       NODE_ENV: (process.env.NODE_ENV || 'development') as 'development' | 'production' | 'test',
@@ -122,6 +134,11 @@ export const ELEVENLABS_VOICE_FRANCISCA = rawEnv.ELEVENLABS_VOICE_FRANCISCA;
 export const ELEVENLABS_VOICE_ANTONIA = rawEnv.ELEVENLABS_VOICE_ANTONIA;
 export const UPSTASH_REDIS_REST_URL = rawEnv.UPSTASH_REDIS_REST_URL;
 export const UPSTASH_REDIS_REST_TOKEN = rawEnv.UPSTASH_REDIS_REST_TOKEN;
+export const TYPESENSE_API_KEY = rawEnv.TYPESENSE_API_KEY;
+export const TYPESENSE_SEARCH_ONLY_API_KEY = rawEnv.TYPESENSE_SEARCH_ONLY_API_KEY;
+export const TYPESENSE_HOST = rawEnv.TYPESENSE_HOST;
+export const TYPESENSE_PORT = rawEnv.TYPESENSE_PORT;
+export const TYPESENSE_PROTOCOL = rawEnv.TYPESENSE_PROTOCOL;
 export const VOXTRAL_STT_MODEL = rawEnv.VOXTRAL_STT_MODEL;
 export const ENABLE_LLM_ROUTING = rawEnv.ENABLE_LLM_ROUTING === 'true';
 export const IS_PRODUCTION = rawEnv.NODE_ENV === 'production';

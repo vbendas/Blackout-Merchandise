@@ -4,6 +4,7 @@ import { and, eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { z } from 'zod';
+import { reserveInventory } from '@db-root/catalog';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +14,7 @@ const checkoutMetadataSchema = z.object({
   items: z.array(
     z.object({
       productId: z.string().min(1),
+      variantId: z.string().min(1).optional(),
       quantity: z.number().int().positive(),
       price: z.number().nonnegative(),
     })
@@ -90,14 +92,20 @@ export async function POST(request: NextRequest) {
           })
           .returning();
 
-        await tx.insert(orderItems).values(
-          items.map((item) => ({
+        for (const item of items) {
+          await tx.insert(orderItems).values({
             orderId: order.id,
             productId: item.productId,
+            variantId: item.variantId ?? null,
             quantity: item.quantity,
             priceAtPurchase: Math.round(item.price * 100),
-          }))
-        );
+          });
+
+          // Reserve stock if variantId is provided
+          if (item.variantId) {
+            await reserveInventory(item.variantId, item.quantity);
+          }
+        }
 
         await tx.insert(processedWebhookEvents).values({
           provider: 'stripe',

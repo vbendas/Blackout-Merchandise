@@ -56,7 +56,10 @@ artistStores {
   website?: string (URL)
   socialLinks?: json
   isApproved: boolean (default: false)
-  stripeConnectId?: string
+  stripeConnectId?: string // Stripe Connect ID (backup gateway)
+  nexapayMerchantId?: string // NexaPay merchant ID (primary gateway)
+  payoutWalletAddress?: string // Artist's Polygon wallet address for USDC/EURC payouts
+  payoutCurrency?: string // Artist's chosen payout currency: 'USDC' | 'EURC'
   createdAt: timestamp
   updatedAt: timestamp
 }
@@ -109,7 +112,14 @@ orders {
   status: enum ("pending", "processing", "shipped", "delivered", "cancelled")
   total: decimal (cents)
   currency: string (default: "USD")
-  stripePaymentIntentId?: string
+  stripePaymentIntentId?: string // Stripe payment intent (backup gateway)
+  nexapayTransactionId?: string // NexaPay settlement reference (primary gateway)
+  settlementStatus?: enum ("pending", "settled", "split_completed") // NexaPay settlement tracking
+  platformShareEurc?: decimal // Platform's EURC share (in cents)
+  artistShareUsdc?: decimal // Artist's payout amount (in USDC cents)
+  artistPayoutTxHash?: string // Polygon tx hash for artist payout
+  vaultDepositTxHash?: string // Polygon tx hash for vault deposit
+  fxRateUsed?: decimal // EUR/USD rate at settlement time
   shippingAddress: json
   trackingNumber?: string
   shippingProvider?: string
@@ -215,7 +225,8 @@ backers {
   amount: decimal (cents)
   currency: string (default: "USD")
   status: enum ("pending", "paid", "fulfilled", "cancelled")
-  stripePaymentIntentId?: string
+  stripePaymentIntentId?: string // Stripe payment intent (backup gateway)
+  nexapayTransactionId?: string // NexaPay settlement reference (primary gateway)
   shippingAddress?: json
   trackingNumber?: string
   notes?: text
@@ -228,6 +239,30 @@ backers {
 - belongsTo: campaign
 - belongsTo: user (optional)
 - belongsTo: campaignReward (optional)
+
+---
+
+### wallet_transactions
+NexaPay settlement and wallet transfer audit trail.
+
+```typescript
+walletTransactions {
+  id: string (primary key)
+  userId?: string (foreign key → users, null for platform vault)
+  orderId?: string (foreign key → orders)
+  type: enum ("platform_income", "artist_payout", "vault_deposit", "conversion")
+  amount: decimal (cents) // In smallest unit (cents/lamports)
+  currency: string // 'USDC' | 'EURC'
+  txHash?: string // Polygon transaction hash
+  status: enum ("pending", "confirmed", "failed")
+  metadata?: json // { fxRate, conversionFrom, conversionTo, etc. }
+  createdAt: timestamp
+}
+```
+
+**Relationships**:
+- belongsTo: user (optional)
+- belongsTo: order (optional)
 
 ---
 
@@ -353,7 +388,8 @@ bunx drizzle-kit studio
 ### Data Protection
 - No passwords stored (Clerk handles auth)
 - PII encrypted at rest (Neon default)
-- Stripe token IDs stored (no card numbers)
+- NexaPay transaction IDs stored (no card numbers) — PCI-DSS compliant via NexaPay
+- Stripe token IDs stored (backup gateway) — no card numbers
 - Email addresses indexed for privacy checks
 
 ### Access Control
@@ -411,6 +447,7 @@ ORDER BY signup_month;
 ## 🔗 Related Documents
 
 - **Drizzle Schema**: `/src/db/schema.ts`
+- **Payment Gateway Architecture**: [[Payment-Gateway]] — NexaPay integration, settlement flow, wallet management
 - **API Reference**: API-Reference.md (TBD)
 - **PRD**: ../../00-PRD-Roadmap/PRD.md
 - **Constraints**: ../../00-PRD-Roadmap/Constraints.md
@@ -418,5 +455,5 @@ ORDER BY signup_month;
 ---
 
 **Owner**: Victor Bendas
-**Last Updated**: January 17, 2026
+**Last Updated**: May 17, 2026
 **Status**: Active (Phase 1)

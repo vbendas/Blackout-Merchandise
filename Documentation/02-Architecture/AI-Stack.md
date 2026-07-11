@@ -1,5 +1,8 @@
 # AI Stack & Model Routing
 
+> **Payment Gateway**: NexaPay (primary), Stripe (backup)
+> → Full payment architecture: [[Payment-Gateway]]
+
 ## Francisca's Design Studio
 
 
@@ -455,7 +458,7 @@
   ```
   User A has 50 Sailor Jerry Merch Coins but prefers The Echoes
   → Lists 50 coins on internal marketplace at €1 each = €50
-  → User B buys them for €50 (pay via Stripe)
+  → User B buys them for €50 (pay via NexaPay, 14 providers. Stripe retained as backup)
   → Platform takes 10% fee (€5)
   → User A receives €45 payout
   → User B receives 50 Sailor Jerry coins
@@ -490,7 +493,8 @@
     total_price DECIMAL(10,2),
     platform_fee DECIMAL(10,2),
     seller_payout DECIMAL(10,2),
-    stripe_payment_id TEXT,
+    nexapay_transaction_id TEXT,
+    stripe_payment_id TEXT, -- retained as backup
     status TEXT CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
     created_at TIMESTAMP DEFAULT NOW()
   );
@@ -501,7 +505,7 @@
   - Platform can enable trading via admin dashboard (global flag)
   - Artists can opt-in/opt-out of allowing their coins to be traded
   - All trades at fixed €1 per coin (no price discovery/speculation)
-  - Stripe Connect for seller payouts (minus 10% platform fee)
+  - NexaPay Connect for seller payouts (minus 10% platform fee, instant USDC on Polygon). Stripe Connect retained as backup.
   - KYC required for both buyers and sellers (prevent fraud)
   - Transaction limits: Max 1,000 coins per trade, max 5 trades/day per user
 
@@ -531,8 +535,8 @@
   1. Add `tradable` boolean field to `merch_coin_transactions` table
   2. Create `coin_listings` and `coin_trades` tables
   3. Build internal marketplace UI (seller lists, buyer browses)
-  4. Integrate Stripe Connect for seller payouts
-  5. Implement KYC verification flow (Stripe Identity or similar)
+  4. Integrate NexaPay Connect for seller payouts (instant USDC on Polygon). Stripe Connect retained as backup.
+  5. Implement KYC verification flow (NexaPay zero-KYC or Stripe Identity as backup)
   6. Add fraud detection and rate limiting
   7. Legal review and terms update
   8. Soft launch with waitlist (test with power users)
@@ -983,7 +987,7 @@
   | **Storage** | Cloudinary | **Public CDN** + Image Transformations (Resizing/Optimization/Mockups) |
   | **Feature Flags** | Upstash Redis | Simple key-value flags with instant updates |
   | **Error Tracking** | Sentry | Root cause analysis + error monitoring |
-  | **Payments** | Stripe | **Express Checkout** (Apple/Google Pay) + Connect (Payouts) |
+  | **Payments** | NexaPay | Professional Plan, 14 providers, instant USDC on Polygon. Stripe retained as backup. |
   | **Image Pipeline** | Cloudinary | Mockups, social cards, image transformations |
   | **AI Workflows** | Trigger.dev + Vercel Functions | Background jobs for AI, vector storage in Neon pgvector |
   | **Frontend Gen** | V0 (Vercel) | AI-powered component generation via MCP integration |
@@ -1081,7 +1085,7 @@
 
   ### Phase 4: Store & Commerce (Weeks 13-16)
   - [ ] Product catalog with unlimited listings
-  - [ ] Stripe payment integration complete
+  - [ ] NexaPay payment integration complete
   - [ ] Order management system functional
   - [ ] **Branded storefront generation (isolated per artist)**
   - [ ] **Artist-only product visibility enforced**
@@ -1383,7 +1387,7 @@
   **Infrastructure:**
   - Vercel (hosting, edge functions, CDN)
   - Cloudinary (image storage, optimization, mockup generation)
-  - Stripe (payment processing)
+  - NexaPay (payment processing, primary). Stripe retained as backup.
   - **Resend:** Transactional email service (Waitlist invites, Order confirmations) + React Email
   - **Railway/Render (optional Sharp microservice for high-volume mockup generation)**
 
@@ -2038,8 +2042,10 @@
   - `email`: Text (not null)
   - `display_name`: Text
   - `role`: Enum (`artist`, `customer`, `admin`) — default `customer`
-  - `stripe_customer_id`: Text (for Stripe Checkout)
-  - `stripe_connect_id`: Text (for Stripe Connect payouts to artists)
+  - `nexapay_customer_id`: Text (for NexaPay checkout)
+  - `nexapay_connect_id`: Text (for NexaPay Connect payouts to artists)
+  - `stripe_customer_id`: Text (retained as backup for Stripe Checkout)
+  - `stripe_connect_id`: Text (retained as backup for Stripe Connect payouts)
   - `image_url`: Text (avatar from Clerk)
   - `created_at`, `updated_at`: Timestamp
 
@@ -2074,7 +2080,7 @@
   - `is_active`: Boolean
 
   **`orders` + `order_items`**
-  *Customer orders with Stripe integration.*
+  *Customer orders with NexaPay integration (primary). Stripe retained as backup.*
   - `orders`: `store_id`, `customer_id`, `status` (enum: pending → paid → processing → shipped → fulfilled/cancelled), `total_amount` (cents), `stripe_payment_intent_id`, `shipping_address` (JSONB)
   - `order_items`: `order_id`, `product_id`, `quantity`, `price_at_purchase` (cents)
 
@@ -2109,7 +2115,7 @@
 
   **Security:**
   - No Supabase RLS. Authorization enforced via **Clerk middleware** (`middleware.ts`) and **Drizzle query patterns** (always filter by `store_id` or `user_id` from Clerk session).
-  - Webhook idempotency via `processed_webhook_events` table (Stripe + Clerk webhooks).
+  - Webhook idempotency via `processed_webhook_events` table (NexaPay + Clerk webhooks). Stripe webhooks retained as backup.
 
   ### 5.4 Next.js API Routes (Serverless Functions)
 
@@ -2122,9 +2128,13 @@
   │   └── route.ts              # BFL API image generation (FLUX 2 Flex / Pro / Max)
   ├── analyze-upload/
   │   └── route.ts              # Mistral Large 3 vision: copyright/quality check
-  ├── stripe/
-  │   └── webhook/
-  │       └── route.ts          # Payment processing webhooks
+  ├── payment/
+  │   ├── nexapay/
+  │   │   └── webhook/
+  │   │       └── route.ts      # NexaPay settlement webhooks (primary)
+  │   └── stripe/
+  │       └── webhook/
+  │           └── route.ts      # Stripe webhooks (backup)
   └── voice/
       └── transcribe/
           └── route.ts          # Deepgram / Voxtral transcription proxy
@@ -2133,7 +2143,7 @@
   **Key Concept: "The Nervous System" (Triggers & Webhooks)**
   API Routes handle both user-facing requests and backend automation:
   - **On-Demand APIs:** Frontend calls `/api/generate-artwork` when user requests design generation.
-  - **Webhook Handlers:** Stripe sends payment events to `/api/stripe/webhook` for order processing.
+  - **Webhook Handlers:** NexaPay sends settlement webhooks (1-2 min) to `/api/nexapay/webhook` for order processing. Stripe webhook handler retained as backup at `/api/stripe/webhook`.
   - **Voice Proxy:** `/api/voice/transcribe` proxies Deepgram/Voxtral to protect API keys.
 
   **Example: Generate Artwork Route**
@@ -2211,7 +2221,7 @@
   - **Cloudinary:** Image storage, optimization, and CDN delivery
   - **Upstash Redis:** Sessions, caching, rate limiting
   - **AWS S3 API:** Final artwork and print file storage
-  - **Stripe API:** Payment processing and webhooks
+  - **NexaPay API:** Primary payment processing and webhooks. Stripe API retained as backup.
   - **Fabric.js (Client-side):** Product mockup generation
 
   ---
@@ -2243,7 +2253,8 @@
   │   ├── chat/route.ts                # Conversation handler
   │   ├── design/generate/route.ts     # Artwork generation proxy
   │   ├── design/refine/route.ts       # Artwork refinement
-  │   └── webhook/stripe/route.ts      # Stripe webhooks
+  │   ├── webhook/nexapay/route.ts     # NexaPay webhooks (primary)
+│   └── webhook/stripe/route.ts      # Stripe webhooks (backup)
   └── layout.tsx
 
   components/
@@ -2287,9 +2298,13 @@
   │   ├── index.ts                     # Neon serverless connection
   │   ├── schema.ts                    # Drizzle schema (source of truth)
   │   └── types.ts                     # Generated types
-  ├── stripe/
-  │   ├── client.ts                    # Stripe client
-  │   └── webhooks.ts                  # Webhook handlers
+  ├── payment/
+  │   ├── nexapay/
+  │   │   ├── client.ts                # NexaPay client (primary)
+  │   │   └── webhooks.ts              # NexaPay webhook handlers
+  │   └── stripe/
+  │       ├── client.ts                # Stripe client (backup)
+  │       └── webhooks.ts              # Stripe webhook handlers (backup)
   └── utils/
       ├── analytics.ts                 # Event tracking
       ├── cost-tracker.ts              # AI cost monitoring
@@ -2332,7 +2347,8 @@
   | **Mistral API** | Pay-as-you-go | ~$50 | Large 3 + Small 4 + Voxtral |
   | **BFL API** | Pay-as-you-go | ~$45 | FLUX 2-only image generation (Flex / Pro / Max) |
   | **Cloudinary** | Free/Plus | $0–$89 | Image storage, optimization, mockups |
-  | **Stripe** | Standard | 2.9% + $0.30/tx | Payment processing |
+  | **NexaPay** | Professional Plan | $249/mo + 1.5% | Primary payment processing (14 providers, instant USDC) |
+| **Stripe** | Standard | 2.9% + $0.30/tx | Backup payment processing |
   | **Sentry** | Developer | $0-26 | Error tracking |
   | **Production Automation** | Computed | ~$15-50 | AI processing (300-1000 designs/month) |
   | **Total Base** | | **~$270-331** | **Excluding transaction fees** |
@@ -2450,11 +2466,11 @@
   - Cost caps per user to prevent abuse
 
   ### Payment Security
-  - PCI DSS compliance via Stripe
+  - PCI-DSS compliant processing via NexaPay (PCI DSS, SOC 2, GDPR certified). Stripe retained as backup.
   - No direct handling of card data
   - Webhook signature verification
   - Idempotency keys for all transactions
-  - Fraud detection via Stripe Radar
+  - Fraud detection via NexaPay built-in tools (primary). Stripe Radar retained as backup.
 
   ### Intellectual Property
   - Design upload screening for obvious copyright violations
@@ -2485,7 +2501,7 @@
   ### Integration Testing
   - BFL API calls for FLUX 2 generation (Flex / Pro / Max by complexity)
   - Drizzle ORM CRUD operations
-  - Stripe payment flows
+  - NexaPay payment flows (primary). Stripe flows retained as backup.
   - Edge function invocations
   - File uploads to S3
   - Real-time updates via Upstash Redis (future)
@@ -2518,7 +2534,7 @@
    - **Network Resilience** - Simulate Slow 3G/4G connections, verify graceful degradation
    - **Console Error Detection** - Zero JavaScript errors policy with automated detection
    - **Accessibility Testing** - Keyboard navigation, screen reader compatibility, ARIA validation
-   - **Stripe Webhook Testing** - Payment flow simulation, failure scenarios, idempotency validation
+   - **NexaPay Webhook Testing** - Settlement webhook flow simulation, failure scenarios, idempotency validation. Stripe webhook testing retained as backup.
    - **Deployment Smoke Tests** - Post-deploy verification of critical functionality
 
 **Implementation Note:** All browser automation runs in **separate worker services** (CI/CD, background workers) with zero impact on production site performance. See **`Documentation/AGENT_BROWSER_INTEGRATION.md`** for comprehensive implementation plan, timeline, and immediate action items.
@@ -2638,7 +2654,7 @@
 
   **Deliverables:**
   - Product catalog with generated designs
-  - Stripe payment integration
+  - NexaPay payment integration (primary). Stripe retained as backup.
   - **Branded storefront generation (each artist gets isolated store with custom slug)**
   - **AI Elements components reused for customer-facing AI assistant**
   - **`<Suggestion>` components for product recommendations**
@@ -2992,7 +3008,7 @@
   - **Cat-Suite Presence:** Leopoldo greets users in Activity; Francisca and Antonia active in community channels
   - **OAuth Flow:** Artists connect Discord server from `/dashboard/integrations`
   - **Revenue Strategy:** Always default to off-site checkout (redirect to MerchFrom direct) — Discord IAP takes 15-30% vs 0% on direct. Embedded Activity is a discovery tool, not a checkout surface.
-  - **Monetization Note:** Discord takes 15-30% + 6% Stripe on in-app purchases
+  - **Monetization Note:** Discord takes 15-30% + payment processor fees (NexaPay primary, Stripe backup)
 
   **Three-Stage Rollout:**
   | Stage | When | Focus |
@@ -3158,7 +3174,7 @@
 
   **6. Commerce Infrastructure** *(Week 10-13)*
   - Product catalog
-  - Stripe integration
+  - NexaPay integration (primary). Stripe retained as backup.
   - Storefront generation
   → *Enables revenue*
 
@@ -3452,7 +3468,7 @@
   **Trigger:** 1,000+ individual orders received in 24h (Exceeds daily internal capacity of ~300-500 units).
 
   **Metric Reality Check:**
-  - **Constraint:** Brother GTX Pro (90s/print avg) = ~450 units/10h shift.
+  - **Constraint:** Brother GTXpro B (~75s/print avg, high-speed mode) = ~540 units/10h shift.
   - **Backup:** TexPro Series 2 (~4 min/print) = ~150 units/10h shift.
   - **Total Internal Capacity:** ~300-500 units/day (realistic operational capacity).
   - **Bottleneck:** Finishing/packing (not printing speed).
@@ -3462,7 +3478,7 @@
     - Instant implementation of **"Dynamic Shipping Windows"**: New orders automatically update to "Ships in 5-7 days" once the 72h capacity bucket (1,800 units) is full.
     - **Activate Extended Shifts:** Run 14-16h shifts to push daily output to ~850 units.
   - **Day 2 (The Equipment Scaling):**
-    - **Purchase Order Trigger:** If volume sustains >800/day for 48h, order a **Second Brother GTX Pro**.
+    - **Purchase Order Trigger:** If volume sustains >800/day for 48h, order a **Second Brother GTXpro B**.
     - **Benefit:** 2-day delivery time to Portugal. Cashflow from the spike covers the down payment/purchase immediately.
   - **Day 3 (The Overflow):**
     - While waiting for the new machine, route overflow to **Barcelos Partner Network** (only for "Standard" designs).
@@ -3500,7 +3516,7 @@
     - *Impact:* Throughput drops from ~500/hr to ~100/hr.
     - *Action:* Prioritize "Rush" and VIP orders.
   - **Layer 2: Digital Pivot (Internal):**
-    - Shift applicable designs (full color/gradients) to **Brother GTX Pro (DTG)** and **DTF**.
+    - Shift applicable designs (full color/gradients) to **Brother GTXpro B (DTG/DTF)**.
     - *Note:* Notify customers of "Free Digital Upgrade" (often perceived as premium for detail, though slower for bulk).
   - **Layer 3: Local Offload (External):**
     - Activate the "Neighbor Network." In Barcelos, we are surrounded by industrial printers.
@@ -3982,13 +3998,14 @@
   | | **Voice Pipeline** (Mistral STT + ElevenLabs TTS) | **~$15.00** | 5,000 mins combined |
   | | **BFL API Image Gen** (FLUX 2 Flex / Pro / Max) | **~$438** | 30K images @ ~$0.0146 avg |
   | | **Subtotal (10K active users)** | **~$517.50** | **98% cost reduction vs v3.0** |
-  | **Transaction Fees** | Stripe | 2.9% + $0.30 | Per transaction (variable) |
+  | **Transaction Fees** | NexaPay | $249/mo + 1.5% | Fixed monthly + per transaction (primary) |
+| **Transaction Fees** | Stripe | 2.9% + $0.30 | Per transaction (backup) |
   | **Total Base** | | **~$364** | **Excluding transaction fees** |
 
   **At Scale (1,000 Active Creators, 10K Products Sold/Month):**
   - Revenue: $85,000/month (assuming $8.50 avg profit per product)
   - Operational costs: ~$500/month ($268 AI + $96 infrastructure + $136 buffer)
-  - Transaction fees (Stripe): ~$2,500/month (on $85K GMV)
+  - Transaction fees (NexaPay): ~$249/month + 1.5% (on $85K GMV = ~$1,524). Lower than Stripe backup.
   - Total costs: ~$3,000/month
   - **Net profit: ~$82,000/month (96.5% margin)**
 
@@ -4907,7 +4924,7 @@
   ```
   User A has 50 Sailor Jerry Merch Coins but prefers The Echoes
   → Lists 50 coins on internal marketplace at €1 each = €50
-  → User B buys them for €50 (pay via Stripe)
+  → User B buys them for €50 (pay via NexaPay, 14 providers. Stripe retained as backup)
   → Platform takes 10% fee (€5)
   → User A receives €45 payout
   → User B receives 50 Sailor Jerry coins
@@ -4942,7 +4959,8 @@
     total_price DECIMAL(10,2),
     platform_fee DECIMAL(10,2),
     seller_payout DECIMAL(10,2),
-    stripe_payment_id TEXT,
+    nexapay_transaction_id TEXT,
+    stripe_payment_id TEXT, -- retained as backup
     status TEXT CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
     created_at TIMESTAMP DEFAULT NOW()
   );
@@ -4953,7 +4971,7 @@
   - Platform can enable trading via admin dashboard (global flag)
   - Artists can opt-in/opt-out of allowing their coins to be traded
   - All trades at fixed €1 per coin (no price discovery/speculation)
-  - Stripe Connect for seller payouts (minus 10% platform fee)
+  - NexaPay Connect for seller payouts (minus 10% platform fee, instant USDC on Polygon). Stripe Connect retained as backup.
   - KYC required for both buyers and sellers (prevent fraud)
   - Transaction limits: Max 1,000 coins per trade, max 5 trades/day per user
 
@@ -4983,8 +5001,8 @@
   1. Add `tradable` boolean field to `merch_coin_transactions` table
   2. Create `coin_listings` and `coin_trades` tables
   3. Build internal marketplace UI (seller lists, buyer browses)
-  4. Integrate Stripe Connect for seller payouts
-  5. Implement KYC verification flow (Stripe Identity or similar)
+  4. Integrate NexaPay Connect for seller payouts (instant USDC on Polygon). Stripe Connect retained as backup.
+  5. Implement KYC verification flow (NexaPay zero-KYC or Stripe Identity as backup)
   6. Add fraud detection and rate limiting
   7. Legal review and terms update
   8. Soft launch with waitlist (test with power users)
@@ -5435,7 +5453,7 @@
   | **Storage** | Cloudinary | **Public CDN** + Image Transformations (Resizing/Optimization/Mockups) |
   | **Feature Flags** | Upstash Redis | Simple key-value flags with instant updates |
   | **Error Tracking** | Sentry | Root cause analysis + error monitoring |
-  | **Payments** | Stripe | **Express Checkout** (Apple/Google Pay) + Connect (Payouts) |
+  | **Payments** | NexaPay | Professional Plan, 14 providers, instant USDC on Polygon. Stripe retained as backup. |
   | **Image Pipeline** | Cloudinary | Mockups, social cards, image transformations |
   | **AI Workflows** | Trigger.dev + Vercel Functions | Background jobs for AI, vector storage in Neon pgvector |
   | **Frontend Gen** | V0 (Vercel) | AI-powered component generation via MCP integration |
@@ -5533,7 +5551,7 @@
 
   ### Phase 4: Store & Commerce (Weeks 13-16)
   - [ ] Product catalog with unlimited listings
-  - [ ] Stripe payment integration complete
+  - [ ] NexaPay payment integration complete
   - [ ] Order management system functional
   - [ ] **Branded storefront generation (isolated per artist)**
   - [ ] **Artist-only product visibility enforced**
@@ -5835,7 +5853,7 @@
   **Infrastructure:**
   - Vercel (hosting, edge functions, CDN)
   - Cloudinary (image storage, optimization, mockup generation)
-  - Stripe (payment processing)
+  - NexaPay (payment processing, primary). Stripe retained as backup.
   - **Resend:** Transactional email service (Waitlist invites, Order confirmations) + React Email
   - **Railway/Render (optional Sharp microservice for high-volume mockup generation)**
 
@@ -6490,8 +6508,10 @@
   - `email`: Text (not null)
   - `display_name`: Text
   - `role`: Enum (`artist`, `customer`, `admin`) — default `customer`
-  - `stripe_customer_id`: Text (for Stripe Checkout)
-  - `stripe_connect_id`: Text (for Stripe Connect payouts to artists)
+  - `nexapay_customer_id`: Text (for NexaPay checkout)
+  - `nexapay_connect_id`: Text (for NexaPay Connect payouts to artists)
+  - `stripe_customer_id`: Text (retained as backup for Stripe Checkout)
+  - `stripe_connect_id`: Text (retained as backup for Stripe Connect payouts)
   - `image_url`: Text (avatar from Clerk)
   - `created_at`, `updated_at`: Timestamp
 
@@ -6526,7 +6546,7 @@
   - `is_active`: Boolean
 
   **`orders` + `order_items`**
-  *Customer orders with Stripe integration.*
+  *Customer orders with NexaPay integration (primary). Stripe retained as backup.*
   - `orders`: `store_id`, `customer_id`, `status` (enum: pending → paid → processing → shipped → fulfilled/cancelled), `total_amount` (cents), `stripe_payment_intent_id`, `shipping_address` (JSONB)
   - `order_items`: `order_id`, `product_id`, `quantity`, `price_at_purchase` (cents)
 
@@ -6561,7 +6581,7 @@
 
   **Security:**
   - No Supabase RLS. Authorization enforced via **Clerk middleware** (`middleware.ts`) and **Drizzle query patterns** (always filter by `store_id` or `user_id` from Clerk session).
-  - Webhook idempotency via `processed_webhook_events` table (Stripe + Clerk webhooks).
+  - Webhook idempotency via `processed_webhook_events` table (NexaPay + Clerk webhooks). Stripe webhooks retained as backup.
 
   ### 5.4 Next.js API Routes (Serverless Functions)
 
@@ -6574,9 +6594,13 @@
   │   └── route.ts              # BFL API image generation (FLUX 2 Flex / Pro / Max)
   ├── analyze-upload/
   │   └── route.ts              # Mistral Large 3 vision: copyright/quality check
-  ├── stripe/
-  │   └── webhook/
-  │       └── route.ts          # Payment processing webhooks
+  ├── payment/
+  │   ├── nexapay/
+  │   │   └── webhook/
+  │   │       └── route.ts      # NexaPay settlement webhooks (primary)
+  │   └── stripe/
+  │       └── webhook/
+  │           └── route.ts      # Stripe webhooks (backup)
   └── voice/
       └── transcribe/
           └── route.ts          # Deepgram / Voxtral transcription proxy
@@ -6585,7 +6609,7 @@
   **Key Concept: "The Nervous System" (Triggers & Webhooks)**
   API Routes handle both user-facing requests and backend automation:
   - **On-Demand APIs:** Frontend calls `/api/generate-artwork` when user requests design generation.
-  - **Webhook Handlers:** Stripe sends payment events to `/api/stripe/webhook` for order processing.
+  - **Webhook Handlers:** NexaPay sends settlement webhooks (1-2 min) to `/api/nexapay/webhook` for order processing. Stripe webhook handler retained as backup at `/api/stripe/webhook`.
   - **Voice Proxy:** `/api/voice/transcribe` proxies Deepgram/Voxtral to protect API keys.
 
   **Example: Generate Artwork Route**
@@ -6663,7 +6687,7 @@
   - **Cloudinary:** Image storage, optimization, and CDN delivery
   - **Upstash Redis:** Sessions, caching, rate limiting
   - **AWS S3 API:** Final artwork and print file storage
-  - **Stripe API:** Payment processing and webhooks
+  - **NexaPay API:** Primary payment processing and webhooks. Stripe API retained as backup.
   - **Fabric.js (Client-side):** Product mockup generation
 
   ---
@@ -6695,7 +6719,8 @@
   │   ├── chat/route.ts                # Conversation handler
   │   ├── design/generate/route.ts     # Artwork generation proxy
   │   ├── design/refine/route.ts       # Artwork refinement
-  │   └── webhook/stripe/route.ts      # Stripe webhooks
+  │   ├── webhook/nexapay/route.ts     # NexaPay webhooks (primary)
+│   └── webhook/stripe/route.ts      # Stripe webhooks (backup)
   └── layout.tsx
 
   components/
@@ -6739,9 +6764,13 @@
   │   ├── index.ts                     # Neon serverless connection
   │   ├── schema.ts                    # Drizzle schema (source of truth)
   │   └── types.ts                     # Generated types
-  ├── stripe/
-  │   ├── client.ts                    # Stripe client
-  │   └── webhooks.ts                  # Webhook handlers
+  ├── payment/
+  │   ├── nexapay/
+  │   │   ├── client.ts                # NexaPay client (primary)
+  │   │   └── webhooks.ts              # NexaPay webhook handlers
+  │   └── stripe/
+  │       ├── client.ts                # Stripe client (backup)
+  │       └── webhooks.ts              # Stripe webhook handlers (backup)
   └── utils/
       ├── analytics.ts                 # Event tracking
       ├── cost-tracker.ts              # AI cost monitoring
@@ -6784,7 +6813,8 @@
   | **Mistral API** | Pay-as-you-go | ~$50 | Large 3 + Small 4 + Voxtral |
   | **BFL API** | Pay-as-you-go | ~$45 | FLUX 2-only image generation (Flex / Pro / Max) |
   | **Cloudinary** | Free/Plus | $0–$89 | Image storage, optimization, mockups |
-  | **Stripe** | Standard | 2.9% + $0.30/tx | Payment processing |
+  | **NexaPay** | Professional Plan | $249/mo + 1.5% | Primary payment processing (14 providers, instant USDC) |
+| **Stripe** | Standard | 2.9% + $0.30/tx | Backup payment processing |
   | **Sentry** | Developer | $0-26 | Error tracking |
   | **Production Automation** | Computed | ~$15-50 | AI processing (300-1000 designs/month) |
   | **Total Base** | | **~$270-331** | **Excluding transaction fees** |
@@ -6902,11 +6932,11 @@
   - Cost caps per user to prevent abuse
 
   ### Payment Security
-  - PCI DSS compliance via Stripe
+  - PCI-DSS compliant processing via NexaPay (PCI DSS, SOC 2, GDPR certified). Stripe retained as backup.
   - No direct handling of card data
   - Webhook signature verification
   - Idempotency keys for all transactions
-  - Fraud detection via Stripe Radar
+  - Fraud detection via NexaPay built-in tools (primary). Stripe Radar retained as backup.
 
   ### Intellectual Property
   - Design upload screening for obvious copyright violations
@@ -6937,7 +6967,7 @@
   ### Integration Testing
   - BFL API calls for FLUX 2 generation (Flex / Pro / Max by complexity)
   - Drizzle ORM CRUD operations
-  - Stripe payment flows
+  - NexaPay payment flows (primary). Stripe flows retained as backup.
   - Edge function invocations
   - File uploads to S3
   - Real-time updates via Upstash Redis (future)
@@ -6970,7 +7000,7 @@
    - **Network Resilience** - Simulate Slow 3G/4G connections, verify graceful degradation
    - **Console Error Detection** - Zero JavaScript errors policy with automated detection
    - **Accessibility Testing** - Keyboard navigation, screen reader compatibility, ARIA validation
-   - **Stripe Webhook Testing** - Payment flow simulation, failure scenarios, idempotency validation
+   - **NexaPay Webhook Testing** - Settlement webhook flow simulation, failure scenarios, idempotency validation. Stripe webhook testing retained as backup.
    - **Deployment Smoke Tests** - Post-deploy verification of critical functionality
 
 **Implementation Note:** All browser automation runs in **separate worker services** (CI/CD, background workers) with zero impact on production site performance. See **`Documentation/AGENT_BROWSER_INTEGRATION.md`** for comprehensive implementation plan, timeline, and immediate action items.
@@ -7090,7 +7120,7 @@
 
   **Deliverables:**
   - Product catalog with generated designs
-  - Stripe payment integration
+  - NexaPay payment integration (primary). Stripe retained as backup.
   - **Branded storefront generation (each artist gets isolated store with custom slug)**
   - **AI Elements components reused for customer-facing AI assistant**
   - **`<Suggestion>` components for product recommendations**
@@ -7444,7 +7474,7 @@
   - **Cat-Suite Presence:** Leopoldo greets users in Activity; Francisca and Antonia active in community channels
   - **OAuth Flow:** Artists connect Discord server from `/dashboard/integrations`
   - **Revenue Strategy:** Always default to off-site checkout (redirect to MerchFrom direct) — Discord IAP takes 15-30% vs 0% on direct. Embedded Activity is a discovery tool, not a checkout surface.
-  - **Monetization Note:** Discord takes 15-30% + 6% Stripe on in-app purchases
+  - **Monetization Note:** Discord takes 15-30% + payment processor fees (NexaPay primary, Stripe backup)
 
   **Three-Stage Rollout:**
   | Stage | When | Focus |
@@ -7610,7 +7640,7 @@
 
   **6. Commerce Infrastructure** *(Week 10-13)*
   - Product catalog
-  - Stripe integration
+  - NexaPay integration (primary). Stripe retained as backup.
   - Storefront generation
   → *Enables revenue*
 
@@ -7904,7 +7934,7 @@
   **Trigger:** 1,000+ individual orders received in 24h (Exceeds daily internal capacity of ~300-500 units).
 
   **Metric Reality Check:**
-  - **Constraint:** Brother GTX Pro (90s/print avg) = ~450 units/10h shift.
+  - **Constraint:** Brother GTXpro B (~75s/print avg, high-speed mode) = ~540 units/10h shift.
   - **Backup:** TexPro Series 2 (~4 min/print) = ~150 units/10h shift.
   - **Total Internal Capacity:** ~300-500 units/day (realistic operational capacity).
   - **Bottleneck:** Finishing/packing (not printing speed).
@@ -7914,7 +7944,7 @@
     - Instant implementation of **"Dynamic Shipping Windows"**: New orders automatically update to "Ships in 5-7 days" once the 72h capacity bucket (1,800 units) is full.
     - **Activate Extended Shifts:** Run 14-16h shifts to push daily output to ~850 units.
   - **Day 2 (The Equipment Scaling):**
-    - **Purchase Order Trigger:** If volume sustains >800/day for 48h, order a **Second Brother GTX Pro**.
+    - **Purchase Order Trigger:** If volume sustains >800/day for 48h, order a **Second Brother GTXpro B**.
     - **Benefit:** 2-day delivery time to Portugal. Cashflow from the spike covers the down payment/purchase immediately.
   - **Day 3 (The Overflow):**
     - While waiting for the new machine, route overflow to **Barcelos Partner Network** (only for "Standard" designs).
@@ -7952,7 +7982,7 @@
     - *Impact:* Throughput drops from ~500/hr to ~100/hr.
     - *Action:* Prioritize "Rush" and VIP orders.
   - **Layer 2: Digital Pivot (Internal):**
-    - Shift applicable designs (full color/gradients) to **Brother GTX Pro (DTG)** and **DTF**.
+    - Shift applicable designs (full color/gradients) to **Brother GTXpro B (DTG/DTF)**.
     - *Note:* Notify customers of "Free Digital Upgrade" (often perceived as premium for detail, though slower for bulk).
   - **Layer 3: Local Offload (External):**
     - Activate the "Neighbor Network." In Barcelos, we are surrounded by industrial printers.
@@ -8433,13 +8463,14 @@
   | | **Voxtral STT + TTS** (voice pipeline) | **~$40.00** | 5,000 mins combined |
   | | **BFL API Image Gen** (FLUX 2 Flex / Pro / Max) | **~$438** | 30K images @ ~$0.0146 avg |
   | | **Subtotal (10K active users)** | **~$517.50** | **98% cost reduction vs v3.0** |
-  | **Transaction Fees** | Stripe | 2.9% + $0.30 | Per transaction (variable) |
+  | **Transaction Fees** | NexaPay | $249/mo + 1.5% | Fixed monthly + per transaction (primary) |
+| **Transaction Fees** | Stripe | 2.9% + $0.30 | Per transaction (backup) |
   | **Total Base** | | **~$364** | **Excluding transaction fees** |
 
   **At Scale (1,000 Active Creators, 10K Products Sold/Month):**
   - Revenue: $85,000/month (assuming $8.50 avg profit per product)
   - Operational costs: ~$500/month ($268 AI + $96 infrastructure + $136 buffer)
-  - Transaction fees (Stripe): ~$2,500/month (on $85K GMV)
+  - Transaction fees (NexaPay): ~$249/month + 1.5% (on $85K GMV = ~$1,524). Lower than Stripe backup.
   - Total costs: ~$3,000/month
   - **Net profit: ~$82,000/month (96.5% margin)**
 

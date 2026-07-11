@@ -82,6 +82,15 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     }
 
     const [updated] = await updateProduct(id, { ...data, updatedAt: new Date() });
+
+    // Sync to Typesense (non-blocking)
+    const updatedStore = await getStoreByArtist(user.id);
+    if (updatedStore.length > 0) {
+      import('@/lib/typesense/sync').then(({ syncArtistProduct }) => {
+        syncArtistProduct(updated, { id: updatedStore[0].id, slug: updatedStore[0].slug, name: updatedStore[0].name });
+      }).catch(() => {});
+    }
+
     return NextResponse.json({ product: updated });
   } catch (error) {
     if (error instanceof NextResponse) return error;
@@ -116,6 +125,11 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
       .set({ isActive: false, updatedAt: new Date() })
       .where(eq(products.id, id))
       .returning();
+
+    // Deactivate in Typesense (non-blocking)
+    import('@/lib/typesense/sync').then(({ deactivateArtistProduct }) => {
+      deactivateArtistProduct(id);
+    }).catch(() => {});
 
     return NextResponse.json({ success: true, product: updated });
   } catch (error) {

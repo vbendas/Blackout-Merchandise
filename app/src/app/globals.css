@@ -8,7 +8,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-heading: var(--font-space-grotesk);
-  
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -17,7 +17,7 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  
+
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -34,15 +34,15 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  
+
   --animate-spotlight: spotlight 2s ease .75s 1 forwards;
   --animate-avatar-glow: avatar-glow 3s ease-in-out infinite;
-  
+
   @keyframes spotlight {
     0% {
       opacity: 0;
@@ -53,7 +53,7 @@
       transform: translate(-50%,-40%) scale(1);
     }
   }
-  
+
   @keyframes avatar-glow {
     0%, 100% {
       box-shadow: 0 0 20px rgba(255, 255, 255, 0.1), 0 0 40px rgba(161, 161, 170, 0.05);

@@ -323,7 +323,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   **Use of Funds:**
 
   ```
-  PREMIUM EQUIPMENT EXPANSION:            €127,500
+  PREMIUM EQUIPMENT EXPANSION:            €132,500
   ────────────────────────────────────────────────
 
   Anatol VOLT-M Automatic Press:           €70,000
@@ -341,10 +341,15 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
     - 500-800 prints/day capacity
     - Perfect for "Waitlist Drop" releases
 
-  Brother GTX Pro + Large Platen:          €15,000
-    - Premium DTG printing for small runs
+  Brother GTXpro B + Large Platen:         €20,000
+    - Hybrid DTG/DTF production printer (bulk ink system)
+    - 1.8L & 18L bulk ink tanks — ~40-50% lower ink cost vs pouch
+    - High-speed mode: ~20% faster throughput (~540 units/10h shift)
+    - OEKO-TEX ECO PASSPORT & GOTS Approved inks (ethical brand alignment)
+    - Enhanced automated maintenance (reduced clogging, less downtime)
+    - Print queue/reservation system for mixed DTG/DTF workflow
     - Large platen for oversized prints (A2+)
-    - Exceptional detail on dark garments
+    - Exceptional detail on dark garments (1200 × 1200 dpi)
     - **Pantone-Calibrated ICC Profile:** Custom profile developed to match Brother CMYK output with Magna Colours Pantone solid coated standards, ensuring visual consistency across mixed-media collections.
 
   ECONORED 54 Infrared Dryer:              €15,000
@@ -484,13 +489,13 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
 
   ═══════════════════════════════════════════════
-  TOTAL INVESTMENT ASK:                   €300,000
+  TOTAL INVESTMENT ASK:                   €305,000
 
   TOTAL CAPITALIZATION:
     Existing assets (founder equity):     €113,000
-    Investment:                           €300,000
+    Investment:                           €305,000
     ────────────────────────────────────
-    Total:                                €413,000
+    Total:                                €418,000
 
   Post-Money Valuation Target:     €1.65M-1.85M
   Investment Equity: 16-18%
@@ -502,7 +507,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   **Crowdfunding / Pre-Sales Allocation Protocol:**
   Any net capital raised via Rewards Crowdfunding (Product Pre-sales) is strictly allocated to **Capacity Acceleration**, not Operations. This ensures preserving the investor runway while unlocking growth bottlenecks.
 
-  - **Tier 1 Goal (€15k raised):** Immediate purchase of **2nd Brother GTX Pro** (Solving the PoD Capacity Bottleneck ahead of schedule).
+  - **Tier 1 Goal (€15k raised):** Immediate purchase of **2nd Brother GTXpro B** (Solving the PoD Capacity Bottleneck ahead of schedule).
   - **Tier 2 Goal (€25k raised):** Pre-purchase of 6-month blank inventory buffer (Locking in bulk pricing).
 
   **Why Portugal:**

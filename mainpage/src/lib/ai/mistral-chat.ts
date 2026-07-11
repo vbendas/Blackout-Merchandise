@@ -1,6 +1,7 @@
 import { mistralClient } from './mistral-client';
 import type { AgentId } from '@/types/chat';
 import { AGENT_CONFIGS } from '@/types/chat';
+import { getKnowledgeForPrompt } from '@db-root/knowledge';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -26,12 +27,24 @@ export interface ChatResponse {
   };
 }
 
-function getSystemPrompt(
+async function getSystemPrompt(
   agent: AgentId,
   searchContext?: string,
   hasMoreResults?: boolean
-): string {
+): Promise<string> {
   let prompt = `${AGENT_CONFIGS[agent].persona}\n\nStay in character. CRITICAL: ALWAYS respond in the SAME LANGUAGE the user is speaking.`;
+
+  // Inject verified knowledge base facts (5-min TTL cached)
+  try {
+    const knowledge = await getKnowledgeForPrompt();
+    if (knowledge) {
+      prompt += `\n\n${knowledge}`;
+      prompt += `\n\nANTI-HALLUCINATION RULE: For any question about MerchFrom policies, pricing, shipping, or operations, use ONLY the verified facts above. If the answer is not in the verified facts, say you don't know and offer to connect with a human.`;
+    }
+  } catch (error) {
+    // Graceful fallback — knowledge DB might be empty or unreachable
+    console.warn('[Mistral Chat] Knowledge base unavailable:', error);
+  }
 
   if (searchContext) {
     prompt += `\n\n⚠️ CRITICAL INSTRUCTION — CATALOG DATA BELOW ⚠️\n\nThe user is asking about products. You MUST answer using ONLY the products listed in the CATALOG SEARCH RESULTS section below.\n\nRULES:\n1. DO NOT invent product names, prices, materials, or specifications.\n2. DO NOT make up brands or features not listed below.\n3. Reference specific products by name and price when answering.\n4. If a product the user wants is NOT in the catalog, say you don't have it.\n5. Keep your response concise — mention 3-4 relevant products max.\n\nCATALOG SEARCH RESULTS:\n${searchContext}\n\nIf there are more results available, mention that you can show more products if the user asks.`;
@@ -46,7 +59,7 @@ function getSystemPrompt(
 
 export class MistralChatProvider {
   async chat(request: ChatRequest): Promise<ChatResponse> {
-    const systemMessage = getSystemPrompt(
+    const systemMessage = await getSystemPrompt(
       request.agent,
       request.searchContext,
       request.hasMoreResults
@@ -78,7 +91,7 @@ export class MistralChatProvider {
    * Falls back to the full fallback response on error.
    */
   async *streamChat(request: ChatRequest): AsyncGenerator<string, void, undefined> {
-    const systemMessage = getSystemPrompt(
+    const systemMessage = await getSystemPrompt(
       request.agent,
       request.searchContext,
       request.hasMoreResults

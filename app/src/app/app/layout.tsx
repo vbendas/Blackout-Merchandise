@@ -4,7 +4,7 @@ import { AccessibilityWidget } from '@/components/accessibility-widget';
 import { CatChat } from '@/components/chat/CatChat';
 import { CatChatProvider } from '@/components/chat/CatChatProvider';
 import { GradientMesh } from '@/components/GradientMesh';
-import { IconStripNav } from '@/components/layout';
+import { TopGearNav } from '@/components/layout';
 import { AvatarExpressionProvider } from '@/lib/AvatarExpressionContext';
 import { ChatProvider } from '@/lib/ChatContext';
 import { DesignWorkflowProvider } from '@/lib/DesignWorkflowContext';
@@ -21,6 +21,8 @@ function AvatarWrapper({ children }: { children: React.ReactNode }) {
 }
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
+  const { chatState } = useNavigation();
+
   return (
     <>
       <link
@@ -32,21 +34,21 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
         {/* Gradient Mesh Background - enables glass effect visibility */}
         <GradientMesh />
 
-      {/* Icon Strip Navigation */}
-      <IconStripNav />
+        {/* Gear Navigation */}
+        <TopGearNav />
 
-      {/* Main Content Area */}
-      <div className="relative flex flex-1 flex-col min-w-0 md:ml-16 z-10">
-        <main className="h-full flex-1 min-h-0 overflow-auto pb-4">{children}</main>
+        {/* Main Content Area */}
+        <div className="relative flex flex-1 flex-col min-w-0 z-10">
+          <main className="h-full flex-1 min-h-0 overflow-auto pb-4">{children}</main>
 
-        {/* Accessibility Widget */}
-        <AccessibilityWidget />
+          {/* Accessibility Widget */}
+          <AccessibilityWidget />
+        </div>
+
+        {/* Cat-Suite Unified Chat — hidden on workspace home */}
+        {chatState !== 'empty' && <CatChat />}
       </div>
-
-      {/* Cat-Suite Unified Chat */}
-      <CatChat />
-    </div>
-  </>
+    </>
   );
 }
 

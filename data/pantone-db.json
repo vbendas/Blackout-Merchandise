@@ -1,0 +1,12 @@
+{
+  "colors": [
+    {"name": "Process Cyan", "pantone": "Process Cyan", "hex": "#00A0B0", "rgb": [0, 160, 176], "category": "blue", "magna_base": "HB Opaque", "magna_pigment": "Cyan"},
+    {"name": "Process Magenta", "pantone": "Process Magenta", "hex": "#D00070", "rgb": [208, 0, 112], "category": "purple", "magna_base": "HB Opaque", "magna_pigment": "Magenta"},
+    {"name": "Process Yellow", "pantone": "Process Yellow", "hex": "#FFF000", "rgb": [255, 240, 0], "category": "yellow", "magna_base": "HB Opaque", "magna_pigment": "Yellow"},
+    {"name": "Process Black", "pantone": "Process Black", "hex": "#2D2D2D", "rgb": [45, 45, 45], "category": "black", "magna_base": "HB Opaque", "magna_pigment": "Black"},
+    {"name": "Bright Red", "pantone": "185 C", "hex": "#E4002B", "rgb": [228, 0, 43], "category": "red", "magna_base": "HB Opaque", "magna_pigment": "Red"},
+    {"name": "Orange", "pantone": "Orange 021 C", "hex": "#FF6B35", "rgb": [255, 107, 53], "category": "orange", "magna_base": "HB Opaque", "magna_pigment": "Orange"},
+    {"name": "Green", "pantone": "348 C", "hex": "#00843D", "rgb": [0, 132, 61], "category": "green", "magna_base": "HB Opaque", "magna_pigment": "Green"},
+    {"name": "White", "pantone": "White", "hex": "#FFFFFF", "rgb": [255, 255, 255], "category": "white", "magna_base": "HB Opaque", "magna_pigment": "White"}
+  ]
+}

@@ -9,9 +9,11 @@ export interface SeparationLayer {
   layer: number | string;
   filename: string;
   path: string;
-  original_color: string | null;
-  rgb: [number, number, number] | null;
-  coverage: number | null;
+  original_color?: string | null;
+  rgb?: [number, number, number] | null;
+  coverage?: number | null;
+  type?: string;
+  channel?: string;
 }
 
 export interface PantoneMapping {
@@ -47,8 +49,21 @@ export interface SeparationMetadata {
   garment_color: string;
 }
 
+export interface WhiteBaseLayer {
+  layer: number;
+  filename: string;
+  path: string;
+  choke_applied: boolean;
+  choke_px: number;
+  original_area: number;
+  choked_area: number;
+  area_reduction_percent?: number;
+}
+
 export interface SeparationResponse {
   success: boolean;
+  color_mode: string;
+  print_method: string;
   original_colors: ColorCluster[];
   filtered_colors: Array<{
     rgb: [number, number, number];
@@ -58,6 +73,7 @@ export interface SeparationResponse {
   kept_colors: number;
   garment_reveal_coverage: number;
   pantone_mappings: PantoneMapping[];
+  white_base_layer: WhiteBaseLayer | null;
   layers: SeparationLayer[];
   halftone_layers: Record<string, unknown> | null;
   metadata: SeparationMetadata;

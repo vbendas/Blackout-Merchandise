@@ -65,7 +65,7 @@ The complete v3.2 PRD (7,000+ lines, all update summaries from v1.0 → v3.2) is
 | **Mission** | Help artists design, source, and sell premium merchandise |
 | **Investment** | €300,000 for 16-18% equity |
 | **MVP Launch** | March 30, 2026 |
-| **Tech Stack** | Next.js 16, Neon PostgreSQL, Clerk, Stripe, Mistral AI, fal.ai |
+| **Tech Stack** | Next.js 16, Neon PostgreSQL, Clerk, NexaPay (+ Stripe backup), Mistral AI, fal.ai |
 | **AI Stack** | Mistral Large 3, Mistral Small 4, Voxtral STT, ElevenLabs TTS, FLUX 2 (fal.ai) |
 
 ## Market Context

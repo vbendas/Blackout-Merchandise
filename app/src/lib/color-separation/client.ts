@@ -15,7 +15,12 @@ export class ColorSeparationClient {
       garment_color?: string;
       max_colors?: number;
       threshold?: number;
-      include_white?: boolean;
+      color_mode?: string;
+      print_method?: string;
+      choke_px?: number;
+      trap_px?: number;
+      skip_white_base?: boolean;
+      include_halftone?: boolean;
     } = {}
   ): Promise<SeparationResponse> {
     const formData = new FormData();
@@ -30,8 +35,23 @@ export class ColorSeparationClient {
     if (options.threshold) {
       formData.append('threshold', options.threshold.toString());
     }
-    if (options.include_white !== undefined) {
-      formData.append('include_white', options.include_white.toString());
+    if (options.color_mode) {
+      formData.append('color_mode', options.color_mode);
+    }
+    if (options.print_method) {
+      formData.append('print_method', options.print_method);
+    }
+    if (options.choke_px !== undefined) {
+      formData.append('choke_px', options.choke_px.toString());
+    }
+    if (options.trap_px !== undefined) {
+      formData.append('trap_px', options.trap_px.toString());
+    }
+    if (options.skip_white_base !== undefined) {
+      formData.append('skip_white_base', options.skip_white_base.toString());
+    }
+    if (options.include_halftone !== undefined) {
+      formData.append('include_halftone', options.include_halftone.toString());
     }
 
     const response = await fetch(`${this.baseUrl}/api/v1/separate`, {

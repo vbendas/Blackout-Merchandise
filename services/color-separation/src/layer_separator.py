@@ -343,6 +343,118 @@ class LayerSeparator:
                 preview.paste(layer_rgb, (col * thumb_w, row * thumb_h))
         
         preview.save(preview_path)
+    
+    def trap_layers(
+        self,
+        masks: List[np.ndarray],
+        trap_radius_px: int = 1,
+        skip_indices: Optional[List[int]] = None
+    ) -> List[np.ndarray]:
+        """
+        Apply color trapping between adjacent color masks.
+        
+        Traps (dilates) adjacent masks by trap_radius_px where they touch
+        to prevent white gaps due to screen misregistration.
+        
+        Args:
+            masks: List of binary masks (255 = color present)
+            trap_radius_px: Number of pixels to dilate (default 1)
+            skip_indices: List of layer indices to skip (e.g., white base)
+            
+        Returns:
+            List of trapped masks
+        """
+        if trap_radius_px <= 0:
+            return masks
+        
+        skip_indices = set(skip_indices or [])
+        trapped_masks = [m.copy() for m in masks]
+        
+        try:
+            from scipy import ndimage
+            
+            for i in range(len(masks)):
+                if i in skip_indices:
+                    continue
+                
+                # Dilate this mask
+                mask_bool = (masks[i] > 127).astype(bool)
+                dilated = ndimage.binary_dilation(
+                    mask_bool,
+                    iterations=trap_radius_px
+                )
+                
+                # Subtract areas that are clearly other colors (not just touching)
+                for j in range(len(masks)):
+                    if i == j or j in skip_indices:
+                        continue
+                    
+                    other_mask = (masks[j] > 127).astype(bool)
+                    # Don't trap into areas where another color is strong
+                    # Only trap where colors actually touch (boundary)
+                    dilated = dilated & (mask_bool | other_mask)
+                
+                trapped_masks[i] = (dilated * 255).astype(np.uint8)
+            
+            return trapped_masks
+            
+        except ImportError:
+            print("Warning: scipy not available, skipping trapping")
+            return masks
+    
+    def apply_trapping_to_layers(
+        self,
+        layers: List[Dict],
+        trap_radius_px: int = 1,
+        skip_white_base: bool = True
+    ) -> List[Dict]:
+        """
+        Apply trapping to separation layers and re-save them.
+        
+        Args:
+            layers: List of layer dictionaries from create_all_layers
+            trap_radius_px: Trapping radius
+            skip_white_base: Skip layer 0 if it's white base
+            
+        Returns:
+            Updated layer list
+        """
+        from PIL import Image as PILImage
+        
+        # Build a parallel list of masks matching layer indices
+        masks = []
+        skip_indices = set()
+        
+        for i, layer in enumerate(layers):
+            if layer.get("type") == "garment_reveal":
+                skip_indices.add(i)
+                masks.append(np.zeros((100, 100), dtype=np.uint8))  # dummy
+                continue
+            if skip_white_base and layer.get("type") == "white_base":
+                skip_indices.add(i)
+                masks.append(np.zeros((100, 100), dtype=np.uint8))  # dummy
+                continue
+            
+            layer_path = Path(layer["path"])
+            if layer_path.exists():
+                mask = np.array(PILImage.open(layer_path))
+                masks.append(mask)
+            else:
+                skip_indices.add(i)
+                masks.append(np.zeros((100, 100), dtype=np.uint8))  # dummy
+        
+        # Apply trapping
+        trapped = self.trap_layers(masks, trap_radius_px, list(skip_indices))
+        
+        # Save trapped masks back to their original paths
+        for i, layer in enumerate(layers):
+            if i in skip_indices:
+                continue
+            
+            layer_path = Path(layer["path"])
+            PILImage.fromarray(trapped[i], mode='L').save(layer_path)
+        
+        return layers
 
 
 def main():

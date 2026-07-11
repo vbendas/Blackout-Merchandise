@@ -11,17 +11,21 @@ export type ChatExpression = 'neutral' | 'thinking' | 'speaking' | 'happy' | 'co
 interface AgentAvatarProps {
   agentName: AgentName;
   expression?: ChatExpression;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'hero';
   className?: string;
+  wrapperClassName?: string;
   enableIdleAnimation?: boolean;
   enableSpeakingAnimation?: boolean;
   imageClassName?: string;
+  showGlowRing?: boolean;
 }
 
 const IMG_WIDTH_MAP: Record<string, number> = {
   sm: 100,
   md: 400,
   lg: 800,
+  xl: 800,
+  hero: 800,
 };
 
 const EXPRESSION_MAP: Record<ChatExpression, Expression> = {
@@ -37,9 +41,11 @@ export function AgentAvatar({
   expression = 'neutral',
   size = 'md',
   className,
+  wrapperClassName,
   enableIdleAnimation = true,
   enableSpeakingAnimation = true,
   imageClassName,
+  showGlowRing = false,
 }: AgentAvatarProps) {
   const [currentExpression, setCurrentExpression] = useState<Expression>(EXPRESSION_MAP[expression]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -106,25 +112,40 @@ export function AgentAvatar({
 
   const isIdle = expression === 'neutral' && enableIdleAnimation;
 
+  // Size classes for responsive hero/xl sizing
+  const sizeClasses = {
+    sm: 'h-8 w-8',
+    md: 'h-10 w-10',
+    lg: 'h-14 w-14',
+    xl: 'h-[140px] w-[140px] md:h-[180px] md:w-[180px] lg:h-[220px] lg:w-[220px]',
+    hero: 'h-[140px] w-[140px] md:h-[180px] md:w-[180px] lg:h-[220px] lg:w-[220px]',
+  };
+
   return (
-    <motion.div
-      className={cn('relative h-full w-full overflow-hidden rounded-full bg-transparent', className)}
-      animate={isIdle ? 'idle' : 'active'}
-      variants={idleVariants}
-    >
-      <img
-        key={`${agentName}-${currentExpression}`}
-        ref={imgRef}
-        src={imageUrl}
-        alt={`${agentName} - ${currentExpression}`}
-        className={cn(
-          'h-full w-full object-cover object-top transition-opacity duration-300',
-          isLoaded ? 'opacity-100' : 'opacity-0',
-          imageClassName
-        )}
-        onLoad={() => setIsLoaded(true)}
-        loading="eager"
-      />
-    </motion.div>
+    <div className={cn('relative', sizeClasses[size] || sizeClasses.md, wrapperClassName)}>
+      {/* Glow ring */}
+      {showGlowRing && (
+        <div className="absolute -inset-3 rounded-full bg-amber-400/20 blur-xl animate-pulse" />
+      )}
+      <motion.div
+        className={cn('relative h-full w-full overflow-hidden rounded-full bg-transparent', className)}
+        animate={isIdle ? 'idle' : 'active'}
+        variants={idleVariants}
+      >
+        <img
+          key={`${agentName}-${currentExpression}`}
+          ref={imgRef}
+          src={imageUrl}
+          alt={`${agentName} - ${currentExpression}`}
+          className={cn(
+            'h-full w-full object-cover object-top transition-opacity duration-300',
+            isLoaded ? 'opacity-100' : 'opacity-0',
+            imageClassName
+          )}
+          onLoad={() => setIsLoaded(true)}
+          loading="eager"
+        />
+      </motion.div>
+    </div>
   );
 }

@@ -19,6 +19,10 @@ export interface QuickAction {
  */
 const AGENT_QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
   leopoldo: [
+    { id: 'browse-catalog', label: 'Browse catalog', icon: 'lucide:layout-grid', action: 'show me the catalog' },
+    { id: 'find-tshirts', label: 'Find t-shirts', icon: 'lucide:shirt', action: 'find t-shirts' },
+    { id: 'show-hoodies', label: 'Show hoodies', icon: 'lucide:cloud', action: 'show me hoodies' },
+    { id: 'organic-cotton', label: 'Organic cotton', icon: 'lucide:leaf', action: 'find organic cotton products' },
     { id: 'what-is-merchfrom', label: 'What is Merch From?', icon: 'lucide:sparkles', action: 'Tell me about Merch From' },
     { id: 'join-waitlist', label: 'Join the waitlist', icon: 'lucide:list-checks', action: 'How do I join the waitlist?' },
     { id: 'zero-investment', label: 'Zero investment', icon: 'lucide:hand-coins', action: 'How does zero investment upfront work?' },
@@ -29,6 +33,10 @@ const AGENT_QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
     { id: 'get-started', label: 'Get started', icon: 'lucide:rocket', action: 'How do I get started?' },
   ],
   francisca: [
+    { id: 'browse-catalog', label: 'Browse catalog', icon: 'lucide:layout-grid', action: 'show me the catalog' },
+    { id: 'find-tshirts', label: 'Find t-shirts', icon: 'lucide:shirt', action: 'find t-shirts' },
+    { id: 'show-hoodies', label: 'Show hoodies', icon: 'lucide:cloud', action: 'show me hoodies' },
+    { id: 'organic-cotton', label: 'Organic cotton', icon: 'lucide:leaf', action: 'find organic cotton products' },
     { id: 'what-products', label: 'What products?', icon: 'lucide:package', action: 'What products do you offer?' },
     { id: 'print-quality', label: 'Print quality', icon: 'lucide:printer', action: "How's your print quality?" },
     { id: 'ethical-blanks', label: 'Ethical blanks', icon: 'lucide:heart', action: 'Tell me about ethical blanks' },
@@ -39,6 +47,7 @@ const AGENT_QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
     { id: 'color-options', label: 'Color options', icon: 'lucide:droplet', action: 'What colors are available?' },
   ],
   antonia: [
+    { id: 'browse-catalog', label: 'Browse catalog', icon: 'lucide:layout-grid', action: 'show me the catalog' },
     { id: 'shipping', label: 'Shipping', icon: 'lucide:truck', action: 'How does shipping work?' },
     { id: 'production-time', label: 'Production time', icon: 'lucide:clock', action: 'How long does production take?' },
     { id: 'return-policy', label: 'Return policy', icon: 'lucide:refresh-cw', action: "What's your return policy?" },

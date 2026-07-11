@@ -12,6 +12,13 @@ export interface QuickAction {
   action: string; // Message text to send
 }
 
+const SEARCH_QUICK_ACTIONS: QuickAction[] = [
+  { id: 'search-catalog', label: 'Browse catalog', icon: 'lucide:layout-grid', action: 'show me the catalog' },
+  { id: 'search-tshirts', label: 'Find t-shirts', icon: 'lucide:shirt', action: 'find t-shirts' },
+  { id: 'search-hoodies', label: 'Show hoodies', icon: 'lucide:cloud', action: 'show me hoodies' },
+  { id: 'search-organic', label: 'Organic cotton', icon: 'lucide:leaf', action: 'find organic cotton products' },
+];
+
 const AGENT_QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
   leopoldo: [
     { id: 'view-sales', label: 'View sales', icon: 'lucide:trending-up', action: 'Show me my sales' },
@@ -23,9 +30,9 @@ const AGENT_QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
     { id: 'setup-store', label: 'Set up store', icon: 'lucide:store', action: 'Help me set up my store' },
     { id: 'payouts', label: 'Payouts', icon: 'lucide:wallet', action: 'When is my next payout?' },
     { id: 'pricing-info', label: 'Pricing info', icon: 'lucide:info', action: 'Show me pricing information' },
+    ...SEARCH_QUICK_ACTIONS,
   ],
   francisca: [
-    { id: 'browse-catalog', label: 'Browse catalog', icon: 'lucide:layout-grid', action: 'Show me the catalog' },
     { id: 'create-mockup', label: 'Create mockup', icon: 'lucide:shirt', action: 'I want to create a mockup' },
     { id: 'start-design', label: 'Start design', icon: 'lucide:palette', action: 'Help me start a design' },
     { id: 'templates', label: 'Templates', icon: 'lucide:copy', action: 'Show me design templates' },
@@ -34,6 +41,7 @@ const AGENT_QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
     { id: 'color-options', label: 'Color options', icon: 'lucide:palette', action: 'Show me available colors' },
     { id: 'product-specs', label: 'Product specs', icon: 'lucide:ruler', action: 'Tell me about product quality' },
     { id: 'design-guidelines', label: 'Design guidelines', icon: 'lucide:book-open', action: 'Show me design guidelines' },
+    ...SEARCH_QUICK_ACTIONS,
   ],
   antonia: [
     { id: 'track-order', label: 'Track order', icon: 'lucide:truck', action: 'Track my order' },

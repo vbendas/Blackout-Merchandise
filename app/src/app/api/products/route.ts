@@ -89,6 +89,10 @@ export async function POST(request: NextRequest) {
 
     const [product] = await createProduct({ ...validation.data, storeId: store.id });
 
+    // Sync to Typesense (non-blocking)
+    import('@/lib/typesense/sync').then(({ syncArtistProduct }) => {
+      syncArtistProduct(product, { id: store.id, slug: store.slug, name: store.name });
+    }).catch(() => {});
     return NextResponse.json({ product }, { status: 201 });
   } catch (error) {
     if (error instanceof NextResponse) return error;

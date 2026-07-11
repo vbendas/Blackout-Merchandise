@@ -5,7 +5,7 @@
   **Trigger:** 1,000+ individual orders received in 24h (Exceeds daily internal capacity of ~300-500 units).
 
   **Metric Reality Check:**
-  - **Constraint:** Brother GTX Pro (90s/print avg) = ~450 units/10h shift.
+  - **Constraint:** Brother GTXpro B (~75s/print avg, high-speed mode) = ~540 units/10h shift.
   - **Backup:** TexPro Series 2 (~4 min/print) = ~150 units/10h shift.
   - **Total Internal Capacity:** ~300-500 units/day (realistic operational capacity).
   - **Bottleneck:** Finishing/packing (not printing speed).
@@ -15,7 +15,7 @@
     - Instant implementation of **"Dynamic Shipping Windows"**: New orders automatically update to "Ships in 5-7 days" once the 72h capacity bucket (1,800 units) is full.
     - **Activate Extended Shifts:** Run 14-16h shifts to push daily output to ~850 units.
   - **Day 2 (The Equipment Scaling):**
-    - **Purchase Order Trigger:** If volume sustains >800/day for 48h, order a **Second Brother GTX Pro**.
+    - **Purchase Order Trigger:** If volume sustains >800/day for 48h, order a **Second Brother GTXpro B**.
     - **Benefit:** 2-day delivery time to Portugal. Cashflow from the spike covers the down payment/purchase immediately.
   - **Day 3 (The Overflow):**
     - While waiting for the new machine, route overflow to **Barcelos Partner Network** (only for "Standard" designs).
@@ -53,7 +53,7 @@
     - *Impact:* Throughput drops from ~500/hr to ~100/hr.
     - *Action:* Prioritize "Rush" and VIP orders.
   - **Layer 2: Digital Pivot (Internal):**
-    - Shift applicable designs (full color/gradients) to **Brother GTX Pro (DTG)** and **DTF**.
+    - Shift applicable designs (full color/gradients) to **Brother GTXpro B (DTG/DTF)**.
     - *Note:* Notify customers of "Free Digital Upgrade" (often perceived as premium for detail, though slower for bulk).
   - **Layer 3: Local Offload (External):**
     - Activate the "Neighbor Network." In Barcelos, we are surrounded by industrial printers.

@@ -122,6 +122,20 @@
   | **Keeps optionality** | Stellar tooling is open-source — no single partner dependency |
   | **Adds value later** | MRCH becomes meaningful when the company has real profits to distribute |
 
+  ### NexaPay ↔ Stellar Wallet Alignment
+
+  NexaPay settles in USDC on Polygon. Artists already have Polygon wallets for receiving payouts. When MRCH tokens launch on Stellar (Year 2), the same wallet concept extends — artists are already comfortable receiving digital assets to their wallets.
+
+  | Phase | Payment Method | Chain | Artist Experience |
+  |-------|---------------|-------|-------------------|
+  | **Year 1 (MVP/Beta)** | NexaPay payouts in USDC/EURC | Polygon | "€17.51 received" — Leopoldo guides wallet setup |
+  | **Year 2** | MRCH token distributions in EURC | Stellar | "€16.00 profit share received" — same wallet UX |
+  | **Year 3+** | Combined: payouts + MRCH governance | Polygon + Stellar | Unified wallet experience |
+
+  **Key Principle Maintained**: Artists see euros, not crypto. Whether it's NexaPay per-sale payouts (Year 1) or MRCH profit distributions (Year 2), the artist-facing copy always shows `€X received` — never crypto amounts. Leopoldo handles all wallet setup through Cat-Suite conversation.
+
+  **Strategic Advantage**: NexaPay's Polygon-based USDC settlement creates the wallet infrastructure foundation for Year 2 MRCH distributions. Artists who set up their Polygon wallet for NexaPay payouts are already one step away from Stellar wallet setup (LOBSTR) — Leopoldo guides both flows identically.
+
   ### 20.6 Implementation Roadmap
 
   | Timeline | Milestone |
@@ -190,6 +204,8 @@
   #### EURC: Artists See Euros, Not Crypto
 
   All profit distributions are paid in **EURC** (Circle's Euro stablecoin, MiCA-registered). Artists see `€16.00 received` in LOBSTR — not `12.3 XLM`. The blockchain is invisible. The euros are real. This principle must be maintained in all artist-facing copy, onboarding flows, and Cat-Suite scripts.
+
+  **Note**: EURC payouts begin at launch via NexaPay + Circle conversion on Polygon (Year 1). Artists can choose USDC (default) or EURC for their per-sale payouts. The same "euros, not crypto" principle applies from day one — not just Year 2 MRCH distributions.
 
   #### Cat-Suite MRCH Onboarding (Year 2-3)
 

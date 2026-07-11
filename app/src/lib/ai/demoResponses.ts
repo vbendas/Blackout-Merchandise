@@ -129,6 +129,46 @@ const franciscaDemoFlow: DemoConversationFlow = {
         "We currently offer 6 signature styles, each with its own AI model:\n\n🎨 **American Traditional** — Bold lines, limited palette, classic flash\n🌸 **Japanese** — Irezumi-inspired, flowing compositions\n🖤 **Blackwork** — High-contrast, geometric and dotwork\n📻 **Vintage 90's** — Retro graphics, distressed textures\n🖼️ **Realism** — Photorealistic detail, gradients\n🌑 **Dark Art** — Gothic, surreal, atmospheric\n\nWhich one speaks to you?",
       delay: 1000,
     },
+    catalog: {
+      content:
+        "Let me show you our catalog! We have premium blanks from Stanley/Stella and Gildan:\n\n• **Stanley/Stella Hypster Tee** — 100% Organic Cotton, 180 GSM — €12.00 base\n• **Stanley/Stella Iconic Hoodie** — 330 GSM heavyweight — €28.00 base\n• **Stanley/Stella Jogger Pants** — 310 GSM, tapered fit — €22.00 base\n• **Gildan Heavy Cotton Tee** — 203 GSM, classic fit — €8.00 base\n\nAll organic, vegan-friendly, and ethically produced. Which product interests you?",
+      delay: 1000,
+    },
+    'show me': {
+      content:
+        "Here's what I found in our catalog:\n\n• **Stanley/Stella Hypster Tee** — 100% Organic Cotton, relaxed fit — €12.00\n• **Stanley/Stella Iconic Hoodie** — Heavyweight 330 GSM — €28.00\n• **Stanley/Stella Jogger Pants** — Tapered fit, elastic cuffs — €22.00\n• **Gildan Heavy Cotton Tee** — Great value — €8.00\n\nWant me to show you a design on any of these? I can generate a mockup instantly!",
+      delay: 1000,
+    },
+    't-shirt': {
+      content:
+        "Great choice! Our t-shirt selection:\n\n👕 **Stanley/Stella Hypster** — 100% Organic Cotton, 180 GSM, relaxed fit — €12.00 base\n👕 **Stanley/Stella Creator Tank** — Organic Cotton, 165 GSM — €9.00 base\n👕 **Gildan Heavy Cotton** — 203 GSM, pre-shrunk — €8.00 base\n\nAll are screen-print ready with excellent print surfaces. Want me to apply a design to one?",
+      delay: 1000,
+    },
+    hoodie: {
+      content:
+        "Our hoodies are premium quality:\n\n🧥 **Stanley/Stella Iconic Hoodie** — 80% Organic Cotton / 20% Recycled Polyester, 330 GSM. Kangaroo pocket, double-lined hood. — €28.00 base\n\nThis is our most popular item — the heavyweight feel and organic cotton make it a premium canvas for bold designs. Want to see a mockup?",
+      delay: 1000,
+    },
+    products: {
+      content:
+        "Here's our current product lineup:\n\n👕 **T-Shirts**: Organic cotton and classic cotton options (€8-12 base)\n🧥 **Hoodies**: Heavyweight organic cotton blend (€28 base)\n👖 **Pants**: Jogger style, tapered fit (€22 base)\n\nAll blanks are vegan-certified, ethically sourced, and optimized for screen printing. What would you like to explore?",
+      delay: 1000,
+    },
+    search: {
+      content:
+        "I can search our entire catalog for you! We have:\n\n• **T-Shirts** — from €8.00 (Gildan) to €12.00 (Stanley/Stella organic)\n• **Hoodies** — €28.00 (heavyweight organic blend)\n• **Joggers** — €22.00 (organic cotton blend)\n\nJust tell me what you're looking for — style, material, price range — and I'll find the perfect blank!",
+      delay: 800,
+    },
+    find: {
+      content:
+        "What are you looking for? I can search by:\n\n• **Product type** — t-shirt, hoodie, pants\n• **Material** — organic cotton, recycled, blend\n• **Brand** — Stanley/Stella, Gildan\n• **Price range** — budget to premium\n\nOr just describe what you need and I'll find it!",
+      delay: 600,
+    },
+    blank: {
+      content:
+        "Our blank garments are sourced from the best suppliers:\n\n• **Stanley/Stella** — 100% organic cotton, EU-based, GOTS certified\n• **Gildan** — Classic cotton, great value for bulk orders\n\nAll blanks are pre-washed, pre-shrunk, and ready for print. Want to browse the full catalog?",
+      delay: 800,
+    },
   },
   fallback:
     "Hmm, interesting! Let me think about that from a design perspective. Would you like to explore a specific art style, or should I show you our product catalog?",

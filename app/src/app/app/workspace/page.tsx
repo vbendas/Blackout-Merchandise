@@ -10,7 +10,6 @@ import { ProductDetailLightbox } from '@/components/catalog/ProductDetailLightbo
 import { ShowroomLightbox } from '@/components/catalog/ShowroomLightbox';
 import { EshopDashboard } from '@/components/eshop/EshopDashboard';
 import { NotificationsPanel } from '@/components/NotificationsPanel';
-import { QuickActionsGrid } from '@/components/QuickActionsGrid';
 import { SessionHistory } from '@/components/SessionHistory';
 import { StickyHeader } from '@/components/StickyHeader';
 import { SupportState } from '@/components/SupportState';
@@ -27,6 +26,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { type Product, products } from '@/data/products';
 import { useChat as useCatChat } from '@/components/chat/CatChatProvider';
+import { ChatTakeover } from '@/components/chat/ChatTakeover';
+import { HeroEmptyState } from '@/components/hero/HeroEmptyState';
 import { useChat } from '@/lib/ChatContext';
 import { useHistory } from '@/lib/HistoryContext';
 import { LightboxProvider, useLightbox } from '@/lib/LightboxContext';
@@ -46,57 +47,37 @@ interface SessionItem {
   preview: string;
 }
 
-// Empty State Component
-function EmptyState() {
+// Empty State Component — Hero with agent avatar + prompt input
+function EmptyState({ onSendMessage, onOpenTakeover, onSetLiftingSuggestion, liftingSuggestion }: {
+  onSendMessage: (message: string) => void;
+  onOpenTakeover: () => void;
+  onSetLiftingSuggestion: (suggestion: { text: string; id: string } | null) => void;
+  liftingSuggestion?: { text: string; id: string } | null;
+}) {
   return (
-    <div className="h-full flex flex-col items-center justify-center px-4 py-8 overflow-y-auto">
-      <div className="text-center mb-10">
-        <div className="w-16 h-16 rounded-full bg-zinc-800/60 flex items-center justify-center mx-auto mb-4">
-          <Icon icon="lucide:cat" className="w-8 h-8 text-zinc-400" />
-        </div>
-        <h2 className="text-xl font-semibold text-white mb-2">Welcome to Merch From</h2>
-        <p className="text-zinc-400 max-w-md mx-auto">
-          Your merchandise studio. Browse products, create designs with Leopoldo & Francisca, or manage your store.
-        </p>
-      </div>
-      <div className="mb-8">
-        <QuickActionsGrid />
-      </div>
-    </div>
+    <HeroEmptyState
+      onSendMessage={onSendMessage}
+      onOpenTakeover={onOpenTakeover}
+      onSetLiftingSuggestion={onSetLiftingSuggestion}
+      liftingSuggestion={liftingSuggestion}
+    />
   );
 }
 
-// Active State — opens CatChat overlay
-function ActiveState({ activeAgent }: { activeAgent: AgentName }) {
-  const { toggleChat } = useCatChat();
-  const { setChatState } = useNavigation();
-
+// Active State — now redirects to hero (empty state)
+function ActiveState({ onSendMessage, onOpenTakeover, onSetLiftingSuggestion, liftingSuggestion }: {
+  onSendMessage: (message: string) => void;
+  onOpenTakeover: () => void;
+  onSetLiftingSuggestion: (suggestion: { text: string; id: string } | null) => void;
+  liftingSuggestion?: { text: string; id: string } | null;
+}) {
   return (
-    <div className="flex flex-col h-full items-center justify-center px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center max-w-md"
-      >
-        <div className="w-20 h-20 rounded-full bg-zinc-800/60 flex items-center justify-center mx-auto mb-6">
-          <Icon icon="lucide:message-circle" className="w-10 h-10 text-zinc-400" />
-        </div>
-        <h2 className="text-xl font-semibold text-white mb-2">Chat with {activeAgent}</h2>
-        <p className="text-zinc-400 mb-6">
-          Ask questions, get help with designs, check your store analytics, or track orders.
-        </p>
-        <Button
-          onClick={() => {
-            toggleChat();
-            setChatState('empty');
-          }}
-          className="bg-white text-black hover:bg-zinc-200 px-6"
-        >
-          <Icon icon="lucide:message-square" className="w-4 h-4 mr-2" />
-          Open Chat
-        </Button>
-      </motion.div>
-    </div>
+    <HeroEmptyState
+      onSendMessage={onSendMessage}
+      onOpenTakeover={onOpenTakeover}
+      onSetLiftingSuggestion={onSetLiftingSuggestion}
+      liftingSuggestion={liftingSuggestion}
+    />
   );
 }
 
@@ -283,6 +264,10 @@ export default function WorkspacePage() {
 
   const [_isListPanelOpen, setIsListPanelOpen] = useState(false);
 
+  // Chat takeover state (hero → expanded chat)
+  const [isTakeoverOpen, setIsTakeoverOpen] = useState(false);
+  const [liftingSuggestion, setLiftingSuggestion] = useState<{ text: string; id: string } | null>(null);
+
   // Close all slide-out panels to prevent stacking
   const closeAllPanels = () => {
     setIsHistoryOpen(false);
@@ -367,7 +352,7 @@ export default function WorkspacePage() {
   }, []);
 
   // Session management
-  const [sessions] = useState<SessionItem[]>([
+  const [_sessions] = useState<SessionItem[]>([
     {
       id: 'session-1',
       title: 'Product Design Review',
@@ -419,6 +404,23 @@ export default function WorkspacePage() {
     [toggleChat, sendCatChatMessage]
   );
 
+  // Hero → Takeover handlers
+  const handleHeroSendMessage = useCallback(
+    (message: string) => {
+      setIsTakeoverOpen(true);
+      sendCatChatMessage(message);
+    },
+    [sendCatChatMessage]
+  );
+
+  const handleOpenTakeover = useCallback(() => {
+    setIsTakeoverOpen(true);
+  }, []);
+
+  const handleCloseTakeover = useCallback(() => {
+    setIsTakeoverOpen(false);
+  }, []);
+
   return (
     <div className="relative h-full bg-background">
       {/* Session History */}
@@ -468,10 +470,22 @@ export default function WorkspacePage() {
         {/* Hide all states during design flow, only show chat */}
         {designFlowStep === 'idle' ? (
           <>
-            {chatState === 'empty' && <EmptyState />}
+            {chatState === 'empty' && (
+              <EmptyState
+                onSendMessage={handleHeroSendMessage}
+                onOpenTakeover={handleOpenTakeover}
+                onSetLiftingSuggestion={setLiftingSuggestion}
+                liftingSuggestion={liftingSuggestion}
+              />
+            )}
 
             {chatState === 'active' && (
-              <ActiveState activeAgent={activeAgent} />
+              <ActiveState
+                onSendMessage={handleHeroSendMessage}
+                onOpenTakeover={handleOpenTakeover}
+                onSetLiftingSuggestion={setLiftingSuggestion}
+                liftingSuggestion={liftingSuggestion}
+              />
             )}
 
             {chatState === 'catalog' && (
@@ -533,6 +547,13 @@ export default function WorkspacePage() {
           </div>
         )}
       </div>
+
+      {/* Chat Takeover Overlay */}
+      <ChatTakeover
+        isOpen={isTakeoverOpen}
+        onClose={handleCloseTakeover}
+        liftingSuggestion={liftingSuggestion}
+      />
 
       {/* New Chat Dialog */}
       <AlertDialog
