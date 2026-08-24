@@ -80,7 +80,7 @@ export const STUDIO_PHASES: Record<StudioPhase, StudioPhaseConfig> = {
     openingMessage: 'On it. Give me a moment…',
     expectedInputType: 'any',
     nextPhase: () => 'design_iteration',
-    // NOTE: Actual generation happens via fal.ai flux-2-dev/lora (see falClient.ts)
+    // NOTE: Actual generation happens via fal.ai nano-banana-2/edit with a Style Capsule anchor (see falClient.ts)
     // This phase triggers the API call, then transitions to design_iteration for review
   },
 

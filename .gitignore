@@ -26,3 +26,7 @@ node_modules/
 
 # Assets (local only, large binary files)
 Assets/
+
+# LoRA training artifacts (fal-hosted copies recorded in metadata.json)
+*.safetensors
+data/LoRAs/*.zip

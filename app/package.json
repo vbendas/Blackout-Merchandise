@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",
+    "@fal-ai/client": "^1.10.1",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/space-grotesk": "^5.2.10",
     "@gsap/react": "^2.1.2",

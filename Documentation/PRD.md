@@ -1,7 +1,7 @@
 # Merch From: Product Requirements Document
 
-> **Version**: v3.2  
-> **Last Updated**: May 8, 2026  
+> **Version**: v3.4  
+> **Last Updated**: August 24, 2026  
 > **Status**: Active
 
 ---
@@ -24,7 +24,7 @@ This is the **master navigation document** for the Merch From Product Requiremen
 → [[02-Architecture/Tech-Stack]] — Full technology stack with decisions  
 → [[02-Architecture/AI-Stack]] — AI model routing, costs, scaling economics  
 → [[02-Architecture/Database-Schema]] — Drizzle ORM schema (source of truth)  
-→ [[05-Shared/Image-Generation-Architecture]] — fal.ai image pipeline, Kontext editing, LoRA strategy
+→ [[05-Shared/Image-Generation-Architecture]] — fal.ai image pipeline — reference-guided generation (Nano Banana 2), Style Capsules, prompt-template styles (v2.0, Aug 2026 pivot)
 
 ### Cat-Suite Team
 → [[03-Cat-Suite/System-Prompts]] — Full system prompts  
@@ -56,6 +56,10 @@ This is the **master navigation document** for the Merch From Product Requiremen
 
 The complete v3.2 PRD (7,000+ lines, all update summaries from v1.0 → v3.2) is preserved in [[99-Archive/PRD-v3.2-Full-Historical]].
 
+**v3.3 (Aug 24, 2026)**: [[05-Shared/Image-Generation-Architecture]] bumped to v1.1 after verification against current fal.ai/BFL docs. Architecture confirmed sound (FLUX.2 Dev + fal trainer + LoRA inference). Flagged: fal endpoint names drifted (`fal-ai/flux-2/lora`, `fal-ai/flux-2/lora/edit`); LoRA-aware editing now possible and should be prototyped for the edit loop; ADR-001 fallback upgradeable to a BFL klein warm standby with pre-uploaded LoRAs. No PRD-level architecture changes.
+
+**v3.4 (Aug 24, 2026)**: Same-day strategy pivot away from custom-trained style LoRAs. A quality failure in LoRA output plus head-to-head model tests showed off-the-shelf reference-guided generation matches or beats trained styles without the training overhead. New primary model: Nano Banana 2 (Google, via fal.ai), with Seedream 5.0 Pro (ByteDance, via fal.ai) as fallback. Styles are now "Style Capsules" — prompt templates plus curated reference images, surfaced through a Netflix-style pick-grid personalization flow, with attributes extracted to structured JSON by Claude Sonnet 5 via OpenRouter (Gemini 3.7 Flash fallback). Typography-in-designs is back in scope (Nano Banana 2 renders text reliably, reversing the earlier no-typography call). The upscaler step is removed — Nano Banana 2 renders native 4K finals directly. Estimated per-design cost ~$0.57. LoRA training is re-scoped to a post-MVP artist-signature-pack feature. Full detail in [[05-Shared/Image-Generation-Architecture]] v2.0.
+
 ---
 
 ## Quick Reference
@@ -66,7 +70,7 @@ The complete v3.2 PRD (7,000+ lines, all update summaries from v1.0 → v3.2) is
 | **Investment** | €300,000 for 16-18% equity |
 | **MVP Launch** | March 30, 2026 |
 | **Tech Stack** | Next.js 16, Neon PostgreSQL, Clerk, NexaPay (+ Stripe backup), Mistral AI, fal.ai |
-| **AI Stack** | Mistral Large 3, Mistral Small 4, Voxtral STT, ElevenLabs TTS, FLUX 2 (fal.ai) |
+| **AI Stack** | Mistral Large 3, Mistral Small 4, Voxtral STT, ElevenLabs TTS, Nano Banana 2 + Seedream 5 (fal.ai) |
 
 ## Market Context
 

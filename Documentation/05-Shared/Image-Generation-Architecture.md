@@ -1,9 +1,10 @@
 # Image Generation Architecture
 
-> **Version**: 1.0  
-> **Last Updated**: May 13, 2026  
-> **Status**: Active — replaces `flux-lora-replicate-training-plan.md`  
+> **Version**: 2.0
+> **Last Updated**: August 24, 2026
+> **Status**: Active — replaces the LoRA-first v1.x architecture
 > **Vendor**: fal.ai (single API key, commercial license included)
+> **Strategy**: Reference-guided generation on off-the-shelf frontier models (Nano Banana 2 primary, Seedream 5.0 Pro fallback). Custom-trained style LoRAs are re-scoped to post-MVP artist-signature packs — see [Section 7](#7-lora-re-scope-post-mvp-artist-packs).
 
 ---
 
@@ -12,42 +13,49 @@
 1. [Overview](#1-overview)
 2. [fal.ai Endpoint Map](#2-falai-endpoint-map)
 3. [Generation Pipeline](#3-generation-pipeline)
-4. [Kontext Iterative Editing](#4-kontext-iterative-editing)
+4. [Edit Loop](#4-edit-loop)
 5. [Post-Processing Pipeline (Sharp)](#5-post-processing-pipeline-sharp)
-6. [LoRA Strategy](#6-lora-strategy)
-7. [Cost Projections](#7-cost-projections)
-8. [Database Schema](#8-database-schema)
-9. [API Integration](#9-api-integration)
-10. [Architecture Decisions](#10-architecture-decisions)
+6. [The Style System — Style Capsules](#6-the-style-system--style-capsules)
+7. [LoRA Re-Scope (Post-MVP Artist Packs)](#7-lora-re-scope-post-mvp-artist-packs)
+8. [Cost Projections](#8-cost-projections)
+9. [Database Schema](#9-database-schema)
+10. [API Integration](#10-api-integration)
+11. [Architecture Decisions](#11-architecture-decisions)
+12. [Evidence Appendix — Aug 24, 2026 Pivot](#12-evidence-appendix--aug-24-2026-pivot)
 
 ---
 
 ## 1. Overview
 
-### Why fal.ai
+### Why This Pivot
+
+The v1.x architecture bet on custom-trained style LoRAs (FLUX.2 dev + `flux-2-trainer`) as the core style mechanism. The first trained LoRA (`american-traditional-v1`, 30 images, $6.40, `fal-ai/flux-2-trainer`) produced deformed, unusable output. The failure is dataset-limited, but head-to-head testing on Aug 24, 2026 surfaced a deeper structural issue: **canonical styles are already well-represented in frontier model weights, so a LoRA adds the least value exactly where the style is famous** (American Traditional tattoo flash being a well-documented public style). See [Section 12](#12-evidence-appendix--aug-24-2026-pivot) for full evidence.
+
+The winning pattern instead: **prompt + one curated style reference image, fed to a frontier model's image-to-image/edit endpoint**. This produced production-ready results where both raw text-to-image and LoRA generation failed.
+
+### Why fal.ai (Still)
 
 | Factor | Decision |
 |--------|----------|
-| **LoRA Support** | `fal-ai/flux-2-dev/lora` accepts up to 3 custom LoRAs simultaneously |
-| **LoRA Training** | `fal-ai/flux-2-trainer` trains custom LoRAs at ~$8/LoRA |
-| **Iterative Editing** | `fal-ai/flux-2-kontext` — multi-turn image editing (core workflow) |
+| **Single Vendor** | One API key covers Nano Banana 2, Seedream 5.0 Pro fallback, background removal — ADR-001 holds |
+| **Reference-Guided Generation** | Both NB2 and Seedream accept multiple reference images natively (14 and 10 respectively) |
 | **Commercial License** | Included in API pricing — no separate licensing needed |
-| **Single Vendor** | One API key covers training, generation, editing, upscaling, background removal |
+| **Native 4K Output** | NB2 renders at print resolution directly — no upscaler dependency in the critical path |
 
 ### What This Replaces
 
-- **BFL API (FLUX 2 Flex/Pro/Max)** — no custom LoRA support on Flex API
-- **Replicate LoRA training** — migrated from `flux-lora-replicate-training-plan.md`
-- **OpenRouter image routing** — fal.ai is now the primary and only image provider
+- **v1.x LoRA-first strategy** — `flux-2-trainer` + `flux-2/lora` + `flux-2/lora/edit` are no longer the primary generation path (see [Section 7](#7-lora-re-scope-post-mvp-artist-packs) for their new scope)
+- **`clarity-upscaler` as a required pipeline step** — NB2's native 4K output makes it optional, beyond-4K-edge-case only
+- **Ideogram as a candidate typography path** — dropped; NB2 handles in-image text well enough to reverse ADR-005
 
 ### Print Resolution Requirements
 
 | Print Size | Resolution at 300 DPI | Notes |
 |------------|----------------------|-------|
-| 4×4" (chest logo) | 1200×1200 | Within native generation range |
-| 12×16" (full back) | 3600×4800 (17.3MP) | Requires upscaling from 2048×2048 |
-| Max generation | 2048×2048 (4MP) | fal.ai maximum output |
-| Target after upscale | 4096×4096+ (16MP+) | Acceptable for most print sizes |
+| 4×4" (chest logo) | 1200×1200 | Within NB2 native 1K-2K range |
+| 12×16" (full back) | 3600×4800 (17.3MP) | Within NB2 native 4K output (4096×4096, 16.8MP) for most layouts |
+| NB2 native max | 4096×4096 (4K, ~16.8MP) | No upscale step needed for the vast majority of print sizes |
+| Beyond-4K edge case | `clarity-upscaler`, optional | Rare — oversized posters/banners only |
 
 ---
 
@@ -57,25 +65,41 @@
 
 | Endpoint | Purpose | Cost | Resolution | Notes |
 |----------|---------|------|------------|-------|
-| `fal-ai/flux-2-trainer` | Train custom LoRAs | $0.008 × steps (~$8 per LoRA) | N/A | 1000 steps standard |
-| `fal-ai/flux-2-dev/lora` | Generate with LoRAs | ~$0.05/image | Up to 2048×2048 | Accepts up to 3 LoRAs |
-| `fal-ai/flux-2-kontext` | Iterative image editing | $0.04/image | Up to 2048×2048 | Rounds 1-3 (fast) |
-| `fal-ai/flux-2-kontext/max` | High-fidelity editing | $0.08/image | Up to 2048×2048 | Rounds 4+ (precision) |
-| `fal-ai/flux-2-upscaler` | Upscale to print resolution | ~$0.03/image | 4096×4096+ | Final step before print |
-| `fal-ai/ideogram/remove-background` | Background removal | ~$0.02/image | Original size | For transparent PNG exports |
+| `fal-ai/nano-banana-2` | Text-to-image generation | $0.08/image at 1K; 0.75x at 0.5K ($0.06); 1.5x at 2K ($0.12); 2x at 4K ($0.16) | Up to native 4K | Reference-free text-to-image only (no `image_urls` field) — used for quick drafts; capsule-guided generation goes through `/edit`. Verified Aug 24, 2026 |
+| `fal-ai/nano-banana-2/edit` | Image-to-image, editing, reference-guided composition | Same pricing tier as above | Up to native 4K | Primary editing endpoint; accepts up to 14 reference images per request; invisible SynthID watermark, no visible watermark (confirmed in testing) |
+| `bytedance/seedream/v5/pro/text-to-image` | Fallback text-to-image | Comparable tier pricing | Up to 2048×2048 | Fallback generation — same key, same reference-guided pattern |
+| `bytedance/seedream/v5/pro/edit` | Fallback image-to-image / editing | First input image free; +$0.0045/additional input image; output $0.0675+ (≤1536×1536), $0.135+ (up to 2048×2048) | Up to 2048×2048 | Fallback editing; accepts up to 10 reference images; region-precise editing |
+| `fal-ai/ideogram/remove-background` | Background removal | $0.01/image (flat) | Original size | Production-validated Aug 24, 2026: 30/30 clean cutouts |
+| `fal-ai/clarity-upscaler` | Upscale beyond native 4K | $0.03/MP | 4096×4096+ | **Optional** — only invoked when a print size exceeds NB2's native 4K output |
+| `fal-ai/flux-2` | Cheap preview/thumbnail tier | $0.012/MP (dev tier) | Up to 2048×2048 | Optional — fast/cheap preview renders; may be dropped at launch, not in the critical generation path |
+
+### Legacy LoRA Endpoints (post-MVP artist packs only — see §7)
+
+| Endpoint | Purpose | Cost | Notes |
+|----------|---------|------|-------|
+| `fal-ai/flux-2-trainer` | Train custom LoRAs | $0.0064/step (~$6.40/1000-step LoRA) | Re-scoped to artist-signature packs, not generic-genre styles |
+| `fal-ai/flux-2/lora` | Generate with trained LoRAs | $0.021/MP | Not part of the MVP critical path |
+| `fal-ai/flux-2/lora/edit` | LoRA-aware editing | $0.021/MP | Not part of the MVP critical path |
 
 ### Smart Model Routing
 
 ```
 User Request
     │
-    ├─ "Generate new design" ────→ flux-2-dev/lora (+ LoRA style)
+    ├─ "Generate new design" ──────→ nano-banana-2/edit (capsule: prompt template + anchor reference as image_urls[0])
+    │       │                          (plain nano-banana-2 accepts no reference images — used only for reference-free drafts)
+    │       │
+    │       └─ fal outage / NB2 unavailable ──→ seedream/v5/pro/text-to-image (same capsule)
     │
-    ├─ "Edit this design" ───────→ kontext (round 1-3) → kontext/max (round 4+)
+    ├─ "Edit this design" ─────────→ nano-banana-2/edit (re-anchored to base image, see §4)
+    │       │
+    │       └─ fal outage / NB2 unavailable ──→ seedream/v5/pro/edit
     │
-    ├─ "Make print-ready" ───────→ remove-background → upscaler → Sharp post-processing
+    ├─ "Make print-ready" ─────────→ remove-background → Sharp post-processing (native 4K render skips upscaler)
+    │       │
+    │       └─ print size exceeds native 4K ──→ clarity-upscaler (optional edge case)
     │
-    └─ "Train new style" ────────→ flux-2-trainer → store LoRA in registry
+    └─ "Extract style attributes" ─→ OpenRouter (Claude Sonnet 5, fallback Gemini 3.7 Flash) → styles registry
 ```
 
 ---
@@ -86,23 +110,24 @@ User Request
 
 ```
 Phase 1: GENERATION
-  Artist describes concept
-  → Francisca selects LoRA style (or base model)
-  → fal-ai/flux-2-dev/lora generates initial design
+  Artist selects a style card (Francisca) → system resolves the Style Capsule:
+    prompt template (macro) + micro instructions (shared attributes across picks) + ONE anchor reference image
+  → fal-ai/nano-banana-2/edit generates the initial design (anchor reference in image_urls — the plain
+    text-to-image endpoint takes no references, so capsule-guided generation always uses /edit)
   → Sharp auto-sharpen + contrast boost
   → Store intermediate in design session
 
 Phase 2: ITERATION (repeats 2-10 times)
   Artist requests changes: "Make it darker", "Add roses", "Change font"
-  → fal-ai/flux-2-kontext (or kontext/max for round 4+)
+  → fal-ai/nano-banana-2/edit, re-anchored to the ORIGINAL base image with accumulated instructions (default — see §4)
   → Sharp auto-sharpen after each edit round
-  → Store all intermediates (branching strategy)
-  → If quality degrades: branch from earlier round with accumulated prompt
+  → Store all intermediates
 
 Phase 3: FINALIZATION
   Artist approves design
   → fal-ai/ideogram/remove-background (if needed)
-  → fal-ai/flux-2-upscaler (to 4096×4096+)
+  → Native 4K render is already print-ready — no upscale step in the common path
+  → (edge case) clarity-upscaler if print size exceeds 4K
   → Sharp final sharpen + color correction
   → Enter color separation / halftone pipeline (OpenCV)
 
@@ -116,71 +141,57 @@ Phase 4: MOCKUP
 ```typescript
 interface GenerationRequest {
   prompt: string;                    // Artist's description
-  loraIds?: string[];                // Up to 3 LoRA slugs
-  loraWeights?: number[];            // Weight per LoRA (0.0-2.0, default 1.0)
+  styleCapsuleId?: string;           // Resolves to prompt template + anchor reference image
+  referenceImageUrls?: string[];     // Content refs (logos, mascots, sketches) — attached literally, never distilled
   width: number;                     // Default: 1024
-  height: number;                    // Default: 1024
+  height: number;                    // Default: 1024 (up to native 4096 for final render)
+  resolutionTier: '0.5K' | '1K' | '2K' | '4K'; // Drives cost multiplier — see §8
   negativePrompt?: string;           // Things to avoid
   seed?: number;                     // For reproducibility
-  numInferenceSteps?: number;        // Default: 28
-  guidanceScale?: number;            // Default: 3.5
 }
 ```
 
 ---
 
-## 4. Kontext Iterative Editing
+## 4. Edit Loop
 
 ### The Core Workflow
 
-Kontext is FLUX 2's dedicated multi-turn image editing model. It takes an image + text instruction and produces an edited version. This is the PRIMARY interaction artists have with Francisca.
+`fal-ai/nano-banana-2/edit` is the primary interaction artists have with Francisca after initial generation. It takes an image + text instruction (+ optional reference images) and produces an edited version.
 
-### How Kontext Works
+### Re-Anchoring Default (Aug 24, 2026)
+
+**Default strategy: re-anchor every edit to the ORIGINAL base image with accumulated instructions**, rather than chaining edit-on-edit. The Aug 24, 2026 prototype (v1.4's LoRA-aware edit test) proved that degradation over multi-round edit chains comes from **sequential re-encoding noise**, not style drift — the subject illustration stayed crisp through 6 rounds in both tested arms, while surrounding texture decayed from repeatedly re-encoding the previous round's output. Re-anchoring to the base image with the full accumulated instruction set avoids that noise source entirely. This makes ADR-004's branching-on-degradation the **always-on default** rather than a fallback triggered by detected quality loss (ADR-004 amended — see §11).
 
 ```
-Round 1: Generate or provide initial image
-  Input: prompt + LoRA → Output: design_v1.png
+Round 1: Generate → base.png (stored, never overwritten)
 
 Round 2: "Make the skull bigger"
-  Input: design_v1.png + "Make the skull bigger" → Output: design_v2.png
+  Input: base.png + "Make the skull bigger" → design_v2.png
 
 Round 3: "Add roses around the skull, make it darker"
-  Input: design_v2.png + "Add roses around the skull, darker tones" → Output: design_v3.png
+  Input: base.png + "Make the skull bigger. Add roses around the skull, make it darker." → design_v3.png
+    (accumulated instruction set, re-anchored to base.png — NOT chained from design_v2.png)
 
-Round 4+: Switch to kontext/max for higher fidelity
-  Input: design_v3.png + instruction → Output: design_v4.png
+Round N: Same pattern — base.png + full accumulated instruction history → design_vN.png
 ```
 
 ### Limitations & Mitigations
 
 | Limitation | Impact | Mitigation |
 |------------|--------|------------|
-| **No strength control** | Every edit re-renders entire image | Use smart prompting; accumulate changes |
+| **No strength control** | Every edit re-renders the full image | Smart prompting; accumulated-instruction re-anchoring (default) |
 | **No mask/inpainting** | Cannot edit specific regions only | Use descriptive spatial prompts ("top-left area") |
-| **Quality degradation** | Compounds after ~6 rounds | Branch from earlier round; use kontext/max |
-| **Max resolution 2048×2048** | Not print-ready | Upscale as final step |
+| **Re-encoding noise on chained edits** | Compounds if edits are chained sequentially | Re-anchor to base image by default (see above) — chaining is no longer the default path |
+| **Subject leakage from style reference** | Anchor reference can bleed subject/composition into output | Prefer an anchor whose subject differs from the request; always inject "use the reference image for style only, not subject or composition" |
 
-### Branching Strategy
-
-When quality degrades (detected by user feedback or automated metrics), the system can "branch" — returning to an earlier intermediate image and applying ALL accumulated changes as a single prompt:
-
-```
-Round 1: design_v1 (base)
-Round 2: design_v2 (from v1)
-Round 3: design_v3 (from v2) ← quality still good
-Round 4: design_v4 (from v3) ← slight degradation
-Round 5: design_v5 (from v4) ← noticeable degradation
-
-BRANCH: Return to design_v3, apply "all changes from rounds 4-5" as single prompt
-→ design_v5_branch (fresh, higher quality)
-```
-
-### Auto-Escalation to kontext/max
+### Edit Model Selection
 
 ```typescript
-function selectKontextModel(editRound: number): string {
-  if (editRound <= 3) return 'fal-ai/flux-2-kontext';      // $0.04/image
-  return 'fal-ai/flux-2-kontext/max';                       // $0.08/image
+// Single-tier NB2 edit — no fast/max split, ~$0.08/round at 1K.
+// Fallback flips to Seedream on the same reference-guided pattern if NB2 is unavailable.
+function selectEditModel(): string {
+  return 'fal-ai/nano-banana-2/edit';
 }
 ```
 
@@ -203,8 +214,8 @@ function selectKontextModel(editRound: number): string {
 | **Contrast boost** | After generation | Improve print contrast |
 | **Exposure adjustment** | After generation | Normalize brightness |
 | **Color correction** | Optional, artist-requested | Match specific Pantone colors |
-| **Typography overlay** | If artist provides logo/text | Programmatic text rendering |
-| **Final sharpen** | After upscaling | Ensure crisp edges at print resolution |
+| **Typography overlay** | If artist provides logo (content ref, exact placement) | Programmatic text/logo rendering — the exact-placement path for pixel-perfect logos, distinct from NB2's in-image generated typography (ADR-005 reversed, see §11) |
+| **Final sharpen** | After finalization render (or optional upscale) | Ensure crisp edges at print resolution |
 
 ### Sharp Processing Function
 
@@ -236,134 +247,134 @@ async function postProcessImage(
 
 ---
 
-## 6. LoRA Strategy
+## 6. The Style System — Style Capsules
 
-### MVP LoRA Styles (6 Initial)
+Style Capsules are the primary style mechanism, replacing the LoRA catalog. See [Section 7](#7-lora-re-scope-post-mvp-artist-packs) for where LoRA training still fits.
 
-| # | Style | Trigger Word | LoRA Name | Best For |
-|---|-------|-------------|-----------|----------|
-| 1 | **American Traditional** | `american traditional` | `american-traditional-v1` | Bold lines, vintage tattoo, band merch |
-| 2 | **Japanese** | `japanese style` | `japanese-v1` | Irezumi, koi, dragons, waves |
-| 3 | **Blackwork** | `blackwork` | `blackwork-v1` | All-black, geometric, dotwork, mandala |
-| 4 | **Vintage 90's** | `vintage 90s` | `vintage-90s-v1` | Grunge, distressed, retro band tees |
-| 5 | **Realism** | `realism` | `realism-v1` | Photorealistic portraits, nature, detailed art |
-| 6 | **Dark** | `dark art` | `dark-art-v1` | Gothic, horror, occult, macabre |
+Style Capsules replace the LoRA catalog as the mechanism for consistent, on-brand generation. A style gallery card (what the artist clicks) maps to a **prompt template** (macro style instructions) plus a **curated library of reference images**. Model names and reference images are never surfaced to the artist — the whole mechanism is backend-only.
 
-### LoRA Training Process
+### Netflix-Style Pick-Grid Personalization
 
-```
-1. Curate 20-30 reference images per style (Expert's archive)
-2. Upload to fal.ai training endpoint
-3. Train with 1000 steps (~$8 per LoRA)
-4. Test with 10 prompts, verify quality
-5. Register in database with trigger word, examples, metadata
-6. Deploy to production (active: true)
-```
+On first use of a style, the artist optionally picks favorites from a grid of exemplar images from that style's reference library (skippable — falls back to curated defaults). The picks are stored once per user per style and act as a taste signal for capsule synthesis.
 
-### LoRA Registry Schema
+### Attribute Extraction
 
-```typescript
-interface LoRAStyle {
-  id: string;                    // UUID
-  displayName: string;           // "American Traditional"
-  slug: string;                  // "american-traditional-v1"
-  falModel: string;              // fal.ai model ID after training
-  triggerWord: string;           // "american traditional"
-  version: string;               // "v1"
-  exampleImages: string[];       // Cloudinary URLs (3-5 examples)
-  description: string;           // "Bold lines, vintage tattoo aesthetic"
-  bestFor: string;               // "Band merch, tattoo-inspired designs"
-  active: boolean;               // Show in gallery?
-  trainedAt: Date;
-  trainingSteps: number;         // Default: 1000
-  trainingCost: number;          // Default: ~$8
-}
-```
+Every reference image (library and user-uploaded) is analyzed into structured JSON per the schema at `data/LoRAs/style-extraction/schema.md` — closed enums for `linework`, `palette`, `shading`, `composition`, `era_flavor`, etc., plus a free-text `signature_details` field for micro-features a style-injection prompt should reproduce.
 
-### LoRA Selection UX
+**Extraction model: Claude Sonnet 5 via OpenRouter.** Chosen in an Aug 24, 2026 bake-off against Gemini 3.7 Flash across all 30 American Traditional library images:
 
-The customer never sees technical details. Francisca presents a **visual gallery**:
+| Metric | Result |
+|--------|--------|
+| Enum agreement — objective fields | High: 29-30/30 |
+| Enum agreement — ambiguous fields (palette, shading, era_flavor) | Divergent: 17-18/30 |
+| `signature_details` quality | Sonnet 5 clearly richer |
+| Real undiscounted cost per image | Sonnet 5 $0.0119 vs Gemini 3.7 Flash $0.0089 (1.33x) |
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  Francisca: "What style matches your vibe?"             │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  [🎨 3 Images]       [🎸 3 Images]       [💀 3 Images]│
-│  American            Vintage 90's         Dark Art      │
-│  Traditional                                                    │
-│                                                         │
-│  [🌊 3 Images]       [🖤 3 Images]       [🖼 3 Images]│
-│  Japanese            Blackwork            Realism       │
-│                                                         │
-│  [🎯 Upload]                                           │
-│  Custom (bring your own)                                │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
+Quality edge judged worth the 1.33x premium given tiny extraction volumes (one-time library pass + per-upload). **Gemini 3.7 Flash is the configured fallback extractor.** Schema enums are flagged for tightening with visual anchor descriptions — a known follow-up, not blocking.
 
-- Click card → system maps to LoRA behind the scenes
-- Type "American Traditional skull" → auto-detected, same LoRA
-- Upload reference → Francisca analyzes and suggests closest LoRA
+### Capsule Synthesis
 
-### Future LoRA Expansion
+When an artist requests a generation:
 
-| Phase | LoRAs | Training Source |
-|-------|-------|----------------|
-| **MVP (now)** | 6 | Expert's archive (20 images each) |
-| **Month 1-3** | 6 (+ v2 improvements) | + customer-approved designs |
-| **Month 4-6** | 10 | + Abstract, Pixel Art, Graffiti, Watercolor |
-| **Month 7+** | 15+ | + Regional styles, artist-specific LoRAs |
+1. Resolve the artist's picks for the selected style (or curated defaults if skipped)
+2. **Macro instructions** — from the style's prompt template
+3. **Micro instructions** — attributes shared across the picked images, sourced from their extraction JSONs
+4. **One anchor image** — the picked image nearest the centroid of the picks (embedding-based selection), attached to the NB2 API call
+
+**Subject-leakage guard**: prefer an anchor whose subject differs from the artist's current request, and always inject "use the reference image for style only, not subject or composition" into the prompt.
+
+### Two Reference Lanes
+
+| Lane | Examples | Handling |
+|------|----------|----------|
+| **Style refs** | Curated library images, user's own style uploads | Distilled into the capsule (macro + micro instructions) + one anchor image — never attached literally beyond the single anchor |
+| **Content refs** | Logos, mascots, sketches the artist provides | Attached literally to the API call, never distilled; Sharp overlay remains the exact-placement path for pixel-perfect logo compositing |
+
+### User Uploads — Artist Visual Identity
+
+Artists can upload their own work as style references, running the same pipeline: extract attributes → synthesize a capsule → select the most representative upload as anchor.
+
+**Guardrails**:
+- Upload rights attestation checkbox at upload time
+- ToS places responsibility on the uploader
+- Order-time content check for trademarked characters/logos (physical-goods liability)
+- Francisca coaches artists away from photos of tattoos on skin as style references — wrong medium; flat artwork only
+
+### Persistence & Portability
+
+Capsules are persisted and versioned per user per style. This gives:
+- **Collection consistency** — same capsule + anchor reused across a merch drop
+- **Model portability** — capsules (prompt template + attribute JSON + anchor selection) survive underlying model migrations. LoRA weights never could — this is the strategic moat argument for capsules over LoRA training as the primary style mechanism.
 
 ---
 
-## 7. Cost Projections
+## 7. LoRA Re-Scope (Post-MVP Artist Packs)
 
-### Per-Image Cost Breakdown
+LoRA training is **not dead** — it is re-scoped, not abandoned. Generic-genre LoRAs (the original 6-style catalog: American Traditional, Japanese, Blackwork, Vintage 90's, Realism, Dark Art) are dropped as the primary style mechanism because reference-guided generation on frontier models outperforms them for well-known public styles (see §12).
+
+**Post-MVP use case**: **artist-signature style packs**, trained on real flash from partner tattooers/artists with written ML-training permission. This is the moat use case a generic-genre LoRA is not — a distinctive individual artist's hand is not something a frontier model already knows, unlike "American Traditional" as a named genre.
+
+### Preserved Trained Artifacts (Baseline Evidence)
+
+| Artifact | Path | Notes |
+|----------|------|-------|
+| `american-traditional-v1` (paper background) | `data/LoRAs/trained/american-traditional-v1/` | metadata.json, request/result JSON, config.json, smoke test PNG, `pytorch_lora_weights.safetensors` |
+| `american-traditional-v1-white` (white background) | `data/LoRAs/trained/american-traditional-v1-white/` | Same artifact set, white-bg dataset |
+| **Total spent** | | $12.80 ($6.40 × 2 training runs) — kept as baseline evidence, not written off |
+
+The 30-image white-background dataset, its captions, and its per-image extraction JSONs (`data/LoRAs/style-extraction/`) now serve double duty as the **style reference library for the American Traditional Style Capsule** — the same curation work funds both the (shelved) LoRA and the (active) capsule.
+
+### Re-Activation Criteria
+
+Re-scope a style to LoRA training when:
+- A partner artist provides real flash with written ML-training permission, AND
+- The artist's hand is distinctive enough that frontier-model reference-guided generation cannot reproduce it faithfully (the failure mode this pivot exists to route around does not apply to novel, undocumented individual styles)
+
+---
+
+## 8. Cost Projections
+
+### Per-Design Cost Breakdown
 
 | Step | Model | Cost | Notes |
 |------|-------|------|-------|
-| **Generation** | flux-2-dev/lora | $0.05 | Initial design with LoRA |
-| **Edit rounds 1-3** | kontext × 3 | $0.12 | 3 rounds × $0.04 (average) |
-| **Edit rounds 4+** | kontext/max × 1 | $0.08 | 1 round × $0.08 (average) |
-| **Background removal** | remove-background | $0.02 | Optional, ~80% of designs |
-| **Upscale** | flux-2-upscaler | $0.03 | Always needed for print |
+| **Generation** | nano-banana-2 | $0.08 | 1K tier, capsule anchor + prompt |
+| **Edit rounds (avg 4)** | nano-banana-2/edit × 4 | $0.32 | 4 rounds × $0.08, re-anchored to base each round |
+| **Final render** | nano-banana-2 (native 4K) | $0.16 | 4K tier, print-ready — no separate upscale step in the common path |
+| **Background removal** | remove-background | $0.01 | Flat, ~80% of designs |
 | **Post-processing** | Sharp | $0.00 | Free, server-side |
-| **Total per design** | | **~$0.30** | Realistic average |
+| **Total per design** | | **~$0.57** | |
 
 ### Monthly Cost Scenarios
 
 | Scale | Artists | Designs/Month | Edits/Design | Monthly Cost | Cost/Artist |
 |-------|---------|---------------|-------------|-------------|-------------|
-| **Launch** | 10 | 100 | 4 | ~$30 | $3.00 |
-| **Early** | 50 | 500 | 4 | ~$150 | $3.00 |
-| **Growth** | 100 | 1,000 | 4 | ~$300 | $3.00 |
-| **Scale** | 500 | 5,000 | 4 | ~$1,500 | $3.00 |
-| **Mass** | 1,000 | 10,000 | 4 | ~$3,000 | $3.00 |
+| **Launch** | 10 | 100 | 4 | ~$57 | $5.70 |
+| **Early** | 50 | 500 | 4 | ~$285 | $5.70 |
+| **Growth** | 100 | 1,000 | 4 | ~$570 | $5.70 |
+| **Scale** | 500 | 5,000 | 4 | ~$2,850 | $5.70 |
+| **Mass** | 1,000 | 10,000 | 4 | ~$5,700 | $5.70 |
 
-### LoRA Training Costs
+### Attribute Extraction Costs
 
-| Phase | LoRAs | Cost/LoRA | Total | Frequency |
-|-------|-------|-----------|-------|-----------|
-| **Initial** | 6 | $8 | $48 | One-time |
-| **Monthly retraining** | 6 | $8 | $48/month | Ongoing |
-| **New styles (Year 1)** | +9 | $8 | $72 | One-time each |
-| **Year 1 total** | | | ~$700 | |
+| Item | Cost | Notes |
+|------|------|-------|
+| One-time library pass (30 images, American Traditional) | ~$0.36 | 30 × $0.0119 (Sonnet 5) |
+| Per user upload (Artist Visual Identity) | ~$0.012 | Sonnet 5, negligible at expected upload volumes |
 
 ### Cost Comparison
 
 | Approach | Cost (500 artists, 5K designs/month) |
 |----------|--------------------------------------|
-| **fal.ai (this plan)** | ~$1,500/month |
-| **BFL API (old plan)** | ~$1,800/month |
-| **Replicate + LoRA (archived)** | ~$188/month but no iterative editing |
+| **NB2 reference-guided (this plan)** | ~$2,850/month |
+| **v1.x LoRA-first plan (superseded)** | ~$1,500/month projected, but produced unusable output in testing — cost is moot if quality fails |
 | **Manual design work** | €45/design = €225,000/month |
 
-**ROI**: $1,500/month AI replaces €225,000/month manual labor = **99.3% cost reduction**
+**ROI**: $2,850/month AI replaces €225,000/month manual labor = **~98.7% cost reduction**. The higher per-design cost than the superseded LoRA plan reflects paying for a pipeline that actually produces production-ready output — the LoRA plan's lower projected cost was never realized in practice.
 
 ---
 
-## 8. Database Schema
+## 9. Database Schema
 
 ### design_sessions Table
 
@@ -373,84 +384,92 @@ export const designSessions = pgTable('design_sessions', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id).notNull(),
   artistId: uuid('artist_id').references(() => users.id),
-  
+
   // Session metadata
   status: text('status').default('active').notNull(), // active, approved, archived
-  loraStyleId: uuid('lora_style_id').references(() => loraStyles.id),
-  
+  styleId: uuid('style_id').references(() => styles.id),
+
   // Design data
   currentImageUrl: text('current_image_url'),       // Latest version Cloudinary URL
-  originalImageUrl: text('original_image_url'),     // First generation
-  approvedImageUrl: text('approved_image_url'),     // Final approved version
-  
+  baseImageUrl: text('base_image_url'),              // Original generation — the re-anchor target (§4)
+  approvedImageUrl: text('approved_image_url'),      // Final approved version
+
   // Generation metadata
   editRound: integer('edit_round').default(0).notNull(),
   totalEdits: integer('total_edits').default(0).notNull(),
-  branchCount: integer('branch_count').default(0).notNull(),
-  
-  // Prompt history
+
+  // Prompt history — instructions accumulate; each edit round re-anchors to baseImageUrl
   prompts: jsonb('prompts').$type<{
     generation: string;           // Original generation prompt
     edits: Array<{
       round: number;
       instruction: string;
-      model: string;              // kontext or kontext/max
+      accumulatedInstructions: string; // Full instruction history re-sent with base image
+      model: string;              // nano-banana-2/edit or fallback seedream/v5/pro/edit
       imageUrl: string;           // Output Cloudinary URL
-      parentImageUrl: string;     // Input image URL
       timestamp: string;
     }>;
   }>().notNull().default({ generation: '', edits: [] }),
-  
+
   // Cost tracking
   totalCostCents: integer('total_cost_cents').default(0).notNull(),
-  
+
   // Timestamps
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 ```
 
-### lora_styles Table
+### styles Table
+
+Replaces `lora_styles`. Drops training-specific columns (`falModel` as a training target, `trainingSteps`, `trainingCost`); adds capsule-relevant fields.
 
 ```typescript
-export const loraStyles = pgTable('lora_styles', {
+export const styles = pgTable('styles', {
   id: uuid('id').primaryKey().defaultRandom(),
   displayName: text('display_name').notNull(),
   slug: text('slug').notNull().unique(),
-  falModel: text('fal_model').notNull(),          // fal.ai model ID
-  triggerWord: text('trigger_word').notNull(),
+  model: text('model').default('nano-banana-2').notNull(),   // Active generation model for this style
+  promptTemplate: text('prompt_template').notNull(),          // Macro style instructions
   description: text('description').notNull(),
-  exampleImages: jsonb('example_images').$type<string[]>().notNull(),
   bestFor: text('best_for').notNull(),
+  referenceImages: jsonb('reference_images').$type<Array<{
+    url: string;                  // Cloudinary URL
+    extractionJsonPath: string;   // Pointer to attribute extraction JSON (data/LoRAs/style-extraction/...)
+  }>>().notNull(),
+  anchorSelectionMeta: jsonb('anchor_selection_meta').$type<{
+    method: 'embedding-centroid';
+    defaultAnchorImageUrl: string; // Used when the artist skips the pick-grid
+  }>(),
   active: boolean('active').default(true).notNull(),
   version: text('version').default('v1').notNull(),
-  trainingSteps: integer('training_steps').default(1000).notNull(),
-  trainingCostCents: integer('training_cost_cents').default(800).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 ```
 
-### design_intermediates Table (Branching Support)
+### style_preferences Table (New — Pick-Grid Persistence)
 
 ```typescript
-export const designIntermediates = pgTable('design_intermediates', {
+export const stylePreferences = pgTable('style_preferences', {
   id: uuid('id').primaryKey().defaultRandom(),
-  sessionId: uuid('session_id').references(() => designSessions.id).notNull(),
-  round: integer('round').notNull(),
-  imageUrl: text('image_url').notNull(),          // Cloudinary URL
-  model: text('model').notNull(),                 // flux-2-dev/lora, kontext, kontext/max
-  instruction: text('instruction'),               // Edit instruction (null for generation)
-  parentIntermediateId: uuid('parent_intermediate_id'), // For branching
-  isBranch: boolean('is_branch').default(false).notNull(),
-  costCents: integer('cost_cents').notNull(),
+  userId: uuid('user_id').references(() => users.id).notNull(),
+  styleId: uuid('style_id').references(() => styles.id).notNull(),
+  pickedImageIds: jsonb('picked_image_ids').$type<string[]>().notNull(), // From styles.referenceImages
+  capsuleJson: jsonb('capsule_json').$type<{
+    macroInstructions: string;
+    microInstructions: string;      // Synthesized from shared attributes across picks
+    anchorImageUrl: string;         // Centroid-nearest pick
+  }>().notNull(),
+  version: integer('version').default(1).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 ```
 
 ---
 
-## 9. API Integration
+## 10. API Integration
 
 ### fal.ai Client Setup
 
@@ -462,16 +481,19 @@ export const falClient = createFalClient({
   credentials: process.env.FAL_API_KEY!,
 });
 
-// Endpoint constants
+// Endpoint constants — verified live against fal.ai docs Aug 24, 2026
 export const FAL_ENDPOINTS = {
-  TRAIN_LORA: 'fal-ai/flux-2-trainer',
-  GENERATE_WITH_LORA: 'fal-ai/flux-2-dev/lora',
-  KONTEXT: 'fal-ai/flux-2-kontext',
-  KONTEXT_MAX: 'fal-ai/flux-2-kontext/max',
-  UPSCALER: 'fal-ai/flux-2-upscaler',
+  GENERATE: 'fal-ai/nano-banana-2',
+  EDIT: 'fal-ai/nano-banana-2/edit',
+  FALLBACK_GENERATE: 'bytedance/seedream/v5/pro/text-to-image',
+  FALLBACK_EDIT: 'bytedance/seedream/v5/pro/edit',
   REMOVE_BACKGROUND: 'fal-ai/ideogram/remove-background',
+  UPSCALER: 'fal-ai/clarity-upscaler',           // Optional — beyond-4K edge case only
+  FLUX2_DEV_PREVIEW: 'fal-ai/flux-2',            // Optional — cheap preview/thumbnail tier
 } as const;
 ```
+
+This block mirrors the current `app/src/lib/ai/falClient.ts`.
 
 ### Generate Design API Route
 
@@ -479,24 +501,27 @@ export const FAL_ENDPOINTS = {
 // app/src/app/api/generate-design/route.ts
 import { falClient, FAL_ENDPOINTS } from '@/lib/ai/falClient';
 import { postProcessImage } from '@/lib/image/postProcess';
+import { resolveStyleCapsule } from '@/lib/ai/styleCapsule';
 
 export async function POST(req: Request) {
-  const { prompt, loraId, width = 1024, height = 1024 } = await req.json();
-  
-  // Build LoRA sources if specified
-  const loraSources = loraId ? [{ id: loraId, weight: 1.0 }] : [];
-  
-  // Generate with fal.ai
-  const result = await falClient.run(FAL_ENDPOINTS.GENERATE_WITH_LORA, {
+  const { prompt, styleId, userId, resolutionTier = '1K' } = await req.json();
+
+  // Resolve the artist's Style Capsule: macro + micro instructions + one anchor image
+  const capsule = await resolveStyleCapsule({ styleId, userId });
+
+  const fullPrompt = [capsule.macroInstructions, capsule.microInstructions, prompt].join('. ');
+
+  // Generate with fal.ai. NB2's plain text-to-image endpoint takes no reference images, so a
+  // capsule-anchored generation routes through the /edit endpoint (composition) even for a
+  // "first" generation — reference-guided is only available with an input image attached.
+  const result = await falClient.run(FAL_ENDPOINTS.EDIT, {
     input: {
-      prompt,
-      image_size: `${width}x${height}`,
-      loras: loraSources,
-      num_inference_steps: 28,
-      guidance_scale: 3.5,
+      prompt: `${fullPrompt}. Use the reference image for style only, not subject or composition.`,
+      image_urls: [capsule.anchorImageUrl],
+      resolution: resolutionTier,
     },
   });
-  
+
   // Post-process with Sharp
   const response = await fetch(result.images[0].url);
   const rawBuffer = Buffer.from(await response.arrayBuffer());
@@ -505,19 +530,19 @@ export async function POST(req: Request) {
     contrast: 0.2,
     normalize: true,
   });
-  
+
   // Upload to Cloudinary (or return buffer)
   // ...
-  
+
   return Response.json({
     imageUrl: result.images[0].url,
     seed: result.seed,
-    cost: 0.05,
+    cost: 0.08, // $0.08 at 1K tier
   });
 }
 ```
 
-### Edit Design API Route (Kontext)
+### Edit Design API Route
 
 ```typescript
 // app/src/app/api/edit-design/route.ts
@@ -525,150 +550,217 @@ import { falClient, FAL_ENDPOINTS } from '@/lib/ai/falClient';
 import { postProcessImage } from '@/lib/image/postProcess';
 
 export async function POST(req: Request) {
-  const { imageUrl, instruction, editRound = 1 } = await req.json();
-  
-  // Auto-escalate to kontext/max after round 3
-  const endpoint = editRound <= 3 
-    ? FAL_ENDPOINTS.KONTEXT 
-    : FAL_ENDPOINTS.KONTEXT_MAX;
-  
-  const result = await falClient.run(endpoint, {
+  const { baseImageUrl, accumulatedInstructions, editRound = 1 } = await req.json();
+
+  // Re-anchor to the ORIGINAL base image every round — default strategy since Aug 24, 2026
+  // (degradation on chained edits traced to sequential re-encoding noise, not style drift; see §4)
+  const result = await falClient.run(FAL_ENDPOINTS.EDIT, {
     input: {
-      image_url: imageUrl,
-      prompt: instruction,
+      image_urls: [baseImageUrl],
+      prompt: accumulatedInstructions,
     },
   });
-  
+
   // Post-process
   const response = await fetch(result.images[0].url);
   const rawBuffer = Buffer.from(await response.arrayBuffer());
   const processedBuffer = await postProcessImage(rawBuffer);
-  
+
   // Upload to Cloudinary
   // ...
-  
+
   return Response.json({
     imageUrl: result.images[0].url,
     editRound: editRound + 1,
-    model: endpoint === FAL_ENDPOINTS.KONTEXT ? 'kontext' : 'kontext/max',
-    cost: editRound <= 3 ? 0.04 : 0.08,
+    model: 'nano-banana-2/edit',
+    cost: 0.08, // Single-tier, all rounds
   });
 }
 ```
 
-### Upscale for Print API Route
+### Finalize Design API Route
 
 ```typescript
-// app/src/app/api/upscale-design/route.ts
+// app/src/app/api/finalize-design/route.ts
 import { falClient, FAL_ENDPOINTS } from '@/lib/ai/falClient';
 
 export async function POST(req: Request) {
-  const { imageUrl } = await req.json();
-  
+  const { imageUrl, needsUpscale = false } = await req.json();
+
   // Remove background first (most designs need this)
   const bgRemoved = await falClient.run(FAL_ENDPOINTS.REMOVE_BACKGROUND, {
     input: { image_url: imageUrl },
   });
-  
-  // Upscale to print resolution
-  const upscaled = await falClient.run(FAL_ENDPOINTS.UPSCALER, {
-    input: {
-      image_url: bgRemoved.images[0].url,
-      upscale_factor: 2,  // 2048 → 4096
-    },
+
+  // Re-render at native 4K — print-ready without an upscale step in the common path
+  const finalRender = await falClient.run(FAL_ENDPOINTS.EDIT, {
+    input: { image_urls: [bgRemoved.images[0].url], prompt: 'upscale to native resolution, preserve exact composition and detail', resolution: '4K' },
   });
-  
-  // Final Sharp post-processing
-  const response = await fetch(upscaled.images[0].url);
-  const rawBuffer = Buffer.from(await response.arrayBuffer());
-  const finalBuffer = await postProcessImage(rawBuffer, {
-    sharpen: true,
-    contrast: 0.1,
-  });
-  
+
+  // Edge case only: print size exceeds native 4K
+  const output = needsUpscale
+    ? await falClient.run(FAL_ENDPOINTS.UPSCALER, {
+        input: { image_url: finalRender.images[0].url, upscale_factor: 2 },
+      })
+    : finalRender;
+
   return Response.json({
-    imageUrl: upscaled.images[0].url,
-    originalSize: '2048×2048',
-    upscaledSize: '4096×4096',
-    cost: 0.05, // $0.02 bg removal + $0.03 upscale
+    imageUrl: output.images[0].url,
+    finalSize: needsUpscale ? '8192×8192 (upscaled)' : '4096×4096 (native)',
+    cost: 0.01 + 0.16 + (needsUpscale ? 0.03 * 67 : 0), // bg removal + native 4K render + optional upscale
   });
 }
 ```
 
 ---
 
-## 10. Architecture Decisions
+## 11. Architecture Decisions
 
 ### ADR-001: fal.ai as Single Image Vendor
 
-**Status**: Accepted  
-**Date**: May 13, 2026  
-**Context**: Needed a single provider for LoRA training, generation, iterative editing, upscaling, and background removal.  
-**Decision**: Use fal.ai exclusively for all image operations.  
+**Status**: Accepted
+**Date**: May 13, 2026 (updated Aug 24, 2026)
+**Context**: Needed a single provider for generation, editing, and background removal.
+**Decision**: Use fal.ai exclusively for all image operations. Primary model Nano Banana 2, fallback Seedream 5.0 Pro — both routed through the same fal API key.
 **Consequences**:
 - (+) One API key, one bill, one integration
-- (+) LoRA training + inference in same ecosystem
-- (+) Kontext iterative editing (no other provider offers this)
+- (+) Reference-guided generation + editing in the same ecosystem
+- (+) Fallback (Seedream) uses the identical reference-guided pattern — no separate integration work if NB2 is unavailable
 - (-) Vendor lock-in for image pipeline
-- (-) If fal.ai goes down, no image generation fallback
+- (-) If fal.ai itself goes down (not just one model), both primary and fallback are unavailable
 
-**Mitigation**: BFL API (FLUX 2 Flex) can serve as emergency fallback for basic generation (no LoRA, no editing).
+**Historical record**: The v1.x BFL klein warm-standby investigation (fal-trained FLUX.2 dev LoRAs are architecturally incompatible with BFL klein finetune endpoints) is retained as historical context but is no longer relevant — the pivot away from LoRA-first generation makes that mitigation moot. BFL text generation stays noted here purely as a historical record of prior evaluation, not as an active fallback path.
 
 ### ADR-002: Kontext Pro → Max Auto-Escalation
 
-**Status**: Accepted  
-**Date**: May 13, 2026  
-**Context**: Kontext quality degrades over many edit rounds. Max is more expensive but higher fidelity.  
-**Decision**: Use Kontext Pro ($0.04) for rounds 1-3, Kontext Max ($0.08) for rounds 4+.  
-**Consequences**:
-- (+) Saves money on first 3 rounds (most common)
-- (+) Higher quality when edits compound
-- (-) Cost doubles for round 4+
+**Status**: Superseded
+**Date**: May 13, 2026 (superseded Aug 24, 2026)
+**Context**: Originally proposed a fast/max tier split for iterative editing.
+**Superseded by**: There is no tier split. Single-tier `nano-banana-2/edit`, ~$0.08/round, used for all rounds, with re-anchor-to-base as the default strategy (see ADR-004 amendment below). This was already invalidated under the v1.x FLUX.2 architecture (no Kontext branding, no fast/max split at the dev tier) and remains invalidated under NB2 — no tier split exists in the current pipeline at all.
 
 ### ADR-003: Sharp Over Cloudinary for Post-Processing
 
-**Status**: Accepted  
-**Date**: May 13, 2026  
-**Context**: Every AI edit produces slightly soft images. Need deterministic sharpening.  
-**Decision**: Use Node.js Sharp for all deterministic post-processing (sharpen, contrast, exposure). Cloudinary remains for storage, CDN, mockups.  
+**Status**: Accepted
+**Date**: May 13, 2026
+**Context**: Every AI edit produces slightly soft images. Need deterministic sharpening.
+**Decision**: Use Node.js Sharp for all deterministic post-processing (sharpen, contrast, exposure). Cloudinary remains for storage, CDN, mockups.
 **Consequences**:
 - (+) Free (no API costs)
 - (+) Deterministic (same input → same output)
 - (+) Server-side (no client dependency)
 - (-) Adds processing time (~200ms per image)
 
-### ADR-004: Branch Strategy for Long Edit Chains
+### ADR-004: Branch / Re-Anchor Strategy for Long Edit Chains
 
-**Status**: Accepted  
-**Date**: May 13, 2026  
-**Context**: Kontext has no strength/mask/inpainting controls. Every edit re-renders the entire image. Quality degrades after ~6 rounds.  
-**Decision**: Store ALL intermediate images. When degradation is detected, branch from an earlier round with accumulated prompt.  
+**Status**: Amended
+**Date**: May 13, 2026 (amended Aug 24, 2026)
+**Context**: Editing has no strength/mask/inpainting controls. Every edit re-renders the entire image. Quality degrades after several rounds of chained editing.
+**Original decision**: Store all intermediates; branch from an earlier round with accumulated prompt when degradation is detected.
+**Amendment (Aug 24, 2026)**: The Aug 24, 2026 prototype (six-round two-arm test, `flux-2/edit` vs `flux-2/lora/edit`, run against the v1.x pipeline but diagnostically applicable here) isolated the degradation source: **sequential re-encoding noise from chaining edit-on-edit**, not style drift and not a LoRA-fixable problem. The subject illustration stayed crisp through all 6 rounds in both tested arms; surrounding texture is what decayed. This means the mitigation does not need to wait for detected degradation — **re-anchoring every edit round to the original base image with accumulated instructions is now the always-on default**, not a fallback triggered by a quality check. Branching (returning to an arbitrary earlier round) remains available as a manual artist action but is no longer the primary degradation mitigation.
 **Consequences**:
-- (+) Prevents quality death spiral
-- (+) Artists can return to any earlier version
-- (+) Branching produces higher quality than sequential edits
-- (-) More storage (each intermediate ~2MB)
-- (-) More complex UI (branch visualization)
+- (+) Removes the re-encoding noise source proactively instead of detecting and reacting to it
+- (+) Simpler mental model — every edit is "base image + full instruction history," not a chain
+- (+) Artists can still manually branch from any stored intermediate if they want a different starting point
+- (-) Every edit call re-sends the full accumulated instruction text (negligible cost impact)
 
 ### ADR-005: No Typography-First Generation
 
-**Status**: Accepted  
-**Date**: May 13, 2026  
-**Context**: FLUX 2's typography capability is "acceptable, not great". Artists mostly bring their own logos/letterings.  
-**Decision**: Do not optimize for typography generation. Artists upload logos; Sharp overlays them programmatically if needed.  
+**Status**: Reversed
+**Date**: May 13, 2026 (reversed Aug 24, 2026)
+**Original context**: FLUX 2's typography capability was "acceptable, not great." Decision was to not optimize for typography generation and rely on Sharp overlays for artist-provided logos/lettering.
+**Reversal (Aug 24, 2026)**: Nano Banana 2 handles in-image text generation well — verified in the Aug 24, 2026 head-to-head ("hawk holding a banner written RISE ABOVE, american traditional tattoo style" and related tests). Lettering and banners generated directly by NB2 are now supported as part of the standard generation flow, not routed around.
 **Consequences**:
-- (+) Avoids investing in a weak capability
-- (+) Artists retain brand control over logos
-- (-) Cannot generate text-heavy designs from scratch
-- (-) Some artists may expect AI text generation
+- (+) Artists can now request text-in-design ("banner reading X") directly, no longer limited to overlay-only text
+- (+) Reduces reliance on the Sharp overlay path for stylistic in-design lettering
+- (-/note) The Sharp overlay path is **not removed** — it remains the exact-placement mechanism for pixel-perfect logo compositing (a content ref, not a style ref; see §6, Two Reference Lanes). Typography-in-generation and logo-overlay-for-exactness are complementary, not competing.
+
+### ADR-006: Off-the-Shelf Frontier Models Over Custom-Trained LoRAs
+
+**Status**: Accepted
+**Date**: August 24, 2026
+**Context**: The v1.x architecture bet on custom-trained style LoRAs as the primary style mechanism. The first trained LoRA (`american-traditional-v1`) produced deformed, unusable output despite a reasonable 30-image dataset and standard 1000-step training run ($6.40, `fal-ai/flux-2-trainer`).
+**Decision**: Drop custom-trained generic-genre LoRAs as the MVP style mechanism. Use reference-guided generation (prompt + curated reference image) on off-the-shelf frontier models — Nano Banana 2 primary, Seedream 5.0 Pro fallback — instead.
+**Evidence**:
+- Dataset-limited failure on the first LoRA training run, but a deeper structural issue underneath it: canonical/well-documented styles (e.g. American Traditional tattoo flash) are already known to frontier model weights, so a LoRA adds the least value exactly where the style is famous enough to be worth automating in the first place.
+- Head-to-head 1: raw text-to-image on "hawk holding a banner written RISE ABOVE, american traditional tattoo style" — FLUX.2 pro failed badly; NB2, Nano Banana Pro, and Seedream 5 text-to-image all landed below production grade.
+- Head-to-head 2: image-to-image with the same prompt plus ONE style reference image from the curated library — **production-ready results**. NB2 best, Seedream 5 close second (~$0.035/generation measured in testing). Reference-guided image-to-image is the winning pattern — not raw text-to-image, and not LoRA training.
+- Nano Banana Pro ($0.15/1K, $0.30/4K, 14 refs) was evaluated as a primary candidate and not chosen: roughly 2x NB2's price, and NB2 beat it in the image-to-image comparison.
+- FLUX.2 (dev $0.012/MP, pro $0.03 first MP + $0.015/extra MP, `flux-2/edit` $0.012/MP, `flux-2/lora` $0.021/MP, `flux-2/lora/edit` $0.021/MP) is relegated to an optional cheap preview/thumbnail tier, possibly dropped entirely at launch.
+**Consequences**:
+- (+) Production-ready output on the first tested pattern (reference-guided i2i), vs. an unusable first LoRA
+- (+) No per-style training cost or training-quality risk on the MVP critical path
+- (+) Capsules (see ADR-007) are portable across future model migrations; LoRA weights are not
+- (-) Per-design cost is higher than the (unrealized) LoRA-plan projection (~$0.57 vs. ~$0.61 pre-sweep v1.x estimate — comparable, but the LoRA plan never produced usable output at that cost)
+- (-) Ongoing dependency on frontier model providers' reference-image handling remaining stable
+- (+) Custom LoRA training is not abandoned — re-scoped to post-MVP artist-signature packs where it remains the right tool (see §7)
+
+### ADR-007: Reference-Guided Style Capsules
+
+**Status**: Accepted
+**Date**: August 24, 2026
+**Context**: With LoRA training out of the MVP critical path (ADR-006), the platform needs a mechanism to give artists consistent, on-brand style selection without exposing model names or raw reference images, and without re-litigating style choice on every generation call.
+**Decision**: Build "Style Capsules" — prompt template (macro) + curated reference library, personalized per user via a one-time Netflix-style pick-grid, synthesized into macro + micro instructions plus one centroid-selected anchor image per generation call. Extract structured attributes from every reference image via Claude Sonnet 5 (OpenRouter), with Gemini 3.7 Flash as the configured fallback extractor.
+**Evidence — extraction model bake-off (Aug 24, 2026, all 30 American Traditional library images)**:
+- Enum agreement on objective fields: 29-30/30 between Sonnet 5 and Gemini 3.7 Flash
+- Enum agreement on genuinely ambiguous fields (palette, shading, era_flavor): 17-18/30 — expected divergence, not a quality signal against either model
+- Sonnet 5's `signature_details` free-text output clearly richer, capturing micro-features Gemini 3.7 Flash's output missed
+- Real undiscounted cost: Sonnet 5 $0.0119/image vs. Gemini 3.7 Flash $0.0089/image (1.33x) — judged worth it given the tiny volumes involved (one-time library passes, per-upload extraction)
+**Consequences**:
+- (+) Artists never see model names or reference images — fully backend, seamless UX
+- (+) Capsules are portable across model migrations (prompt template + attribute JSON + anchor selection logic all survive a swap from NB2 to a future model) — LoRA weights could never do this
+- (+) Collection consistency: same capsule + anchor reused across a merch drop
+- (+) User uploads (Artist Visual Identity) reuse the identical pipeline — no separate code path
+- (-) Requires an attribute-extraction pipeline and schema (`data/LoRAs/style-extraction/schema.md`) to be maintained and periodically tightened (enums need visual anchor descriptions — known follow-up)
+- (-) Subject-leakage risk from anchor images requires an explicit guard (anchor-subject mismatch preference + prompt injection) rather than being automatic
+
+---
+
+## 12. Evidence Appendix — Aug 24, 2026 Pivot
+
+This section consolidates the raw evidence behind the pivot from v1.x (LoRA-first) to v2.0 (reference-guided frontier models). All facts below were verified directly by Victor on Aug 24, 2026.
+
+### LoRA Training Failure
+
+- `american-traditional-v1` — 30 images, `fal-ai/flux-2-trainer`, 1000 steps, $6.40 — trained successfully per the queue result, but generated output was deformed and unusable.
+- A second run, `american-traditional-v1-white` (white-background dataset variant), was also trained ($6.40) as part of isolating the cause. Combined spend: **$12.80**.
+- Both trained artifacts (`pytorch_lora_weights.safetensors`, config, metadata, smoke tests) are preserved at `data/LoRAs/trained/american-traditional-v1/` and `data/LoRAs/trained/american-traditional-v1-white/` as baseline evidence, not deleted.
+
+### Text-to-Image Head-to-Head
+
+Prompt: "hawk holding a banner written RISE ABOVE, american traditional tattoo style"
+
+| Model | Result |
+|-------|--------|
+| FLUX.2 pro | Failed badly |
+| Nano Banana 2 | Below production grade |
+| Nano Banana Pro | Below production grade |
+| Seedream 5 | Below production grade |
+
+### Image-to-Image Head-to-Head (Winning Pattern)
+
+Same prompt + ONE style reference image from the curated American Traditional library:
+
+| Model | Result | Cost |
+|-------|--------|------|
+| Nano Banana 2 | Production-ready, best of the tested set | — |
+| Seedream 5 | Production-ready, close second | ~$0.035/generation measured |
+
+This is the evidence basis for ADR-006: reference-guided image-to-image, not raw text-to-image and not LoRA training, is the pattern that produces usable output.
+
+### Extraction Model Bake-Off
+
+See ADR-007 evidence block above. Source data: `data/LoRAs/style-extraction/sonnet/` (32 extraction JSONs) and `data/LoRAs/style-extraction/gemini-flash/` (33 extraction JSONs), schema at `data/LoRAs/style-extraction/schema.md`.
 
 ---
 
 ## Appendix: Environment Variables
 
 ```bash
-# fal.ai (image generation)
+# fal.ai (image generation — Nano Banana 2 primary, Seedream 5.0 Pro fallback, background removal)
 FAL_API_KEY=REDACTED
+
+# OpenRouter (style attribute extraction — Claude Sonnet 5 primary, Gemini 3.7 Flash fallback)
+OPENROUTER_API_KEY=REDACTED
 
 # Cloudinary (image storage/CDN - already configured)
 CLOUDINARY_CLOUD_NAME=merchfrom
@@ -679,5 +771,18 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=xxxxxxxx
 
 ---
 
-**Owner**: Victor Bendas  
-**Review Schedule**: After P0 Demo Hardening (May 25, 2026)
+## Revision History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | May 13, 2026 | Initial architecture — fal.ai single vendor, Kontext editing, 6-LoRA catalog |
+| 1.1 | Aug 24, 2026 | Provider-docs review: endpoint drift flagged (§2, §9), LoRA-aware editing upgrade candidate (§4), BFL klein warm-standby fallback (ADR-001), cost sensitivity note (§7), typography watch item (ADR-005), open actions (§11) |
+| 1.2 | Aug 24, 2026 | Phase 1 endpoint sweep: confirmed live IDs/prices for all six endpoints; corrected trainer and remove-background pricing; revised per-design cost estimate to ~$0.61 pending upscaler billing-basis confirmation; flagged ADR-002's fast/max premise as invalidated |
+| 1.3 | Aug 24, 2026 | Phase 3 BFL warm-standby check: ruled out — fal-trained FLUX.2 dev LoRAs architecturally incompatible with BFL klein finetune endpoints. ADR-001 mitigation reverted to plain non-LoRA generation fallback |
+| 1.4 | Aug 24, 2026 | Phase 2 LoRA-aware edit prototype: not adopted — no sustained degradation advantage at ~75% higher cost; degradation traced to sequential edit chaining (re-encoding noise), not style drift; follow-up idea recorded: re-anchor edits to base image with accumulated prompts |
+| **2.0** | **Aug 24, 2026** | **Major strategy pivot**: dropped custom-trained style LoRAs as the MVP mechanism after `american-traditional-v1` produced unusable output; adopted reference-guided generation on Nano Banana 2 (primary) / Seedream 5.0 Pro (fallback) via fal.ai, validated by an Aug 24 image-to-image head-to-head showing production-ready results vs. failed text-to-image and failed LoRA output. Deleted the upscaler from the critical finalization path (NB2 native 4K covers most print sizes); dropped Ideogram from the plan and reversed ADR-005 (NB2 handles in-design typography). Replaced the LoRA Strategy section with the Style Capsule system: prompt template + curated reference library, Netflix-style pick-grid personalization, Claude Sonnet 5 (OpenRouter) attribute extraction with Gemini 3.7 Flash fallback (bake-off evidence in §12), centroid-anchor selection, two reference lanes (style vs. content), user-upload "Artist Visual Identity" pipeline. Re-anchor-to-base is now the always-on edit default (ADR-004 amended); ADR-002's fast/max tier split formally superseded — no tier split exists anywhere in the pipeline. Added ADR-006 (off-the-shelf frontier models over custom LoRAs) and ADR-007 (reference-guided Style Capsules). LoRA training re-scoped, not deleted — post-MVP artist-signature packs on partner-artist flash with written permission; existing trained artifacts ($12.80 spent) preserved as baseline evidence and their dataset repurposed as the Style Capsule reference library. Updated `styles`/`style_preferences` database schema (§9) and `app/src/lib/ai/falClient.ts` endpoint constants (§10) to match. |
+
+---
+
+**Owner**: Victor Bendas
+**Review Schedule**: Quarterly (next: November 2026)
