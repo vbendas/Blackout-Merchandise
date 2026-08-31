@@ -7,17 +7,18 @@ import { CLIENTS } from '@/lib/clients';
 // Every line targets this optical width; long names shrink to fit it,
 // short names hit MAX_FONT_REM and stay "huge" without spanning it.
 const TARGET_WIDTH = 'min(92vw, 1200px)';
-// Anton's uppercase glyphs average roughly 0.6em of advance width, so
-// fontSize = (targetWidth / chars) * WIDTH_FACTOR with WIDTH_FACTOR ~= 1/0.6
-// makes a fully-scaled name (one that never hits the clamp) land close to
-// TARGET_WIDTH regardless of its length. Tuned against the roster's
-// shortest (Void, 4 chars) and longest (Doing My Best Club, 18 chars) names.
-const WIDTH_FACTOR = 1.65;
+// Archivo Black's uppercase glyphs average roughly 0.72em of advance
+// width, so fontSize = (targetWidth / chars) * WIDTH_FACTOR with
+// WIDTH_FACTOR ~= 1/0.72 makes a fully-scaled name (one that never hits
+// the clamp) land close to TARGET_WIDTH regardless of its length.
+// Measured against the rendered roster: at 1.65 (the old Anton tuning)
+// "The Abysmalker" spanned 1433px of a 1440px viewport vs the 1200px target.
+const WIDTH_FACTOR = 1.38;
 const MAX_FONT_REM = 9.5;
 const MIN_FONT_REM = 2.2;
 
-const CLUSTER_WIDTH = 340;
-const CLUSTER_HEIGHT = 380;
+const CLUSTER_WIDTH = 280;
+const CLUSTER_HEIGHT = 350;
 const CLUSTER_GAP = 36;
 const VIEWPORT_MARGIN = 24;
 
@@ -123,7 +124,7 @@ export function ListView() {
             onBlur={() => handleBlur(index)}
             onClick={(e) => handleClick(index, e)}
             style={{
-              fontFamily: 'var(--font-anton), var(--font-jetbrains-mono), sans-serif',
+              fontFamily: 'var(--font-display), sans-serif',
               fontSize: fontSizeFor(client.name),
               lineHeight: 0.94,
               letterSpacing: '-0.015em',
@@ -160,7 +161,7 @@ export function ListView() {
               position: 'absolute',
               top: 0,
               left: 0,
-              width: 210,
+              width: CLUSTER_WIDTH,
               aspectRatio: '4 / 5',
               // Hairline so near-black photos separate from the black page
               outline: '1px solid color-mix(in srgb, var(--signal) 22%, transparent)',
@@ -170,26 +171,7 @@ export function ListView() {
               src={activeClient.images[0]}
               alt=""
               fill
-              sizes="210px"
-              style={{ objectFit: 'cover' }}
-            />
-          </div>
-          <div
-            style={{
-              position: 'absolute',
-              top: 110,
-              left: 150,
-              width: 190,
-              aspectRatio: '3 / 4',
-              transform: 'rotate(2deg)',
-              outline: '1px solid color-mix(in srgb, var(--signal) 22%, transparent)',
-            }}
-          >
-            <Image
-              src={activeClient.images[1]}
-              alt=""
-              fill
-              sizes="190px"
+              sizes="280px"
               style={{ objectFit: 'cover' }}
             />
           </div>

@@ -31,7 +31,7 @@ export function PageCorners({ current }: PageCornersProps) {
   );
 
   return (
-    <div className="font-mono text-[color:var(--signal)]">
+    <div className="text-[color:var(--signal)]">
       {/* Desktop */}
       <div className="hidden md:block">
         <a

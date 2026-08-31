@@ -22,7 +22,7 @@ const VIEW_OPTIONS: { mode: ViewMode; label: string }[] = [
  */
 export function Corners({ view, onViewChange }: CornersProps) {
   return (
-    <div className="font-mono text-[color:var(--signal)]">
+    <div className="text-[color:var(--signal)]">
       {/* Desktop layout */}
       <div className="hidden md:block">
         {/* mix-blend-mode: difference keeps the floating labels legible when

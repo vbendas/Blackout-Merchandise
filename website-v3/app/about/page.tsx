@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 const display = {
-  fontFamily: 'var(--font-anton), var(--font-jetbrains-mono), sans-serif',
+  fontFamily: 'var(--font-display), sans-serif',
 };
 
 export default function AboutPage() {
@@ -26,7 +26,7 @@ export default function AboutPage() {
       >
         <h1
           className="uppercase leading-[0.94]"
-          style={{ ...display, fontSize: 'clamp(3rem, 8vw, 8rem)' }}
+          style={{ ...display, fontSize: 'clamp(3rem, 6.5vw, 6.5rem)' }}
         >
           We&rsquo;re not for everyone.
         </h1>
@@ -34,7 +34,7 @@ export default function AboutPage() {
           className="uppercase leading-[0.94]"
           style={{
             ...display,
-            fontSize: 'clamp(3rem, 8vw, 8rem)',
+            fontSize: 'clamp(3rem, 6.5vw, 6.5rem)',
             color: 'color-mix(in srgb, var(--signal) 38%, transparent)',
           }}
         >
