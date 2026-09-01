@@ -119,6 +119,18 @@ a {
   animation: intro-draw 700ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+/* Scroll perf: off-screen cards skip layout/paint/style work until they
+   near the viewport. content-visibility: auto still lets the browser
+   compute intersection with the viewport (and its rootMargin-expanded
+   variant), so the IntersectionObserver entrance below still fires as
+   each card approaches — this only defers rendering, not visibility
+   detection. contain-intrinsic-size reserves space up front so the page
+   doesn't jump as cards' real size is measured. */
+.catalog-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 520px;
+}
+
 /* Catalog entrance: cards rise into place as they enter the viewport.
    The hidden state only applies once JS arms the container, so the grid
    is never invisible without a script to reveal it. */
@@ -143,33 +155,12 @@ a {
   transition: none;
 }
 
-/* Hover spotlight: while one card is hovered, the rest of the catalog
-   softens so the focused garment stands alone — blur marks what is NOT
-   in focus, the same vocabulary as the view switcher. Hover-capable
-   devices only; touch catalogs stay fully crisp. */
+/* While hovered, the card alternates front and back every ~2s so both
+   sides of the garment are seen hands-free. The two images animate in
+   opposite phase — they are transparent PNGs, so both must never be
+   opaque at once. On mouse-out the transition eases back to the front.
+   The 1s delay keeps a cursor merely passing over a card from flipping. */
 @media (hover: hover) {
-  .catalog-grid[data-armed] .catalog-card {
-    transition:
-      opacity 500ms ease,
-      filter 500ms ease,
-      transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  /* The 1s transition-delay is dwell intent: scrolling the page drags
-     the cursor across cards incidentally — the grid only softens once
-     the cursor has actually rested on a garment. Leaving hover returns
-     instantly (the base state carries no delay). */
-  .catalog-grid:has(.catalog-card:hover) .catalog-card:not(:hover) {
-    opacity: 0.35;
-    filter: blur(2px);
-    transition-delay: 1000ms;
-  }
-
-  /* While hovered, the card alternates front and back every ~2s so both
-     sides of the garment are seen hands-free. The two images animate in
-     opposite phase — they are transparent PNGs, so both must never be
-     opaque at once. On mouse-out the transition eases back to the front.
-     The 1s delay matches the spotlight's dwell intent. */
   .catalog-card:hover .flip-front {
     animation: flip-front 4s ease-in-out 1000ms infinite;
   }

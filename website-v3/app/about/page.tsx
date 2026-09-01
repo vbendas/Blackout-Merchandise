@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { PageCorners } from '@/components/PageCorners';
 
 export const metadata: Metadata = {
-  title: 'About — MERCHFROM®',
+  title: 'About',
   description:
     'MerchFrom started in 2017 as a screen-print shop in Barcelos, Portugal. Premium merchandise for artists, designed, printed and shipped in-house.',
 };

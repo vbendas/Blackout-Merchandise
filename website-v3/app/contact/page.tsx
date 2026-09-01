@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { PageCorners } from '@/components/PageCorners';
+import { SOCIALS } from '@/lib/socials';
 
 export const metadata: Metadata = {
-  title: 'Contact — MERCHFROM®',
+  title: 'Contact',
   description: 'Talk to MerchFrom — premium merchandise for artists, printed in-house in Barcelos, Portugal.',
 };
 
@@ -55,12 +56,17 @@ export default function ContactPage() {
           </div>
           <div className="flex flex-col gap-1 text-[13px] uppercase tracking-[0.08em] md:col-span-4">
             <span style={{ color: 'color-mix(in srgb, var(--signal) 50%, transparent)' }}>Elsewhere</span>
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" className="underline decoration-1 underline-offset-4">
-              Instagram
-            </a>
-            <a href="https://tiktok.com" target="_blank" rel="noreferrer" className="underline decoration-1 underline-offset-4">
-              TikTok
-            </a>
+            {SOCIALS.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-1 underline-offset-4"
+              >
+                {social.label}
+              </a>
+            ))}
           </div>
         </div>
       </main>

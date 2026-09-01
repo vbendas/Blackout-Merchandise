@@ -79,7 +79,7 @@ export function Corners({ view, onViewChange, indicateActive }: CornersProps) {
       {/* Mobile layout */}
       <div className="md:hidden">
         <div
-          className="fixed z-10 top-0 left-0 right-0 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[12px]"
+          className="mobile-corner-top fixed z-10 top-0 left-0 right-0 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[12px]"
           style={{
             paddingLeft: 'var(--gutter)',
             paddingRight: 'var(--gutter)',

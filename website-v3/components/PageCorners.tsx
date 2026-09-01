@@ -1,8 +1,8 @@
 import { RegisterMark } from '@/components/RegisterMark';
 
 interface PageCornersProps {
-  /** which top-right link is the current page — rendered blurred, per the site's active-state convention */
-  current: 'about' | 'contact' | 'waitlist';
+  /** which top-right link is the current page — rendered blurred, per the site's active-state convention. Omit when no page is current (e.g. the 404). */
+  current?: 'about' | 'contact' | 'waitlist';
 }
 
 // Static corner anchors for subpages: same frame as the home Corners but

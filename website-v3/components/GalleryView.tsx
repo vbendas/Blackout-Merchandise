@@ -41,6 +41,10 @@ export function GalleryView() {
   // mismatch), then Fisher-Yates shuffle after mount — same pattern as
   // GridView, so every visit gets a fresh hang of the wall.
   const [images, setImages] = useState<readonly WallPhoto[]>(ALL_IMAGES);
+  // The swap is CSS group-hover, which touch has no real equivalent for —
+  // a tap on a plain div doesn't trigger :hover. Track a tapped tile so
+  // touch users get the same swap, without disturbing the hover path.
+  const [tapped, setTapped] = useState<number | null>(null);
 
   useEffect(() => {
     setImages(shuffle(ALL_IMAGES));
@@ -63,10 +67,22 @@ export function GalleryView() {
         const alignRight = index % 2 === 1;
         const raggedTop = index % 4 === 0;
 
+        const isTapped = tapped === index;
+
         return (
           <div
             key={`${photo.src}-${index}`}
             className="group break-inside-avoid"
+            role="button"
+            tabIndex={0}
+            aria-label={`MerchFrom piece ${index + 1} — tap to see the other angle`}
+            onClick={() => setTapped((cur) => (cur === index ? null : index))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setTapped((cur) => (cur === index ? null : index));
+              }
+            }}
             style={{
               width,
               marginLeft: alignRight ? 'auto' : 0,
@@ -74,6 +90,7 @@ export function GalleryView() {
               marginTop: raggedTop ? '40px' : 0,
               animation: 'fade-in 550ms ease both',
               animationDelay: `${index * 35}ms`,
+              cursor: 'pointer',
             }}
           >
             <div className="relative w-full overflow-hidden" style={{ aspectRatio: aspect }}>
@@ -83,6 +100,7 @@ export function GalleryView() {
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover transition-opacity duration-500 ease-out group-hover:opacity-0"
+                style={{ opacity: isTapped ? 0 : undefined }}
               />
               <Image
                 src={photo.hover}
@@ -91,6 +109,7 @@ export function GalleryView() {
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+                style={{ opacity: isTapped ? 1 : undefined }}
               />
             </div>
           </div>

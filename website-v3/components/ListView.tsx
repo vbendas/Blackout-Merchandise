@@ -46,8 +46,14 @@ export function ListView() {
 
     const viewportW = window.innerWidth;
     const viewportH = window.innerHeight;
+    // Below the md breakpoint the reveal must also respect viewport
+    // height — otherwise it swells to nearly half the screen and, since
+    // its width is no longer bounded by REVEAL_MAX_WIDTH, ends up hugging
+    // the left edge instead of sitting inset like the desktop version.
+    const isMobile = viewportW < 768;
+    const maxWidth = isMobile ? Math.min(REVEAL_MAX_WIDTH, (viewportH * 0.42 * 4) / 5) : REVEAL_MAX_WIDTH;
 
-    const width = Math.min(REVEAL_MAX_WIDTH, viewportW - VIEWPORT_MARGIN * 2);
+    const width = Math.min(maxWidth, viewportW - VIEWPORT_MARGIN * 2);
     const height = (width * 5) / 4;
     const left = viewportW - width - VIEWPORT_MARGIN - 16;
     const top = Math.max(waitlistTop(viewportH) - WAITLIST_GAP - height, VIEWPORT_MARGIN);

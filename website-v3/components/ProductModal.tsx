@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Product } from '@/lib/products';
 import { PRODUCT_DETAILS, printTechniquesFor } from '@/lib/product-details';
 import { colourName } from '@/lib/colour-names';
+import { PRODUCT_VIDEOS } from '@/lib/product-videos';
 import {
   BASE_COLOUR,
   BASE_SWATCH,
@@ -22,6 +23,8 @@ const HAIRLINE = '1px solid color-mix(in srgb, var(--signal) 22%, transparent)';
 interface Thumb {
   src: string;
   alt: string;
+  /** an mp4 loop instead of a photo */
+  video?: boolean;
 }
 
 interface SpecRow {
@@ -33,11 +36,14 @@ export function ProductModal({
   product,
   onClose,
   restoreColour = null,
+  origin,
 }: {
   product: Product;
   onClose: () => void;
   /** the catalog's active colour filter — theme returns to it on close */
   restoreColour?: string | null;
+  /** the clicked card's image-area rect, for a FLIP entrance from it */
+  origin?: { x: number; y: number; width: number; height: number };
 }) {
   const details = PRODUCT_DETAILS[product.code];
   const name = details?.name ?? product.name;
@@ -47,6 +53,11 @@ export function ProductModal({
     { src: product.src, alt: `${product.code} — front` },
     ...(product.back ? [{ src: product.back, alt: `${product.code} — back` }] : []),
     ...product.details.map((src, i) => ({ src, alt: `${product.code} — detail ${i + 1}` })),
+    // Video loop last, base colourway only (the footage shows the black
+    // garment).
+    ...(PRODUCT_VIDEOS[product.code]
+      ? [{ src: PRODUCT_VIDEOS[product.code], alt: `${product.code} — video`, video: true }]
+      : []),
   ];
 
   const [selected, setSelected] = useState(0);
@@ -78,6 +89,11 @@ export function ProductModal({
 
   const dragStart = useRef<{ x: number; y: number } | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
+
+  // Sources whose main image has fired onLoad — the img itself stays
+  // invisible until then, so a slow-loading photo fades in instead of
+  // popping (the wrapper's own view-fade-in handles the photo switch).
+  const [loadedMain, setLoadedMain] = useState<Set<string>>(new Set());
 
   // Click-to-zoom on the main image: a true click (not a swipe) toggles
   // 2.2x zoom, centred on the click point. Photo nav or a colour change
@@ -120,7 +136,7 @@ export function ProductModal({
       return;
     }
 
-    if (isClick) {
+    if (isClick && !main.video) {
       const rect = e.currentTarget.getBoundingClientRect();
       setZoomOrigin({
         x: ((e.clientX - rect.left) / rect.width) * 100,
@@ -151,6 +167,43 @@ export function ProductModal({
       document.removeEventListener('keydown', onKeyDown);
       previouslyFocused.current?.focus();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // FLIP entrance: when opened from a clicked card, the panel starts at
+  // the card's image-area rect and settles into place. Mutated directly
+  // on the DOM node (not via the style prop) so React's own re-renders
+  // never fight this one-shot transition.
+  useEffect(() => {
+    if (!origin) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    const finalRect = panel.getBoundingClientRect();
+    const scaleX = origin.width / finalRect.width;
+    const scaleY = origin.height / finalRect.height;
+    const dx = origin.x - finalRect.left;
+    const dy = origin.y - finalRect.top;
+
+    panel.style.transformOrigin = 'top left';
+    panel.style.transition = 'none';
+    panel.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
+    panel.style.opacity = '0.4';
+
+    const rafId = requestAnimationFrame(() => {
+      // Force a style flush so the browser commits the initial
+      // (untransitioned) transform before the transition is enabled —
+      // otherwise both writes can coalesce into a single paint and the
+      // panel would just appear at its final position with no motion.
+      void panel.offsetWidth;
+      panel.style.transition =
+        'transform 500ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms cubic-bezier(0.22, 1, 0.36, 1)';
+      panel.style.transform = 'none';
+      panel.style.opacity = '1';
+    });
+
+    return () => cancelAnimationFrame(rafId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -277,29 +330,45 @@ export function ProductModal({
           position: 'relative',
         }}
       >
+        {/* 40px button box for a comfortable tap target; the 32px hairline
+            square stays the visual size, centered inside it. */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
           style={{
             position: 'absolute',
-            top: '16px',
-            right: '16px',
+            top: '12px',
+            right: '12px',
             zIndex: 1,
-            width: '32px',
-            height: '32px',
+            width: '40px',
+            height: '40px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            border: HAIRLINE,
-            background: 'var(--paper)',
-            color: 'var(--signal)',
+            border: 'none',
+            background: 'none',
+            padding: 0,
             cursor: 'pointer',
           }}
         >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-            <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="1.2" />
-          </svg>
+          <span
+            aria-hidden
+            style={{
+              display: 'flex',
+              width: '32px',
+              height: '32px',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: HAIRLINE,
+              background: 'var(--paper)',
+              color: 'var(--signal)',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+              <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="1.2" />
+            </svg>
+          </span>
         </button>
 
         {/* Left: imagery */}
@@ -326,41 +395,88 @@ export function ProductModal({
                 cursor: zoomed ? 'zoom-out' : 'zoom-in',
               }}
             >
-              <Image
-                src={main.src}
-                alt={main.alt}
-                fill
-                sizes="(max-width: 768px) 94vw, 55vw"
-                className="object-contain"
-                draggable={false}
-              />
+              {main.video ? (
+                <video
+                  src={main.src}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  aria-label={main.alt}
+                  draggable={false}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    opacity: loadedMain.has(main.src) ? 1 : 0,
+                    transition: 'opacity 400ms ease',
+                  }}
+                  onLoadedData={() =>
+                    setLoadedMain((prev) => (prev.has(main.src) ? prev : new Set(prev).add(main.src)))
+                  }
+                />
+              ) : (
+                <Image
+                  src={main.src}
+                  alt={main.alt}
+                  fill
+                  sizes="(max-width: 768px) 94vw, 55vw"
+                  className="object-contain"
+                  draggable={false}
+                  style={{
+                    opacity: loadedMain.has(main.src) ? 1 : 0,
+                    transition: 'opacity 400ms ease',
+                  }}
+                  onLoad={() =>
+                    setLoadedMain((prev) => (prev.has(main.src) ? prev : new Set(prev).add(main.src)))
+                  }
+                />
+              )}
             </div>
 
             {displayThumbs.length > 1 && (
               <>
+                {/* 40px button box for a comfortable tap target; the 32px
+                    hairline square stays the visual size, centered inside
+                    it and offset so it lands exactly where the plain 32px
+                    box used to sit. */}
                 <button
                   type="button"
                   aria-label="Previous photo"
                   onClick={() => nav(-1)}
                   style={{
                     position: 'absolute',
-                    left: '0',
+                    left: '-4px',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    width: '32px',
-                    height: '32px',
+                    width: '40px',
+                    height: '40px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    border: HAIRLINE,
-                    background: 'var(--paper)',
-                    color: 'var(--signal)',
+                    border: 'none',
+                    background: 'none',
+                    padding: 0,
                     cursor: 'pointer',
                   }}
                 >
-                  <svg width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden>
-                    <path d="M7 1L1.5 6L7 11" stroke="currentColor" strokeWidth="1.2" />
-                  </svg>
+                  <span
+                    aria-hidden
+                    style={{
+                      display: 'flex',
+                      width: '32px',
+                      height: '32px',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: HAIRLINE,
+                      background: 'var(--paper)',
+                      color: 'var(--signal)',
+                    }}
+                  >
+                    <svg width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden>
+                      <path d="M7 1L1.5 6L7 11" stroke="currentColor" strokeWidth="1.2" />
+                    </svg>
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -368,23 +484,37 @@ export function ProductModal({
                   onClick={() => nav(1)}
                   style={{
                     position: 'absolute',
-                    right: '0',
+                    right: '-4px',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    width: '32px',
-                    height: '32px',
+                    width: '40px',
+                    height: '40px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    border: HAIRLINE,
-                    background: 'var(--paper)',
-                    color: 'var(--signal)',
+                    border: 'none',
+                    background: 'none',
+                    padding: 0,
                     cursor: 'pointer',
                   }}
                 >
-                  <svg width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden>
-                    <path d="M1 1L6.5 6L1 11" stroke="currentColor" strokeWidth="1.2" />
-                  </svg>
+                  <span
+                    aria-hidden
+                    style={{
+                      display: 'flex',
+                      width: '32px',
+                      height: '32px',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: HAIRLINE,
+                      background: 'var(--paper)',
+                      color: 'var(--signal)',
+                    }}
+                  >
+                    <svg width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden>
+                      <path d="M1 1L6.5 6L1 11" stroke="currentColor" strokeWidth="1.2" />
+                    </svg>
+                  </span>
                 </button>
               </>
             )}
@@ -412,7 +542,35 @@ export function ProductModal({
                     transition: 'opacity 400ms ease, border-color 400ms ease',
                   }}
                 >
-                  <Image src={thumb.src} alt="" fill sizes="60px" className="object-contain" />
+                  {thumb.video ? (
+                    <>
+                      <video
+                        src={thumb.src}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        aria-hidden
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                      />
+                      <span
+                        aria-hidden
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'var(--signal)',
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden>
+                          <path d="M3 1.5L12 7L3 12.5V1.5Z" />
+                        </svg>
+                      </span>
+                    </>
+                  ) : (
+                    <Image src={thumb.src} alt="" fill sizes="60px" className="object-contain" />
+                  )}
                 </button>
               ))}
             </div>

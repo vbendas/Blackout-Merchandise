@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PRODUCTS, type Product } from '@/lib/products';
 import { ProductModal } from '@/components/ProductModal';
 import { colourName } from '@/lib/colour-names';
@@ -46,6 +46,12 @@ export function GridView() {
   const [products, setProducts] = useState<readonly Product[]>(PRODUCTS);
   const [armed, setArmed] = useState(false);
   const [open, setOpen] = useState<Product | null>(null);
+  const [origin, setOrigin] = useState<{ x: number; y: number; width: number; height: number } | undefined>(
+    undefined,
+  );
+  // Sources whose front image has fired onLoad — the image wrapper stays
+  // invisible until then, so garments fade in instead of popping.
+  const [loadedSrcs, setLoadedSrcs] = useState<Set<string>>(new Set());
   const [type, setType] = useState<string | null>(null);
   const [fit, setFit] = useState<string | null>(null);
   const [colour, setColour] = useState<string | null>(null);
@@ -63,12 +69,50 @@ export function GridView() {
     return () => document.removeEventListener('keydown', onKey);
   }, [openMenu]);
 
+  // The Colour panel is a fixed-width swatch grid anchored left:0 to its
+  // trigger. On narrow screens a long Type/Fit selection can push that
+  // trigger far enough right that the panel — left where it is — runs
+  // past the viewport edge (a filter combination easy to hit, not an
+  // edge case). Clamp it back on-screen after layout, before paint.
+  const colourTriggerRef = useRef<HTMLDivElement>(null);
+  const colourPanelRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (openMenu !== 'colour') return;
+    const trigger = colourTriggerRef.current;
+    const panel = colourPanelRef.current;
+    if (!trigger || !panel) return;
+    const reposition = () => {
+      const triggerRect = trigger.getBoundingClientRect();
+      const gutter =
+        parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gutter')) || 24;
+      const overflow = triggerRect.left + panel.offsetWidth - (window.innerWidth - gutter);
+      panel.style.left = overflow > 0 ? `${-overflow}px` : '0px';
+    };
+    reposition();
+    window.addEventListener('resize', reposition);
+    return () => window.removeEventListener('resize', reposition);
+  }, [openMenu]);
+
   function pick(setter: (v: string | null) => void, value: string | null) {
     setFiltersTouched(true);
     setter(value);
     setOpenMenu(null);
   }
   const rootRef = useRef<HTMLDivElement>(null);
+
+  // Opens the modal and captures the clicked card's image-area rect so
+  // the modal can FLIP-animate outward from it. The image area is the
+  // card's first child (the aspect-ratio div).
+  function openProduct(product: Product, card: HTMLElement) {
+    const imageArea = card.firstElementChild as HTMLElement | null;
+    if (imageArea) {
+      const rect = imageArea.getBoundingClientRect();
+      setOrigin({ x: rect.left, y: rect.top, width: rect.width, height: rect.height });
+    } else {
+      setOrigin(undefined);
+    }
+    setOpen(product);
+  }
 
   // Contrast: a light colour filter flips the Catalog to the soft
   // charcoal theme so pale garments never sit on the pale ground. The
@@ -264,7 +308,10 @@ export function GridView() {
           </div>
         ))}
 
-        <div style={{ position: 'relative', zIndex: openMenu === 'colour' ? 30 : undefined }}>
+        <div
+          ref={colourTriggerRef}
+          style={{ position: 'relative', zIndex: openMenu === 'colour' ? 30 : undefined }}
+        >
           <button
             type="button"
             aria-expanded={openMenu === 'colour'}
@@ -289,7 +336,12 @@ export function GridView() {
             {caret(openMenu === 'colour')}
           </button>
           {openMenu === 'colour' && (
-            <div style={{ ...panel, padding: '14px 16px', minWidth: '0' }} className="view-fade-in" role="menu">
+            <div
+              ref={colourPanelRef}
+              style={{ ...panel, padding: '14px 16px', minWidth: '0' }}
+              className="view-fade-in"
+              role="menu"
+            >
               <button
                 type="button"
                 role="menuitem"
@@ -390,50 +442,55 @@ export function GridView() {
             role="button"
             tabIndex={0}
             aria-label={`${product.code} — details`}
-            onClick={() => setOpen(product)}
+            onClick={(e) => openProduct(product, e.currentTarget)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                setOpen(product);
+                openProduct(product, e.currentTarget);
               }
             }}
           >
             <div className="relative w-full" style={{ aspectRatio: '4 / 5' }}>
               {/* Inset so the garment never touches its cell — the ground
                   breathes around every product. */}
-              <div className="absolute inset-[9%]">
-                {(() => {
-                  const frontSrc = showVariant ? variantSrc(product.code, colour as string) : product.src;
-                  const backSrc = showVariant
-                    ? VARIANT_BACKS[product.code]?.includes(colour as string)
-                      ? variantBackSrc(product.code, colour as string)
-                      : null
-                    : (product.back ?? null);
-                  return (
-                    <>
+              {(() => {
+                const frontSrc = showVariant ? variantSrc(product.code, colour as string) : product.src;
+                const backSrc = showVariant
+                  ? VARIANT_BACKS[product.code]?.includes(colour as string)
+                    ? variantBackSrc(product.code, colour as string)
+                    : null
+                  : (product.back ?? null);
+                const loaded = loadedSrcs.has(frontSrc);
+                return (
+                  <div
+                    className="absolute inset-[9%]"
+                    style={{ opacity: loaded ? 1 : 0, transition: 'opacity 400ms ease' }}
+                  >
+                    <Image
+                      src={frontSrc}
+                      alt={`${product.code} — front`}
+                      fill
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className={`object-contain transition-opacity duration-500 ease-out ${
+                        backSrc ? 'flip-front' : ''
+                      }`}
+                      onLoad={() =>
+                        setLoadedSrcs((prev) => (prev.has(frontSrc) ? prev : new Set(prev).add(frontSrc)))
+                      }
+                    />
+                    {backSrc && (
                       <Image
-                        src={frontSrc}
-                        alt={`${product.code} — front`}
+                        src={backSrc}
+                        alt=""
+                        aria-hidden
                         fill
                         sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        className={`object-contain transition-opacity duration-500 ease-out ${
-                          backSrc ? 'flip-front' : ''
-                        }`}
+                        className="flip-back object-contain opacity-0 transition-opacity duration-500 ease-out"
                       />
-                      {backSrc && (
-                        <Image
-                          src={backSrc}
-                          alt=""
-                          aria-hidden
-                          fill
-                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          className="flip-back object-contain opacity-0 transition-opacity duration-500 ease-out"
-                        />
-                      )}
-                    </>
-                  );
-                })()}
-              </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
             <div className="mt-5 text-center text-[13px] tracking-[0.06em]">
               <span className="font-bold">{product.code}</span>
@@ -449,7 +506,17 @@ export function GridView() {
           </div>
         ))}
       </div>
-      {open && <ProductModal product={open} onClose={() => setOpen(null)} restoreColour={colour} />}
+      {open && (
+        <ProductModal
+          product={open}
+          onClose={() => {
+            setOpen(null);
+            setOrigin(undefined);
+          }}
+          restoreColour={colour}
+          origin={origin}
+        />
+      )}
     </>
   );
 }

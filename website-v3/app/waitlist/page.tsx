@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { PageCorners } from '@/components/PageCorners';
 import { PRODUCTS } from '@/lib/products';
 import { PRODUCT_DETAILS } from '@/lib/product-details';
 import { colourName } from '@/lib/colour-names';
+import { submitWaitlist } from './actions';
 
 const HAIRLINE = '1px solid color-mix(in srgb, var(--signal) 22%, transparent)';
 
@@ -24,6 +25,8 @@ export default function WaitlistPage() {
   const [project, setProject] = useState<ProjectContext | null>(null);
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -40,8 +43,19 @@ export default function WaitlistPage() {
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // PLACEHOLDER — wire to the real waitlist backend
-    setSubmitted(true);
+    setError(null);
+    startTransition(async () => {
+      const result = await submitWaitlist({
+        email,
+        product: project?.code,
+        colour: project?.colour ?? undefined,
+      });
+      if (result.ok) {
+        setSubmitted(true);
+      } else {
+        setError(result.error ?? 'Something went wrong — try again.');
+      }
+    });
   }
 
   return (
@@ -108,38 +122,55 @@ export default function WaitlistPage() {
               Noted — we will be in touch.
             </p>
           ) : (
-            <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row">
-              <input
-                type="email"
-                required
-                placeholder="YOUR EMAIL"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 bg-transparent uppercase placeholder:text-[color-mix(in_srgb,var(--signal)_50%,transparent)]"
-                style={{
-                  border: HAIRLINE,
-                  padding: '14px',
-                  fontSize: '13px',
-                  letterSpacing: '0.08em',
-                  color: 'var(--signal)',
-                }}
-              />
-              <button
-                type="submit"
-                className="uppercase transition-colors duration-500 hover:bg-[color-mix(in_srgb,var(--signal)_8%,transparent)]"
-                style={{
-                  border: HAIRLINE,
-                  padding: '14px 24px',
-                  fontSize: '13px',
-                  letterSpacing: '0.08em',
-                  cursor: 'pointer',
-                  background: 'transparent',
-                  color: 'var(--signal)',
-                }}
-              >
-                Apply
-              </button>
-            </form>
+            <>
+              <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row">
+                <input
+                  type="email"
+                  required
+                  placeholder="YOUR EMAIL"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isPending}
+                  className="flex-1 bg-transparent uppercase placeholder:text-[color-mix(in_srgb,var(--signal)_50%,transparent)] disabled:opacity-50"
+                  style={{
+                    border: HAIRLINE,
+                    padding: '14px',
+                    fontSize: '13px',
+                    letterSpacing: '0.08em',
+                    color: 'var(--signal)',
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="uppercase transition-colors duration-500 hover:bg-[color-mix(in_srgb,var(--signal)_8%,transparent)] disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{
+                    border: HAIRLINE,
+                    padding: '14px 24px',
+                    fontSize: '13px',
+                    letterSpacing: '0.08em',
+                    cursor: 'pointer',
+                    background: 'transparent',
+                    color: 'var(--signal)',
+                  }}
+                >
+                  {isPending ? 'Applying…' : 'Apply'}
+                </button>
+              </form>
+              {error && (
+                <p
+                  className="uppercase"
+                  style={{
+                    fontSize: '13px',
+                    letterSpacing: '0.08em',
+                    marginTop: '12px',
+                    color: 'var(--signal)',
+                  }}
+                >
+                  {error}
+                </p>
+              )}
+            </>
           )}
         </div>
       </main>
