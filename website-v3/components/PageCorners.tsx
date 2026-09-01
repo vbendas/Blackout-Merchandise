@@ -31,16 +31,16 @@ export function PageCorners({ current }: PageCornersProps) {
   );
 
   return (
-    <div className="text-[color:var(--signal)]">
+    <div className="text-[color:var(--signal)]" style={{ fontWeight: 500 }}>
       {/* Desktop */}
       <div className="hidden md:block">
         <a
           href="/"
-          className="fixed z-10 flex items-center gap-2 text-sm"
+          aria-label="MerchFrom — home"
+          className="fixed z-10 flex items-center text-sm"
           style={{ top: '24px', left: 'var(--gutter)', mixBlendMode: 'difference' }}
         >
-          <RegisterMark className="h-5 w-5" />
-          <span>MerchFrom</span>
+          <RegisterMark className="h-6 w-6" />
         </a>
 
         <nav
@@ -78,9 +78,13 @@ export function PageCorners({ current }: PageCornersProps) {
             background: 'var(--paper)',
           }}
         >
-          <a href="/" className="flex items-center gap-1.5" style={{ minHeight: '40px' }}>
-            <RegisterMark className="h-4 w-4" />
-            <span>MerchFrom</span>
+          <a
+            href="/"
+            aria-label="MerchFrom — home"
+            className="flex items-center"
+            style={{ minHeight: '40px' }}
+          >
+            <RegisterMark className="h-5 w-5" />
           </a>
 
           <nav className="flex items-center gap-3">{nav('')}</nav>

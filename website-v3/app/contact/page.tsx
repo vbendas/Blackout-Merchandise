@@ -28,7 +28,7 @@ export default function ContactPage() {
       >
         <h1
           className="uppercase leading-[0.94]"
-          style={{ ...display, fontSize: 'clamp(3rem, 6.5vw, 6.5rem)' }}
+          style={{ ...display, fontSize: 'clamp(3rem, 8vw, 8rem)' }}
         >
           Say hello.
         </h1>
@@ -37,7 +37,7 @@ export default function ContactPage() {
           className="uppercase leading-[0.94] transition-[filter] duration-200 hover:blur-[3px]"
           style={{
             ...display,
-            fontSize: 'clamp(2rem, 4.4vw, 4.4rem)',
+            fontSize: 'clamp(2rem, 5.5vw, 5.5rem)',
             color: 'color-mix(in srgb, var(--signal) 38%, transparent)',
           }}
         >

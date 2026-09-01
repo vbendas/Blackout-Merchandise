@@ -10,7 +10,7 @@ interface CornersProps {
 
 const VIEW_OPTIONS: { mode: ViewMode; label: string }[] = [
   { mode: 'list', label: 'List' },
-  { mode: 'grid', label: 'Grid' },
+  { mode: 'grid', label: 'Catalog' },
   { mode: 'gallery', label: 'Gallery' },
 ];
 
@@ -22,19 +22,24 @@ const VIEW_OPTIONS: { mode: ViewMode; label: string }[] = [
  */
 export function Corners({ view, onViewChange }: CornersProps) {
   return (
-    <div className="text-[color:var(--signal)]">
-      {/* Desktop layout */}
-      <div className="hidden md:block">
+    // The reference sets its UI text in the Medium weight
+    <div className="text-[color:var(--signal)]" style={{ fontWeight: 500 }}>
+      {/* Desktop layout. Color is pinned, not var(--signal): these anchors
+          render through mix-blend-mode difference, which inverts them
+          against whatever is behind — cream stays cream on black, flips to
+          near-black on the light Catalog ground. A token-driven color
+          would be double-inverted into camouflage in light mode. */}
+      <div className="hidden md:block" style={{ color: '#ede4dd' }}>
         {/* mix-blend-mode: difference keeps the floating labels legible when
             Grid/Gallery images scroll beneath them — cream stays cream on
             black, and self-inverts to dark over bright photos. */}
         <a
           href="/"
-          className="fixed z-10 flex items-center gap-2 text-sm"
+          aria-label="MerchFrom — home"
+          className="fixed z-10 flex items-center text-sm"
           style={{ top: '24px', left: 'var(--gutter)', mixBlendMode: 'difference' }}
         >
-          <RegisterMark className="h-5 w-5" />
-          <span>MerchFrom</span>
+          <RegisterMark className="h-6 w-6" />
         </a>
 
         <div
@@ -78,15 +83,16 @@ export function Corners({ view, onViewChange }: CornersProps) {
             paddingTop: '8px',
             paddingBottom: '8px',
             background: 'var(--paper)',
+            transition: 'background-color 800ms ease',
           }}
         >
           <a
             href="/"
-            className="flex items-center gap-1.5"
+            aria-label="MerchFrom — home"
+            className="flex items-center"
             style={{ minHeight: '40px' }}
           >
-            <RegisterMark className="h-4 w-4" />
-            <span>MerchFrom</span>
+            <RegisterMark className="h-5 w-5" />
           </a>
 
           <div className="flex items-center" style={{ minHeight: '40px' }}>
@@ -111,6 +117,7 @@ export function Corners({ view, onViewChange }: CornersProps) {
             paddingTop: '8px',
             paddingBottom: '8px',
             background: 'var(--paper)',
+            transition: 'background-color 800ms ease',
           }}
         >
           <span className="opacity-60" style={{ lineHeight: '40px' }}>
@@ -135,7 +142,7 @@ function ViewSwitcher({ view, onViewChange }: CornersProps) {
             type="button"
             onClick={() => onViewChange(mode)}
             aria-pressed={view === mode}
-            className="cursor-pointer transition-[filter] duration-200"
+            className="cursor-pointer transition-[filter] duration-300"
             style={{
               filter: view === mode ? 'blur(3px)' : 'none',
               opacity: view === mode ? 1 : 0.6,

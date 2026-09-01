@@ -1,17 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #000000;
+  /* Warm near-black instead of pure #000 — reads as ink on paper,
+     not a switched-off screen. */
+  --paper: #0d0b0a;
   --signal: #ede4dd;
   --nav-h: 72px;
   --gutter: 40px;
+  /* UI face: the reference licenses Neue Haas Grotesk Text Pro (the
+     restored original Helvetica, commercial). Helvetica Neue ships as a
+     system font on Apple devices — this stack renders the genuine
+     Helvetica look there and falls back to Arial elsewhere. */
+  --font-ui: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 @theme inline {
   --color-paper: var(--paper);
   --color-signal: var(--signal);
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-archivo-black);
+  --font-sans: var(--font-ui);
+  --font-display: var(--font-oswald);
+}
+
+/* Catalog view flips the site to light mode: the tokens invert, and
+   everything derived from them follows. Body animates the swap; the
+   blend-difference corner labels invert continuously with it. */
+:root[data-mode='light'] {
+  --paper: #ede4dd;
+  --signal: #0d0b0a;
 }
 
 @media (max-width: 768px) {
@@ -33,8 +48,10 @@ body {
 body {
   background: var(--paper);
   color: var(--signal);
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;
+  /* Theme switch: the whole page dissolves between dark and light. */
+  transition: background-color 800ms ease, color 800ms ease;
 }
 
 ::selection {
@@ -65,8 +82,49 @@ a {
   }
 }
 
+
 .view-fade-in {
-  animation: fade-in 300ms ease both;
+  animation: fade-in 450ms ease both;
+}
+
+/* Route change: each page fades in over the paper ground. No fill-mode:
+   a retained opacity animation would leave this wrapper as a permanent
+   stacking context, trapping the corners' mix-blend-mode difference in
+   an isolated group where it blends against transparency — white-on-white
+   labels in the light Catalog theme. With no fill the stacking context
+   dissolves the moment the entrance ends. */
+.route-fade {
+  animation: fade-in 500ms ease;
+}
+
+/* First-load intro: the registration mark draws itself, stroke by
+   stroke, before the page is revealed. */
+@keyframes intro-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.intro-stroke {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: intro-draw 700ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Catalog entrance: cards rise into place as they enter the viewport.
+   The hidden state only applies once JS arms the container, so the grid
+   is never invisible without a script to reveal it. */
+[data-armed] .catalog-card {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 600ms ease,
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-armed] .catalog-card.catalog-card-in {
+  opacity: 1;
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

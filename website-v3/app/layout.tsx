@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
-import { Archivo_Black, Inter } from "next/font/google";
+import { Oswald } from "next/font/google";
+import { SmoothScroll } from "@/components/SmoothScroll";
 import "./globals.css";
 
-const archivoBlack = Archivo_Black({
-  variable: "--font-archivo-black",
+// Display face. The reference site licenses Founders Grotesk Condensed
+// Bold (Klim Type Foundry, commercial); Oswald Bold is the closest
+// openly-licensed condensed grotesk. Swap in the real Founders files
+// here if/when a webfont license is purchased.
+const oswald = Oswald({
+  variable: "--font-oswald",
   subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+  weight: "700",
   display: "swap",
 });
 
@@ -25,9 +24,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${archivoBlack.variable} ${inter.variable} h-full antialiased`}
+      className={`${oswald.variable} antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      {/* No height pin on <html>: Lenis watches the root element's box to
+          recompute its scroll limit, and height:100% would freeze it at
+          viewport height — capping scroll at whatever view loaded first. */}
+      <body className="min-h-screen">
+        <SmoothScroll />
+        {children}
+      </body>
     </html>
   );
 }

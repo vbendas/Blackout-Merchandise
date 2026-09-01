@@ -1,59 +1,101 @@
+'use client';
+
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 import { CLIENTS } from '@/lib/clients';
 
-interface FlatImage {
+// The full contact sheet — every photo of every client, not one per
+// client. Each client carries two shots under /gallery/; every tile
+// knows its counterpart so hover can swap between the pair.
+interface WallPhoto {
   src: string;
-  clientName: string;
+  hover: string;
 }
 
-// One thumbnail per piece, not per photo — each client's images are the
-// same garment shot twice (packshot + worn), so flattening both produced
-// back-to-back duplicates. The contact sheet shows the primary shot only.
-function flattenImages(): FlatImage[] {
-  return CLIENTS.map((client) => ({ src: client.images[0], clientName: client.name }));
+function flattenImages(): WallPhoto[] {
+  return CLIENTS.flatMap((client) => [
+    { src: client.images[0], hover: client.images[1] },
+    { src: client.images[1], hover: client.images[0] },
+  ]);
 }
+
+function shuffle<T>(arr: readonly T[]): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+// Deterministic chaos: each photo's shape and width are derived from its
+// post-shuffle index, cycling through a handful of aspect ratios and
+// column widths so the wall reads as hand-hung rather than gridded.
+const ASPECT_RATIOS = ['4/5', '3/4', '1/1', '4/5', '5/7', '3/4'];
+const WIDTHS = ['100%', '88%', '94%'];
+
+const ALL_IMAGES = flattenImages();
 
 export function GalleryView() {
-  const images = flattenImages();
+  // Server-render in source order (deterministic, no hydration
+  // mismatch), then Fisher-Yates shuffle after mount — same pattern as
+  // GridView, so every visit gets a fresh hang of the wall.
+  const [images, setImages] = useState<readonly WallPhoto[]>(ALL_IMAGES);
+
+  useEffect(() => {
+    setImages(shuffle(ALL_IMAGES));
+  }, []);
 
   return (
     <div
-      className="grid grid-cols-2 gap-x-12 gap-y-24 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+      className="columns-1 sm:columns-2 lg:columns-3"
       style={{
+        columnGap: '20px',
         paddingLeft: 'var(--gutter)',
         paddingRight: 'var(--gutter)',
         paddingTop: '48px',
         paddingBottom: '48px',
       }}
     >
-      {images.map((image, index) => (
-        <div key={`${image.src}-${index}`} className="flex flex-col items-center">
+      {images.map((photo, index) => {
+        const aspect = ASPECT_RATIOS[index % ASPECT_RATIOS.length];
+        const width = WIDTHS[index % WIDTHS.length];
+        const alignRight = index % 2 === 1;
+        const raggedTop = index % 4 === 0;
+
+        return (
           <div
-            className="relative overflow-hidden"
+            key={`${photo.src}-${index}`}
+            className="group break-inside-avoid"
             style={{
-              aspectRatio: '4/5',
-              height: '180px',
-              maxHeight: '180px',
-              width: 'auto',
-              maxWidth: '100%',
+              width,
+              marginLeft: alignRight ? 'auto' : 0,
+              marginBottom: '20px',
+              marginTop: raggedTop ? '40px' : 0,
+              animation: 'fade-in 550ms ease both',
+              animationDelay: `${index * 35}ms`,
             }}
           >
-            <Image
-              src={image.src}
-              alt={`${image.clientName} merch`}
-              fill
-              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
-              className="object-cover transition-transform duration-300 ease-out hover:scale-[1.02]"
-            />
+            <div className="relative w-full overflow-hidden" style={{ aspectRatio: aspect }}>
+              <Image
+                src={photo.src}
+                alt={`MerchFrom piece ${index + 1}`}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover transition-opacity duration-500 ease-out group-hover:opacity-0"
+              />
+              <Image
+                src={photo.hover}
+                alt=""
+                aria-hidden
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+              />
+            </div>
           </div>
-          <p
-            className="text-center"
-            style={{ marginTop: '12px', fontSize: '13px', letterSpacing: '0.06em' }}
-          >
-            {String(index + 1).padStart(3, '0')}
-          </p>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

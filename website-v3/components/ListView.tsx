@@ -1,36 +1,40 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CLIENTS } from '@/lib/clients';
 
-// Every line targets this optical width; long names shrink to fit it,
-// short names hit MAX_FONT_REM and stay "huge" without spanning it.
-const TARGET_WIDTH = 'min(92vw, 1200px)';
-// Archivo Black's uppercase glyphs average roughly 0.72em of advance
-// width, so fontSize = (targetWidth / chars) * WIDTH_FACTOR with
-// WIDTH_FACTOR ~= 1/0.72 makes a fully-scaled name (one that never hits
-// the clamp) land close to TARGET_WIDTH regardless of its length.
-// Measured against the rendered roster: at 1.65 (the old Anton tuning)
-// "The Abysmalker" spanned 1433px of a 1440px viewport vs the 1200px target.
-const WIDTH_FACTOR = 1.38;
-const MAX_FONT_REM = 9.5;
-const MIN_FONT_REM = 2.2;
+// One uniform size for every line, like the reference — short names are
+// simply narrower. Longest roster name (18 chars) still fits the
+// viewport at this size in Oswald Bold's condensed caps.
+const NAME_FONT_SIZE = 'clamp(2.6rem, 7.1vw, 8rem)';
 
-const CLUSTER_WIDTH = 280;
-const CLUSTER_HEIGHT = 350;
-const CLUSTER_GAP = 36;
+// Reveal image: one large photo anchored to the bottom-right of the
+// viewport, the way the reference places it. Shrinks on small screens.
+// Its bottom edge sits exactly WAITLIST_GAP above the Waitlist corner
+// link, measured live so it holds at any viewport size or resolution.
+const REVEAL_MAX_WIDTH = 440;
 const VIEWPORT_MARGIN = 24;
+const WAITLIST_GAP = 15;
+
+// Top of the visible Waitlist corner link (there are two in the DOM,
+// desktop + mobile; the hidden one measures 0×0). Falls back to the
+// viewport bottom margin when none is measurable.
+function waitlistTop(viewportH: number): number {
+  const links = document.querySelectorAll('a[href="/waitlist"]');
+  for (const link of links) {
+    const rect = link.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) return rect.top;
+  }
+  return viewportH - VIEWPORT_MARGIN;
+}
 
 interface ClusterState {
   index: number;
   top: number;
   left: number;
-}
-
-function fontSizeFor(name: string): string {
-  const chars = Math.max(name.length, 1);
-  return `clamp(${MIN_FONT_REM}rem, calc(${TARGET_WIDTH} / ${chars} * ${WIDTH_FACTOR}), ${MAX_FONT_REM}rem)`;
+  width: number;
+  height: number;
 }
 
 export function ListView() {
@@ -38,23 +42,30 @@ export function ListView() {
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   function computeState(index: number): ClusterState | null {
-    const el = itemRefs.current[index];
-    if (!el || typeof window === 'undefined') return null;
+    if (typeof window === 'undefined') return null;
 
-    const rect = el.getBoundingClientRect();
     const viewportW = window.innerWidth;
     const viewportH = window.innerHeight;
-    const centerX = viewportW / 2;
-    const isEven = index % 2 === 0;
 
-    let left = isEven ? centerX + CLUSTER_GAP : centerX - CLUSTER_GAP - CLUSTER_WIDTH;
-    left = Math.min(Math.max(left, VIEWPORT_MARGIN), viewportW - CLUSTER_WIDTH - VIEWPORT_MARGIN);
+    const width = Math.min(REVEAL_MAX_WIDTH, viewportW - VIEWPORT_MARGIN * 2);
+    const height = (width * 5) / 4;
+    const left = viewportW - width - VIEWPORT_MARGIN - 16;
+    const top = Math.max(waitlistTop(viewportH) - WAITLIST_GAP - height, VIEWPORT_MARGIN);
 
-    let top = rect.top + rect.height / 2 - CLUSTER_HEIGHT / 2;
-    top = Math.min(Math.max(top, VIEWPORT_MARGIN), viewportH - CLUSTER_HEIGHT - VIEWPORT_MARGIN);
-
-    return { index, top, left };
+    return { index, top, left, width, height };
   }
+
+  // Keep the 10px gap to the Waitlist link intact if the window is
+  // resized while a reveal is open.
+  useEffect(() => {
+    if (!active) return;
+    const onResize = () => {
+      setActive((cur) => (cur ? computeState(cur.index) : cur));
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active !== null]);
 
   function handleEnter(index: number) {
     setActive(computeState(index));
@@ -74,7 +85,10 @@ export function ListView() {
 
   function handleClick(index: number, e: React.MouseEvent<HTMLDivElement>) {
     e.stopPropagation();
-    setActive((cur) => (cur && cur.index === index ? null : computeState(index)));
+    // Always open, never toggle: on touch devices a tap fires
+    // mouseenter (opens) then click — a toggle here would close it
+    // again instantly. Tapping elsewhere closes via the root onClick.
+    setActive(computeState(index));
   }
 
   const activeClient = active ? CLIENTS[active.index] : null;
@@ -97,8 +111,8 @@ export function ListView() {
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes list-view-cluster-fade {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from { opacity: 0; transform: scale(1.035); }
+          to { opacity: 1; transform: scale(1); }
         }
         .list-view-name:focus-visible {
           outline: 2px solid var(--signal);
@@ -125,7 +139,7 @@ export function ListView() {
             onClick={(e) => handleClick(index, e)}
             style={{
               fontFamily: 'var(--font-display), sans-serif',
-              fontSize: fontSizeFor(client.name),
+              fontSize: NAME_FONT_SIZE,
               lineHeight: 0.94,
               letterSpacing: '-0.015em',
               color: 'var(--signal)',
@@ -133,9 +147,9 @@ export function ListView() {
               textAlign: 'center',
               cursor: 'pointer',
               filter: isBlurred ? 'blur(8px)' : 'none',
-              transition: 'filter 250ms ease',
-              animation: 'list-view-fade-up 520ms ease-out both',
-              animationDelay: `${index * 40}ms`,
+              transition: 'filter 400ms ease',
+              animation: 'list-view-fade-up 650ms ease-out both',
+              animationDelay: `${index * 55}ms`,
             }}
           >
             {client.name}
@@ -149,32 +163,22 @@ export function ListView() {
             position: 'fixed',
             top: active.top,
             left: active.left,
-            width: CLUSTER_WIDTH,
-            height: CLUSTER_HEIGHT,
+            width: active.width,
+            height: active.height,
             pointerEvents: 'none',
             zIndex: 50,
-            animation: 'list-view-cluster-fade 250ms ease both',
+            animation: 'list-view-cluster-fade 450ms cubic-bezier(0.22, 1, 0.36, 1) both',
+            // Hairline so near-black photos separate from the black page
+            outline: '1px solid color-mix(in srgb, var(--signal) 22%, transparent)',
           }}
         >
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: CLUSTER_WIDTH,
-              aspectRatio: '4 / 5',
-              // Hairline so near-black photos separate from the black page
-              outline: '1px solid color-mix(in srgb, var(--signal) 22%, transparent)',
-            }}
-          >
-            <Image
-              src={activeClient.images[0]}
-              alt=""
-              fill
-              sizes="280px"
-              style={{ objectFit: 'cover' }}
-            />
-          </div>
+          <Image
+            src={activeClient.images[0]}
+            alt=""
+            fill
+            sizes="440px"
+            style={{ objectFit: 'cover' }}
+          />
         </div>
       )}
     </div>
