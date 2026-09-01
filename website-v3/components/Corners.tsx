@@ -6,10 +6,13 @@ import type { ViewMode } from '@/lib/clients';
 interface CornersProps {
   view: ViewMode;
   onViewChange: (view: ViewMode) => void;
+  /** blur the active view's label — off until the user has switched
+      views once, so the home tab isn't blurred on arrival */
+  indicateActive: boolean;
 }
 
 const VIEW_OPTIONS: { mode: ViewMode; label: string }[] = [
-  { mode: 'list', label: 'List' },
+  { mode: 'list', label: 'Partners' },
   { mode: 'grid', label: 'Catalog' },
   { mode: 'gallery', label: 'Gallery' },
 ];
@@ -20,7 +23,7 @@ const VIEW_OPTIONS: { mode: ViewMode; label: string }[] = [
  * no backgrounds — just text floating on black, positioned with the
  * shared --gutter token.
  */
-export function Corners({ view, onViewChange }: CornersProps) {
+export function Corners({ view, onViewChange, indicateActive }: CornersProps) {
   return (
     // The reference sets its UI text in the Medium weight
     <div className="text-[color:var(--signal)]" style={{ fontWeight: 500 }}>
@@ -46,7 +49,7 @@ export function Corners({ view, onViewChange }: CornersProps) {
           className="fixed z-10 left-1/2 -translate-x-1/2 flex items-center text-sm"
           style={{ top: '24px', mixBlendMode: 'difference' }}
         >
-          <ViewSwitcher view={view} onViewChange={onViewChange} />
+          <ViewSwitcher view={view} onViewChange={onViewChange} indicateActive={indicateActive} />
         </div>
 
         <nav
@@ -96,7 +99,7 @@ export function Corners({ view, onViewChange }: CornersProps) {
           </a>
 
           <div className="flex items-center" style={{ minHeight: '40px' }}>
-            <ViewSwitcher view={view} onViewChange={onViewChange} />
+            <ViewSwitcher view={view} onViewChange={onViewChange} indicateActive={indicateActive} />
           </div>
 
           <nav className="flex items-center gap-3" style={{ minHeight: '40px' }}>
@@ -132,7 +135,7 @@ export function Corners({ view, onViewChange }: CornersProps) {
   );
 }
 
-function ViewSwitcher({ view, onViewChange }: CornersProps) {
+function ViewSwitcher({ view, onViewChange, indicateActive }: CornersProps) {
   return (
     <>
       {VIEW_OPTIONS.map(({ mode, label }, index) => (
@@ -144,7 +147,7 @@ function ViewSwitcher({ view, onViewChange }: CornersProps) {
             aria-pressed={view === mode}
             className="cursor-pointer transition-[filter] duration-300"
             style={{
-              filter: view === mode ? 'blur(3px)' : 'none',
+              filter: view === mode && indicateActive ? 'blur(3px)' : 'none',
               opacity: view === mode ? 1 : 0.6,
               padding: '10px 2px',
             }}

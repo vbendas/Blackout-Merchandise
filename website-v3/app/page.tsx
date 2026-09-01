@@ -19,11 +19,16 @@ function applyMode(next: ViewMode) {
 
 export default function Home() {
   const [view, setView] = useState<ViewMode>('list');
+  // The blur-as-active-tab signifier only earns its meaning once the
+  // user has actually switched views; on first load the home tab
+  // (Partners) stays crisp.
+  const [hasSwitched, setHasSwitched] = useState(false);
 
   // Catalog (grid) runs in light mode; the body's 600ms color
   // transition dissolves the whole page between dark and light.
   function changeView(next: ViewMode) {
     if (next === view) return;
+    setHasSwitched(true);
     setView(next);
   }
 
@@ -37,7 +42,7 @@ export default function Home() {
   return (
     <>
       <Intro />
-      <Corners view={view} onViewChange={changeView} />
+      <Corners view={view} onViewChange={changeView} indicateActive={hasSwitched} />
       <main
         style={{
           paddingTop: 'clamp(72px, 10vw, 96px)',

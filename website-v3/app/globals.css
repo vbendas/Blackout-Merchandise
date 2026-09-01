@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  /* Warm near-black instead of pure #000 — reads as ink on paper,
-     not a switched-off screen. */
-  --paper: #0d0b0a;
+  /* Warm charcoal ground — softer than near-black, same tone the
+     Catalog's dark state uses, so the whole site shares one dark. */
+  --paper: #221f1c;
   --signal: #ede4dd;
   --nav-h: 72px;
   --gutter: 40px;
@@ -27,6 +27,14 @@
 :root[data-mode='light'] {
   --paper: #ede4dd;
   --signal: #0d0b0a;
+}
+
+/* Soft dark for the Catalog and product modal when light garments need a
+   dark ground: a warm charcoal instead of the main page's near-black, so
+   white products read comfortably rather than harshly. */
+:root[data-mode='charcoal'] {
+  --paper: #221f1c;
+  --signal: #ede4dd;
 }
 
 @media (max-width: 768px) {
@@ -127,9 +135,84 @@ a {
   transform: none;
 }
 
+/* Once a filter has been touched, results appear immediately — the
+   entrance stagger is for the first arrival only, not for re-filtering. */
+[data-armed][data-filters-touched] .catalog-card {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* Hover spotlight: while one card is hovered, the rest of the catalog
+   softens so the focused garment stands alone — blur marks what is NOT
+   in focus, the same vocabulary as the view switcher. Hover-capable
+   devices only; touch catalogs stay fully crisp. */
+@media (hover: hover) {
+  .catalog-grid[data-armed] .catalog-card {
+    transition:
+      opacity 500ms ease,
+      filter 500ms ease,
+      transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* The 1s transition-delay is dwell intent: scrolling the page drags
+     the cursor across cards incidentally — the grid only softens once
+     the cursor has actually rested on a garment. Leaving hover returns
+     instantly (the base state carries no delay). */
+  .catalog-grid:has(.catalog-card:hover) .catalog-card:not(:hover) {
+    opacity: 0.35;
+    filter: blur(2px);
+    transition-delay: 1000ms;
+  }
+
+  /* While hovered, the card alternates front and back every ~2s so both
+     sides of the garment are seen hands-free. The two images animate in
+     opposite phase — they are transparent PNGs, so both must never be
+     opaque at once. On mouse-out the transition eases back to the front.
+     The 1s delay matches the spotlight's dwell intent. */
+  .catalog-card:hover .flip-front {
+    animation: flip-front 4s ease-in-out 1000ms infinite;
+  }
+
+  .catalog-card:hover .flip-back {
+    animation: flip-back 4s ease-in-out 1000ms infinite;
+  }
+}
+
+@keyframes flip-front {
+  0%, 100% {
+    opacity: 1;
+  }
+  12.5%, 50% {
+    opacity: 0;
+  }
+  62.5% {
+    opacity: 1;
+  }
+}
+
+@keyframes flip-back {
+  0%, 100% {
+    opacity: 0;
+  }
+  12.5%, 50% {
+    opacity: 1;
+  }
+  62.5% {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001s !important;
     transition-duration: 0.001s !important;
+  }
+
+  /* An infinite alternating animation at near-zero duration would
+     strobe — exactly what reduced-motion users must not get. */
+  .flip-front,
+  .flip-back {
+    animation: none !important;
   }
 }

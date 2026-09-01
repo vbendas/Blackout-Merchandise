@@ -5,6 +5,17 @@ import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import type { Product } from '@/lib/products';
 import { PRODUCT_DETAILS, printTechniquesFor } from '@/lib/product-details';
+import { colourName } from '@/lib/colour-names';
+import {
+  BASE_COLOUR,
+  BASE_SWATCH,
+  COLOUR_SWATCHES,
+  VARIANTS,
+  VARIANT_BACKS,
+  isLightColour,
+  variantBackSrc,
+  variantSrc,
+} from '@/lib/variants';
 
 const HAIRLINE = '1px solid color-mix(in srgb, var(--signal) 22%, transparent)';
 
@@ -18,7 +29,16 @@ interface SpecRow {
   value: ReactNode;
 }
 
-export function ProductModal({ product, onClose }: { product: Product; onClose: () => void }) {
+export function ProductModal({
+  product,
+  onClose,
+  restoreColour = null,
+}: {
+  product: Product;
+  onClose: () => void;
+  /** the catalog's active colour filter — theme returns to it on close */
+  restoreColour?: string | null;
+}) {
   const details = PRODUCT_DETAILS[product.code];
   const name = details?.name ?? product.name;
   const techniques = printTechniquesFor(product.code);
@@ -30,7 +50,88 @@ export function ProductModal({ product, onClose }: { product: Product; onClose: 
   ];
 
   const [selected, setSelected] = useState(0);
+  // Colourways: base black plus the converted variants, if any.
+  const colours = [BASE_COLOUR, ...(VARIANTS[product.code] ?? [])];
+  const [colourSel, setColourSel] = useState(BASE_COLOUR);
+  const showingVariant = colourSel !== BASE_COLOUR;
+
+  // The whole photo set follows the selected colour: base shows
+  // front/back/details, a variant shows its own front and back.
+  const variantThumbs: Thumb[] = showingVariant
+    ? [
+        { src: variantSrc(product.code, colourSel), alt: `${product.code} — ${colourSel} front` },
+        ...(VARIANT_BACKS[product.code]?.includes(colourSel)
+          ? [{ src: variantBackSrc(product.code, colourSel), alt: `${product.code} — ${colourSel} back` }]
+          : []),
+      ]
+    : [];
+  const displayThumbs = showingVariant ? variantThumbs : thumbs;
+  const main = displayThumbs[Math.min(selected, displayThumbs.length - 1)];
   const panelRef = useRef<HTMLDivElement>(null);
+
+  // Photo navigation: arrows, arrow keys, and drag/swipe on the image.
+  const nav = (delta: number) => {
+    const len = displayThumbs.length;
+    if (len < 2) return;
+    setSelected((s) => (Math.min(s, len - 1) + delta + len) % len);
+  };
+
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
+
+  // Click-to-zoom on the main image: a true click (not a swipe) toggles
+  // 2.2x zoom, centred on the click point. Photo nav or a colour change
+  // resets it (see the effect below); a click while zoomed un-zooms.
+  const [zoomed, setZoomed] = useState(false);
+  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
+
+  useEffect(() => {
+    setZoomed(false);
+  }, [selected, colourSel]);
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    // Don't hijack the arrow buttons: capturing their pointer would
+    // retarget the pointerup and swallow the click.
+    if ((e.target as HTMLElement).closest('button')) return;
+    dragStart.current = { x: e.clientX, y: e.clientY };
+    if (!zoomed) e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (dragStart.current === null || zoomed) return;
+    // While zoomed, drag/swipe navigation is disabled entirely — this
+    // early return keeps panning gestures from switching photos.
+    if (displayThumbs.length < 2) return;
+    const dx = e.clientX - dragStart.current.x;
+    setDragOffset(Math.max(-80, Math.min(80, dx)));
+  }
+
+  function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    if (dragStart.current === null) return;
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+    dragStart.current = null;
+    setDragOffset(0);
+    const isClick = Math.abs(dx) < 8 && Math.abs(dy) < 8;
+
+    if (zoomed) {
+      // Any true click while zoomed resets zoom; swipes stay inert.
+      if (isClick) setZoomed(false);
+      return;
+    }
+
+    if (isClick) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setZoomOrigin({
+        x: ((e.clientX - rect.left) / rect.width) * 100,
+        y: ((e.clientY - rect.top) / rect.height) * 100,
+      });
+      setZoomed(true);
+      return;
+    }
+
+    if (displayThumbs.length > 1 && Math.abs(dx) > 60) nav(dx < 0 ? 1 : -1);
+  }
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -53,7 +154,63 @@ export function ProductModal({ product, onClose }: { product: Product; onClose: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Contrast: light garments vanish on the light Catalog ground, so the
+  // selected colour drives the theme — light colour, soft charcoal page
+  // (never the main page's harder near-black). On close the theme
+  // returns to whatever the catalog's colour filter implies.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.mode = isLightColour(colourSel) ? 'charcoal' : 'light';
+    return () => {
+      root.dataset.mode = restoreColour && isLightColour(restoreColour) ? 'charcoal' : 'light';
+    };
+  }, [colourSel, restoreColour]);
+
+  useEffect(() => {
+    const len = displayThumbs.length;
+    if (len < 2) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'ArrowRight') setSelected((s) => (Math.min(s, len - 1) + 1) % len);
+      if (e.key === 'ArrowLeft') setSelected((s) => (Math.min(s, len - 1) - 1 + len) % len);
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [displayThumbs.length]);
+
   const rows: SpecRow[] = [];
+  if (colours.length > 1) {
+    rows.push({
+      label: 'Colours',
+      value: (
+        <span style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'flex-end' }}>
+          {colours.map((c) => (
+            <button
+              key={c}
+              type="button"
+              aria-label={`Colour ${colourName(c)}`}
+              aria-pressed={colourSel === c}
+              title={colourName(c)}
+              onClick={() => {
+                setColourSel(c);
+                setSelected(0);
+              }}
+              style={{
+                width: '16px',
+                height: '16px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                background: c === BASE_COLOUR ? BASE_SWATCH : (COLOUR_SWATCHES[c] ?? '#888'),
+                border: HAIRLINE,
+                outline: colourSel === c ? '1px solid var(--signal)' : 'none',
+                outlineOffset: '3px',
+                padding: 0,
+              }}
+            />
+          ))}
+        </span>
+      ),
+    });
+  }
   if (details?.composition) rows.push({ label: 'Composition', value: details.composition });
   if (details?.weightGsm) rows.push({ label: 'Weight', value: `${details.weightGsm} g/m²` });
   if (details?.fit) rows.push({ label: 'Fit', value: details.fit });
@@ -147,19 +304,95 @@ export function ProductModal({ product, onClose }: { product: Product; onClose: 
 
         {/* Left: imagery */}
         <div className="md:w-[55%]" style={{ padding: '24px' }}>
-          <div key={selected} className="view-fade-in relative w-full" style={{ aspectRatio: '4 / 5' }}>
-            <Image
-              src={thumbs[selected].src}
-              alt={thumbs[selected].alt}
-              fill
-              sizes="(max-width: 768px) 94vw, 55vw"
-              className="object-contain"
-            />
+          <div
+            className="relative w-full overflow-hidden"
+            style={{ aspectRatio: '4 / 5', touchAction: 'pan-y' }}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+          >
+            <div
+              key={`${selected}-${colourSel}`}
+              className="view-fade-in relative h-full w-full"
+              style={{
+                transform: zoomed ? 'scale(2.2)' : `translateX(${dragOffset}px)`,
+                transformOrigin: zoomed ? `${zoomOrigin.x}% ${zoomOrigin.y}%` : '50% 50%',
+                transition: zoomed
+                  ? 'transform 400ms ease'
+                  : dragStart.current === null
+                    ? 'transform 300ms ease'
+                    : 'none',
+                cursor: zoomed ? 'zoom-out' : 'zoom-in',
+              }}
+            >
+              <Image
+                src={main.src}
+                alt={main.alt}
+                fill
+                sizes="(max-width: 768px) 94vw, 55vw"
+                className="object-contain"
+                draggable={false}
+              />
+            </div>
+
+            {displayThumbs.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Previous photo"
+                  onClick={() => nav(-1)}
+                  style={{
+                    position: 'absolute',
+                    left: '0',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: HAIRLINE,
+                    background: 'var(--paper)',
+                    color: 'var(--signal)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <svg width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden>
+                    <path d="M7 1L1.5 6L7 11" stroke="currentColor" strokeWidth="1.2" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next photo"
+                  onClick={() => nav(1)}
+                  style={{
+                    position: 'absolute',
+                    right: '0',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: HAIRLINE,
+                    background: 'var(--paper)',
+                    color: 'var(--signal)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <svg width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden>
+                    <path d="M1 1L6.5 6L1 11" stroke="currentColor" strokeWidth="1.2" />
+                  </svg>
+                </button>
+              </>
+            )}
           </div>
 
-          {thumbs.length > 1 && (
+          {displayThumbs.length > 1 && (
             <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
-              {thumbs.map((thumb, i) => (
+              {displayThumbs.map((thumb, i) => (
                 <button
                   key={thumb.src}
                   type="button"
@@ -265,6 +498,20 @@ export function ProductModal({ product, onClose }: { product: Product; onClose: 
               </div>
             ))}
           </div>
+
+          <a
+            href={`/waitlist?product=${product.code}&colour=${colourSel}`}
+            className="block w-full text-center transition-colors duration-500 hover:bg-[color-mix(in_srgb,var(--signal)_8%,transparent)]"
+            style={{
+              textTransform: 'uppercase',
+              fontSize: '13px',
+              letterSpacing: '0.08em',
+              padding: '14px',
+              border: HAIRLINE,
+            }}
+          >
+            Start a project with this blank
+          </a>
         </div>
       </div>
     </div>

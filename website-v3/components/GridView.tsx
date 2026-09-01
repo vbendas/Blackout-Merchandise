@@ -4,6 +4,31 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { PRODUCTS, type Product } from '@/lib/products';
 import { ProductModal } from '@/components/ProductModal';
+import { colourName } from '@/lib/colour-names';
+import { fitFor, matchesSearch, typeFor } from '@/lib/catalog-filters';
+import {
+  BASE_COLOUR,
+  BASE_SWATCH,
+  COLOUR_ORDER,
+  COLOUR_SWATCHES,
+  VARIANTS,
+  VARIANT_BACKS,
+  isLightColour,
+  variantBackSrc,
+  variantSrc,
+} from '@/lib/variants';
+
+const TYPE_ORDER = ['T-shirts', 'Sweats & Hoodies', 'Jackets', 'Polos', 'Shirts', 'Bottoms', 'Bags & Accessories', 'Kids & Baby'];
+const HAIRLINE = '1px solid color-mix(in srgb, var(--signal) 22%, transparent)';
+const FIT_ORDER = ['Medium', 'Relaxed', 'Fitted', 'Oversized'];
+
+const TYPES = TYPE_ORDER.filter((t) => PRODUCTS.some((p) => typeFor(p.code) === t));
+const FITS = FIT_ORDER.filter((f) => PRODUCTS.some((p) => fitFor(p.code) === f));
+const COLOURS = [BASE_COLOUR, ...COLOUR_ORDER];
+
+function swatchFor(colour: string): string {
+  return colour === BASE_COLOUR ? BASE_SWATCH : (COLOUR_SWATCHES[colour] ?? '#888');
+}
 
 function shuffle<T>(arr: readonly T[]): T[] {
   const copy = [...arr];
@@ -21,12 +46,105 @@ export function GridView() {
   const [products, setProducts] = useState<readonly Product[]>(PRODUCTS);
   const [armed, setArmed] = useState(false);
   const [open, setOpen] = useState<Product | null>(null);
+  const [type, setType] = useState<string | null>(null);
+  const [fit, setFit] = useState<string | null>(null);
+  const [colour, setColour] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [filtersTouched, setFiltersTouched] = useState(false);
+  const [openMenu, setOpenMenu] = useState<'type' | 'fit' | 'colour' | null>(null);
+  const [urlReady, setUrlReady] = useState(false);
+
+  useEffect(() => {
+    if (!openMenu) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenMenu(null);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [openMenu]);
+
+  function pick(setter: (v: string | null) => void, value: string | null) {
+    setFiltersTouched(true);
+    setter(value);
+    setOpenMenu(null);
+  }
   const rootRef = useRef<HTMLDivElement>(null);
+
+  // Contrast: a light colour filter flips the Catalog to the soft
+  // charcoal theme so pale garments never sit on the pale ground. The
+  // main page's harder near-black stays reserved for the List view.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.mode = colour && isLightColour(colour) ? 'charcoal' : 'light';
+  }, [colour]);
+
+  const showVariant = colour !== null && colour !== BASE_COLOUR;
+  const filtered = products.filter(
+    (p) =>
+      (!type || typeFor(p.code) === type) &&
+      (!fit || fitFor(p.code) === fit) &&
+      (!showVariant || VARIANTS[p.code]?.includes(colour as string)) &&
+      matchesSearch(p.code, query),
+  );
 
   useEffect(() => {
     setProducts(shuffle(PRODUCTS));
     setArmed(true);
   }, []);
+
+  // URL state, read once on mount: type/fit only when the value is one
+  // of the available options, colour only when it's the base colour or
+  // a known variant, q verbatim, product opens the matching modal.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    let touched = false;
+
+    const t = params.get('type');
+    if (t && TYPES.includes(t)) {
+      setType(t);
+      touched = true;
+    }
+    const f = params.get('fit');
+    if (f && FITS.includes(f)) {
+      setFit(f);
+      touched = true;
+    }
+    const c = params.get('colour');
+    if (c && (c === BASE_COLOUR || COLOUR_ORDER.includes(c))) {
+      setColour(c);
+      touched = true;
+    }
+    const q = params.get('q');
+    if (q) {
+      setQuery(q);
+      touched = true;
+    }
+    const productCode = params.get('product');
+    if (productCode) {
+      const found = PRODUCTS.find((p) => p.code === productCode);
+      if (found) setOpen(found);
+    }
+
+    if (touched) setFiltersTouched(true);
+    setUrlReady(true);
+  }, []);
+
+  // Keep the URL in sync with filter/search/modal state, without
+  // triggering a navigation or re-render (replaceState only). Gated on
+  // urlReady so the initial read above always wins over this effect's
+  // first pass.
+  useEffect(() => {
+    if (!urlReady) return;
+    const params = new URLSearchParams();
+    if (type) params.set('type', type);
+    if (fit) params.set('fit', fit);
+    if (colour) params.set('colour', colour);
+    if (query) params.set('q', query);
+    if (open) params.set('product', open.code);
+    const qs = params.toString();
+    const url = `${window.location.pathname}${qs ? `?${qs}` : ''}`;
+    window.history.replaceState(null, '', url);
+  }, [type, fit, colour, query, open, urlReady]);
 
   // Entrance stagger: each card rises in as it enters the viewport,
   // once. The 'in' class survives React re-renders because className
@@ -38,6 +156,10 @@ export function GridView() {
         for (const entry of entries) {
           if (entry.isIntersecting) {
             entry.target.classList.add('catalog-card-in');
+            // The inline stagger delay has done its job once the card is
+            // in; clearing it lets the stylesheet's hover-spotlight
+            // transition-delay take over (inline style would beat it).
+            (entry.target as HTMLElement).style.transitionDelay = '';
             io.unobserve(entry.target);
           }
         }
@@ -48,19 +170,223 @@ export function GridView() {
     return () => io.disconnect();
   }, [armed, products]);
 
+  const trigger: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '12px',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    background: 'none',
+    border: 'none',
+    padding: '6px 0',
+    cursor: 'pointer',
+    color: 'var(--signal)',
+  };
+
+  const panel: React.CSSProperties = {
+    position: 'absolute',
+    top: 'calc(100% + 10px)',
+    left: 0,
+    zIndex: 30,
+    background: 'var(--paper)',
+    border: HAIRLINE,
+    padding: '10px 0',
+    minWidth: '200px',
+  };
+
+  const option = (active: boolean): React.CSSProperties => ({
+    display: 'block',
+    width: '100%',
+    textAlign: 'left',
+    fontSize: '12px',
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    background: 'none',
+    border: 'none',
+    padding: '8px 16px',
+    cursor: 'pointer',
+    color: 'var(--signal)',
+    opacity: active ? 1 : 0.6,
+    fontWeight: active ? 700 : 400,
+  });
+
+  const caret = (open: boolean) => (
+    <svg
+      width="9"
+      height="6"
+      viewBox="0 0 9 6"
+      fill="none"
+      aria-hidden
+      style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 300ms ease' }}
+    >
+      <path d="M1 1L4.5 5L8 1" stroke="currentColor" strokeWidth="1.1" />
+    </svg>
+  );
+
   return (
     <>
+      {openMenu && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 20 }} onClick={() => setOpenMenu(null)} />
+      )}
+
+      <div
+        className="mb-12 flex flex-wrap items-center gap-x-10 gap-y-2"
+        style={{ paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)' }}
+      >
+        {[
+          { key: 'type' as const, label: 'Type', options: TYPES, active: type, set: setType },
+          { key: 'fit' as const, label: 'Fit', options: FITS, active: fit, set: setFit },
+        ].map((menu) => (
+          <div key={menu.key} style={{ position: 'relative', zIndex: openMenu === menu.key ? 30 : undefined }}>
+            <button
+              type="button"
+              aria-expanded={openMenu === menu.key}
+              style={trigger}
+              onClick={() => setOpenMenu(openMenu === menu.key ? null : menu.key)}
+            >
+              <span style={{ color: 'color-mix(in srgb, var(--signal) 50%, transparent)' }}>{menu.label}</span>
+              <span style={{ fontWeight: 700 }}>{menu.active ?? 'All'}</span>
+              {caret(openMenu === menu.key)}
+            </button>
+            {openMenu === menu.key && (
+              <div style={panel} className="view-fade-in" role="menu">
+                <button type="button" role="menuitem" style={option(menu.active === null)} onClick={() => pick(menu.set, null)}>
+                  All
+                </button>
+                {menu.options.map((opt) => (
+                  <button key={opt} type="button" role="menuitem" style={option(menu.active === opt)} onClick={() => pick(menu.set, opt)}>
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+
+        <div style={{ position: 'relative', zIndex: openMenu === 'colour' ? 30 : undefined }}>
+          <button
+            type="button"
+            aria-expanded={openMenu === 'colour'}
+            style={trigger}
+            onClick={() => setOpenMenu(openMenu === 'colour' ? null : 'colour')}
+          >
+            <span style={{ color: 'color-mix(in srgb, var(--signal) 50%, transparent)' }}>Colour</span>
+            {colour ? (
+              <span
+                aria-hidden
+                style={{
+                  width: '14px',
+                  height: '14px',
+                  borderRadius: '50%',
+                  background: swatchFor(colour),
+                  border: '1px solid color-mix(in srgb, var(--signal) 30%, transparent)',
+                }}
+              />
+            ) : (
+              <span style={{ fontWeight: 700 }}>All</span>
+            )}
+            {caret(openMenu === 'colour')}
+          </button>
+          {openMenu === 'colour' && (
+            <div style={{ ...panel, padding: '14px 16px', minWidth: '0' }} className="view-fade-in" role="menu">
+              <button
+                type="button"
+                role="menuitem"
+                style={{ ...option(colour === null), padding: '0 0 12px 0' }}
+                onClick={() => pick(setColour, null)}
+              >
+                All colours
+              </button>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(8, 22px)',
+                  gap: '10px',
+                }}
+              >
+                {COLOURS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    role="menuitem"
+                    aria-label={`Colour ${colourName(c)}`}
+                    aria-pressed={colour === c}
+                    title={`Colour ${colourName(c)}`}
+                    onClick={() => pick(setColour, c)}
+                    style={{
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '50%',
+                      cursor: 'pointer',
+                      background: swatchFor(c),
+                      border: '1px solid color-mix(in srgb, var(--signal) 30%, transparent)',
+                      outline: colour === c ? '1px solid var(--signal)' : 'none',
+                      outlineOffset: '2px',
+                      padding: 0,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => {
+            setFiltersTouched(true);
+            setQuery(e.target.value);
+          }}
+          placeholder="Search"
+          aria-label="Search products"
+          style={{
+            fontSize: '12px',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            background: 'none',
+            border: 'none',
+            borderBottom: HAIRLINE,
+            padding: '6px 0',
+            width: '160px',
+            color: 'var(--signal)',
+            outline: 'none',
+          }}
+        />
+      </div>
+
+      {filtered.length === 0 && (
+        <p
+          style={{
+            paddingLeft: 'var(--gutter)',
+            paddingRight: 'var(--gutter)',
+            fontSize: '14px',
+            color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
+          }}
+        >
+          Nothing matches this combination.
+        </p>
+      )}
+
       <div
         ref={rootRef}
         data-armed={armed || undefined}
-        className="grid grid-cols-2 gap-x-6 gap-y-16 md:grid-cols-3 lg:grid-cols-4"
+        data-filters-touched={filtersTouched || undefined}
+        className="catalog-grid grid grid-cols-2 gap-x-6 gap-y-16 md:grid-cols-3 lg:grid-cols-4"
         style={{ paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)' }}
       >
-        {products.map((product, i) => (
+        {filtered.map((product, i) => (
           <div
             key={product.code}
             className="catalog-card group"
-            style={{ transitionDelay: `${(i % 4) * 70}ms`, cursor: 'pointer' }}
+            style={{
+              // Entrance stagger only — once filters are in play the
+              // cards appear instantly, and an inline delay would
+              // override the hover-spotlight's stylesheet delay.
+              transitionDelay: filtersTouched ? undefined : `${(i % 4) * 70}ms`,
+              cursor: 'pointer',
+            }}
             role="button"
             tabIndex={0}
             aria-label={`${product.code} — details`}
@@ -76,25 +402,37 @@ export function GridView() {
               {/* Inset so the garment never touches its cell — the ground
                   breathes around every product. */}
               <div className="absolute inset-[9%]">
-                <Image
-                  src={product.src}
-                  alt={`${product.code} — front`}
-                  fill
-                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className={`object-contain transition-opacity duration-500 ease-out ${
-                    product.back ? 'group-hover:opacity-0' : ''
-                  }`}
-                />
-                {product.back && (
-                  <Image
-                    src={product.back}
-                    alt=""
-                    aria-hidden
-                    fill
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-contain opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
-                  />
-                )}
+                {(() => {
+                  const frontSrc = showVariant ? variantSrc(product.code, colour as string) : product.src;
+                  const backSrc = showVariant
+                    ? VARIANT_BACKS[product.code]?.includes(colour as string)
+                      ? variantBackSrc(product.code, colour as string)
+                      : null
+                    : (product.back ?? null);
+                  return (
+                    <>
+                      <Image
+                        src={frontSrc}
+                        alt={`${product.code} — front`}
+                        fill
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        className={`object-contain transition-opacity duration-500 ease-out ${
+                          backSrc ? 'flip-front' : ''
+                        }`}
+                      />
+                      {backSrc && (
+                        <Image
+                          src={backSrc}
+                          alt=""
+                          aria-hidden
+                          fill
+                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          className="flip-back object-contain opacity-0 transition-opacity duration-500 ease-out"
+                        />
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
             <div className="mt-5 text-center text-[13px] tracking-[0.06em]">
@@ -111,7 +449,7 @@ export function GridView() {
           </div>
         ))}
       </div>
-      {open && <ProductModal product={open} onClose={() => setOpen(null)} />}
+      {open && <ProductModal product={open} onClose={() => setOpen(null)} restoreColour={colour} />}
     </>
   );
 }

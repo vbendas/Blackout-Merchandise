@@ -2,7 +2,7 @@ import { RegisterMark } from '@/components/RegisterMark';
 
 interface PageCornersProps {
   /** which top-right link is the current page — rendered blurred, per the site's active-state convention */
-  current: 'about' | 'contact';
+  current: 'about' | 'contact' | 'waitlist';
 }
 
 // Static corner anchors for subpages: same frame as the home Corners but
@@ -59,8 +59,14 @@ export function PageCorners({ current }: PageCornersProps) {
 
         <a
           href="/waitlist"
+          aria-current={current === 'waitlist' ? 'page' : undefined}
           className="fixed z-10 text-sm"
-          style={{ bottom: '24px', right: 'var(--gutter)', mixBlendMode: 'difference' }}
+          style={{
+            bottom: '24px',
+            right: 'var(--gutter)',
+            mixBlendMode: 'difference',
+            filter: current === 'waitlist' ? 'blur(3px)' : 'none',
+          }}
         >
           Waitlist
         </a>
@@ -103,7 +109,12 @@ export function PageCorners({ current }: PageCornersProps) {
           <span className="opacity-60" style={{ lineHeight: '40px' }}>
             Merch for artists — Barcelos, PT
           </span>
-          <a href="/waitlist" className="flex items-center" style={{ minHeight: '40px' }}>
+          <a
+            href="/waitlist"
+            aria-current={current === 'waitlist' ? 'page' : undefined}
+            className="flex items-center"
+            style={{ minHeight: '40px', filter: current === 'waitlist' ? 'blur(3px)' : 'none' }}
+          >
             Waitlist
           </a>
         </div>
