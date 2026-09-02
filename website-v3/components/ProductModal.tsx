@@ -3,11 +3,15 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import type { Product } from '@/lib/products';
+import { PRODUCTS, type Product } from '@/lib/products';
 import { PRODUCT_DETAILS, printTechniquesFor } from '@/lib/product-details';
 import { PRINT_AREAS } from '@/lib/print-areas';
 import { colourName } from '@/lib/colour-names';
 import { PRODUCT_VIDEOS } from '@/lib/product-videos';
+import { SIZE_GUIDES, type SizeGuide } from '@/lib/size-guides';
+import { useFavourites } from '@/lib/favourites';
+import { typeFor } from '@/lib/catalog-filters';
+import { techniqueKey, useT } from '@/lib/i18n';
 import {
   BASE_COLOUR,
   BASE_SWATCH,
@@ -29,8 +33,131 @@ interface Thumb {
 }
 
 interface SpecRow {
+  /** stable, untranslated identifier — never rendered, used to key rows and pick out the Sizes row */
+  id: string;
   label: string;
   value: ReactNode;
+  /** folded under the mobile 'Details' toggle; always shown on md and up */
+  collapsible?: boolean;
+}
+
+function SizeGuideTable({ guide }: { guide: SizeGuide }) {
+  const t = useT();
+  const [entered, setEntered] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  );
+
+  useEffect(() => {
+    if (entered) return;
+    const rafId = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(rafId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const cell: React.CSSProperties = {
+    border: HAIRLINE,
+    padding: '6px 10px',
+    fontSize: '12px',
+    fontVariantNumeric: 'tabular-nums',
+    textAlign: 'left',
+    whiteSpace: 'nowrap',
+  };
+
+  return (
+    <div
+      className="overflow-x-auto"
+      style={{
+        marginTop: '10px',
+        opacity: entered ? 1 : 0,
+        transform: entered ? 'none' : 'translateY(6px)',
+        transition: 'opacity 300ms ease, transform 300ms ease',
+      }}
+    >
+      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+        <thead>
+          <tr>
+            <th style={cell}>{t('common.size')}</th>
+            {guide.columns.map((column) => (
+              <th key={column} style={cell}>
+                {column}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {guide.rows.map((row) => (
+            <tr key={row.size}>
+              <td style={cell}>{row.size}</td>
+              {row.values.map((value, i) => (
+                <td key={i} style={cell}>
+                  {value}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="opacity-[.62]" style={{ fontSize: '11px', marginTop: '6px' }}>
+        {t('modal.measurementsIn', { unit: guide.unit })}
+      </div>
+    </div>
+  );
+}
+
+function RelatedStrip({
+  products,
+  onOpenProduct,
+}: {
+  products: Product[];
+  onOpenProduct: (code: string) => void;
+}) {
+  const t = useT();
+  return (
+    <div>
+      <span
+        style={{
+          fontSize: '12px',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
+        }}
+      >
+        {t('common.related')}
+      </span>
+      <div
+        className="flex gap-3 overflow-x-auto"
+        style={{ marginTop: '10px', paddingBottom: '4px', scrollbarWidth: 'none' }}
+      >
+        {products.map((p) => (
+          <button
+            key={p.code}
+            type="button"
+            onClick={() => onOpenProduct(p.code)}
+            className="w-20 flex-shrink-0 md:w-24"
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+          >
+            <div className="relative aspect-square w-full" style={{ border: HAIRLINE }}>
+              <div className="absolute inset-[9%]">
+                <Image src={p.src} alt="" fill sizes="96px" className="object-contain" />
+              </div>
+            </div>
+            <div
+              className="opacity-[.62]"
+              style={{
+                fontSize: '11px',
+                textTransform: 'uppercase',
+                textAlign: 'center',
+                marginTop: '6px',
+                lineHeight: 1.3,
+              }}
+            >
+              {PRODUCT_DETAILS[p.code]?.name ?? p.name}
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export function ProductModal({
@@ -41,6 +168,7 @@ export function ProductModal({
   onPrevProduct,
   onNextProduct,
   position,
+  onOpenProduct,
 }: {
   product: Product;
   onClose: () => void;
@@ -53,19 +181,68 @@ export function ProductModal({
   onNextProduct?: () => void;
   /** this product's 0-based index and the total count in the displayed order */
   position?: { index: number; total: number };
+  /** opens another product in this modal; the Related strip hides without it */
+  onOpenProduct?: (code: string) => void;
 }) {
+  const t = useT();
   const details = PRODUCT_DETAILS[product.code];
   const name = details?.name ?? product.name;
   const techniques = printTechniquesFor(product.code);
+  const sizeGuide = SIZE_GUIDES[product.code];
+  const { has, toggle } = useFavourites();
+  const saved = has(product.code);
+
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobile(mql.matches);
+    update();
+    mql.addEventListener('change', update);
+    return () => mql.removeEventListener('change', update);
+  }, []);
+
+  // The mobile bars are fixed and can wrap to two rows (longer languages),
+  // so the panel is fitted between their measured heights rather than a
+  // fixed viewport share.
+  const [bars, setBars] = useState({ top: 0, bottom: 0 });
+  useEffect(() => {
+    if (!isMobile) return;
+    const top = document.querySelector('.mobile-corner-top');
+    const bottom = document.querySelector('.mobile-corner-bottom');
+    const update = () =>
+      setBars({
+        top: top?.getBoundingClientRect().height ?? 0,
+        bottom: bottom?.getBoundingClientRect().height ?? 0,
+      });
+    update();
+    const ro = new ResizeObserver(update);
+    if (top) ro.observe(top);
+    if (bottom) ro.observe(bottom);
+    return () => ro.disconnect();
+  }, [isMobile]);
+
+  const related = onOpenProduct
+    ? (() => {
+        const family = typeFor(product.code);
+        const prefix = product.code.slice(0, 4);
+        const sameFamily = PRODUCTS.filter((p) => p.code !== product.code && typeFor(p.code) === family);
+        const samePrefix = sameFamily.filter((p) => p.code.slice(0, 4) === prefix);
+        const rest = sameFamily.filter((p) => p.code.slice(0, 4) !== prefix);
+        return [...samePrefix, ...rest].slice(0, 6);
+      })()
+    : [];
 
   const thumbs: Thumb[] = [
-    { src: product.src, alt: `${product.code} — front` },
-    ...(product.back ? [{ src: product.back, alt: `${product.code} — back` }] : []),
-    ...product.details.map((src, i) => ({ src, alt: `${product.code} — detail ${i + 1}` })),
+    { src: product.src, alt: `${product.code} — ${t('modal.photo.front')}` },
+    ...(product.back ? [{ src: product.back, alt: `${product.code} — ${t('modal.photo.back')}` }] : []),
+    ...product.details.map((src, i) => ({ src, alt: `${product.code} — ${t('modal.photo.detail')} ${i + 1}` })),
     // Video loop last, base colourway only (the footage shows the black
     // garment).
     ...(PRODUCT_VIDEOS[product.code]
-      ? [{ src: PRODUCT_VIDEOS[product.code], alt: `${product.code} — video`, video: true }]
+      ? [{ src: PRODUCT_VIDEOS[product.code], alt: `${product.code} — ${t('modal.photo.video')}`, video: true }]
       : []),
   ];
 
@@ -79,9 +256,9 @@ export function ProductModal({
   // front/back/details, a variant shows its own front and back.
   const variantThumbs: Thumb[] = showingVariant
     ? [
-        { src: variantSrc(product.code, colourSel), alt: `${product.code} — ${colourSel} front` },
+        { src: variantSrc(product.code, colourSel), alt: `${product.code} — ${colourSel} ${t('modal.photo.front')}` },
         ...(VARIANT_BACKS[product.code]?.includes(colourSel)
-          ? [{ src: variantBackSrc(product.code, colourSel), alt: `${product.code} — ${colourSel} back` }]
+          ? [{ src: variantBackSrc(product.code, colourSel), alt: `${product.code} — ${colourSel} ${t('modal.photo.back')}` }]
           : []),
       ]
     : [];
@@ -250,14 +427,15 @@ export function ProductModal({
   const rows: SpecRow[] = [];
   if (colours.length > 1) {
     rows.push({
-      label: 'Colours',
+      id: 'colours',
+      label: t('modal.colours'),
       value: (
         <span style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'flex-end' }}>
           {colours.map((c) => (
             <button
               key={c}
               type="button"
-              aria-label={`Colour ${colourName(c)}`}
+              aria-label={t('modal.colourAriaLabel', { name: colourName(c) })}
               aria-pressed={colourSel === c}
               title={colourName(c)}
               onClick={() => {
@@ -281,44 +459,113 @@ export function ProductModal({
       ),
     });
   }
-  if (details?.composition) rows.push({ label: 'Composition', value: details.composition });
-  if (details?.weightGsm) rows.push({ label: 'Weight', value: `${details.weightGsm} g/m²` });
-  if (details?.fit) rows.push({ label: 'Fit', value: details.fit });
+  if (details?.composition) rows.push({ id: 'composition', label: t('modal.composition'), value: details.composition });
+  if (details?.weightGsm) rows.push({ id: 'weight', label: t('modal.weight'), value: `${details.weightGsm} g/m²` });
+  if (details?.fit) rows.push({ id: 'fit', label: t('modal.fit'), value: details.fit });
   const printAreas = PRINT_AREAS[product.code];
   if (printAreas) {
     const parts: string[] = [];
-    if (printAreas.front) parts.push(`Front ${printAreas.front}`);
-    if (printAreas.back) parts.push(`Back ${printAreas.back}`);
-    if (printAreas.sleeve) parts.push(`Sleeve ${printAreas.sleeve}`);
-    if (printAreas.other) parts.push(`Other ${printAreas.other}`);
-    if (parts.length > 0) rows.push({ label: 'Print areas', value: parts.join(' · ') });
+    if (printAreas.front) parts.push(`${t('modal.printArea.front')} ${printAreas.front}`);
+    if (printAreas.back) parts.push(`${t('modal.printArea.back')} ${printAreas.back}`);
+    if (printAreas.sleeve) parts.push(`${t('modal.printArea.sleeve')} ${printAreas.sleeve}`);
+    if (printAreas.other) parts.push(`${t('modal.printArea.other')} ${printAreas.other}`);
+    if (parts.length > 0) rows.push({ id: 'printAreas', label: t('modal.printAreas'), value: parts.join(' · '), collapsible: true });
   }
   if (details?.sizes && details.sizes.length > 0) {
     rows.push({
-      label: 'Sizes',
+      id: 'sizes',
+      label: t('modal.sizes'),
+      collapsible: true,
       value: (
-        <span style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'flex-end' }}>
-          {details.sizes.map((size) => (
-            <span
-              key={size}
+        <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+          <span style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'flex-end' }}>
+            {details.sizes.map((size) => (
+              <span
+                key={size}
+                style={{
+                  border: HAIRLINE,
+                  padding: '2px 8px',
+                  fontSize: '12px',
+                  lineHeight: 1.6,
+                }}
+              >
+                {size}
+              </span>
+            ))}
+          </span>
+          {sizeGuide && (
+            <button
+              type="button"
+              onClick={() => setSizeGuideOpen((v) => !v)}
+              aria-expanded={sizeGuideOpen}
               style={{
-                border: HAIRLINE,
-                padding: '2px 8px',
                 fontSize: '12px',
-                lineHeight: 1.6,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                textDecoration: 'underline',
+                textUnderlineOffset: '3px',
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                color: 'var(--signal)',
               }}
+              className="opacity-[.62]"
             >
-              {size}
-            </span>
-          ))}
+              {t('modal.sizeGuide')}
+            </button>
+          )}
         </span>
       ),
     });
   }
   if (details?.certifications && details.certifications.length > 0) {
-    rows.push({ label: 'Certifications', value: details.certifications.join(' · ') });
+    rows.push({ id: 'certifications', label: t('modal.certifications'), value: details.certifications.join(' · '), collapsible: true });
   }
-  rows.push({ label: 'Print techniques', value: techniques.join(', ') });
+  rows.push({
+    id: 'printTechniques',
+    label: t('modal.printTechniques'),
+    value: techniques.map((technique) => {
+      const key = techniqueKey(technique);
+      return key ? t(key) : technique;
+    }).join(', '),
+    collapsible: true,
+  });
+
+  const primaryRows = rows.filter((row) => !row.collapsible);
+  const secondaryRows = rows.filter((row) => row.collapsible);
+  const firstVisibleId = (primaryRows[0] ?? secondaryRows[0])?.id;
+  const showSecondary = !isMobile || detailsOpen;
+  const hasDetailsToggle = secondaryRows.length > 0 || (onOpenProduct !== undefined && related.length > 0);
+
+  function specRow(row: SpecRow, isFirst: boolean) {
+    return (
+      <div
+        key={row.id}
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: '16px',
+          padding: '12px 0',
+          borderTop: isFirst ? 'none' : HAIRLINE,
+        }}
+      >
+        <span
+          style={{
+            fontSize: '12px',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {row.label}
+        </span>
+        <span style={{ fontSize: '14px', textAlign: 'right' }}>{row.value}</span>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -331,7 +578,7 @@ export function ProductModal({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px',
+        padding: isMobile ? `${bars.top + 8}px 24px ${bars.bottom + 8}px` : '24px',
         background: 'color-mix(in srgb, var(--paper) 82%, transparent)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
@@ -348,7 +595,7 @@ export function ProductModal({
         className="flex w-[94vw] flex-col md:w-[92vw] md:flex-row"
         style={{
           maxWidth: '1080px',
-          maxHeight: '86vh',
+          maxHeight: isMobile ? `calc(100dvh - ${bars.top + bars.bottom + 16}px)` : '86vh',
           background: 'var(--paper)',
           border: HAIRLINE,
           overflowY: 'auto',
@@ -361,7 +608,7 @@ export function ProductModal({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t('modal.close')}
           style={{
             position: 'absolute',
             top: '12px',
@@ -468,7 +715,7 @@ export function ProductModal({
                     box used to sit. */}
                 <button
                   type="button"
-                  aria-label="Previous photo"
+                  aria-label={t('modal.previousPhoto')}
                   onClick={() => nav(-1)}
                   style={{
                     position: 'absolute',
@@ -506,7 +753,7 @@ export function ProductModal({
                 </button>
                 <button
                   type="button"
-                  aria-label="Next photo"
+                  aria-label={t('modal.nextPhoto')}
                   onClick={() => nav(1)}
                   style={{
                     position: 'absolute',
@@ -615,36 +862,73 @@ export function ProductModal({
             gap: '16px',
           }}
         >
-          <div>
-            <div
-              style={{
-                fontSize: '12px',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
-                marginBottom: '8px',
-              }}
-            >
-              {product.code}
-              {position && (
-                <span style={{ color: 'color-mix(in srgb, var(--signal) 40%, transparent)' }}>
-                  {' '}
-                  · {position.index + 1} / {position.total}
-                </span>
-              )}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
+            <div>
+              <div
+                style={{
+                  fontSize: '12px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
+                  marginBottom: '8px',
+                }}
+              >
+                {product.code}
+                {position && (
+                  <span className="opacity-[.62]" style={{ color: 'var(--signal)' }}>
+                    {' '}
+                    · {t('modal.position', { index: position.index + 1, total: position.total })}
+                  </span>
+                )}
+              </div>
+              <h2
+                style={{
+                  fontFamily: 'var(--font-display), sans-serif',
+                  textTransform: 'uppercase',
+                  fontSize: 'clamp(1.75rem, 3.2vw, 2.5rem)',
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.01em',
+                  margin: 0,
+                }}
+              >
+                {name}
+              </h2>
             </div>
-            <h2
+
+            <button
+              type="button"
+              onClick={() => toggle(product.code)}
+              aria-pressed={saved}
               style={{
-                fontFamily: 'var(--font-display), sans-serif',
-                textTransform: 'uppercase',
-                fontSize: 'clamp(1.75rem, 3.2vw, 2.5rem)',
-                lineHeight: 1.05,
-                letterSpacing: '-0.01em',
-                margin: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                flexShrink: 0,
+                color: 'var(--signal)',
               }}
             >
-              {name}
-            </h2>
+              <span
+                aria-hidden
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  border: '1px solid currentColor',
+                  background: saved ? 'currentColor' : 'none',
+                }}
+              />
+              <span
+                className="opacity-[.62]"
+                style={{ fontSize: '12px', letterSpacing: '0.08em', textTransform: 'uppercase' }}
+              >
+                {saved ? t('common.saved') : t('common.save')}
+              </span>
+            </button>
           </div>
 
           {details?.description && (
@@ -661,32 +945,72 @@ export function ProductModal({
           )}
 
           <div>
-            {rows.map((row, i) => (
-              <div
-                key={row.label}
+            {primaryRows.map((row) => specRow(row, row.id === firstVisibleId))}
+
+            {isMobile && hasDetailsToggle && (
+              <button
+                type="button"
+                onClick={() => setDetailsOpen((v) => !v)}
+                aria-expanded={detailsOpen}
                 style={{
                   display: 'flex',
-                  alignItems: 'flex-start',
+                  width: '100%',
+                  alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: '16px',
                   padding: '12px 0',
-                  borderTop: i === 0 ? 'none' : HAIRLINE,
+                  border: 'none',
+                  borderTop: HAIRLINE,
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'var(--signal)',
                 }}
               >
-                <span
+                {t('common.details')}
+                <svg
+                  width="10"
+                  height="6"
+                  viewBox="0 0 10 6"
+                  fill="none"
+                  aria-hidden
                   style={{
-                    fontSize: '12px',
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
-                    whiteSpace: 'nowrap',
+                    transform: detailsOpen ? 'rotate(180deg)' : 'none',
+                    transition: 'transform 300ms ease',
                   }}
                 >
-                  {row.label}
-                </span>
-                <span style={{ fontSize: '14px', textAlign: 'right' }}>{row.value}</span>
-              </div>
-            ))}
+                  <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.2" />
+                </svg>
+              </button>
+            )}
+
+            {showSecondary && (
+              <>
+                {secondaryRows.map((row) =>
+                  row.id === 'sizes' ? (
+                    <div key={row.id}>
+                      {specRow(row, row.id === firstVisibleId)}
+                      {sizeGuide && sizeGuideOpen && <SizeGuideTable guide={sizeGuide} />}
+                    </div>
+                  ) : (
+                    specRow(row, row.id === firstVisibleId)
+                  ),
+                )}
+
+                {onOpenProduct && related.length > 0 && (
+                  <div
+                    style={{
+                      marginTop: '4px',
+                      paddingTop: '12px',
+                      borderTop: secondaryRows.length > 0 ? HAIRLINE : 'none',
+                    }}
+                  >
+                    <RelatedStrip products={related} onOpenProduct={onOpenProduct} />
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {(onPrevProduct || onNextProduct) && (
@@ -708,7 +1032,7 @@ export function ProductModal({
                   color: 'var(--signal)',
                 }}
               >
-                ← Prev
+                ← {t('modal.prev')}
               </button>
               <button
                 type="button"
@@ -727,7 +1051,7 @@ export function ProductModal({
                   color: 'var(--signal)',
                 }}
               >
-                Next →
+                {t('modal.next')} →
               </button>
             </div>
           )}
@@ -743,7 +1067,7 @@ export function ProductModal({
               border: HAIRLINE,
             }}
           >
-            Start a project with this blank
+            {t('modal.startProject')}
           </a>
         </div>
       </div>

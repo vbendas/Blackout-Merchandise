@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { CLIENTS } from '@/lib/clients';
+import { useT } from '@/lib/i18n';
 
 // The full contact sheet — every photo of every client, not one per
 // client. Each client carries two shots under /gallery/; every tile
@@ -47,6 +48,7 @@ export function GalleryView() {
   // a tap on a plain div doesn't trigger :hover. Track a tapped tile so
   // touch users get the same swap, without disturbing the hover path.
   const [tapped, setTapped] = useState<number | null>(null);
+  const t = useT();
 
   useEffect(() => {
     setImages(shuffle(ALL_IMAGES));
@@ -77,7 +79,7 @@ export function GalleryView() {
             className="group break-inside-avoid"
             role="button"
             tabIndex={0}
-            aria-label={`${photo.client} — MerchFrom piece ${index + 1} — tap to see the other angle`}
+            aria-label={`${photo.client} — ${t('gallery.pieceLabel', { n: index + 1 })} — ${t('gallery.tapHint')}`}
             onClick={() => setTapped((cur) => (cur === index ? null : index))}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -98,7 +100,7 @@ export function GalleryView() {
             <div className="relative w-full overflow-hidden" style={{ aspectRatio: aspect }}>
               <Image
                 src={photo.src}
-                alt={`MerchFrom piece ${index + 1}`}
+                alt={t('gallery.pieceLabel', { n: index + 1 })}
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover transition-opacity duration-500 ease-out group-hover:opacity-0"

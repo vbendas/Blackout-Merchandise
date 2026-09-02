@@ -1,11 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Corners } from '@/components/Corners';
 import { Intro } from '@/components/Intro';
-import { GalleryView } from '@/components/GalleryView';
-import { GridView } from '@/components/GridView';
-import { ListView } from '@/components/ListView';
 import type { ViewMode } from '@/lib/clients';
 
 function applyMode(next: ViewMode) {
@@ -19,16 +16,11 @@ function applyMode(next: ViewMode) {
 
 const DEFAULT_TOP_PAD = 'clamp(72px, 10vw, 96px)';
 
-// The client shell. The initial view is resolved on the server from the
-// URL (app/page.tsx) so a shared catalog link renders the Catalog in the
-// initial HTML instead of painting the roster and swapping after
-// hydration.
-export function Home({ initialView }: { initialView: ViewMode }) {
-  const [view, setView] = useState<ViewMode>(initialView);
-  // The blur-as-active-tab signifier only earns its meaning once the
-  // user has actually switched views; on first load the home tab
-  // (Partners) stays crisp.
-  const [hasSwitched, setHasSwitched] = useState(false);
+// The client shell shared by the three view routes (/, /catalog,
+// /gallery). Each route renders this with its own fixed `view` and passes
+// the view component as children — importing the views here would bundle
+// all three (and the whole catalog data) into every route.
+export function ViewShell({ view, children }: { view: ViewMode; children: ReactNode }) {
   // Below ~360px "Partners / Catalog / Gallery" plus About/Contact no
   // longer fit one row, so the mobile corner bar wraps to two lines and
   // grows taller than the clamp() below was sized for — without this,
@@ -39,21 +31,8 @@ export function Home({ initialView }: { initialView: ViewMode }) {
   const [topPad, setTopPad] = useState(DEFAULT_TOP_PAD);
 
   // Catalog (grid) runs in light mode; the body's color transition
-  // dissolves the whole page between dark and light.
-  function changeView(next: ViewMode) {
-    if (next === view) return;
-    setHasSwitched(true);
-    setView(next);
-    // Keep the view addressable. Partners is the clean root; the Catalog
-    // keeps its own filter params (GridView writes them, including
-    // view=grid); Gallery carries just the view.
-    if (next === 'list') {
-      window.history.replaceState(null, '', window.location.pathname);
-    } else if (next === 'gallery') {
-      window.history.replaceState(null, '', `${window.location.pathname}?view=gallery`);
-    }
-  }
-
+  // dissolves the whole page between dark and light as routes change.
+  // Cleaned up on unmount so navigating away never leaves it stuck.
   useEffect(() => {
     applyMode(view);
     return () => {
@@ -80,8 +59,8 @@ export function Home({ initialView }: { initialView: ViewMode }) {
 
   return (
     <>
-      <Intro />
-      <Corners view={view} onViewChange={changeView} indicateActive={hasSwitched} />
+      {view === 'list' && <Intro />}
+      <Corners />
       <main
         style={{
           paddingTop: topPad,
@@ -89,9 +68,7 @@ export function Home({ initialView }: { initialView: ViewMode }) {
         }}
       >
         <div key={view} className="view-fade-in">
-          {view === 'list' && <ListView />}
-          {view === 'grid' && <GridView />}
-          {view === 'gallery' && <GalleryView />}
+          {children}
         </div>
       </main>
     </>

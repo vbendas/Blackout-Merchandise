@@ -1,11 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { PRODUCTS, type Product } from '@/lib/products';
 import { ProductModal } from '@/components/ProductModal';
 import { colourName } from '@/lib/colour-names';
-import { fitFor, matchesSearch, typeFor } from '@/lib/catalog-filters';
+import { colourMatchingQuery, fitFor, matchesSearch, typeFor } from '@/lib/catalog-filters';
+import { useFavourites } from '@/lib/favourites';
+import { fitKey, typeKey, useT } from '@/lib/i18n';
 import { PRODUCT_DETAILS } from '@/lib/product-details';
 import {
   BASE_COLOUR,
@@ -53,6 +55,7 @@ function compareDeterministic(a: Product, b: Product): number {
 }
 
 export function GridView() {
+  const t = useT();
   // Server-render in source order (deterministic, no hydration
   // mismatch), then shuffle after mount so every visit gets a fresh
   // arrangement of the catalog.
@@ -69,9 +72,12 @@ export function GridView() {
   const [fit, setFit] = useState<string | null>(null);
   const [colour, setColour] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const [favouritesOnly, setFavouritesOnly] = useState(false);
   const [filtersTouched, setFiltersTouched] = useState(false);
   const [openMenu, setOpenMenu] = useState<'type' | 'fit' | 'colour' | null>(null);
   const [urlReady, setUrlReady] = useState(false);
+
+  const { codes: favouriteCodes, has: hasFavourite, toggle: toggleFavourite } = useFavourites();
 
   useEffect(() => {
     if (!openMenu) return;
@@ -111,6 +117,16 @@ export function GridView() {
     setter(value);
     setOpenMenu(null);
   }
+
+  function clearAll() {
+    setFiltersTouched(true);
+    setType(null);
+    setFit(null);
+    setColour(null);
+    setQuery('');
+    setFavouritesOnly(false);
+  }
+
   const rootRef = useRef<HTMLDivElement>(null);
 
   // Opens the modal and captures the clicked card's image-area rect so
@@ -127,26 +143,46 @@ export function GridView() {
     setOpen(product);
   }
 
+  function openProductByCode(code: string) {
+    const found = PRODUCTS.find((p) => p.code === code);
+    if (!found) return;
+    setOrigin(undefined);
+    setOpen(found);
+  }
+
+  // A colour name typed into search (min 3 chars, no explicit colour
+  // picked) drives filtering/display the same way an explicit colour
+  // filter does — a query like 'black' shows every blank available in
+  // black, in black.
+  const effectiveColour = useMemo(() => colour ?? colourMatchingQuery(query), [colour, query]);
+
   // Contrast: a light colour filter flips the Catalog to the soft
   // charcoal theme so pale garments never sit on the pale ground. The
   // main page's harder near-black stays reserved for the List view.
   useEffect(() => {
     const root = document.documentElement;
-    root.dataset.mode = colour && isLightColour(colour) ? 'charcoal' : 'light';
-  }, [colour]);
+    root.dataset.mode = effectiveColour && isLightColour(effectiveColour) ? 'charcoal' : 'light';
+  }, [effectiveColour]);
 
-  const showVariant = colour !== null && colour !== BASE_COLOUR;
-  const filtered = products.filter(
-    (p) =>
-      (!type || typeFor(p.code) === type) &&
-      (!fit || fitFor(p.code) === fit) &&
-      (!showVariant || VARIANTS[p.code]?.includes(colour as string)) &&
-      matchesSearch(p.code, query),
-  );
+  const showVariant = effectiveColour !== null && effectiveColour !== BASE_COLOUR;
+  const filtered = products.filter((p) => {
+    if (type && typeFor(p.code) !== type) return false;
+    if (fit && fitFor(p.code) !== fit) return false;
+    if (favouritesOnly && !hasFavourite(p.code)) return false;
+    if (effectiveColour === null) return matchesSearch(p.code, query);
+    // Every blank exists in the base colour; only variants need checking.
+    const inColour =
+      effectiveColour === BASE_COLOUR || (VARIANTS[p.code]?.includes(effectiveColour) ?? false);
+    // An explicit colour filter narrows the set (AND with any text
+    // query); a colour inferred from the query itself is an OR — the
+    // query still matches products by name/code on its own.
+    return colour ? inColour && matchesSearch(p.code, query) : inColour || matchesSearch(p.code, query);
+  });
   // The shuffle stays for the untouched landing state; the moment a
-  // filter, colour or search query narrows the set, switch to a stable
-  // grouped order so results don't jump around as filters change.
-  const filtersActive = Boolean(type || fit || colour || query.trim());
+  // filter, colour, favourite toggle or search query narrows the set,
+  // switch to a stable grouped order so results don't jump around as
+  // filters change.
+  const filtersActive = Boolean(type || fit || colour || query.trim() || favouritesOnly);
   const displayed = filtersActive ? [...filtered].sort(compareDeterministic) : filtered;
 
   const openIndex = open ? displayed.findIndex((p) => p.code === open.code) : -1;
@@ -169,7 +205,8 @@ export function GridView() {
 
   // URL state, read once on mount: type/fit only when the value is one
   // of the available options, colour only when it's the base colour or
-  // a known variant, q verbatim, product opens the matching modal.
+  // a known variant, q verbatim, saved=1 for the favourites filter,
+  // product opens the matching modal.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     let touched = false;
@@ -194,6 +231,10 @@ export function GridView() {
       setQuery(q);
       touched = true;
     }
+    if (params.get('saved') === '1') {
+      setFavouritesOnly(true);
+      touched = true;
+    }
     const productCode = params.get('product');
     if (productCode) {
       const found = PRODUCTS.find((p) => p.code === productCode);
@@ -211,16 +252,16 @@ export function GridView() {
   useEffect(() => {
     if (!urlReady) return;
     const params = new URLSearchParams();
-    params.set('view', 'grid');
     if (type) params.set('type', type);
     if (fit) params.set('fit', fit);
     if (colour) params.set('colour', colour);
     if (query) params.set('q', query);
+    if (favouritesOnly) params.set('saved', '1');
     if (open) params.set('product', open.code);
     const qs = params.toString();
     const url = `${window.location.pathname}${qs ? `?${qs}` : ''}`;
     window.history.replaceState(null, '', url);
-  }, [type, fit, colour, query, open, urlReady]);
+  }, [type, fit, colour, query, favouritesOnly, open, urlReady]);
 
   // Entrance stagger: each card rises in as it enters the viewport,
   // once. The 'in' class survives React re-renders because className
@@ -232,10 +273,11 @@ export function GridView() {
         for (const entry of entries) {
           if (entry.isIntersecting) {
             entry.target.classList.add('catalog-card-in');
-            // The inline stagger delay has done its job once the card is
+            // The inline stagger var has done its job once the card is
             // in; clearing it lets the stylesheet's hover-spotlight
-            // transition-delay take over (inline style would beat it).
-            (entry.target as HTMLElement).style.transitionDelay = '';
+            // transition-delay take over (an inline override would beat
+            // it).
+            (entry.target as HTMLElement).style.removeProperty('--i');
             io.unobserve(entry.target);
           }
         }
@@ -311,34 +353,41 @@ export function GridView() {
         style={{ paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)' }}
       >
         {[
-          { key: 'type' as const, label: 'Type', options: TYPES, active: type, set: setType },
-          { key: 'fit' as const, label: 'Fit', options: FITS, active: fit, set: setFit },
-        ].map((menu) => (
-          <div key={menu.key} style={{ position: 'relative', zIndex: openMenu === menu.key ? 30 : undefined }}>
-            <button
-              type="button"
-              aria-expanded={openMenu === menu.key}
-              style={trigger}
-              onClick={() => setOpenMenu(openMenu === menu.key ? null : menu.key)}
-            >
-              <span style={{ color: 'color-mix(in srgb, var(--signal) 50%, transparent)' }}>{menu.label}</span>
-              <span style={{ fontWeight: 700 }}>{menu.active ?? 'All'}</span>
-              {caret(openMenu === menu.key)}
-            </button>
-            {openMenu === menu.key && (
-              <div style={panel} className="view-fade-in" role="menu">
-                <button type="button" role="menuitem" style={option(menu.active === null)} onClick={() => pick(menu.set, null)}>
-                  All
-                </button>
-                {menu.options.map((opt) => (
-                  <button key={opt} type="button" role="menuitem" style={option(menu.active === opt)} onClick={() => pick(menu.set, opt)}>
-                    {opt}
+          { key: 'type' as const, labelKey: 'catalog.filter.type' as const, options: TYPES, active: type, set: setType, keyFor: typeKey },
+          { key: 'fit' as const, labelKey: 'catalog.filter.fit' as const, options: FITS, active: fit, set: setFit, keyFor: fitKey },
+        ].map((menu) => {
+          const activeKey = menu.active ? menu.keyFor(menu.active) : undefined;
+          const activeLabel = menu.active ? (activeKey ? t(activeKey) : menu.active) : t('catalog.all');
+          return (
+            <div key={menu.key} style={{ position: 'relative', zIndex: openMenu === menu.key ? 30 : undefined }}>
+              <button
+                type="button"
+                aria-expanded={openMenu === menu.key}
+                style={trigger}
+                onClick={() => setOpenMenu(openMenu === menu.key ? null : menu.key)}
+              >
+                <span className="mf-dim">{t(menu.labelKey)}</span>
+                <span style={{ fontWeight: 700 }}>{activeLabel}</span>
+                {caret(openMenu === menu.key)}
+              </button>
+              {openMenu === menu.key && (
+                <div style={panel} className="view-fade-in" role="menu">
+                  <button type="button" role="menuitem" style={option(menu.active === null)} onClick={() => pick(menu.set, null)}>
+                    {t('catalog.all')}
                   </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+                  {menu.options.map((opt) => {
+                    const optKey = menu.keyFor(opt);
+                    return (
+                      <button key={opt} type="button" role="menuitem" style={option(menu.active === opt)} onClick={() => pick(menu.set, opt)}>
+                        {optKey ? t(optKey) : opt}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
 
         <div
           ref={colourTriggerRef}
@@ -350,7 +399,7 @@ export function GridView() {
             style={trigger}
             onClick={() => setOpenMenu(openMenu === 'colour' ? null : 'colour')}
           >
-            <span style={{ color: 'color-mix(in srgb, var(--signal) 50%, transparent)' }}>Colour</span>
+            <span className="mf-dim">{t('catalog.filter.colour')}</span>
             {colour ? (
               <span
                 aria-hidden
@@ -363,7 +412,7 @@ export function GridView() {
                 }}
               />
             ) : (
-              <span style={{ fontWeight: 700 }}>All</span>
+              <span style={{ fontWeight: 700 }}>{t('catalog.all')}</span>
             )}
             {caret(openMenu === 'colour')}
           </button>
@@ -380,7 +429,7 @@ export function GridView() {
                 style={{ ...option(colour === null), padding: '0 0 12px 0' }}
                 onClick={() => pick(setColour, null)}
               >
-                All colours
+                {t('catalog.allColours')}
               </button>
               <div
                 style={{
@@ -394,9 +443,9 @@ export function GridView() {
                     key={c}
                     type="button"
                     role="menuitem"
-                    aria-label={`Colour ${colourName(c)}`}
+                    aria-label={t('catalog.colourAriaLabel', { name: colourName(c) })}
                     aria-pressed={colour === c}
-                    title={`Colour ${colourName(c)}`}
+                    title={t('catalog.colourAriaLabel', { name: colourName(c) })}
                     onClick={() => pick(setColour, c)}
                     style={{
                       width: '22px',
@@ -416,6 +465,22 @@ export function GridView() {
           )}
         </div>
 
+        {(favouriteCodes.length > 0 || favouritesOnly) && (
+          <button
+            type="button"
+            aria-pressed={favouritesOnly}
+            style={trigger}
+            onClick={() => {
+              setFiltersTouched(true);
+              setFavouritesOnly((v) => !v);
+            }}
+          >
+            <span style={{ fontWeight: favouritesOnly ? 700 : 400 }}>
+              {favouriteCodes.length > 0 ? t('common.savedCount', { n: favouriteCodes.length }) : t('common.saved')}
+            </span>
+          </button>
+        )}
+
         <input
           type="text"
           value={query}
@@ -423,8 +488,8 @@ export function GridView() {
             setFiltersTouched(true);
             setQuery(e.target.value);
           }}
-          placeholder="Search"
-          aria-label="Search products"
+          placeholder={t('catalog.searchPlaceholder')}
+          aria-label={t('catalog.searchAriaLabel')}
           style={{
             fontSize: '12px',
             letterSpacing: '0.08em',
@@ -441,27 +506,34 @@ export function GridView() {
 
         <span
           aria-live="polite"
+          className="mf-dim"
           style={{
             fontSize: '12px',
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
-            color: 'color-mix(in srgb, var(--signal) 50%, transparent)',
           }}
         >
-          {displayed.length} {displayed.length === 1 ? 'blank' : 'blanks'}
+          {t.tPlural('catalog.count', displayed.length)}
         </span>
+
+        {filtersActive && (
+          <button type="button" style={trigger} onClick={clearAll} aria-label={t('common.clearAllAriaLabel')}>
+            <span>{t('common.clearAll')}</span>
+            <span aria-hidden>×</span>
+          </button>
+        )}
       </div>
 
       {displayed.length === 0 && (
         <p
+          className="mf-dim"
           style={{
             paddingLeft: 'var(--gutter)',
             paddingRight: 'var(--gutter)',
             fontSize: '14px',
-            color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
           }}
         >
-          Nothing matches this combination.
+          {favouritesOnly ? t('catalog.noSavedBlanks') : t('catalog.empty')}
         </p>
       )}
 
@@ -472,92 +544,87 @@ export function GridView() {
         className="catalog-grid grid grid-cols-2 gap-x-6 gap-y-16 md:grid-cols-3 lg:grid-cols-4"
         style={{ paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)' }}
       >
-        {displayed.map((product, i) => (
-          <div
-            key={product.code}
-            className="catalog-card group"
-            style={{
-              // Entrance stagger only — once filters are in play the
-              // cards appear instantly, and an inline delay would
-              // override the hover-spotlight's stylesheet delay.
-              transitionDelay: filtersTouched ? undefined : `${(i % 4) * 70}ms`,
-              cursor: 'pointer',
-            }}
-            role="button"
-            tabIndex={0}
-            aria-label={`${product.code} — details`}
-            onClick={(e) => openProduct(product, e.currentTarget)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                openProduct(product, e.currentTarget);
-              }
-            }}
-          >
-            <div className="relative w-full" style={{ aspectRatio: '4 / 5' }}>
+        {displayed.map((product, i) => {
+          const name = PRODUCT_DETAILS[product.code]?.name ?? product.name;
+          const frontSrc = showVariant ? variantSrc(product.code, effectiveColour as string) : product.src;
+          const backSrc = showVariant
+            ? VARIANT_BACKS[product.code]?.includes(effectiveColour as string)
+              ? variantBackSrc(product.code, effectiveColour as string)
+              : null
+            : (product.back ?? null);
+          const loaded = loadedSrcs.has(frontSrc);
+          const saved = hasFavourite(product.code);
+
+          return (
+            <div
+              key={product.code}
+              className="catalog-card"
+              style={filtersTouched ? undefined : ({ '--i': i % 4 } as React.CSSProperties)}
+              role="button"
+              tabIndex={0}
+              aria-label={`${product.code} — ${t('catalog.cardDetails')}`}
+              onClick={(e) => openProduct(product, e.currentTarget)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openProduct(product, e.currentTarget);
+                }
+              }}
+            >
               {/* Inset so the garment never touches its cell — the ground
                   breathes around every product. */}
-              {(() => {
-                const frontSrc = showVariant ? variantSrc(product.code, colour as string) : product.src;
-                const backSrc = showVariant
-                  ? VARIANT_BACKS[product.code]?.includes(colour as string)
-                    ? variantBackSrc(product.code, colour as string)
-                    : null
-                  : (product.back ?? null);
-                const loaded = loadedSrcs.has(frontSrc);
-                return (
-                  <div
-                    className="absolute inset-[9%]"
-                    style={{ opacity: loaded ? 1 : 0, transition: 'opacity 400ms ease' }}
-                  >
+              <div className="catalog-card-media">
+                <div className="catalog-card-frame" data-loaded={loaded || undefined}>
+                  <Image
+                    src={frontSrc}
+                    alt={`${product.code} — ${t('modal.photo.front')}`}
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    // First row (widest breakpoint is 4-up) is above the
+                    // fold at every viewport width, and which product
+                    // lands there changes with the breakpoint — exactly
+                    // the case Next 16's docs say to use loading="eager"
+                    // + fetchPriority="high" for instead of the
+                    // deprecated `priority`/`preload` props (those assume
+                    // one fixed LCP candidate, added to <head> up front).
+                    loading={i < 4 ? 'eager' : undefined}
+                    fetchPriority={i < 4 ? 'high' : undefined}
+                    className={backSrc ? 'catalog-card-img flip-front' : 'catalog-card-img'}
+                    onLoad={() =>
+                      setLoadedSrcs((prev) => (prev.has(frontSrc) ? prev : new Set(prev).add(frontSrc)))
+                    }
+                  />
+                  {backSrc && (
                     <Image
-                      src={frontSrc}
-                      alt={`${product.code} — front`}
+                      src={backSrc}
+                      alt=""
+                      aria-hidden
                       fill
                       sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      // First row (widest breakpoint is 4-up) is above the
-                      // fold at every viewport width, and which product
-                      // lands there changes with the breakpoint — exactly
-                      // the case Next 16's docs say to use loading="eager"
-                      // + fetchPriority="high" for instead of the
-                      // deprecated `priority`/`preload` props (those assume
-                      // one fixed LCP candidate, added to <head> up front).
-                      loading={i < 4 ? 'eager' : undefined}
-                      fetchPriority={i < 4 ? 'high' : undefined}
-                      className={`object-contain transition-opacity duration-500 ease-out ${
-                        backSrc ? 'flip-front' : ''
-                      }`}
-                      onLoad={() =>
-                        setLoadedSrcs((prev) => (prev.has(frontSrc) ? prev : new Set(prev).add(frontSrc)))
-                      }
+                      className="catalog-card-img flip-back"
                     />
-                    {backSrc && (
-                      <Image
-                        src={backSrc}
-                        alt=""
-                        aria-hidden
-                        fill
-                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        className="flip-back object-contain opacity-0 transition-opacity duration-500 ease-out"
-                      />
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-            <div className="mt-5 text-center text-[13px] tracking-[0.06em]">
-              <span className="font-bold">{product.code}</span>
-              <span className="block overflow-hidden">
-                <span
-                  className="block translate-y-full opacity-0 transition-all duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-100"
-                  style={{ color: 'color-mix(in srgb, var(--signal) 60%, transparent)' }}
-                >
-                  {product.name}
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="catalog-card-save"
+                aria-pressed={saved}
+                aria-label={saved ? t('common.saved') : t('common.save')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFavourite(product.code);
+                }}
+              />
+              <div className="catalog-card-caption">
+                <span className="font-bold">{name}</span>
+                <span className="catalog-card-caption-mask">
+                  <span className="catalog-card-caption-reveal mf-dim">{product.code}</span>
                 </span>
-              </span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       {open && (
         <ProductModal
@@ -567,11 +634,12 @@ export function GridView() {
             setOpen(null);
             setOrigin(undefined);
           }}
-          restoreColour={colour}
+          restoreColour={effectiveColour}
           origin={origin}
           onPrevProduct={hasProductNav ? () => goToProduct(-1) : undefined}
           onNextProduct={hasProductNav ? () => goToProduct(1) : undefined}
           position={openIndex !== -1 ? { index: openIndex, total: displayed.length } : undefined}
+          onOpenProduct={openProductByCode}
         />
       )}
     </>

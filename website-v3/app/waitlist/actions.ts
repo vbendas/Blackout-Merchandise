@@ -7,6 +7,8 @@ import path from 'node:path';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMAIL_MAX = 254;
 const FIELD_MAX = 32;
+const FAVOURITE_RE = /^[A-Z0-9]{3,12}$/;
+const FAVOURITES_MAX = 50;
 
 // Must mirror the <select> options in app/waitlist/page.tsx.
 const ROLE_OPTIONS = [
@@ -23,11 +25,14 @@ interface WaitlistInput {
   product?: string;
   colour?: string;
   role?: string;
+  favourites?: string[];
 }
+
+type WaitlistErrorCode = 'invalid_email' | 'server';
 
 interface WaitlistResult {
   ok: boolean;
-  error?: string;
+  error?: WaitlistErrorCode;
 }
 
 export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResult> {
@@ -37,9 +42,13 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
   const role = ROLE_OPTIONS.includes(input.role as (typeof ROLE_OPTIONS)[number])
     ? input.role
     : undefined;
+  const favourites = Array.isArray(input.favourites)
+    ? input.favourites.filter((code) => typeof code === 'string' && FAVOURITE_RE.test(code)).slice(0, FAVOURITES_MAX)
+    : [];
+  const favouritesValue = favourites.length ? favourites.join(',') : undefined;
 
   if (!email || email.length > EMAIL_MAX || !EMAIL_RE.test(email)) {
-    return { ok: false, error: 'Enter a valid email.' };
+    return { ok: false, error: 'invalid_email' };
   }
 
   try {
@@ -55,9 +64,10 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
         )
       `;
       await sql`ALTER TABLE waitlist_signups ADD COLUMN IF NOT EXISTS role text`;
+      await sql`ALTER TABLE waitlist_signups ADD COLUMN IF NOT EXISTS favourites text`;
       await sql`
-        INSERT INTO waitlist_signups (email, product, colour, role)
-        VALUES (${email}, ${product ?? null}, ${colour ?? null}, ${role ?? null})
+        INSERT INTO waitlist_signups (email, product, colour, role, favourites)
+        VALUES (${email}, ${product ?? null}, ${colour ?? null}, ${role ?? null}, ${favouritesValue ?? null})
       `;
     } else {
       // Dev fallback — no DATABASE_URL configured. Append a JSON line to a
@@ -69,6 +79,7 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
         product: product ?? null,
         colour: colour ?? null,
         role: role ?? null,
+        favourites: favouritesValue ?? null,
         at: new Date().toISOString(),
       });
       await appendFile(path.join(dir, 'waitlist.jsonl'), line + '\n', 'utf8');
@@ -76,6 +87,6 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
 
     return { ok: true };
   } catch {
-    return { ok: false, error: 'Something went wrong — try again.' };
+    return { ok: false, error: 'server' };
   }
 }

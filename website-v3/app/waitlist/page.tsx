@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { PageCorners } from '@/components/PageCorners';
-import { PRODUCTS } from '@/lib/products';
+import { PRODUCTS, type Product } from '@/lib/products';
 import { PRODUCT_DETAILS } from '@/lib/product-details';
 import { colourName } from '@/lib/colour-names';
+import { useFavourites } from '@/lib/favourites';
+import { useT, type Key } from '@/lib/i18n';
 import { submitWaitlist } from './actions';
 
 const HAIRLINE = '1px solid color-mix(in srgb, var(--signal) 22%, transparent)';
@@ -13,6 +15,9 @@ const display = {
   fontFamily: 'var(--font-display), sans-serif',
 };
 
+// Canonical English values — sent to the server and validated there
+// against the exact same list (see actions.ts); only the displayed
+// option label is translated.
 const ROLE_OPTIONS = [
   'Band or musician',
   'Tattoo artist',
@@ -22,6 +27,15 @@ const ROLE_OPTIONS = [
   'Something else',
 ];
 
+const ROLE_KEYS: Record<string, Key> = {
+  'Band or musician': 'waitlist.role.band',
+  'Tattoo artist': 'waitlist.role.tattoo',
+  Illustrator: 'waitlist.role.illustrator',
+  'Label or collective': 'waitlist.role.label',
+  'Brand or company': 'waitlist.role.brand',
+  'Something else': 'waitlist.role.other',
+};
+
 interface ProjectContext {
   code: string;
   name: string;
@@ -29,42 +43,68 @@ interface ProjectContext {
 }
 
 export default function WaitlistPage() {
+  const t = useT();
   // Read from the URL on mount (not useSearchParams) so this page stays
   // static — the query string only decorates it client-side.
   const [project, setProject] = useState<ProjectContext | null>(null);
   const [role, setRole] = useState('');
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<'invalid_email' | 'server' | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [urlFavourites, setUrlFavourites] = useState<string[]>([]);
+  const [dismissed, setDismissed] = useState<string[]>([]);
+  const [attachedFavourites, setAttachedFavourites] = useState(0);
+  const { codes: favouriteCodes, has: hasFavourite, toggle: toggleFavourite } = useFavourites();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('product');
-    if (!code) return;
-    const product = PRODUCTS.find((p) => p.code === code);
-    if (!product) return;
-    setProject({
-      code,
-      name: PRODUCT_DETAILS[code]?.name ?? product.name,
-      colour: params.get('colour'),
-    });
+    if (code) {
+      const product = PRODUCTS.find((p) => p.code === code);
+      if (product) {
+        setProject({
+          code,
+          name: PRODUCT_DETAILS[code]?.name ?? product.name,
+          colour: params.get('colour'),
+        });
+      }
+    }
+    const favourites = params.get('favourites');
+    if (favourites) {
+      setUrlFavourites(favourites.split(',').map((c) => c.trim()).filter(Boolean));
+    }
   }, []);
+
+  const savedCodes = Array.from(new Set([...favouriteCodes, ...urlFavourites])).filter(
+    (code) => !dismissed.includes(code)
+  );
+  const savedBlanks = savedCodes
+    .map((code) => PRODUCTS.find((p) => p.code === code))
+    .filter((product): product is Product => Boolean(product));
+
+  function removeSavedBlank(code: string) {
+    if (hasFavourite(code)) toggleFavourite(code);
+    setDismissed((prev) => (prev.includes(code) ? prev : [...prev, code]));
+  }
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    const favourites = savedBlanks.map((product) => product.code);
     startTransition(async () => {
       const result = await submitWaitlist({
         email,
         product: project?.code,
         colour: project?.colour ?? undefined,
         role: role || undefined,
+        favourites,
       });
       if (result.ok) {
+        setAttachedFavourites(favourites.length);
         setSubmitted(true);
       } else {
-        setError(result.error ?? 'Something went wrong — try again.');
+        setError(result.error ?? 'server');
       }
     });
   }
@@ -85,7 +125,7 @@ export default function WaitlistPage() {
           className="uppercase leading-[0.94]"
           style={{ ...display, fontSize: 'clamp(3rem, 8vw, 8rem)' }}
         >
-          Join the waitlist.
+          {t('waitlist.headline')}
         </h1>
         <p
           className="uppercase"
@@ -96,7 +136,7 @@ export default function WaitlistPage() {
             color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
           }}
         >
-          Applications open. One hundred creators a month.
+          {t('waitlist.subline')}
         </p>
 
         {project && (
@@ -111,12 +151,58 @@ export default function WaitlistPage() {
                 color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
               }}
             >
-              Project
+              {t('waitlist.projectLabel')}
             </span>
             <span>
               {project.code} — {project.name}
               {project.colour ? ` — ${colourName(project.colour)}` : ''}
             </span>
+          </div>
+        )}
+
+        {savedBlanks.length > 0 && (
+          <div
+            className="mt-4 flex flex-col gap-3 md:max-w-md"
+            style={{ border: HAIRLINE, padding: '12px 16px', fontSize: '13px' }}
+          >
+            <span
+              className="uppercase"
+              style={{
+                letterSpacing: '0.08em',
+                color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
+                opacity: 0.62,
+              }}
+            >
+              {t('waitlist.savedBlanks')}
+            </span>
+            {savedBlanks.map((product) => (
+              <div key={product.code} className="flex items-center justify-between gap-4">
+                <span
+                  className="uppercase"
+                  style={{ fontSize: '12px', letterSpacing: '0.08em' }}
+                >
+                  {PRODUCT_DETAILS[product.code]?.name ?? product.name} — {product.code}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeSavedBlank(product.code)}
+                  className="uppercase"
+                  style={{
+                    fontSize: '12px',
+                    letterSpacing: '0.08em',
+                    textDecoration: 'underline',
+                    textDecorationThickness: '1px',
+                    background: 'transparent',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
+                  }}
+                >
+                  {t('common.remove')}
+                </button>
+              </div>
+            ))}
           </div>
         )}
 
@@ -131,7 +217,7 @@ export default function WaitlistPage() {
                   color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
                 }}
               >
-                Noted — we will be in touch.
+                {t('waitlist.success')}
               </p>
               {project && (
                 <p
@@ -143,7 +229,20 @@ export default function WaitlistPage() {
                     color: 'color-mix(in srgb, var(--signal) 50%, transparent)',
                   }}
                 >
-                  Project {project.code} attached.
+                  {t('waitlist.projectAttached', { code: project.code })}
+                </p>
+              )}
+              {attachedFavourites > 0 && (
+                <p
+                  className="uppercase"
+                  style={{
+                    fontSize: '13px',
+                    letterSpacing: '0.08em',
+                    marginTop: '4px',
+                    color: 'color-mix(in srgb, var(--signal) 50%, transparent)',
+                  }}
+                >
+                  {t.tPlural('waitlist.savedBlanksAttached', attachedFavourites)}
                 </p>
               )}
             </>
@@ -165,11 +264,11 @@ export default function WaitlistPage() {
                   }}
                 >
                   <option value="" style={{ background: 'var(--paper)' }}>
-                    I&apos;m a…
+                    {t('waitlist.rolePlaceholder')}
                   </option>
                   {ROLE_OPTIONS.map((option) => (
                     <option key={option} value={option} style={{ background: 'var(--paper)' }}>
-                      {option}
+                      {t(ROLE_KEYS[option])}
                     </option>
                   ))}
                 </select>
@@ -177,7 +276,7 @@ export default function WaitlistPage() {
                   <input
                     type="email"
                     required
-                    placeholder="YOUR EMAIL"
+                    placeholder={t('waitlist.emailPlaceholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isPending}
@@ -204,7 +303,7 @@ export default function WaitlistPage() {
                       color: 'var(--signal)',
                     }}
                   >
-                    {isPending ? 'Applying…' : 'Apply'}
+                    {isPending ? t('waitlist.applying') : t('waitlist.apply')}
                   </button>
                 </div>
               </form>
@@ -215,7 +314,7 @@ export default function WaitlistPage() {
                   opacity: 0.5,
                 }}
               >
-                Your email is used only to contact you about MerchFrom. No newsletters, no sharing.
+                {t('waitlist.privacy')}
               </p>
               {error && (
                 <p
@@ -227,7 +326,7 @@ export default function WaitlistPage() {
                     color: 'var(--signal)',
                   }}
                 >
-                  {error}
+                  {t(error === 'invalid_email' ? 'waitlist.errorInvalidEmail' : 'waitlist.errorGeneric')}
                 </p>
               )}
             </>

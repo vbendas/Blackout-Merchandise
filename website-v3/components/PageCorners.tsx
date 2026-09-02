@@ -1,4 +1,8 @@
+'use client';
+
 import { RegisterMark } from '@/components/RegisterMark';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useT, type Key } from '@/lib/i18n';
 
 interface PageCornersProps {
   /** which top-right link is the current page — rendered blurred, per the site's active-state convention. Omit when no page is current (e.g. the 404). */
@@ -9,9 +13,10 @@ interface PageCornersProps {
 // without the view switcher. The current page's own link is blurred, the
 // same signifier the home switcher uses for the active view.
 export function PageCorners({ current }: PageCornersProps) {
-  const links = [
-    { href: '/about', label: 'About', key: 'about' as const },
-    { href: '/contact', label: 'Contact', key: 'contact' as const },
+  const t = useT();
+  const links: { href: string; labelKey: Key; key: 'about' | 'contact' }[] = [
+    { href: '/about', labelKey: 'nav.about', key: 'about' },
+    { href: '/contact', labelKey: 'nav.contact', key: 'contact' },
   ];
 
   const nav = (size: string) => (
@@ -24,7 +29,7 @@ export function PageCorners({ current }: PageCornersProps) {
           className={`flex items-center ${size}`}
           style={{ filter: current === l.key ? 'blur(3px)' : 'none', minHeight: '40px' }}
         >
-          {l.label}
+          {t(l.labelKey)}
         </a>
       ))}
     </>
@@ -36,7 +41,7 @@ export function PageCorners({ current }: PageCornersProps) {
       <div className="hidden md:block">
         <a
           href="/"
-          aria-label="MerchFrom — home"
+          aria-label={t('nav.homeAriaLabel')}
           className="fixed z-10 flex items-center text-sm"
           style={{ top: '24px', left: 'var(--gutter)', mixBlendMode: 'difference' }}
         >
@@ -48,13 +53,14 @@ export function PageCorners({ current }: PageCornersProps) {
           style={{ top: '24px', right: 'var(--gutter)', mixBlendMode: 'difference' }}
         >
           {nav('')}
+          <LanguageSwitcher />
         </nav>
 
         <div
           className="fixed z-10 text-sm opacity-60"
           style={{ bottom: '24px', left: 'var(--gutter)', mixBlendMode: 'difference' }}
         >
-          Merch for artists — Barcelos, PT
+          {t('corners.tagline')}
         </div>
 
         <a
@@ -68,7 +74,7 @@ export function PageCorners({ current }: PageCornersProps) {
             filter: current === 'waitlist' ? 'blur(3px)' : 'none',
           }}
         >
-          Waitlist
+          {t('nav.waitlist')}
         </a>
       </div>
 
@@ -86,14 +92,19 @@ export function PageCorners({ current }: PageCornersProps) {
         >
           <a
             href="/"
-            aria-label="MerchFrom — home"
+            aria-label={t('nav.homeAriaLabel')}
             className="flex items-center"
             style={{ minHeight: '40px' }}
           >
             <RegisterMark className="h-5 w-5" />
           </a>
 
-          <nav className="flex items-center gap-3">{nav('')}</nav>
+          <nav className="flex items-center gap-3">
+            {nav('')}
+            <div className="flex items-center" style={{ minHeight: '40px' }}>
+              <LanguageSwitcher />
+            </div>
+          </nav>
         </div>
 
         <div
@@ -107,7 +118,7 @@ export function PageCorners({ current }: PageCornersProps) {
           }}
         >
           <span className="opacity-60" style={{ lineHeight: '40px' }}>
-            Merch for artists — Barcelos, PT
+            {t('corners.tagline')}
           </span>
           <a
             href="/waitlist"
@@ -115,7 +126,7 @@ export function PageCorners({ current }: PageCornersProps) {
             className="flex items-center"
             style={{ minHeight: '40px', filter: current === 'waitlist' ? 'blur(3px)' : 'none' }}
           >
-            Waitlist
+            {t('nav.waitlist')}
           </a>
         </div>
       </div>

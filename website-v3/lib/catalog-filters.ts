@@ -1,7 +1,13 @@
+import { colourName } from './colour-names';
 import { PRODUCT_DETAILS } from './product-details';
 import { PRODUCTS } from './products';
+import { BASE_COLOUR, COLOUR_ORDER } from './variants';
 
 const PRODUCT_BY_CODE = new Map(PRODUCTS.map((p) => [p.code, p]));
+// The base colour is not a variant, so COLOUR_ORDER omits it; a query
+// like 'black' still has to find it. Exact name wins over substrings
+// ('black' → Black, not Black Heather).
+const SEARCHABLE_COLOURS = [BASE_COLOUR, ...COLOUR_ORDER];
 
 // Matches a search query against a product's style code, catalog name
 // (products.ts) and supplier name (PRODUCT_DETAILS), case-insensitive.
@@ -15,6 +21,17 @@ export function matchesSearch(code: string, query: string): boolean {
   const detailsName = PRODUCT_DETAILS[code]?.name;
   if (detailsName?.toLowerCase().includes(q)) return true;
   return false;
+}
+
+// The first COLOUR_ORDER code whose printed name contains the trimmed
+// query, case-insensitive. A minimum length avoids one- or two-letter
+// queries matching almost every colour name.
+export function colourMatchingQuery(q: string): string | null {
+  const query = q.trim().toLowerCase();
+  if (query.length < 3) return null;
+  const exact = SEARCHABLE_COLOURS.find((code) => colourName(code).toLowerCase() === query);
+  if (exact) return exact;
+  return SEARCHABLE_COLOURS.find((code) => colourName(code).toLowerCase().includes(query)) ?? null;
 }
 
 // Category from the extracted product data (name + description), with

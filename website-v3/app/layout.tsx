@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Oswald } from "next/font/google";
 import { SmoothScroll } from "@/components/SmoothScroll";
+import { LanguageProvider } from "@/lib/i18n";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { SOCIALS } from "@/lib/socials";
 import "./globals.css";
@@ -64,8 +65,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
-        <SmoothScroll />
-        {children}
+        <LanguageProvider>
+          <SmoothScroll />
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

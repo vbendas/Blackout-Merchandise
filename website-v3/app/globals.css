@@ -129,17 +129,107 @@ a {
 .catalog-card {
   content-visibility: auto;
   contain-intrinsic-size: auto 520px;
+  position: relative;
+  cursor: pointer;
+}
+
+.catalog-card-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+}
+
+.catalog-card-frame {
+  position: absolute;
+  inset: 9%;
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+
+.catalog-card-frame[data-loaded] {
+  opacity: 1;
+}
+
+.catalog-card-img {
+  object-fit: contain;
+  transition: opacity 500ms ease-out;
+}
+
+.catalog-card-img.flip-back {
+  opacity: 0;
+}
+
+.catalog-card-save {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--signal);
+  transition: opacity 300ms ease, background-color 300ms ease;
+}
+
+@media (hover: hover) {
+  .catalog-card-save {
+    opacity: 0;
+  }
+
+  .catalog-card:hover .catalog-card-save {
+    opacity: 1;
+  }
+}
+
+.catalog-card-save[aria-pressed='true'] {
+  opacity: 1;
+  background: currentColor;
+}
+
+.catalog-card-caption {
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.catalog-card-caption-mask {
+  display: block;
+  overflow: hidden;
+}
+
+.mf-dim {
+  opacity: 0.62;
+}
+
+.catalog-card-caption-reveal {
+  display: block;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 500ms ease-out, opacity 500ms ease-out;
+}
+
+.catalog-card:hover .catalog-card-caption-reveal {
+  transform: none;
+  opacity: 0.62;
 }
 
 /* Catalog entrance: cards rise into place as they enter the viewport.
    The hidden state only applies once JS arms the container, so the grid
-   is never invisible without a script to reveal it. */
+   is never invisible without a script to reveal it. The per-card --i
+   custom property (0 once the observer has fired) staggers the wave. */
 [data-armed] .catalog-card {
   opacity: 0;
   transform: translateY(16px);
   transition:
     opacity 600ms ease,
     transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--i, 0) * 18ms);
 }
 
 [data-armed] .catalog-card.catalog-card-in {
