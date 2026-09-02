@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import type { Product } from '@/lib/products';
 import { PRODUCT_DETAILS, printTechniquesFor } from '@/lib/product-details';
+import { PRINT_AREAS } from '@/lib/print-areas';
 import { colourName } from '@/lib/colour-names';
 import { PRODUCT_VIDEOS } from '@/lib/product-videos';
 import {
@@ -37,6 +38,9 @@ export function ProductModal({
   onClose,
   restoreColour = null,
   origin,
+  onPrevProduct,
+  onNextProduct,
+  position,
 }: {
   product: Product;
   onClose: () => void;
@@ -44,6 +48,11 @@ export function ProductModal({
   restoreColour?: string | null;
   /** the clicked card's image-area rect, for a FLIP entrance from it */
   origin?: { x: number; y: number; width: number; height: number };
+  /** move to the previous/next product in the catalog's displayed order */
+  onPrevProduct?: () => void;
+  onNextProduct?: () => void;
+  /** this product's 0-based index and the total count in the displayed order */
+  position?: { index: number; total: number };
 }) {
   const details = PRODUCT_DETAILS[product.code];
   const name = details?.name ?? product.name;
@@ -221,14 +230,22 @@ export function ProductModal({
 
   useEffect(() => {
     const len = displayThumbs.length;
-    if (len < 2) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'ArrowRight') setSelected((s) => (Math.min(s, len - 1) + 1) % len);
-      if (e.key === 'ArrowLeft') setSelected((s) => (Math.min(s, len - 1) - 1 + len) % len);
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const forward = e.key === 'ArrowRight';
+      // Shift+arrow always moves between products; plain arrows do too
+      // when there's only one photo to cycle through. Otherwise plain
+      // arrows keep cycling photos, as today.
+      if (e.shiftKey || len < 2) {
+        if (forward) onNextProduct?.();
+        else onPrevProduct?.();
+        return;
+      }
+      setSelected((s) => (Math.min(s, len - 1) + (forward ? 1 : -1) + len) % len);
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [displayThumbs.length]);
+  }, [displayThumbs.length, onNextProduct, onPrevProduct]);
 
   const rows: SpecRow[] = [];
   if (colours.length > 1) {
@@ -267,6 +284,15 @@ export function ProductModal({
   if (details?.composition) rows.push({ label: 'Composition', value: details.composition });
   if (details?.weightGsm) rows.push({ label: 'Weight', value: `${details.weightGsm} g/m²` });
   if (details?.fit) rows.push({ label: 'Fit', value: details.fit });
+  const printAreas = PRINT_AREAS[product.code];
+  if (printAreas) {
+    const parts: string[] = [];
+    if (printAreas.front) parts.push(`Front ${printAreas.front}`);
+    if (printAreas.back) parts.push(`Back ${printAreas.back}`);
+    if (printAreas.sleeve) parts.push(`Sleeve ${printAreas.sleeve}`);
+    if (printAreas.other) parts.push(`Other ${printAreas.other}`);
+    if (parts.length > 0) rows.push({ label: 'Print areas', value: parts.join(' · ') });
+  }
   if (details?.sizes && details.sizes.length > 0) {
     rows.push({
       label: 'Sizes',
@@ -600,6 +626,12 @@ export function ProductModal({
               }}
             >
               {product.code}
+              {position && (
+                <span style={{ color: 'color-mix(in srgb, var(--signal) 40%, transparent)' }}>
+                  {' '}
+                  · {position.index + 1} / {position.total}
+                </span>
+              )}
             </div>
             <h2
               style={{
@@ -656,6 +688,49 @@ export function ProductModal({
               </div>
             ))}
           </div>
+
+          {(onPrevProduct || onNextProduct) && (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={onPrevProduct}
+                disabled={!onPrevProduct}
+                style={{
+                  flex: 1,
+                  height: '40px',
+                  border: HAIRLINE,
+                  background: 'none',
+                  cursor: onPrevProduct ? 'pointer' : 'default',
+                  opacity: onPrevProduct ? 1 : 0.35,
+                  fontSize: '12px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'var(--signal)',
+                }}
+              >
+                ← Prev
+              </button>
+              <button
+                type="button"
+                onClick={onNextProduct}
+                disabled={!onNextProduct}
+                style={{
+                  flex: 1,
+                  height: '40px',
+                  border: HAIRLINE,
+                  background: 'none',
+                  cursor: onNextProduct ? 'pointer' : 'default',
+                  opacity: onNextProduct ? 1 : 0.35,
+                  fontSize: '12px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'var(--signal)',
+                }}
+              >
+                Next →
+              </button>
+            </div>
+          )}
 
           <a
             href={`/waitlist?product=${product.code}&colour=${colourSel}`}

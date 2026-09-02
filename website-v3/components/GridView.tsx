@@ -6,6 +6,7 @@ import { PRODUCTS, type Product } from '@/lib/products';
 import { ProductModal } from '@/components/ProductModal';
 import { colourName } from '@/lib/colour-names';
 import { fitFor, matchesSearch, typeFor } from '@/lib/catalog-filters';
+import { PRODUCT_DETAILS } from '@/lib/product-details';
 import {
   BASE_COLOUR,
   BASE_SWATCH,
@@ -37,6 +38,18 @@ function shuffle<T>(arr: readonly T[]): T[] {
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
+}
+
+// Deterministic display order once any filter/search is active: grouped
+// by type in TYPE_ORDER's sequence, then alphabetically by the supplier
+// name (falling back to the catalog name), then by code.
+function compareDeterministic(a: Product, b: Product): number {
+  const typeDelta = TYPE_ORDER.indexOf(typeFor(a.code)) - TYPE_ORDER.indexOf(typeFor(b.code));
+  if (typeDelta !== 0) return typeDelta;
+  const nameA = PRODUCT_DETAILS[a.code]?.name ?? a.name;
+  const nameB = PRODUCT_DETAILS[b.code]?.name ?? b.name;
+  if (nameA !== nameB) return nameA.localeCompare(nameB);
+  return a.code.localeCompare(b.code);
 }
 
 export function GridView() {
@@ -130,6 +143,24 @@ export function GridView() {
       (!showVariant || VARIANTS[p.code]?.includes(colour as string)) &&
       matchesSearch(p.code, query),
   );
+  // The shuffle stays for the untouched landing state; the moment a
+  // filter, colour or search query narrows the set, switch to a stable
+  // grouped order so results don't jump around as filters change.
+  const filtersActive = Boolean(type || fit || colour || query.trim());
+  const displayed = filtersActive ? [...filtered].sort(compareDeterministic) : filtered;
+
+  const openIndex = open ? displayed.findIndex((p) => p.code === open.code) : -1;
+  const hasProductNav = openIndex !== -1 && displayed.length > 1;
+
+  // Prev/Next inside the modal: move within the currently displayed
+  // (filtered, ordered) list, wrapping at the ends. No FLIP origin on
+  // these — only the initial card click animates outward.
+  function goToProduct(delta: number) {
+    if (openIndex === -1 || displayed.length === 0) return;
+    const next = displayed[(openIndex + delta + displayed.length) % displayed.length];
+    setOrigin(undefined);
+    setOpen(next);
+  }
 
   useEffect(() => {
     setProducts(shuffle(PRODUCTS));
@@ -180,6 +211,7 @@ export function GridView() {
   useEffect(() => {
     if (!urlReady) return;
     const params = new URLSearchParams();
+    params.set('view', 'grid');
     if (type) params.set('type', type);
     if (fit) params.set('fit', fit);
     if (colour) params.set('colour', colour);
@@ -406,9 +438,21 @@ export function GridView() {
             outline: 'none',
           }}
         />
+
+        <span
+          aria-live="polite"
+          style={{
+            fontSize: '12px',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'color-mix(in srgb, var(--signal) 50%, transparent)',
+          }}
+        >
+          {displayed.length} {displayed.length === 1 ? 'blank' : 'blanks'}
+        </span>
       </div>
 
-      {filtered.length === 0 && (
+      {displayed.length === 0 && (
         <p
           style={{
             paddingLeft: 'var(--gutter)',
@@ -428,7 +472,7 @@ export function GridView() {
         className="catalog-grid grid grid-cols-2 gap-x-6 gap-y-16 md:grid-cols-3 lg:grid-cols-4"
         style={{ paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)' }}
       >
-        {filtered.map((product, i) => (
+        {displayed.map((product, i) => (
           <div
             key={product.code}
             className="catalog-card group"
@@ -471,6 +515,15 @@ export function GridView() {
                       alt={`${product.code} — front`}
                       fill
                       sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      // First row (widest breakpoint is 4-up) is above the
+                      // fold at every viewport width, and which product
+                      // lands there changes with the breakpoint — exactly
+                      // the case Next 16's docs say to use loading="eager"
+                      // + fetchPriority="high" for instead of the
+                      // deprecated `priority`/`preload` props (those assume
+                      // one fixed LCP candidate, added to <head> up front).
+                      loading={i < 4 ? 'eager' : undefined}
+                      fetchPriority={i < 4 ? 'high' : undefined}
                       className={`object-contain transition-opacity duration-500 ease-out ${
                         backSrc ? 'flip-front' : ''
                       }`}
@@ -508,6 +561,7 @@ export function GridView() {
       </div>
       {open && (
         <ProductModal
+          key={open.code}
           product={open}
           onClose={() => {
             setOpen(null);
@@ -515,6 +569,9 @@ export function GridView() {
           }}
           restoreColour={colour}
           origin={origin}
+          onPrevProduct={hasProductNav ? () => goToProduct(-1) : undefined}
+          onNextProduct={hasProductNav ? () => goToProduct(1) : undefined}
+          position={openIndex !== -1 ? { index: openIndex, total: displayed.length } : undefined}
         />
       )}
     </>

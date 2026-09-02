@@ -13,6 +13,15 @@ const display = {
   fontFamily: 'var(--font-display), sans-serif',
 };
 
+const ROLE_OPTIONS = [
+  'Band or musician',
+  'Tattoo artist',
+  'Illustrator',
+  'Label or collective',
+  'Brand or company',
+  'Something else',
+];
+
 interface ProjectContext {
   code: string;
   name: string;
@@ -23,6 +32,7 @@ export default function WaitlistPage() {
   // Read from the URL on mount (not useSearchParams) so this page stays
   // static — the query string only decorates it client-side.
   const [project, setProject] = useState<ProjectContext | null>(null);
+  const [role, setRole] = useState('');
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +59,7 @@ export default function WaitlistPage() {
         email,
         product: project?.code,
         colour: project?.colour ?? undefined,
+        role: role || undefined,
       });
       if (result.ok) {
         setSubmitted(true);
@@ -111,52 +122,101 @@ export default function WaitlistPage() {
 
         <div className="mt-8 md:max-w-md">
           {submitted ? (
-            <p
-              className="uppercase"
-              style={{
-                fontSize: '13px',
-                letterSpacing: '0.08em',
-                color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
-              }}
-            >
-              Noted — we will be in touch.
-            </p>
+            <>
+              <p
+                className="uppercase"
+                style={{
+                  fontSize: '13px',
+                  letterSpacing: '0.08em',
+                  color: 'color-mix(in srgb, var(--signal) 55%, transparent)',
+                }}
+              >
+                Noted — we will be in touch.
+              </p>
+              {project && (
+                <p
+                  className="uppercase"
+                  style={{
+                    fontSize: '13px',
+                    letterSpacing: '0.08em',
+                    marginTop: '4px',
+                    color: 'color-mix(in srgb, var(--signal) 50%, transparent)',
+                  }}
+                >
+                  Project {project.code} attached.
+                </p>
+              )}
+            </>
           ) : (
             <>
-              <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row">
-                <input
-                  type="email"
-                  required
-                  placeholder="YOUR EMAIL"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+              <form onSubmit={onSubmit} className="flex flex-col gap-3">
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
                   disabled={isPending}
-                  className="flex-1 bg-transparent uppercase placeholder:text-[color-mix(in_srgb,var(--signal)_50%,transparent)] disabled:opacity-50"
+                  className="bg-transparent uppercase disabled:opacity-50"
                   style={{
                     border: HAIRLINE,
                     padding: '14px',
                     fontSize: '13px',
                     letterSpacing: '0.08em',
                     color: 'var(--signal)',
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  className="uppercase transition-colors duration-500 hover:bg-[color-mix(in_srgb,var(--signal)_8%,transparent)] disabled:cursor-not-allowed disabled:opacity-50"
-                  style={{
-                    border: HAIRLINE,
-                    padding: '14px 24px',
-                    fontSize: '13px',
-                    letterSpacing: '0.08em',
-                    cursor: 'pointer',
-                    background: 'transparent',
-                    color: 'var(--signal)',
+                    background: 'var(--paper)',
                   }}
                 >
-                  {isPending ? 'Applying…' : 'Apply'}
-                </button>
+                  <option value="" style={{ background: 'var(--paper)' }}>
+                    I&apos;m a…
+                  </option>
+                  {ROLE_OPTIONS.map((option) => (
+                    <option key={option} value={option} style={{ background: 'var(--paper)' }}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <input
+                    type="email"
+                    required
+                    placeholder="YOUR EMAIL"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isPending}
+                    className="flex-1 bg-transparent uppercase placeholder:text-[color-mix(in_srgb,var(--signal)_50%,transparent)] disabled:opacity-50"
+                    style={{
+                      border: HAIRLINE,
+                      padding: '14px',
+                      fontSize: '13px',
+                      letterSpacing: '0.08em',
+                      color: 'var(--signal)',
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="uppercase transition-colors duration-500 hover:bg-[color-mix(in_srgb,var(--signal)_8%,transparent)] disabled:cursor-not-allowed disabled:opacity-50"
+                    style={{
+                      border: HAIRLINE,
+                      padding: '14px 24px',
+                      fontSize: '13px',
+                      letterSpacing: '0.08em',
+                      cursor: 'pointer',
+                      background: 'transparent',
+                      color: 'var(--signal)',
+                    }}
+                  >
+                    {isPending ? 'Applying…' : 'Apply'}
+                  </button>
+                </div>
               </form>
+              <p
+                style={{
+                  fontSize: '12px',
+                  marginTop: '10px',
+                  opacity: 0.5,
+                }}
+              >
+                Your email is used only to contact you about MerchFrom. No newsletters, no sharing.
+              </p>
               {error && (
                 <p
                   className="uppercase"

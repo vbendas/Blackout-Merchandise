@@ -10,12 +10,14 @@ import { CLIENTS } from '@/lib/clients';
 interface WallPhoto {
   src: string;
   hover: string;
+  client: string;
+  category: string;
 }
 
 function flattenImages(): WallPhoto[] {
   return CLIENTS.flatMap((client) => [
-    { src: client.images[0], hover: client.images[1] },
-    { src: client.images[1], hover: client.images[0] },
+    { src: client.images[0], hover: client.images[1], client: client.name, category: client.category },
+    { src: client.images[1], hover: client.images[0], client: client.name, category: client.category },
   ]);
 }
 
@@ -75,7 +77,7 @@ export function GalleryView() {
             className="group break-inside-avoid"
             role="button"
             tabIndex={0}
-            aria-label={`MerchFrom piece ${index + 1} — tap to see the other angle`}
+            aria-label={`${photo.client} — MerchFrom piece ${index + 1} — tap to see the other angle`}
             onClick={() => setTapped((cur) => (cur === index ? null : index))}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -111,6 +113,20 @@ export function GalleryView() {
                 className="object-cover opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
                 style={{ opacity: isTapped ? 1 : undefined }}
               />
+              <span
+                aria-hidden
+                className="absolute bottom-0 left-0 uppercase opacity-0 transition-opacity duration-[400ms] ease-out group-hover:opacity-100"
+                style={{
+                  fontSize: '12px',
+                  letterSpacing: '0.08em',
+                  color: '#ede4dd',
+                  mixBlendMode: 'difference',
+                  padding: '12px',
+                  opacity: isTapped ? 1 : undefined,
+                }}
+              >
+                {photo.client} — {photo.category}
+              </span>
             </div>
           </div>
         );
