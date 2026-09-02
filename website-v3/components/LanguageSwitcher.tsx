@@ -19,7 +19,14 @@ export function LanguageSwitcher() {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  // The trigger lives in a corner: the panel opens away from the nearest
+  // edges (up from a bottom bar, rightward from a left-hand anchor).
+  const [coords, setCoords] = useState<{
+    top: number;
+    left: number;
+    up: boolean;
+    alignLeft: boolean;
+  } | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -31,7 +38,14 @@ export function LanguageSwitcher() {
     const trigger = triggerRef.current;
     if (!trigger) return;
     const rect = trigger.getBoundingClientRect();
-    setCoords({ top: rect.bottom + PANEL_GAP, left: rect.right });
+    const up = rect.top > window.innerHeight / 2;
+    const alignLeft = rect.left < window.innerWidth / 2;
+    setCoords({
+      top: up ? rect.top - PANEL_GAP : rect.bottom + PANEL_GAP,
+      left: alignLeft ? rect.left : rect.right,
+      up,
+      alignLeft,
+    });
   }, []);
 
   useEffect(() => {
@@ -123,7 +137,7 @@ export function LanguageSwitcher() {
     position: 'fixed',
     top: coords?.top ?? 0,
     left: coords?.left ?? 0,
-    transform: 'translateX(-100%)',
+    transform: `translate(${coords?.alignLeft ? '0' : '-100%'}, ${coords?.up ? '-100%' : '0'})`,
     zIndex: 60,
     background: 'var(--paper)',
     color: 'var(--signal)',

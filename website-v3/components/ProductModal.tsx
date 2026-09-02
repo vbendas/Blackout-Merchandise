@@ -112,6 +112,66 @@ function RelatedStrip({
   onOpenProduct: (code: string) => void;
 }) {
   const t = useT();
+  const stripRef = useRef<HTMLDivElement>(null);
+  // Mouse drag to scroll the strip sideways (touch already swipes
+  // natively). A small threshold keeps plain clicks opening products.
+  const drag = useRef({ active: false, moved: false, startX: 0, startLeft: 0 });
+  const [overflow, setOverflow] = useState({ left: false, right: false });
+
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const update = () =>
+      setOverflow({
+        left: el.scrollLeft > 2,
+        right: el.scrollLeft + el.clientWidth < el.scrollWidth - 2,
+      });
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener('scroll', update);
+      ro.disconnect();
+    };
+  }, [products]);
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    const el = stripRef.current;
+    if (!el) return;
+    drag.current = { active: true, moved: false, startX: e.clientX, startLeft: el.scrollLeft };
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    const d = drag.current;
+    const el = stripRef.current;
+    if (!d.active || !el) return;
+    const dx = e.clientX - d.startX;
+    if (!d.moved && Math.abs(dx) < 6) return;
+    if (!d.moved) {
+      d.moved = true;
+      el.setPointerCapture(e.pointerId);
+    }
+    el.scrollLeft = d.startLeft - dx;
+  }
+
+  function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    const el = stripRef.current;
+    if (drag.current.moved && el?.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+    drag.current.active = false;
+  }
+
+  function onClickCapture(e: React.MouseEvent<HTMLDivElement>) {
+    if (!drag.current.moved) return;
+    e.stopPropagation();
+    e.preventDefault();
+    drag.current.moved = false;
+  }
+
+  const fade = (side: 'left' | 'right') =>
+    `linear-gradient(to ${side}, transparent, var(--paper))`;
+
   return (
     <div>
       <span
@@ -124,36 +184,78 @@ function RelatedStrip({
       >
         {t('common.related')}
       </span>
-      <div
-        className="flex gap-3 overflow-x-auto"
-        style={{ marginTop: '10px', paddingBottom: '4px', scrollbarWidth: 'none' }}
-      >
-        {products.map((p) => (
-          <button
-            key={p.code}
-            type="button"
-            onClick={() => onOpenProduct(p.code)}
-            className="w-20 flex-shrink-0 md:w-24"
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
-          >
-            <div className="relative aspect-square w-full" style={{ border: HAIRLINE }}>
-              <div className="absolute inset-[9%]">
-                <Image src={p.src} alt="" fill sizes="96px" className="object-contain" />
-              </div>
-            </div>
-            <div
-              className="opacity-[.62]"
+      <div className="relative" style={{ marginTop: '10px' }}>
+        <div
+          ref={stripRef}
+          className="flex gap-3 overflow-x-auto"
+          style={{
+            paddingBottom: '4px',
+            scrollbarWidth: 'none',
+            cursor: 'grab',
+            userSelect: 'none',
+            touchAction: 'pan-x pan-y',
+          }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onClickCapture={onClickCapture}
+        >
+          {products.map((p) => (
+            <button
+              key={p.code}
+              type="button"
+              onClick={() => onOpenProduct(p.code)}
+              className="w-20 flex-shrink-0 md:w-24"
               style={{
-                fontSize: '11px',
-                textTransform: 'uppercase',
-                textAlign: 'center',
-                marginTop: '6px',
-                lineHeight: 1.3,
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: 'inherit',
+                textAlign: 'left',
               }}
             >
-              {PRODUCT_DETAILS[p.code]?.name ?? p.name}
-            </div>
-          </button>
+              <div className="relative aspect-square w-full" style={{ border: HAIRLINE }}>
+                <div className="absolute inset-[9%]">
+                  <Image
+                    src={p.src}
+                    alt=""
+                    fill
+                    sizes="96px"
+                    className="object-contain"
+                    draggable={false}
+                  />
+                </div>
+              </div>
+              <div
+                className="opacity-[.62]"
+                style={{
+                  fontSize: '11px',
+                  textTransform: 'uppercase',
+                  textAlign: 'center',
+                  marginTop: '6px',
+                  lineHeight: 1.3,
+                }}
+              >
+                {PRODUCT_DETAILS[p.code]?.name ?? p.name}
+              </div>
+            </button>
+          ))}
+        </div>
+        {/* Edge fades signal that more blanks sit outside the panel. */}
+        {(['left', 'right'] as const).map((side) => (
+          <div
+            key={side}
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0"
+            style={{
+              [side]: 0,
+              width: '48px',
+              background: fade(side),
+              opacity: overflow[side] ? 1 : 0,
+              transition: 'opacity 300ms ease',
+            }}
+          />
         ))}
       </div>
     </div>

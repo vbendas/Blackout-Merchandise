@@ -134,18 +134,6 @@ export function Corners() {
           <div className="flex items-center" style={{ minHeight: '40px' }}>
             <ViewSwitcher pathname={pathname} indicateActive={indicateActive} onSwitch={markSwitched} />
           </div>
-
-          <nav className="flex items-center gap-3" style={{ minHeight: '40px' }}>
-            <a href="/about" className="flex items-center" style={{ minHeight: '40px' }}>
-              {t('nav.about')}
-            </a>
-            <a href="/contact" className="flex items-center" style={{ minHeight: '40px' }}>
-              {t('nav.contact')}
-            </a>
-            <div className="flex items-center" style={{ minHeight: '40px' }}>
-              <LanguageSwitcher />
-            </div>
-          </nav>
         </div>
 
         <div
@@ -159,9 +147,19 @@ export function Corners() {
             transition: 'background-color 800ms ease',
           }}
         >
-          <span className="opacity-60" style={{ lineHeight: '40px' }}>
-            {t('corners.tagline')}
-          </span>
+          {/* About / Contact / language sit down here on phones so the top
+              bar stays a single row; the tagline is desktop-only. */}
+          <nav className="flex items-center gap-3" style={{ minHeight: '40px' }}>
+            <a href="/about" className="flex items-center" style={{ minHeight: '40px' }}>
+              {t('nav.about')}
+            </a>
+            <a href="/contact" className="flex items-center" style={{ minHeight: '40px' }}>
+              {t('nav.contact')}
+            </a>
+            <div className="flex items-center" style={{ minHeight: '40px' }}>
+              <LanguageSwitcher />
+            </div>
+          </nav>
           <a href="/waitlist" className="flex items-center" style={{ minHeight: '40px' }}>
             {t('nav.waitlist')}
           </a>

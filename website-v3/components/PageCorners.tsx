@@ -81,7 +81,7 @@ export function PageCorners({ current }: PageCornersProps) {
       {/* Mobile */}
       <div className="md:hidden">
         <div
-          className="fixed z-10 top-0 left-0 right-0 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[12px]"
+          className="mobile-corner-top fixed z-10 top-0 left-0 right-0 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[12px]"
           style={{
             paddingLeft: 'var(--gutter)',
             paddingRight: 'var(--gutter)',
@@ -99,16 +99,10 @@ export function PageCorners({ current }: PageCornersProps) {
             <RegisterMark className="h-5 w-5" />
           </a>
 
-          <nav className="flex items-center gap-3">
-            {nav('')}
-            <div className="flex items-center" style={{ minHeight: '40px' }}>
-              <LanguageSwitcher />
-            </div>
-          </nav>
         </div>
 
         <div
-          className="fixed z-10 bottom-0 left-0 right-0 flex items-center justify-between text-[12px]"
+          className="mobile-corner-bottom fixed z-10 bottom-0 left-0 right-0 flex items-center justify-between text-[12px]"
           style={{
             paddingLeft: 'var(--gutter)',
             paddingRight: 'var(--gutter)',
@@ -117,9 +111,12 @@ export function PageCorners({ current }: PageCornersProps) {
             background: 'var(--paper)',
           }}
         >
-          <span className="opacity-60" style={{ lineHeight: '40px' }}>
-            {t('corners.tagline')}
-          </span>
+          <nav className="flex items-center gap-3" style={{ minHeight: '40px' }}>
+            {nav('')}
+            <div className="flex items-center" style={{ minHeight: '40px' }}>
+              <LanguageSwitcher />
+            </div>
+          </nav>
           <a
             href="/waitlist"
             aria-current={current === 'waitlist' ? 'page' : undefined}
