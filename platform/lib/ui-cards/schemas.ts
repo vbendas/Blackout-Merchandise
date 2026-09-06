@@ -96,6 +96,73 @@ export const cardSchema = z.discriminatedUnion('kind', [
   }),
   z.object({ ...base, kind: z.literal('menu'), sections: z.array(z.object({ title: z.string(), chips: z.array(chipSchema) })) }),
   z.object({ ...base, kind: z.literal('notice'), tone: z.enum(['info', 'success', 'warning', 'error']), text: z.string() }),
+  // --- wave 1: design → product ---
+  z.object({
+    ...base,
+    kind: z.literal('design'),
+    designId: z.string(),
+    previewUrl: z.string(),
+    widthPx: z.number().optional(),
+    heightPx: z.number().optional(),
+    dpiAtPrint: z.number().optional(),
+    hasAlpha: z.boolean().optional(),
+    readiness: z.enum(['ready', 'needs_cleanup', 'blocked']),
+    notes: z.array(z.string()).optional(),
+  }),
+  z.object({
+    ...base,
+    kind: z.literal('mockup_grid'),
+    items: z
+      .array(
+        z.object({
+          id: z.string(),
+          url: z.string(),
+          label: z.string().optional(),
+          designId: z.string().optional(),
+          colourCode: z.string().optional(),
+          /** message sent when the item is chosen, e.g. 'Use design d_123' */
+          prompt: z.string().optional(),
+        }),
+      )
+      .max(12),
+    columns: z.number().min(1).max(4).optional(),
+  }),
+  z.object({
+    ...base,
+    kind: z.literal('product'),
+    productId: z.string(),
+    name: z.string(),
+    blankCode: z.string(),
+    blankName: z.string(),
+    imageUrl: z.string().optional(),
+    colours: z.array(z.object({ code: z.string(), name: z.string(), hex: z.string(), mockupUrl: z.string().optional() })),
+    sizes: z.array(z.string()),
+    printService: z.string(),
+    placement: z.string().optional(),
+    baseCostCents: z.number().optional(),
+    retailPriceCents: z.number().optional(),
+    marginCents: z.number().optional(),
+    status: z.enum(['draft', 'proof_pending', 'live', 'archived']),
+  }),
+  z.object({
+    ...base,
+    kind: z.literal('quote'),
+    lines: z.array(z.object({ label: z.string(), qty: z.number(), unitCents: z.number(), totalCents: z.number() })),
+    totalCents: z.number(),
+    currency: z.string().default('EUR'),
+    note: z.string().optional(),
+  }),
+  z.object({
+    ...base,
+    kind: z.literal('proof'),
+    proofId: z.string(),
+    productId: z.string().optional(),
+    version: z.number(),
+    mockupUrls: z.array(z.string()),
+    spec: z.array(z.object({ label: z.string(), value: z.string() })),
+    status: z.enum(['pending', 'approved', 'changes_requested']),
+  }),
+  z.object({ ...base, kind: z.literal('upload'), accept: z.string().default('image/*'), hint: z.string().optional() }),
 ]);
 export type Card = z.infer<typeof cardSchema>;
 export type CardKind = Card['kind'];
@@ -110,3 +177,21 @@ export const toolUiSchema = z.object({
     .optional(),
 });
 export type ToolUi = z.infer<typeof toolUiSchema>;
+
+/** State carried by the 'product' project card (right-hand / top-bar pill). */
+export interface ProductProjectState {
+  productId: string;
+  name: string;
+  blankCode: string;
+  blankName: string;
+  imageUrl?: string;
+  colours: { code: string; name: string; hex: string; mockupUrl?: string }[];
+  sizes: string[];
+  printService: string;
+  placement?: string;
+  baseCostCents?: number;
+  retailPriceCents?: number;
+  marginCents?: number;
+  status: 'draft' | 'proof_pending' | 'live' | 'archived';
+  proofStatus?: 'pending' | 'approved' | 'changes_requested';
+}

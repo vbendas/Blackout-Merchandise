@@ -1,8 +1,10 @@
 'use client';
 
+import { useCallback, useRef, useState, type DragEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { CardActionContext } from '@/components/cards/actions';
 import { useConversation } from '@/components/chat/useConversation';
+import { useUpload } from '@/components/chat/useUpload';
 import { TopBar } from '@/components/chat/TopBar';
 import { Thread } from '@/components/chat/Thread';
 import { Composer } from '@/components/chat/Composer';
@@ -29,14 +31,52 @@ export function ChatShell({ showUser = true }: { showUser?: boolean }) {
     resolveConfirm,
   } = useConversation();
 
+  const upload = useUpload();
+  const [isDragging, setIsDragging] = useState(false);
+  const dragDepth = useRef(0);
+
+  const onDragEnter = useCallback((event: DragEvent<HTMLDivElement>) => {
+    if (!event.dataTransfer.types.includes('Files')) return;
+    event.preventDefault();
+    dragDepth.current += 1;
+    setIsDragging(true);
+  }, []);
+
+  const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
+    if (event.dataTransfer.types.includes('Files')) event.preventDefault();
+  }, []);
+
+  const onDragLeave = useCallback(() => {
+    dragDepth.current = Math.max(0, dragDepth.current - 1);
+    if (dragDepth.current === 0) setIsDragging(false);
+  }, []);
+
+  const onDrop = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
+      if (!event.dataTransfer.files?.length) return;
+      event.preventDefault();
+      dragDepth.current = 0;
+      setIsDragging(false);
+      upload.upload(event.dataTransfer.files);
+    },
+    [upload],
+  );
+
   const ctx: CardActionContext = {
     onPrompt: sendText,
     onConfirm: resolveConfirm,
+    onUploadClick: upload.openPicker,
   };
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="mf-app flex h-dvh flex-col">
+    <div
+      className="mf-app flex h-dvh flex-col"
+      onDragEnter={onDragEnter}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
       <TopBar showUser={showUser} projectPill={projectPill} project={project} ctx={ctx} />
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {loadingHistory ? (
@@ -62,7 +102,7 @@ export function ChatShell({ showUser = true }: { showUser?: boolean }) {
                   className="flex w-full min-w-0 flex-col items-center gap-7"
                 >
                   <EmptyGreeting greeting={greeting} />
-                  <QuickActionsRow actions={quickActions} onSend={sendText} />
+                  <QuickActionsRow actions={quickActions} onSend={sendText} onUploadClick={upload.openPicker} />
                 </motion.div>
               ) : null}
             </AnimatePresence>
@@ -85,7 +125,13 @@ export function ChatShell({ showUser = true }: { showUser?: boolean }) {
                   : 'flex w-full shrink-0 justify-center px-5 pb-7 md:px-10 md:pb-8'
               }
             >
-              <Composer onSend={sendText} disabled={sending} dropdownPosition={isEmpty ? 'below' : 'above'} />
+              <Composer
+                onSend={sendText}
+                disabled={sending}
+                dropdownPosition={isEmpty ? 'below' : 'above'}
+                upload={upload}
+                isDragging={isDragging}
+              />
             </motion.div>
             {isEmpty && checklist ? <ChecklistRow steps={checklist} onPrompt={sendText} /> : null}
           </div>

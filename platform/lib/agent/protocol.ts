@@ -19,7 +19,7 @@ export interface AgentRequest {
   /** plain text from the input box or a chip prompt */
   text: string;
   /** optional image/file references already uploaded (Cloudinary URLs) */
-  attachments?: { url: string; kind: 'image' | 'file'; name?: string }[];
+  attachments?: { url: string; kind: 'image' | 'file'; name?: string; designId?: string }[];
 }
 
 export interface ConfirmRequest {

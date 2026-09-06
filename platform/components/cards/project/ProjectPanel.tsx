@@ -29,7 +29,7 @@ export function ProjectPanel({ project, ctx }: { project: ToolUi['project'] | nu
       {project.kind === 'onboarding' ? (
         <OnboardingProjectView state={project.state as OnboardingProjectState} onPrompt={ctx.onPrompt} />
       ) : null}
-      {project.kind === 'product' ? <ProductProjectView state={project.state as ProductProjectState} ctx={ctx} /> : null}
+      {project.kind === 'product' ? <ProductProjectView state={project.state as unknown as ProductProjectState} ctx={ctx} /> : null}
       {project.kind === 'bulk_order' ? (
         <BulkOrderProjectView state={project.state as BulkOrderProjectState} ctx={ctx} />
       ) : null}

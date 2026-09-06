@@ -189,11 +189,6 @@ function str(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
 }
 
-function nested(state: Record<string, unknown>, key: string): Record<string, unknown> | undefined {
-  const value = state[key];
-  return value && typeof value === 'object' ? (value as Record<string, unknown>) : undefined;
-}
-
 function statusLabel(raw: unknown, fallback: 'Draft' | 'Proof' | 'Live'): string {
   const s = str(raw)?.toLowerCase();
   if (!s) return fallback;
@@ -210,10 +205,11 @@ export async function projectPillFor(conversationId: string): Promise<{ label: s
   const state = (card.state ?? {}) as Record<string, unknown>;
 
   if (card.kind === 'product') {
-    const colour = nested(state, 'colour');
     const name = str(state.name) ?? 'Product';
-    const colourName = str(state.colourName) ?? str(colour?.name);
-    const colourHex = str(state.colourHex) ?? str(colour?.hex);
+    const colours = Array.isArray(state.colours) ? (state.colours as Record<string, unknown>[]) : [];
+    const first = colours[0];
+    const colourName = str(first?.name);
+    const colourHex = str(first?.hex);
     return {
       label: colourName ? `${name} · ${colourName}` : name,
       status: statusLabel(state.status, 'Draft'),

@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { AgentEvent, ChecklistStep } from '@/lib/agent/protocol';
-import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
+import type { AgentEvent, AgentRequest, ChecklistStep } from '@/lib/agent/protocol';
+import type { Card, Chip, ProductProjectState, ToolUi } from '@/lib/ui-cards/schemas';
 import {
   fetchAgentHistory,
   loadStoredConversationId,
@@ -17,6 +17,7 @@ export interface ChatMessage {
   text: string;
   cards: Card[];
   streaming?: boolean;
+  attachments?: AgentRequest['attachments'];
 }
 
 export interface Greeting {
@@ -153,6 +154,19 @@ export function useConversation() {
         }
         case 'project': {
           setProject(event.project);
+          // Keep the top-bar pill in step with the live project state instead
+          // of the snapshot loaded with the history.
+          if (event.project?.kind === 'product') {
+            const st = event.project.state as Partial<ProductProjectState>;
+            const colour = st.colours?.[0];
+            setProjectPill({
+              label: colour ? `${st.name ?? 'Product'} · ${colour.name}` : (st.name ?? 'Product'),
+              status: st.status === 'live' ? 'Live' : st.proofStatus === 'approved' ? 'Approved' : st.status === 'proof_pending' ? 'Proof' : 'Draft',
+              colourHex: colour?.hex,
+            });
+          } else if (event.project === null) {
+            setProjectPill(null);
+          }
           break;
         }
         case 'confirm_required': {
@@ -196,15 +210,18 @@ export function useConversation() {
   );
 
   const sendText = useCallback(
-    (text: string) => {
+    (text: string, attachments?: AgentRequest['attachments']) => {
       const trimmed = text.trim();
-      if (!trimmed || sending) return;
+      if ((!trimmed && (!attachments || attachments.length === 0)) || sending) return;
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
-      setMessages((prev) => [...prev, { id: makeId('user'), role: 'user', text: trimmed, cards: [] }]);
+      setMessages((prev) => [...prev, { id: makeId('user'), role: 'user', text: trimmed, cards: [], attachments }]);
       setSending(true);
-      sendAgentMessage({ conversationId: conversationId || undefined, text: trimmed }, { onEvent: handleEvent, signal: controller.signal });
+      sendAgentMessage(
+        { conversationId: conversationId || undefined, text: trimmed, attachments },
+        { onEvent: handleEvent, signal: controller.signal },
+      );
     },
     [conversationId, handleEvent, sending],
   );

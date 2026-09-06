@@ -117,6 +117,56 @@ export async function fetchSuggestions(query: string, signal?: AbortSignal): Pro
   }
 }
 
+export const UPLOAD_ENDPOINT = '/api/uploads';
+
+export interface UploadResult {
+  designId: string;
+  url: string;
+  previewUrl: string;
+  widthPx: number;
+  heightPx: number;
+  readiness: 'ready' | 'needs_cleanup' | 'blocked';
+  notes: string[];
+}
+
+export interface UploadHandlers {
+  onProgress?: (percent: number) => void;
+  signal?: AbortSignal;
+}
+
+/** POST /api/uploads (multipart `file`) — another workstream owns this route
+ * and it 404s/500s until it lands. Uses XHR (not fetch) so upload progress is
+ * observable for the composer's progress pill. */
+export function uploadDesign(file: File, handlers: UploadHandlers = {}): Promise<UploadResult> {
+  // XHR is the only way to observe upload progress in the browser; fetch has
+  // no upload-progress event.
+  // oxlint-disable-next-line eslint-plugin-promise(avoid-new)
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', UPLOAD_ENDPOINT);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) handlers.onProgress?.(Math.round((event.loaded / event.total) * 100));
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText) as UploadResult);
+        } catch {
+          reject(new Error('The upload endpoint returned an unreadable response.'));
+        }
+      } else {
+        reject(new Error(`Upload failed (${xhr.status}).`));
+      }
+    };
+    xhr.onerror = () => reject(new Error('Could not reach the upload endpoint.'));
+    xhr.onabort = () => reject(new Error('Upload cancelled.'));
+    handlers.signal?.addEventListener('abort', () => xhr.abort());
+    const formData = new FormData();
+    formData.append('file', file);
+    xhr.send(formData);
+  });
+}
+
 export function loadStoredConversationId(): string {
   if (typeof window === 'undefined') return '';
   try {

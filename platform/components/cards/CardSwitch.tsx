@@ -12,6 +12,12 @@ import { ConfirmCard } from '@/components/cards/ConfirmCard';
 import { InboxCard } from '@/components/cards/InboxCard';
 import { MenuCard } from '@/components/cards/MenuCard';
 import { NoticeCard } from '@/components/cards/NoticeCard';
+import { DesignCard } from '@/components/cards/DesignCard';
+import { MockupGridCard } from '@/components/cards/MockupGridCard';
+import { ProductCard } from '@/components/cards/ProductCard';
+import { QuoteCard } from '@/components/cards/QuoteCard';
+import { ProofCard } from '@/components/cards/ProofCard';
+import { UploadCard } from '@/components/cards/UploadCard';
 
 export interface CardSwitchProps {
   card: Card;
@@ -37,6 +43,18 @@ function renderBody(card: Card, ctx: CardActionContext, confirmResolution?: 'app
       return <MenuCard card={card} ctx={ctx} />;
     case 'notice':
       return <NoticeCard card={card} ctx={ctx} />;
+    case 'design':
+      return <DesignCard card={card} ctx={ctx} />;
+    case 'mockup_grid':
+      return <MockupGridCard card={card} ctx={ctx} />;
+    case 'product':
+      return <ProductCard card={card} ctx={ctx} />;
+    case 'quote':
+      return <QuoteCard card={card} ctx={ctx} />;
+    case 'proof':
+      return <ProofCard card={card} ctx={ctx} />;
+    case 'upload':
+      return <UploadCard card={card} ctx={ctx} />;
     default:
       return null;
   }

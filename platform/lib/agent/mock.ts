@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import type Anthropic from '@anthropic-ai/sdk';
 import type { RunModelTurnParams, RunModelTurnResult } from '@/lib/agent/model-types';
+import { EXTRA_MOCK_RULES, type MockRule } from '@/lib/agent/mock-extra';
 
 // Scripted responder used when AGENT_MOCK=1 or no ANTHROPIC_API_KEY is set, so
 // the whole pipeline (tools, DB writes, SSE events, confirm gate) can be
@@ -19,14 +20,19 @@ function isToolResultTurn(message: Anthropic.MessageParam): boolean {
   return message.role === 'user' && blocks.length > 0 && blocks.every((b) => b.type === 'tool_result');
 }
 
-/** The human's own words for this turn — skips over tool_result carrier messages. */
+/** The human's own words for this turn — skips over tool_result carrier messages.
+ * Joins every text block (not just the first): loop.ts prepends an 'Attached
+ * design <id> (...)' note ahead of the user's own typed text when the turn
+ * carries an attachment, and rules need to see both. */
 function lastHumanText(messages: Anthropic.MessageParam[]): string {
   for (let i = messages.length - 1; i >= 0; i -= 1) {
     const message = messages[i];
     if (message.role !== 'user' || isToolResultTurn(message)) continue;
     if (typeof message.content === 'string') return message.content;
-    const text = blocksOf(message.content).find((b) => b.type === 'text');
-    if (text?.text) return text.text;
+    const texts = blocksOf(message.content)
+      .filter((b) => b.type === 'text' && !!b.text)
+      .map((b) => b.text as string);
+    if (texts.length > 0) return texts.join(' ');
   }
   return '';
 }
@@ -56,15 +62,70 @@ interface PrimaryToolCall {
   text?: string;
 }
 
+/** Pulls a design id out of the loop's own attachment note — loop.ts appends
+ * 'Attached design <id> (<width>x<height>, <readiness>)' to the user turn
+ * whenever the request carries an attachment, which is the only place a
+ * design id can come from in free text (the mock has no UI state to read). */
+function resolveContextDesignId(text: string): string {
+  return text.match(/Attached design\s+(\S+)/i)?.[1] ?? '';
+}
+
+/** Design-tool rules (upload/analyze/generate/clean) merged after
+ * EXTRA_MOCK_RULES — 'use design ...' is deliberately left to EXTRA's
+ * create_product rule rather than duplicated here. */
+const DESIGN_MOCK_RULES: MockRule[] = [
+  {
+    match: /upload/i,
+    text: 'Opening the upload picker...',
+    tool: 'upload_design',
+    input: {},
+  },
+  {
+    match: /analyze\s+(\S+)/i,
+    text: 'Checking print readiness...',
+    tool: 'analyze_design',
+    buildInput: (match, text) => {
+      const captured = match?.[1]?.replace(/[.,!?]+$/, '') ?? '';
+      const generic = new Set(['it', 'this', 'that', 'design', 'the']);
+      return { designId: generic.has(captured.toLowerCase()) ? resolveContextDesignId(text) : captured };
+    },
+  },
+  {
+    match: /remove (the )?background/i,
+    text: 'Removing the background...',
+    tool: 'clean_design',
+    buildInput: (_match, text) => ({ designId: resolveContextDesignId(text), ops: ['remove_bg'] }),
+  },
+  {
+    match: /generate|from scratch/i,
+    text: 'Generating a design...',
+    tool: 'generate_design',
+    buildInput: (_match, text) => ({ brief: text }),
+  },
+];
+
+/** Checks rules in order; a string `match` is a case-insensitive substring
+ * test (no capture group), a RegExp `match` is tested against the raw text
+ * and its groups handed to `buildInput`. Rules with no `tool` (text-only) are
+ * skipped here — nothing currently needs a tool-less rule mid-table. */
+function matchMockRules(rules: MockRule[], text: string): PrimaryToolCall | null {
+  for (const rule of rules) {
+    if (!rule.tool) continue;
+    if (typeof rule.match === 'string') {
+      if (!text.toLowerCase().includes(rule.match.toLowerCase())) continue;
+      const input = rule.buildInput ? rule.buildInput(null, text) : (rule.input ?? {});
+      return { name: rule.tool, input, text: rule.text };
+    }
+    const match = text.match(rule.match);
+    if (!match) continue;
+    const input = rule.buildInput ? rule.buildInput(match, text) : (rule.input ?? {});
+    return { name: rule.tool, input, text: rule.text };
+  }
+  return null;
+}
+
 function pickPrimaryTool(text: string): PrimaryToolCall | null {
   const t = text.toLowerCase();
-  if (t.includes('start a product') || t.includes('upload artwork')) {
-    return {
-      name: 'suggest_next',
-      input: { chips: [{ label: 'Browse blanks', prompt: 'Show me blanks' }, { label: 'What can I do?', prompt: 'What can I do?' }] },
-      text: 'The design flow lands next wave. For now you can browse blanks to see what you could print on.',
-    };
-  }
   if (t.includes('show my shop')) return { name: 'get_my_store', input: {} };
   if (t.includes('bulk order')) {
     return {
@@ -103,7 +164,8 @@ export async function mockRunModelTurn(params: RunModelTurnParams): Promise<RunM
   const emit = (text: string) => params.onTextDelta?.(text);
 
   if (!hasTrailingToolResult(params.messages)) {
-    const primary = pickPrimaryTool(lastHumanText(params.messages));
+    const humanText = lastHumanText(params.messages);
+    const primary = matchMockRules(EXTRA_MOCK_RULES, humanText) ?? matchMockRules(DESIGN_MOCK_RULES, humanText) ?? pickPrimaryTool(humanText);
     if (!primary) {
       const text = "Here's a quick menu to get you moving.";
       emit(text);

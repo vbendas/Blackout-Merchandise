@@ -5,6 +5,9 @@ import { rememberTool } from '@/lib/tools/memory';
 import { getInboxTool } from '@/lib/tools/inbox';
 import { whatCanIDoTool } from '@/lib/tools/menu';
 import { suggestNextTool } from '@/lib/tools/suggest-next';
+import { DESIGN_TOOLS } from '@/lib/tools/design';
+import { PRODUCT_TOOLS } from '@/lib/tools/products';
+import { MOCKUP_TOOLS } from '@/lib/tools/mockups';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ALL_TOOLS: Tool<any, any>[] = [
@@ -17,6 +20,9 @@ const ALL_TOOLS: Tool<any, any>[] = [
   getInboxTool,
   whatCanIDoTool,
   suggestNextTool,
+  ...DESIGN_TOOLS,
+  ...PRODUCT_TOOLS,
+  ...MOCKUP_TOOLS,
 ];
 
 /** Tools visible to a caller with this role, in a deterministic (name-sorted) order. */

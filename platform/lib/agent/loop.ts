@@ -16,6 +16,7 @@ import {
 import { storeSummary } from '@/lib/services/stores';
 import { completeInvocationByIdempotencyKey, findByIdempotencyKey, recordInvocation } from '@/lib/services/tools-audit';
 import { getTool } from '@/lib/tools/registry';
+import { getDesignSummary, listDesignsForStore } from '@/lib/services/designs';
 
 export type BaseAgentContext = Omit<ToolContext, 'idempotencyKey'>;
 export type Emit = (event: AgentEvent) => void;
@@ -167,15 +168,17 @@ async function executeToolCall(block: Anthropic.ToolUseBlock, base: BaseAgentCon
 }
 
 async function currentSystemBlocks(base: BaseAgentContext): Promise<Anthropic.TextBlockParam[]> {
-  const [store, projectCard] = await Promise.all([
+  const [store, projectCard, recentDesigns] = await Promise.all([
     base.storeId ? storeSummary(base.storeId) : Promise.resolve(null),
     getProjectCard(base.conversationId),
+    base.storeId ? listDesignsForStore(base.storeId, 1) : Promise.resolve([]),
   ]);
   return buildSystemBlocks({
     role: base.role,
     store,
     project: projectCard ? { kind: projectCard.kind, refId: projectCard.refId, state: projectCard.state } : null,
     locale: base.locale,
+    recentDesignId: recentDesigns[0]?.designId ?? null,
   });
 }
 
@@ -257,7 +260,6 @@ async function runIterations(base: BaseAgentContext, initialMessages: Anthropic.
       }),
     );
     for (const block of otherBlocks) {
-      // eslint-disable-next-line no-await-in-loop
       const outcome = await executeToolCall(block, base, assistantRow.id, emit);
       handleOutcome(block, outcome);
     }
@@ -283,7 +285,7 @@ async function runIterations(base: BaseAgentContext, initialMessages: Anthropic.
 export interface StartAgentTurnParams {
   base: BaseAgentContext;
   userText: string;
-  attachments?: { url: string; kind: 'image' | 'file'; name?: string }[];
+  attachments?: { url: string; kind: 'image' | 'file'; name?: string; designId?: string }[];
   emit: Emit;
 }
 
@@ -292,6 +294,13 @@ export async function startAgentTurn(params: StartAgentTurnParams): Promise<void
   const blocks: Anthropic.ContentBlockParam[] = [];
   for (const attachment of params.attachments ?? []) {
     if (attachment.kind === 'image') blocks.push({ type: 'image', source: { type: 'url', url: attachment.url } });
+    if (attachment.designId) {
+      const summary = await getDesignSummary(attachment.designId);
+      if (summary) {
+        const dims = summary.widthPx && summary.heightPx ? `${summary.widthPx}×${summary.heightPx}` : 'unknown size';
+        blocks.push({ type: 'text', text: `Attached design ${attachment.designId} (${dims}, ${summary.readiness}).` });
+      }
+    }
   }
   blocks.push({ type: 'text', text: params.userText });
 

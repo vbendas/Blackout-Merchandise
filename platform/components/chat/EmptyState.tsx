@@ -23,17 +23,32 @@ export function EmptyGreeting({ greeting }: { greeting: Greeting }) {
   );
 }
 
-export function QuickActionsRow({ actions, onSend }: { actions: ChipType[]; onSend: (text: string) => void }) {
+function isUploadAction(label: string): boolean {
+  const text = label.toLowerCase();
+  return text.includes('upload') || text.includes('artwork');
+}
+
+export function QuickActionsRow({
+  actions,
+  onSend,
+  onUploadClick,
+}: {
+  actions: ChipType[];
+  onSend: (text: string) => void;
+  /** 'Upload artwork' opens the image picker instead of sending a prompt */
+  onUploadClick: () => void;
+}) {
   if (actions.length === 0) return null;
   return (
     <div className="flex w-full min-w-0 justify-start gap-2 overflow-x-auto px-6 md:flex-wrap md:justify-center md:overflow-visible md:px-0">
       {actions.map((action, index) => {
         const Icon = iconFor(action.label);
+        const upload = isUploadAction(action.label);
         return (
           <button
             key={action.label}
             type="button"
-            onClick={() => onSend(action.prompt ?? action.label)}
+            onClick={() => (upload ? onUploadClick() : onSend(action.prompt ?? action.label))}
             className={`mf-pill mf-rise mf-rise-d${Math.min(index + 2, 6)} h-[38px] shrink-0 text-[13px] md:h-10`}
           >
             <Icon className="mf-icon" />
