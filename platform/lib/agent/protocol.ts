@@ -66,3 +66,27 @@ export interface HistoryResponse {
   /** compact summary for the top-bar project pill (null when nothing active) */
   projectPill: { label: string; status: string; colourHex?: string } | null;
 }
+
+// --- Storefront ↔ Stripe checkout contract (wave 2) ---
+
+export interface CheckoutLine {
+  productId: string;
+  colourCode: string;
+  size: string;
+  qty: number;
+}
+
+/** POST /api/stripe/checkout */
+export interface CheckoutRequest {
+  storeSlug: string;
+  lines: CheckoutLine[];
+  /** ISO-2 destination country chosen on the cart page; selects the shipping zone */
+  country: string;
+  email?: string;
+}
+
+export interface CheckoutResponse {
+  /** hosted Checkout URL (or the local mock checkout page when STRIPE_MOCK=1) */
+  url: string;
+  sessionId: string;
+}

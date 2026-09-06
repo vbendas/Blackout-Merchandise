@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# dev email outbox (rendered notification emails, RESEND_API_KEY unset)
+/var/

@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import { defineTool } from '@/lib/tools/types';
-import { describeNotification, listNotifications } from '@/lib/services/inbox';
+import { describeNotification, listNotifications, markRead, notificationPrompt } from '@/lib/services/inbox';
 
 export const getInboxTool = defineTool({
   name: 'get_inbox',
@@ -24,10 +24,24 @@ export const getInboxTool = defineTool({
               at: r.createdAt.toISOString(),
               text: describeNotification(r),
               unread: !r.readAt,
+              prompt: notificationPrompt(r),
             })),
           },
         ],
       },
     };
+  },
+});
+
+export const markInboxReadTool = defineTool({
+  name: 'mark_inbox_read',
+  description:
+    "Mark inbox notifications as read. Call with specific ids after the user opens/acts on them, or all: true when they say 'mark everything read' / 'clear my inbox'.",
+  input: z.object({ ids: z.array(z.string()).max(50).optional(), all: z.boolean().optional() }).strict(),
+  scope: 'both',
+  readOnly: false,
+  run: async (ctx, input) => {
+    const updated = await markRead(ctx.userId, input.all ? 'all' : (input.ids ?? []));
+    return { data: { updated } };
   },
 });

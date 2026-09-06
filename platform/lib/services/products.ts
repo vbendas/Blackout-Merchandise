@@ -1,5 +1,6 @@
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
+import { revalidateStore } from '@/lib/storefront/revalidate';
 import { printServicesFor, quoteFor } from '@/lib/services/quotes';
 import { renderProductMockups } from '@/lib/services/mockups';
 
@@ -351,6 +352,7 @@ export async function updateProduct(storeId: string, productId: string, patch: U
 
   const detail = await getProduct(storeId, productId);
   if (!detail) return { ok: false, error: 'Product update failed unexpectedly.' };
+  await revalidateStore(storeId);
   return { ok: true, value: detail };
 }
 
@@ -370,6 +372,7 @@ export async function setPrice(storeId: string, productId: string, retailCents: 
   }
 
   await db.update(schema.products).set({ retailPriceCents: retailCents, updatedAt: new Date() }).where(eq(schema.products.id, productId));
+  await revalidateStore(storeId);
   return { ok: true, value: { retailPriceCents: retailCents, marginCents: retailCents - product.baseCostCents } };
 }
 
@@ -382,6 +385,7 @@ export async function archiveProduct(storeId: string, productId: string): Promis
 
   const detail = await getProduct(storeId, productId);
   if (!detail) return { ok: false, error: 'Archive failed unexpectedly.' };
+  await revalidateStore(storeId);
   return { ok: true, value: detail };
 }
 
@@ -390,6 +394,10 @@ export async function publishProduct(storeId: string, productId: string): Promis
   if (!product) return { ok: false, error: 'Product not found for this shop.' };
   if (product.status !== 'proof_pending') {
     return { ok: false, error: 'A product can only be published after a proof has been submitted and approved.' };
+  }
+  // Fans must never see a product without a retail price.
+  if (!product.retailPriceCents || product.retailPriceCents < (product.baseCostCents ?? 0) + 100) {
+    return { ok: false, error: 'Set a retail price (at least €1 above the base cost) before publishing.' };
   }
 
   const latestProofRows = await db
@@ -416,5 +424,6 @@ export async function publishProduct(storeId: string, productId: string): Promis
 
   const detail = await getProduct(storeId, productId);
   if (!detail) return { ok: false, error: 'Publish failed unexpectedly.' };
+  await revalidateStore(storeId);
   return { ok: true, value: detail };
 }

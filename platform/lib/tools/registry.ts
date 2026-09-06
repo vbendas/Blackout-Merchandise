@@ -1,13 +1,15 @@
 import type { Role, Tool } from '@/lib/tools/types';
 import { getBlankTool, listBlanksTool } from '@/lib/tools/catalog';
-import { getMyStoreTool, publishStoreTool, updateStoreTool } from '@/lib/tools/store';
+import { getMyStoreTool, publishStoreTool, unpublishStoreTool, updateStoreTool } from '@/lib/tools/store';
 import { rememberTool } from '@/lib/tools/memory';
-import { getInboxTool } from '@/lib/tools/inbox';
+import { getInboxTool, markInboxReadTool } from '@/lib/tools/inbox';
 import { whatCanIDoTool } from '@/lib/tools/menu';
 import { suggestNextTool } from '@/lib/tools/suggest-next';
 import { DESIGN_TOOLS } from '@/lib/tools/design';
 import { PRODUCT_TOOLS } from '@/lib/tools/products';
 import { MOCKUP_TOOLS } from '@/lib/tools/mockups';
+import { DOMAIN_TOOLS } from '@/lib/tools/domains';
+import { COMMERCE_TOOLS } from '@/lib/tools/commerce';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ALL_TOOLS: Tool<any, any>[] = [
@@ -16,13 +18,17 @@ const ALL_TOOLS: Tool<any, any>[] = [
   getMyStoreTool,
   updateStoreTool,
   publishStoreTool,
+  unpublishStoreTool,
   rememberTool,
   getInboxTool,
+  markInboxReadTool,
   whatCanIDoTool,
   suggestNextTool,
   ...DESIGN_TOOLS,
   ...PRODUCT_TOOLS,
   ...MOCKUP_TOOLS,
+  ...DOMAIN_TOOLS,
+  ...COMMERCE_TOOLS,
 ];
 
 /** Tools visible to a caller with this role, in a deterministic (name-sorted) order. */

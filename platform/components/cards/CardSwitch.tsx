@@ -18,6 +18,11 @@ import { ProductCard } from '@/components/cards/ProductCard';
 import { QuoteCard } from '@/components/cards/QuoteCard';
 import { ProofCard } from '@/components/cards/ProofCard';
 import { UploadCard } from '@/components/cards/UploadCard';
+import { StripeOnboardingCard } from '@/components/cards/StripeOnboardingCard';
+import { DomainSetupCard } from '@/components/cards/DomainSetupCard';
+import { OrderCard } from '@/components/cards/OrderCard';
+import { OrdersTableCard } from '@/components/cards/OrdersTableCard';
+import { SalesSummaryCard } from '@/components/cards/SalesSummaryCard';
 
 export interface CardSwitchProps {
   card: Card;
@@ -55,6 +60,16 @@ function renderBody(card: Card, ctx: CardActionContext, confirmResolution?: 'app
       return <ProofCard card={card} ctx={ctx} />;
     case 'upload':
       return <UploadCard card={card} ctx={ctx} />;
+    case 'stripe_onboarding':
+      return <StripeOnboardingCard card={card} ctx={ctx} />;
+    case 'domain_setup':
+      return <DomainSetupCard card={card} ctx={ctx} />;
+    case 'order':
+      return <OrderCard card={card} ctx={ctx} />;
+    case 'orders_table':
+      return <OrdersTableCard card={card} ctx={ctx} />;
+    case 'sales_summary':
+      return <SalesSummaryCard card={card} ctx={ctx} />;
     default:
       return null;
   }

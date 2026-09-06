@@ -92,4 +92,41 @@ export const EXTRA_MOCK_RULES: MockRule[] = [
     tool: 'list_products',
     input: {},
   },
+  {
+    match: /use (?:the )?domain ([\w.-]+)/i,
+    text: 'Connecting your domain...',
+    tool: 'add_custom_domain',
+    input: { hostname: 'example.com' },
+    buildInput: (match) => ({ hostname: match?.[1] ?? 'example.com' }),
+  },
+  {
+    match: 'check my domain',
+    text: 'Checking your domain...',
+    tool: 'check_domain',
+    input: {},
+  },
+  {
+    match: /connect stripe|set up payouts/i,
+    text: 'Starting Stripe onboarding...',
+    tool: 'start_stripe_onboarding',
+    input: {},
+  },
+  {
+    match: 'payout status',
+    text: 'Checking payout status...',
+    tool: 'get_payout_status',
+    input: {},
+  },
+  {
+    match: 'my orders',
+    text: 'Here are your orders...',
+    tool: 'list_orders',
+    input: {},
+  },
+  {
+    match: 'sales this month',
+    text: 'Pulling your sales...',
+    tool: 'get_sales_summary',
+    input: { period: 'month' },
+  },
 ];
