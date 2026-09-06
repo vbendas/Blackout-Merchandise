@@ -2,10 +2,12 @@ import { NextResponse, type NextRequest } from 'next/server';
 import type Stripe from 'stripe';
 import { getStripeGateway, toCheckoutSessionSnapshot, syncStripeAccountStatusByAccountId } from '@/lib/services/stripe';
 import { claimWebhookEvent, handleChargeRefunded, markPaid } from '@/lib/services/orders';
+import { markBulkPaid } from '@/lib/services/bulk';
 import { notify } from '@/lib/services/notifications';
 
 // Stripe webhook receiver. Handles checkout.session.completed (mark the
-// order paid), account.updated (sync stripe_accounts, notify the artist once
+// order paid — a bulk order when metadata.bulkOrderId is set, otherwise the
+// POD path), account.updated (sync stripe_accounts, notify the artist once
 // both flags flip true) and charge.refunded (reconcile the payout ledger).
 // Every event is recorded in processed_webhook_events before dispatch, so a
 // Stripe retry (or any other event type) is a fast, safe no-op.
@@ -36,7 +38,12 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        await markPaid(session.id, toCheckoutSessionSnapshot(session));
+        const snapshot = toCheckoutSessionSnapshot(session);
+        if (snapshot.metadata.bulkOrderId) {
+          await markBulkPaid(session.id, snapshot);
+        } else {
+          await markPaid(session.id, snapshot);
+        }
         break;
       }
       case 'account.updated': {

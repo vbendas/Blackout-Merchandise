@@ -74,7 +74,7 @@ function proofCard(proof: ProofDetail, productName?: string): Card {
     kind: 'proof',
     title: productName ? `Proof v${proof.version} — ${productName}` : `Proof v${proof.version}`,
     proofId: proof.id,
-    productId: proof.productId,
+    productId: proof.productId ?? undefined,
     version: proof.version,
     mockupUrls: proof.mockupUrls,
     spec: proof.spec,
@@ -400,7 +400,7 @@ export const approveProofTool = defineTool({
     const result = await approveProof(ctx.storeId, proofId, ctx.userId);
     if (!result.ok) return { data: { ok: false, error: result.error }, ui: { cards: [errorNotice(`approve_proof_err_${randomUUID()}`, result.error)] } };
 
-    const current = await projectForCurrent(ctx.storeId, result.value.productId);
+    const current = result.value.productId ? await projectForCurrent(ctx.storeId, result.value.productId) : null;
 
     return {
       data: { ok: true, proofId: result.value.id, status: result.value.status },
@@ -442,7 +442,7 @@ export const requestProofChangesTool = defineTool({
     const result = await requestChanges(ctx.storeId, proofId, input.notes);
     if (!result.ok) return { data: { ok: false, error: result.error }, ui: { cards: [errorNotice(`request_changes_err_${randomUUID()}`, result.error)] } };
 
-    const current = await projectForCurrent(ctx.storeId, result.value.productId);
+    const current = result.value.productId ? await projectForCurrent(ctx.storeId, result.value.productId) : null;
 
     return {
       data: { ok: true, proofId: result.value.id, status: result.value.status, notes: input.notes },

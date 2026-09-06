@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AgentEvent, AgentRequest, ChecklistStep } from '@/lib/agent/protocol';
 import type { Card, Chip, ProductProjectState, ToolUi } from '@/lib/ui-cards/schemas';
+import type { BulkOrderProjectState } from '@/components/cards/project/types';
 import {
   fetchAgentHistory,
   loadStoredConversationId,
@@ -163,6 +164,15 @@ export function useConversation() {
               label: colour ? `${st.name ?? 'Product'} · ${colour.name}` : (st.name ?? 'Product'),
               status: st.status === 'live' ? 'Live' : st.proofStatus === 'approved' ? 'Approved' : st.status === 'proof_pending' ? 'Proof' : 'Draft',
               colourHex: colour?.hex,
+            });
+          } else if (event.project?.kind === 'bulk_order') {
+            const st = event.project.state as Partial<BulkOrderProjectState>;
+            const lines = st.lines ?? [];
+            const qty = lines.reduce((sum, line) => sum + (line.qty ?? 0), 0);
+            const itemLabel = lines[0]?.label ?? 'Bulk order';
+            setProjectPill({
+              label: `Bulk · ${qty} × ${itemLabel}`,
+              status: st.status ? st.status.replace(/_/g, ' ').replace(/^./, (ch) => ch.toUpperCase()) : '',
             });
           } else if (event.project === null) {
             setProjectPill(null);

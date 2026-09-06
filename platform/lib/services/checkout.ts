@@ -1,8 +1,9 @@
 import { and, eq, inArray } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
-import { getStripeGateway } from '@/lib/services/stripe';
+import { appBaseUrl, getStripeGateway, type CheckoutLineItemInput } from '@/lib/services/stripe';
 import { REST_OF_WORLD_COUNTRIES, shippingCentsFor, zoneForCountry } from '@/lib/services/shipping';
 import { storeUrl } from '@/lib/services/stores';
+import { getBulkOrder, recordBulkCheckoutSession } from '@/lib/services/bulk';
 import type { CheckoutLine, CheckoutRequest, CheckoutResponse } from '@/lib/agent/protocol';
 
 // Builds a pending order + Stripe Checkout Session for a fan's cart (the POD
@@ -202,6 +203,53 @@ export async function buildCheckout(req: CheckoutRequest): Promise<BuildCheckout
   }
 
   await db.update(schema.orders).set({ stripeCheckoutSessionId: session.id }).where(eq(schema.orders.id, order.id));
+
+  return { ok: true, value: { url: session.url, sessionId: session.id } };
+}
+
+/**
+ * Starts a Checkout Session for an already-quoted, already-approved bulk
+ * order (service path B — see Platform-Plan.md §6). Unlike buildCheckout,
+ * there is no order row yet — bulk_orders stands in for "pending" until
+ * markBulkPaid materialises orders/order_items. One line item per bulk
+ * line plus Setup/Shipping as plain line items, and no destinationAccountId
+ * / transferAmountCents / applicationFeeAmountCents at all: MerchFrom is
+ * simply the merchant of record here, not splitting anything with the
+ * artist (see stripe.ts's CreateCheckoutSessionInput doc for what omitting
+ * those does).
+ */
+export async function buildBulkCheckout(storeId: string, bulkOrderId: string): Promise<BuildCheckoutResult> {
+  const detail = await getBulkOrder(storeId, bulkOrderId);
+  if (!detail) return { ok: false, error: 'Bulk order not found for this shop.' };
+  if (detail.status !== 'awaiting_payment') {
+    return { ok: false, error: `This bulk order isn't ready for payment yet (status "${detail.status}").` };
+  }
+
+  const lineItems: CheckoutLineItemInput[] = detail.lines.map((line) => ({ name: line.label, unitAmountCents: line.totalCents, quantity: 1 }));
+  if (detail.setupCents > 0) lineItems.push({ name: 'Setup', unitAmountCents: detail.setupCents, quantity: 1 });
+  lineItems.push({ name: 'Shipping', unitAmountCents: detail.shippingCents, quantity: 1 });
+
+  const base = appBaseUrl();
+  const successUrl = `${base}/chat?bulk=${bulkOrderId}&paid=1`;
+  const cancelUrl = `${base}/chat?bulk=${bulkOrderId}`;
+
+  const gateway = getStripeGateway();
+  let session: { id: string; url: string };
+  try {
+    session = await gateway.createCheckoutSession({
+      lineItems,
+      currency: 'eur',
+      automaticTax: true,
+      successUrl,
+      cancelUrl,
+      metadata: { bulkOrderId, storeId },
+    });
+  } catch (err) {
+    console.error('[checkout] buildBulkCheckout createCheckoutSession failed:', err instanceof Error ? err.message : err);
+    return { ok: false, error: 'Could not start checkout. Please try again.' };
+  }
+
+  await recordBulkCheckoutSession(storeId, bulkOrderId, session.id);
 
   return { ok: true, value: { url: session.url, sessionId: session.id } };
 }

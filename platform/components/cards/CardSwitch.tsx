@@ -23,6 +23,11 @@ import { DomainSetupCard } from '@/components/cards/DomainSetupCard';
 import { OrderCard } from '@/components/cards/OrderCard';
 import { OrdersTableCard } from '@/components/cards/OrdersTableCard';
 import { SalesSummaryCard } from '@/components/cards/SalesSummaryCard';
+import { AdminQueueCard } from '@/components/cards/AdminQueueCard';
+import { SupplierOrderCard } from '@/components/cards/SupplierOrderCard';
+import { BulkQuoteCard } from '@/components/cards/BulkQuoteCard';
+import { TicketCard } from '@/components/cards/TicketCard';
+import { WaitlistTableCard } from '@/components/cards/WaitlistTableCard';
 
 export interface CardSwitchProps {
   card: Card;
@@ -70,6 +75,16 @@ function renderBody(card: Card, ctx: CardActionContext, confirmResolution?: 'app
       return <OrdersTableCard card={card} ctx={ctx} />;
     case 'sales_summary':
       return <SalesSummaryCard card={card} ctx={ctx} />;
+    case 'bulk_quote':
+      return <BulkQuoteCard card={card} ctx={ctx} />;
+    case 'admin_queue':
+      return <AdminQueueCard card={card} ctx={ctx} />;
+    case 'supplier_order':
+      return <SupplierOrderCard card={card} ctx={ctx} />;
+    case 'ticket':
+      return <TicketCard card={card} ctx={ctx} />;
+    case 'waitlist_table':
+      return <WaitlistTableCard card={card} ctx={ctx} />;
     default:
       return null;
   }

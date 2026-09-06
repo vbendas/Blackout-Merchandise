@@ -9,3 +9,5 @@ export { domainActiveEmail, type DomainActivePayload } from '@/lib/emails/domain
 export { adminQueueItemEmail, type AdminQueueItemPayload } from '@/lib/emails/adminQueueItem';
 export { orderConfirmedFanEmail, type OrderConfirmedFanPayload } from '@/lib/emails/orderConfirmedFan';
 export { orderShippedFanEmail, type OrderShippedFanPayload } from '@/lib/emails/orderShippedFan';
+export { waitlistApprovedEmail, type WaitlistApprovedPayload } from '@/lib/emails/waitlist-approved';
+export { supportReplyEmail, type SupportReplyPayload } from '@/lib/emails/supportReply';

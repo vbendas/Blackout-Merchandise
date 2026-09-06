@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 import type { User as ClerkBackendUser, UserJSON } from '@clerk/backend';
 import { db, schema } from '@/lib/db';
+import { linkWaitlistSignupToUser } from '@/lib/services/waitlist';
 
 export type UserRole = 'artist' | 'admin';
 
@@ -85,6 +86,19 @@ export async function getOrCreateUserFromClerk(input: ClerkUserInput) {
         role,
       })
       .returning();
+
+    // Best-effort attribution the moment a brand-new Clerk account shows up:
+    // tags an unclaimed approved waitlist row for this email, ahead of the
+    // status -> 'registered' flip that happens once the artist actually
+    // finishes /register (see markRegistered in lib/services/waitlist.ts).
+    if (created.email) {
+      try {
+        await linkWaitlistSignupToUser(created.email, created.id);
+      } catch (err) {
+        console.error('[getOrCreateUserFromClerk] waitlist link failed:', err instanceof Error ? err.message : err);
+      }
+    }
+
     return created;
   }
 

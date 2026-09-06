@@ -14,7 +14,7 @@ import { Spinner } from '@/components/ui/spinner';
 
 const SETTLE = { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const };
 
-export function ChatShell({ showUser = true }: { showUser?: boolean }) {
+export function ChatShell({ showUser = true, role }: { showUser?: boolean; role?: 'artist' | 'admin' }) {
   const {
     messages,
     chips,
@@ -77,7 +77,7 @@ export function ChatShell({ showUser = true }: { showUser?: boolean }) {
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      <TopBar showUser={showUser} projectPill={projectPill} project={project} ctx={ctx} />
+      <TopBar showUser={showUser} role={role} projectPill={projectPill} project={project} ctx={ctx} />
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {loadingHistory ? (
           <div className="flex flex-1 items-center justify-center">

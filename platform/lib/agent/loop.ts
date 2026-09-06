@@ -107,7 +107,7 @@ async function executeToolCall(block: Anthropic.ToolUseBlock, base: BaseAgentCon
     };
   }
 
-  if (tool.confirm) {
+  if (tool.confirm || tool.confirmWhen?.(parsed.data)) {
     await recordInvocation({
       conversationId: base.conversationId,
       messageId,

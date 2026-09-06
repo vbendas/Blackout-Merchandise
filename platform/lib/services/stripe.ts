@@ -39,23 +39,34 @@ export interface CreateCheckoutSessionInput {
   /** lowercase ISO currency, e.g. 'eur' */
   currency: string;
   customerEmail?: string;
-  /** what MerchFrom keeps: Σ base cost + shipping (see checkout.ts) */
-  applicationFeeAmountCents: number;
-  /** the connected account that receives the transfer */
-  destinationAccountId: string;
+  /** what MerchFrom keeps: Σ base cost + shipping (see checkout.ts). Omit
+   * entirely for a plain (non-Connect) charge — bulk orders (checkout.ts's
+   * buildBulkCheckout) pay 100% to MerchFrom with no connected account at
+   * all, so there is no application fee to set, only ever a POD concept. */
+  applicationFeeAmountCents?: number;
+  /** the connected account that receives the transfer. Omitting this (along
+   * with transferAmountCents) is what makes the session a plain charge on
+   * the platform's own account instead of a destination charge — see the
+   * bulk order doc on applicationFeeAmountCents above. */
+  destinationAccountId?: string;
   /**
    * Fixed amount transferred to the connected account, distinct from
    * "whatever's left after the fee". Setting this explicitly (rather than
    * relying on destination-charge default behaviour) keeps any tax Stripe
    * collects on the platform's own balance instead of it silently riding
    * along into the artist's payout — see checkout.ts for the derivation
-   * (subtotal − Σ base cost).
+   * (subtotal − Σ base cost). Omit for a plain charge (see destinationAccountId).
    */
-  transferAmountCents: number;
-  shippingAmountCents: number;
-  shippingLabel: string;
-  /** ISO-2 countries for shipping_address_collection.allowed_countries */
-  shippingCountries: string[];
+  transferAmountCents?: number;
+  /** Omit to skip Stripe's own shipping collection entirely — used when the
+   * address is already known (bulk orders) and shipping is instead folded
+   * into a plain line item. */
+  shippingAmountCents?: number;
+  shippingLabel?: string;
+  /** ISO-2 countries for shipping_address_collection.allowed_countries.
+   * Omit (along with shippingAmountCents/shippingLabel) to skip Stripe
+   * shipping collection — see shippingAmountCents. */
+  shippingCountries?: string[];
   /** real gateway only: mock ignores this (there is no Stripe Tax to call) */
   automaticTax: boolean;
   /** may contain the literal Stripe template token '{CHECKOUT_SESSION_ID}' */
@@ -186,22 +197,35 @@ class RealStripeGateway implements StripeGateway {
         quantity: line.quantity,
       })),
       ...(params.automaticTax ? { automatic_tax: { enabled: true } } : {}),
-      shipping_address_collection: { allowed_countries: params.shippingCountries },
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: 'fixed_amount',
-            fixed_amount: { amount: params.shippingAmountCents, currency: params.currency },
-            display_name: params.shippingLabel,
-            tax_behavior: 'exclusive',
-          },
-        },
-      ],
+      // Shipping collection is POD-only: bulk orders already know the ship-to
+      // address and fold shipping into a plain line item instead.
+      ...(params.shippingCountries ? { shipping_address_collection: { allowed_countries: params.shippingCountries } } : {}),
+      ...(params.shippingAmountCents != null && params.shippingLabel
+        ? {
+            shipping_options: [
+              {
+                shipping_rate_data: {
+                  type: 'fixed_amount' as const,
+                  fixed_amount: { amount: params.shippingAmountCents, currency: params.currency },
+                  display_name: params.shippingLabel,
+                  tax_behavior: 'exclusive' as const,
+                },
+              },
+            ],
+          }
+        : {}),
       customer_email: params.customerEmail,
-      payment_intent_data: {
-        application_fee_amount: params.applicationFeeAmountCents,
-        transfer_data: { destination: params.destinationAccountId, amount: params.transferAmountCents },
-      },
+      // A destination charge (POD, split with the artist's Connect account)
+      // only when destinationAccountId is given; a bulk order omits it for a
+      // plain 100%-to-MerchFrom charge — see the interface doc.
+      ...(params.destinationAccountId
+        ? {
+            payment_intent_data: {
+              application_fee_amount: params.applicationFeeAmountCents ?? 0,
+              transfer_data: { destination: params.destinationAccountId, amount: params.transferAmountCents ?? 0 },
+            },
+          }
+        : {}),
       metadata: params.metadata,
       success_url: params.successUrl,
       cancel_url: params.cancelUrl,
@@ -291,7 +315,7 @@ class MockStripeGateway implements StripeGateway {
       lineItems: params.lineItems,
       currency: params.currency,
       customerEmail: params.customerEmail ?? null,
-      shippingAmountCents: params.shippingAmountCents,
+      shippingAmountCents: params.shippingAmountCents ?? 0,
       metadata: params.metadata,
       successUrl: params.successUrl.replace('{CHECKOUT_SESSION_ID}', id),
     });

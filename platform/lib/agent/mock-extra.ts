@@ -26,7 +26,63 @@ export interface MockRule {
 /** Sizes S-2XL on the seeded blank catalogue, which spells the top size 'XXL'. */
 const HOODIE_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
 
+/** Splits a bulk quantity evenly across S-XXL, remainder to the smaller sizes first. */
+function splitSizesEvenly(qty: number, sizes: string[] = HOODIE_SIZES): Record<string, number> {
+  const base = Math.floor(qty / sizes.length);
+  let remainder = qty % sizes.length;
+  const sizeMap: Record<string, number> = {};
+  for (const size of sizes) {
+    sizeMap[size] = base + (remainder > 0 ? 1 : 0);
+    if (remainder > 0) remainder -= 1;
+  }
+  return sizeMap;
+}
+
+/** create_bulk_quote's tool layer fills in the blank/print/placement (from
+ * the project card's current product, or STSU177) when a line omits both
+ * productId and blankCode — see lib/tools/bulk.ts's resolveDefaultLineSpec —
+ * so the mock only ever needs to supply colour + sizes here. */
+function bulkQuoteInput(qty: number): Record<string, unknown> {
+  return {
+    lines: [{ colourCode: 'C002', sizes: splitSizesEvenly(qty) }],
+    shipTo: { name: 'Studio Barcelona', line1: 'Carrer de Mallorca 401', city: 'Barcelona', postcode: '08013', country: 'ES' },
+  };
+}
+
 export const EXTRA_MOCK_RULES: MockRule[] = [
+  // -- wave 3: bulk orders -----------------------------------------------
+  // Both must stay ahead of the plain '/run of (\d+)/i' -> get_quote rule
+  // below, which would otherwise win first on 'run of 40 hoodies'.
+  {
+    match: /run of (\d+).*(?:hoodie|tee|t-shirt)/i,
+    text: 'Pulling a bulk quote...',
+    tool: 'create_bulk_quote',
+    buildInput: (match) => bulkQuoteInput(Number(match?.[1] ?? 40)),
+  },
+  {
+    match: /bulk order of (\d+)/i,
+    text: 'Pulling a bulk quote...',
+    tool: 'create_bulk_quote',
+    buildInput: (match) => bulkQuoteInput(Number(match?.[1] ?? 40)),
+  },
+  {
+    match: 'send the bulk proof',
+    text: 'Submitting the bulk proof...',
+    tool: 'submit_bulk_proof',
+    input: {},
+  },
+  {
+    match: 'approve the bulk proof',
+    text: 'Approving the bulk proof...',
+    tool: 'approve_bulk_proof',
+    input: {},
+  },
+  {
+    match: 'pay the bulk order',
+    text: 'Starting bulk checkout...',
+    tool: 'pay_bulk_order',
+    input: {},
+  },
   {
     match: /use\b.*\bdesign(?:\s+([0-9a-f-]{36}))?/i,
     text: 'Creating a hoodie with your design on it...',
@@ -128,5 +184,70 @@ export const EXTRA_MOCK_RULES: MockRule[] = [
     text: 'Pulling your sales...',
     tool: 'get_sales_summary',
     input: { period: 'month' },
+  },
+  // -- wave 3: admin ----------------------------------------------------------
+  {
+    match: /what'?s waiting|whats waiting/i,
+    text: 'Pulling the queue...',
+    tool: 'admin_queue',
+    input: {},
+  },
+  {
+    match: 'production queue',
+    text: 'Pulling the production queue...',
+    tool: 'list_production',
+    input: {},
+  },
+  {
+    match: 'payout anomalies',
+    text: 'Checking payout anomalies...',
+    tool: 'list_payout_anomalies',
+    input: {},
+  },
+  {
+    match: 'draft supplier order',
+    text: 'Drafting a supplier order from queued orders...',
+    tool: 'draft_supplier_order',
+    input: {},
+  },
+  {
+    match: /advance order ([\w-]+)/i,
+    text: 'Advancing production...',
+    tool: 'advance_production',
+    buildInput: (match) => ({ orderId: match?.[1] ?? '' }),
+  },
+  // -- wave 3: waitlist + support -----------------------------------------
+  // The specific "approve waitlist <id>" regex must stay ahead of the plain
+  // 'waitlist' substring match below — otherwise it would win first (its
+  // own text also contains the word "waitlist").
+  {
+    match: /approve waitlist ([\w-]+)/i,
+    text: 'Approving...',
+    tool: 'approve_waitlist',
+    input: { id: '' },
+    buildInput: (match) => ({ id: match?.[1] ?? '' }),
+  },
+  {
+    match: 'waitlist',
+    text: 'Checking the waitlist...',
+    tool: 'list_waitlist',
+    input: {},
+  },
+  {
+    match: /contact support:? (.+)/i,
+    text: 'Opening a support ticket...',
+    tool: 'contact_support',
+    input: { subject: '', message: '' },
+    buildInput: (match) => {
+      const message = match?.[1] ?? '';
+      return { subject: message.slice(0, 60), message };
+    },
+  },
+  {
+    match: /reply to ticket ([\w-]+):? (.+)/i,
+    text: 'Sending your reply...',
+    tool: 'reply_ticket',
+    input: { id: '', text: '' },
+    buildInput: (match) => ({ id: match?.[1] ?? '', text: match?.[2] ?? '' }),
   },
 ];

@@ -128,10 +128,14 @@ function pickPrimaryTool(text: string): PrimaryToolCall | null {
   const t = text.toLowerCase();
   if (t.includes('show my shop')) return { name: 'get_my_store', input: {} };
   if (t.includes('bulk order')) {
+    // Bare phrasing without a quantity: quote a default run of 25 so the flow is discoverable.
     return {
-      name: 'suggest_next',
-      input: { chips: [{ label: 'Browse blanks', prompt: 'Show me blanks' }, { label: 'Shop status', prompt: 'Show my shop' }] },
-      text: "Bulk ordering isn't wired up yet. Here's what you can do in the meantime.",
+      name: 'create_bulk_quote',
+      input: {
+        lines: [{ blankCode: 'STSU177', printServiceCode: 'screen_1c', placement: { position: 'front_chest', widthCm: 28 }, colourCode: 'C002', sizes: [{ size: 'S', qty: 5 }, { size: 'M', qty: 5 }, { size: 'L', qty: 5 }, { size: 'XL', qty: 5 }, { size: 'XXL', qty: 5 }] }],
+        shipTo: { name: 'Studio', line1: 'Carrer de Mallorca 401', city: 'Barcelona', postcode: '08013', country: 'ES' },
+      },
+      text: 'Quoting a run of 25 to start — tell me the real quantity, blank and colours.',
     };
   }
   if (t.includes('inbox')) return { name: 'get_inbox', input: {} };

@@ -8,6 +8,10 @@ import { suggestNextTool } from '@/lib/tools/suggest-next';
 import { DESIGN_TOOLS } from '@/lib/tools/design';
 import { PRODUCT_TOOLS } from '@/lib/tools/products';
 import { MOCKUP_TOOLS } from '@/lib/tools/mockups';
+import { BULK_TOOLS } from '@/lib/tools/bulk';
+import { ADMIN_TOOLS } from '@/lib/tools/admin';
+import { WAITLIST_TOOLS } from '@/lib/tools/waitlist';
+import { SUPPORT_TOOLS } from '@/lib/tools/support';
 import { DOMAIN_TOOLS } from '@/lib/tools/domains';
 import { COMMERCE_TOOLS } from '@/lib/tools/commerce';
 
@@ -27,6 +31,10 @@ const ALL_TOOLS: Tool<any, any>[] = [
   ...DESIGN_TOOLS,
   ...PRODUCT_TOOLS,
   ...MOCKUP_TOOLS,
+  ...BULK_TOOLS,
+  ...ADMIN_TOOLS,
+  ...WAITLIST_TOOLS,
+  ...SUPPORT_TOOLS,
   ...DOMAIN_TOOLS,
   ...COMMERCE_TOOLS,
 ];

@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import type { CardAction, checklistItemSchema } from '@/lib/ui-cards/schemas';
+import type { checklistItemSchema } from '@/lib/ui-cards/schemas';
 
 // The 'product' project state has grown a fuller shape (wave 1: design →
 // product) — sourced from schemas.ts so the card and the project panel share
@@ -14,13 +14,19 @@ export interface OnboardingProjectState {
 
 export interface BulkOrderLine {
   label: string;
+  colour?: string;
+  sizes?: string;
   qty: number;
-  priceCents?: number;
+  totalCents?: number;
 }
 
+// State carried by the 'bulk_order' project card (right-hand / top-bar
+// pill). Deliberately narrower than the bulk_quote card's line shape (no
+// per-unit cost) — the panel is a status glance, not the full quote.
 export interface BulkOrderProjectState {
-  lines?: BulkOrderLine[];
-  totalCents?: number;
-  status?: string;
-  actions?: CardAction[];
+  bulkOrderId: string;
+  lines: BulkOrderLine[];
+  totalCents: number;
+  status: string;
+  shipTo?: string;
 }

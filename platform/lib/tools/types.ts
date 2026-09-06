@@ -32,6 +32,8 @@ export interface Tool<I = unknown, O = unknown> {
   readOnly?: boolean;
   /** never executes on the model's say-so — returns a confirm card and waits for a human click */
   confirm?: boolean;
+  /** conditional gate: confirm only for some inputs (e.g. advancing an order to 'shipped') */
+  confirmWhen?: (input: I) => boolean;
   /** one-line human summary of a pending confirm-gated call, shown on the confirm card */
   summarize?: (input: I) => string;
   run: (ctx: ToolContext, input: I) => Promise<ToolResult<O>>;

@@ -83,3 +83,26 @@ export async function setLedgerStatus(orderId: string, status: string): Promise<
   if (!ledger) return;
   await db.update(schema.payoutLedger).set({ status, reviewedAt: new Date() }).where(eq(schema.payoutLedger.id, ledger.id));
 }
+
+type ServiceResult<T> = { ok: true; value: T } | { ok: false; error: string };
+
+/**
+ * Admin verdict on one flagged ledger row (wave 3 — lib/tools/admin.ts's
+ * review_payout). 'ok' clears the row from listAnomalies' unreviewed view by
+ * setting reviewedAt; 'hold' marks it for follow-up without clearing it, so
+ * it keeps showing up in the admin queue. The tool's optional note isn't
+ * persisted here — it's captured in the tool_invocations audit trail
+ * (recorded automatically for every tool call) rather than overloading
+ * anomaly_flags with free text.
+ */
+export async function reviewPayout(ledgerId: string, verdict: 'ok' | 'hold'): Promise<ServiceResult<PayoutLedgerRow>> {
+  const rows = await db.select().from(schema.payoutLedger).where(eq(schema.payoutLedger.id, ledgerId)).limit(1);
+  if (!rows[0]) return { ok: false, error: 'Payout ledger row not found.' };
+
+  const [updated] = await db
+    .update(schema.payoutLedger)
+    .set(verdict === 'ok' ? { status: 'reviewed', reviewedAt: new Date() } : { status: 'held' })
+    .where(eq(schema.payoutLedger.id, ledgerId))
+    .returning();
+  return updated ? { ok: true, value: updated } : { ok: false, error: 'Failed to update the payout ledger row.' };
+}

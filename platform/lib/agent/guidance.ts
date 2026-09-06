@@ -48,7 +48,7 @@ async function countSalesThisMonth(storeId: string): Promise<number> {
 
 async function countAdminWaiting(): Promise<number> {
   const [waitlistRows, ticketRows] = await Promise.all([
-    db.select({ id: schema.waitlist.id }).from(schema.waitlist).where(eq(schema.waitlist.status, 'pending')),
+    db.select({ id: schema.waitlistSignups.id }).from(schema.waitlistSignups).where(eq(schema.waitlistSignups.status, 'pending')),
     db.select({ id: schema.supportTickets.id }).from(schema.supportTickets).where(eq(schema.supportTickets.status, 'pending')),
   ]);
   return waitlistRows.length + ticketRows.length;

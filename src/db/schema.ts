@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, integer, jsonb, timestamp, uuid, pgEnum, index, primaryKey, unique } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, integer, serial, jsonb, timestamp, uuid, pgEnum, index, primaryKey, unique } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
 // ============================================================================
@@ -549,22 +549,33 @@ export const dataBreachLogs = pgTable('data_breach_logs', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-// Waitlist Table (Enhanced for AI Interview)
-export const waitlist = pgTable('waitlist', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    email: text('email').notNull().unique(),
-    name: text('name'),
-    socialLink: text('social_link'), // Twitter, Instagram, TikTok URL
-    followerRange: text('follower_range'), // "1k-5k", "5k-10k", "10k-50k", "50k-100k", "100k+"
-    interviewResponses: jsonb('interview_responses'), // { question1: answer1, question2: answer2, ... }
-    source: text('source').default('organic').notNull(), // How they found us
-    position: integer('position'), // Queue position
-    status: text('status').default('pending').notNull(), // pending, approved, rejected, notified
-    timestamp: timestamp('timestamp').defaultNow().notNull(),
-    notified: boolean('notified').default(false).notNull(),
+// Waitlist Signups Table
+//
+// Superset of the table website-v3's public waitlist form creates for
+// itself: `id serial primary key, email text not null, product text,
+// colour text, created_at timestamptz default now(), role text,
+// favourites text`. Column names/types/nullability for those six match
+// exactly so website-v3's plain INSERT (which never mentions the approval
+// columns below) keeps working once its DATABASE_URL points here.
+export const waitlistSignups = pgTable('waitlist_signups', {
+    id: serial('id').primaryKey(),
+    email: text('email').notNull(),
+    product: text('product'),
+    colour: text('colour'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    role: text('role'),
+    favourites: text('favourites'),
+    // Everything from here down is ours: waitlist approval -> invite ->
+    // registration gating (Platform-Plan §7).
+    status: text('status').default('pending').notNull(), // 'pending' | 'approved' | 'rejected' | 'registered'
+    inviteToken: text('invite_token').unique(),
+    invitedAt: timestamp('invited_at'),
+    approvedAt: timestamp('approved_at'),
+    registeredUserId: uuid('registered_user_id'),
+    notes: text('notes'),
 }, (table) => ({
-    statusIdx: index('waitlist_status_idx').on(table.status),
-    positionIdx: index('waitlist_position_idx').on(table.position),
+    statusIdx: index('waitlist_signups_status_idx').on(table.status),
+    emailIdx: index('waitlist_signups_email_idx').on(table.email),
 }));
 
 // ============================================================================
@@ -1074,7 +1085,7 @@ export type ShippingZone = typeof shippingZones.$inferSelect;
 export type Consent = typeof consents.$inferSelect;
 export type DataSubjectRequest = typeof dataSubjectRequests.$inferSelect;
 export type DataBreachLog = typeof dataBreachLogs.$inferSelect;
-export type WaitlistEntry = typeof waitlist.$inferSelect;
+export type WaitlistSignup = typeof waitlistSignups.$inferSelect;
 export type SupportTicket = typeof supportTickets.$inferSelect;
 export type TicketMessage = typeof ticketMessages.$inferSelect;
 export type SupplierOrder = typeof supplierOrders.$inferSelect;

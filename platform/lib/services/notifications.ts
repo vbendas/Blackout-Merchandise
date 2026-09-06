@@ -28,6 +28,8 @@ import {
   type StripeActionRequiredPayload,
   stripeReadyEmail,
   type StripeReadyPayload,
+  supportReplyEmail,
+  type SupportReplyPayload,
 } from '@/lib/emails';
 
 export type NotificationEvent =
@@ -39,7 +41,8 @@ export type NotificationEvent =
   | 'bulk.quote_ready'
   | 'payout.paid'
   | 'domain.active'
-  | 'admin.queue_item';
+  | 'admin.queue_item'
+  | 'support.reply';
 
 export interface NotifyInput {
   userId: string;
@@ -78,6 +81,8 @@ function renderEventEmail(event: NotificationEvent, payload: Record<string, unkn
       return domainActiveEmail(payload as DomainActivePayload);
     case 'admin.queue_item':
       return adminQueueItemEmail(payload as AdminQueueItemPayload);
+    case 'support.reply':
+      return supportReplyEmail(payload as SupportReplyPayload);
   }
 }
 

@@ -1,5 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
+import { DEV_BYPASS } from '@/lib/auth';
+import { findInvite, isEmailApproved, type WaitlistSignup } from '@/lib/services/waitlist';
 
 export const RESERVED_SLUGS = new Set([
   'admin',
@@ -23,6 +25,37 @@ export async function isSlugAvailable(slug: string): Promise<boolean> {
     .where(eq(schema.artistStores.slug, normalised))
     .limit(1);
   return rows.length === 0;
+}
+
+export interface RegistrationEligibilityInput {
+  email: string | null;
+  /** the `mf-invite` cookie value, if any (see proxy.ts) */
+  inviteToken: string | null;
+  role: 'artist' | 'admin';
+}
+
+export type RegistrationEligibility =
+  | { eligible: true; invite: WaitlistSignup | null }
+  | { eligible: false };
+
+/** Platform-Plan §7: an artist may register only if (a) their invite token
+ * is valid, (b) their Clerk email matches an approved/registered waitlist
+ * row, (c) AUTH_DEV_BYPASS, or (d) they are an admin. */
+export async function checkRegistrationEligibility(input: RegistrationEligibilityInput): Promise<RegistrationEligibility> {
+  if (DEV_BYPASS || input.role === 'admin') return { eligible: true, invite: null };
+
+  if (input.inviteToken) {
+    const invite = await findInvite(input.inviteToken);
+    if (invite && (invite.status === 'approved' || invite.status === 'registered')) {
+      return { eligible: true, invite };
+    }
+  }
+
+  if (input.email && (await isEmailApproved(input.email))) {
+    return { eligible: true, invite: null };
+  }
+
+  return { eligible: false };
 }
 
 export interface RegisterArtistInput {

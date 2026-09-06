@@ -31,7 +31,7 @@ export function ProjectPanel({ project, ctx }: { project: ToolUi['project'] | nu
       ) : null}
       {project.kind === 'product' ? <ProductProjectView state={project.state as unknown as ProductProjectState} ctx={ctx} /> : null}
       {project.kind === 'bulk_order' ? (
-        <BulkOrderProjectView state={project.state as BulkOrderProjectState} ctx={ctx} />
+        <BulkOrderProjectView state={project.state as unknown as BulkOrderProjectState} ctx={ctx} />
       ) : null}
     </div>
   );
