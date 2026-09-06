@@ -1,20 +1,17 @@
-import { pgTable, text, boolean, integer, jsonb, timestamp, uuid, pgEnum, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, integer, jsonb, timestamp, uuid, pgEnum, index, primaryKey, unique } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
-// Enums
-export const userRoleEnum = pgEnum('user_role', ['artist', 'customer', 'admin']);
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+export const userRoleEnum = pgEnum('user_role', ['artist', 'admin']);
 export const orderStatusEnum = pgEnum('order_status', ['pending', 'paid', 'processing', 'shipped', 'fulfilled', 'cancelled']);
+export const orderTypeEnum = pgEnum('order_type', ['pod', 'bulk']);
+export const productionStatusEnum = pgEnum('production_status', ['queued', 'printing', 'packed', 'shipped', 'delivered']);
 export const agentNameEnum = pgEnum('agent_name', ['Leopoldo', 'Francisca', 'Antônia']);
 
 // Support / Human Handoff Enums
-export const staffRoleEnum = pgEnum('staff_role', [
-  'head_of_operations',
-  'head_of_design',
-  'head_of_customer_success',
-  'support_agent',
-  'admin',
-  'viewer',
-]);
 export const ticketStatusEnum = pgEnum('ticket_status', [
   'pending',
   'assigned',
@@ -41,8 +38,29 @@ export const requestTypeEnum = pgEnum('request_type', ['access', 'deletion', 'po
 export const requestStatusEnum = pgEnum('request_status', ['pending', 'completed', 'rejected']);
 export const consentMethodEnum = pgEnum('consent_method', ['explicit_opt_in', 'implicit', 'withdrawn']);
 export const breachSeverityEnum = pgEnum('breach_severity', ['low', 'medium', 'high']);
-export const orderTypeEnum = pgEnum('order_type', ['individual', 'bulk_quote', 'wholesale']);
 export const supplierOrderStatusEnum = pgEnum('supplier_order_status', ['draft', 'placed', 'confirmed', 'shipped', 'received', 'cancelled']);
+
+// Design / product / commerce Enums
+export const designSourceEnum = pgEnum('design_source', ['upload', 'generated', 'edited']);
+export const designReadinessEnum = pgEnum('design_readiness', ['ready', 'needs_cleanup', 'blocked']);
+export const productStatusEnum = pgEnum('product_status', ['draft', 'proof_pending', 'live', 'archived']);
+export const proofStatusEnum = pgEnum('proof_status', ['pending', 'approved', 'changes_requested']);
+export const bulkOrderStatusEnum = pgEnum('bulk_order_status', [
+  'quoted',
+  'proof_pending',
+  'awaiting_payment',
+  'paid',
+  'in_production',
+  'shipped',
+  'delivered',
+  'cancelled',
+]);
+export const domainStatusEnum = pgEnum('domain_status', ['pending', 'verifying', 'active', 'error']);
+
+// Agent runtime Enums
+export const messageRoleEnum = pgEnum('message_role', ['user', 'assistant', 'tool']);
+export const notificationChannelEnum = pgEnum('notification_channel', ['email', 'discord', 'inapp']);
+export const projectKindEnum = pgEnum('project_kind', ['onboarding', 'product', 'bulk_order']);
 
 // Users Table
 export const users = pgTable('users', {
@@ -50,10 +68,12 @@ export const users = pgTable('users', {
     clerkId: text('clerk_id').notNull().unique(), // Connected to Clerk
     email: text('email').notNull(),
     displayName: text('display_name'),
-    role: userRoleEnum('role').default('customer').notNull(),
+    role: userRoleEnum('role').default('artist').notNull(),
     stripeCustomerId: text('stripe_customer_id'),
     stripeConnectId: text('stripe_connect_id'), // For Stripe Connect payouts
     imageUrl: text('image_url'),
+    discordUserId: text('discord_user_id'),
+    locale: text('locale').default('en'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -66,6 +86,18 @@ export const artistStores = pgTable('artist_stores', {
     name: text('name').notNull(),
     isLive: boolean('is_live').default(false).notNull(),
     themeConfig: jsonb('theme_config'), // Flexible JSON for colors/fonts
+    isPublished: boolean('is_published').default(false).notNull(),
+    publishedAt: timestamp('published_at'),
+    accentColour: text('accent_colour'),
+    logoUrl: text('logo_url'),
+    bannerUrl: text('banner_url'),
+    about: text('about'),
+    socials: jsonb('socials'),
+    country: text('country'), // ISO-2
+    currency: text('currency').default('EUR'),
+    locale: text('locale').default('en'),
+    memory: jsonb('memory'), // Agent's remembered facts about this store
+    customDomain: text('custom_domain').unique(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
@@ -87,33 +119,207 @@ export const shopCustomizations = pgTable('shop_customizations', {
     storeIdIdx: index('shop_customizations_store_id_idx').on(table.storeId),
 }));
 
-// Products Table
+// ============================================================================
+// BLANK CATALOG (garments we can print on — seeded from website-v3/lib)
+// ============================================================================
+
+// Print Services Table (screen print, DTG, embroidery, ...)
+export const printServices = pgTable('print_services', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    code: text('code').notNull().unique(), // 'screen_1c', 'screen_2c', 'screen_3c', 'dtg', 'embroidery'
+    name: text('name').notNull(),
+    maxColours: integer('max_colours'),
+    positions: jsonb('positions').default([]), // ['front', 'back', 'sleeve']
+    setupCents: integer('setup_cents').default(0).notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+});
+
+// Colours Table (supplier colourways)
+export const colours = pgTable('colours', {
+    code: text('code').primaryKey(), // 'C002'
+    name: text('name').notNull(),
+    hex: text('hex'),
+    isLight: boolean('is_light').default(false).notNull(),
+    displayOrder: integer('display_order'),
+});
+
+// Blanks Table (blank garments — one row per supplier style code)
+export const blanks = pgTable('blanks', {
+    code: text('code').primaryKey(), // 'STTU169'
+    name: text('name').notNull(), // catalog name e.g. 'T-shirt'
+    supplierName: text('supplier_name'), // 'Creator 2.0'
+    description: text('description'),
+    type: text('type').notNull(), // canonical English category (website-v3 typeFor)
+    fit: text('fit'), // website-v3 fitFor
+    composition: text('composition'),
+    weightGsm: integer('weight_gsm'),
+    certifications: jsonb('certifications').default([]), // string[]
+    details: jsonb('details').default([]), // string[] (extra detail-shot URLs)
+    frontImageUrl: text('front_image_url'),
+    backImageUrl: text('back_image_url'),
+    videoUrl: text('video_url'),
+    isActive: boolean('is_active').default(true).notNull(),
+    displayOrder: integer('display_order'),
+}, (table) => ({
+    typeIdx: index('blanks_type_idx').on(table.type),
+}));
+
+// Blank Colours Table (which colourways exist for which blank, + mockup shots)
+export const blankColours = pgTable('blank_colours', {
+    blankCode: text('blank_code').references(() => blanks.code, { onDelete: 'cascade' }).notNull(),
+    colourCode: text('colour_code').references(() => colours.code).notNull(),
+    frontImageUrl: text('front_image_url'),
+    backImageUrl: text('back_image_url'),
+}, (table) => [
+    primaryKey({ columns: [table.blankCode, table.colourCode] }),
+]);
+
+// Blank Sizes Table (which sizes exist for which blank)
+export const blankSizes = pgTable('blank_sizes', {
+    blankCode: text('blank_code').references(() => blanks.code, { onDelete: 'cascade' }).notNull(),
+    size: text('size').notNull(),
+    displayOrder: integer('display_order'),
+}, (table) => [
+    primaryKey({ columns: [table.blankCode, table.size] }),
+]);
+
+// Size Guides Table (garment measurement tables, one per blank)
+export const sizeGuides = pgTable('size_guides', {
+    blankCode: text('blank_code').primaryKey().references(() => blanks.code, { onDelete: 'cascade' }),
+    unit: text('unit').default('cm'),
+    columns: jsonb('columns').default([]), // string[] — measurement names
+    rows: jsonb('rows').default([]), // { size, values[] }[]
+});
+
+// Blank Print Services Table (which print techniques are offered per blank)
+export const blankPrintServices = pgTable('blank_print_services', {
+    blankCode: text('blank_code').references(() => blanks.code, { onDelete: 'cascade' }).notNull(),
+    printServiceCode: text('print_service_code').references(() => printServices.code).notNull(),
+}, (table) => [
+    primaryKey({ columns: [table.blankCode, table.printServiceCode] }),
+]);
+
+// Base Costs Table (garment + print + margin, per blank x print service x qty break)
+export const baseCosts = pgTable('base_costs', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    blankCode: text('blank_code').references(() => blanks.code, { onDelete: 'cascade' }).notNull(),
+    printServiceCode: text('print_service_code').references(() => printServices.code).notNull(),
+    qtyFrom: integer('qty_from').default(1).notNull(),
+    garmentCostCents: integer('garment_cost_cents').notNull(),
+    printCostCents: integer('print_cost_cents').notNull(),
+    marginCents: integer('margin_cents').notNull(),
+    totalCents: integer('total_cents').generatedAlwaysAs(
+        sql`garment_cost_cents + print_cost_cents + margin_cents`
+    ),
+    currency: text('currency').default('EUR').notNull(),
+    validFrom: timestamp('valid_from').defaultNow().notNull(),
+    validTo: timestamp('valid_to'),
+}, (table) => [
+    unique('base_costs_blank_service_qty_unique').on(table.blankCode, table.printServiceCode, table.qtyFrom),
+]);
+
+// ============================================================================
+// DESIGNS
+// ============================================================================
+
+export const designs = pgTable('designs', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    storeId: uuid('store_id').references(() => artistStores.id).notNull(),
+    source: designSourceEnum('source').notNull(),
+    originalUrl: text('original_url'),
+    printUrl: text('print_url'), // cleaned/upscaled
+    previewUrl: text('preview_url'),
+    widthPx: integer('width_px'),
+    heightPx: integer('height_px'),
+    dpiAtPrint: integer('dpi_at_print'),
+    hasAlpha: boolean('has_alpha'),
+    readiness: designReadinessEnum('readiness'),
+    readinessNotes: text('readiness_notes'),
+    parentDesignId: uuid('parent_design_id'), // self-ref, left unconstrained (see categories.parentId precedent)
+    generationParams: jsonb('generation_params'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    storeIdIdx: index('designs_store_id_idx').on(table.storeId),
+}));
+
+// ============================================================================
+// COLLECTIONS & PRODUCTS
+// ============================================================================
+
+// Collections Table (artist-defined groupings of products)
+export const collections = pgTable('collections', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    storeId: uuid('store_id').references(() => artistStores.id, { onDelete: 'cascade' }).notNull(),
+    name: text('name').notNull(),
+    slug: text('slug').notNull(),
+    sortOrder: integer('sort_order').default(0).notNull(),
+    isVisible: boolean('is_visible').default(true).notNull(),
+}, (table) => [
+    unique('collections_store_id_slug_unique').on(table.storeId, table.slug),
+]);
+
+// Products Table (an artist's design printed on a blank, for sale in their shop)
 export const products = pgTable('products', {
     id: uuid('id').defaultRandom().primaryKey(),
     storeId: uuid('store_id').references(() => artistStores.id).notNull(),
+    designId: uuid('design_id').references(() => designs.id),
+    blankCode: text('blank_code').references(() => blanks.code).notNull(),
+    printServiceCode: text('print_service_code').references(() => printServices.code).notNull(),
     name: text('name').notNull(),
     description: text('description'),
-    baseCost: integer('base_cost').notNull(), // In cents
-    retailPrice: integer('retail_price').notNull(), // In cents
-    mockupUrl: text('mockup_url').notNull(),
-    designFileUrl: text('design_file_url'), // Private URL
-    isActive: boolean('is_active').default(true).notNull(),
+    placement: jsonb('placement'), // { position, widthCm, offsetYcm }
+    baseCostCents: integer('base_cost_cents'), // snapshot at creation time
+    retailPriceCents: integer('retail_price_cents'),
+    status: productStatusEnum('status').default('draft').notNull(),
+    collectionId: uuid('collection_id').references(() => collections.id),
+    sortOrder: integer('sort_order').default(0).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
     storeIdIdx: index('products_store_id_idx').on(table.storeId),
 }));
 
+// Product Colours Table (enabled colourways per product)
+export const productColours = pgTable('product_colours', {
+    productId: uuid('product_id').references(() => products.id, { onDelete: 'cascade' }).notNull(),
+    colourCode: text('colour_code').references(() => colours.code).notNull(),
+    mockupUrl: text('mockup_url'),
+}, (table) => [
+    primaryKey({ columns: [table.productId, table.colourCode] }),
+]);
+
+// Product Sizes Table (enabled sizes per product)
+export const productSizes = pgTable('product_sizes', {
+    productId: uuid('product_id').references(() => products.id, { onDelete: 'cascade' }).notNull(),
+    size: text('size').notNull(),
+}, (table) => [
+    primaryKey({ columns: [table.productId, table.size] }),
+]);
+
+// ============================================================================
+// ORDERS
+// ============================================================================
+
 // Orders Table
 export const orders = pgTable('orders', {
     id: uuid('id').defaultRandom().primaryKey(),
     storeId: uuid('store_id').references(() => artistStores.id).notNull(),
-    customerId: uuid('customer_id').references(() => users.id).notNull(),
-    orderType: orderTypeEnum('order_type').default('individual').notNull(),
+    // Nullable: POD fan orders have no account (email-only, order lookup by token).
+    customerId: uuid('customer_id').references(() => users.id),
+    orderType: orderTypeEnum('order_type').default('pod').notNull(),
     status: orderStatusEnum('status').default('pending').notNull(),
     totalAmount: integer('total_amount').notNull(), // In cents
     stripePaymentIntentId: text('stripe_payment_intent_id'),
     shippingAddress: jsonb('shipping_address'), // Address blob
+    fanEmail: text('fan_email'),
+    shippingCents: integer('shipping_cents').default(0).notNull(),
+    taxCents: integer('tax_cents').default(0).notNull(),
+    applicationFeeCents: integer('application_fee_cents').default(0).notNull(),
+    transferCents: integer('transfer_cents').default(0).notNull(),
+    stripeCheckoutSessionId: text('stripe_checkout_session_id').unique(),
+    stripeTransferId: text('stripe_transfer_id'),
+    productionStatus: productionStatusEnum('production_status'),
+    tracking: jsonb('tracking'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
@@ -128,29 +334,180 @@ export const orderItems = pgTable('order_items', {
     id: uuid('id').defaultRandom().primaryKey(),
     orderId: uuid('order_id').references(() => orders.id).notNull(),
     productId: uuid('product_id').references(() => products.id).notNull(),
-    variantId: uuid('variant_id').references(() => productVariants.id), // Nullable for backward compat
     quantity: integer('quantity').notNull(),
     priceAtPurchase: integer('price_at_purchase').notNull(),
+    colourCode: text('colour_code'),
+    size: text('size'),
+    unitBaseCostCents: integer('unit_base_cost_cents'),
 }, (table) => ({
     orderIdIdx: index('order_items_order_id_idx').on(table.orderId),
     productIdIdx: index('order_items_product_id_idx').on(table.productId),
-    variantIdIdx: index('order_items_variant_id_idx').on(table.variantId),
 }));
 
-// Chat Sessions Table (for AI Context)
-export const chatSessions = pgTable('chat_sessions', {
+// Bulk Orders Table (an artist ordering a run for themselves)
+export const bulkOrders = pgTable('bulk_orders', {
     id: uuid('id').defaultRandom().primaryKey(),
-    userId: uuid('user_id').references(() => users.id),
-    messages: jsonb('messages').notNull(), // Using JSONB for array of message objects
-    supportTicketId: uuid('support_ticket_id'),
-    humanHandoffRequestedAt: timestamp('human_handoff_requested_at'),
-    humanHandoffStatus: text('human_handoff_status'), // 'pending' | 'assigned' | 'joined' | 'resolved'
+    storeId: uuid('store_id').references(() => artistStores.id).notNull(),
+    quote: jsonb('quote'), // lines, qty breaks, unit cost, total
+    status: bulkOrderStatusEnum('status').default('quoted').notNull(),
+    shipTo: jsonb('ship_to'),
+    orderId: uuid('order_id').references(() => orders.id), // set after payment
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Proofs Table (mockup approval for a product or bulk order)
+export const proofs = pgTable('proofs', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    productId: uuid('product_id').references(() => products.id),
+    bulkOrderId: uuid('bulk_order_id').references(() => bulkOrders.id),
+    version: integer('version').default(1).notNull(),
+    mockupUrls: jsonb('mockup_urls'),
+    spec: jsonb('spec'),
+    status: proofStatusEnum('status').default('pending').notNull(),
+    notes: text('notes'),
+    approvedAt: timestamp('approved_at'),
+    approvedBy: uuid('approved_by').references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ============================================================================
+// MONEY
+// ============================================================================
+
+// Payout Ledger Table (Stripe Connect destination-charge audit trail)
+export const payoutLedger = pgTable('payout_ledger', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    orderId: uuid('order_id').references(() => orders.id).notNull(),
+    storeId: uuid('store_id').references(() => artistStores.id).notNull(),
+    stripeChargeId: text('stripe_charge_id'),
+    stripeTransferId: text('stripe_transfer_id'),
+    grossCents: integer('gross_cents').notNull(),
+    feeCents: integer('fee_cents').notNull(), // our base cost
+    transferCents: integer('transfer_cents').notNull(),
+    stripeFeeCents: integer('stripe_fee_cents'),
+    status: text('status').notNull(),
+    anomalyFlags: jsonb('anomaly_flags').default([]), // string[]
+    reviewedAt: timestamp('reviewed_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Stripe Accounts Table (Connect Express onboarding status per store)
+export const stripeAccounts = pgTable('stripe_accounts', {
+    storeId: uuid('store_id').primaryKey().references(() => artistStores.id, { onDelete: 'cascade' }),
+    accountId: text('account_id').notNull().unique(),
+    chargesEnabled: boolean('charges_enabled').default(false).notNull(),
+    payoutsEnabled: boolean('payouts_enabled').default(false).notNull(),
+    requirements: jsonb('requirements'),
+    lastSyncedAt: timestamp('last_synced_at'),
+});
+
+// Custom Domains Table
+export const customDomains = pgTable('custom_domains', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    storeId: uuid('store_id').references(() => artistStores.id).notNull(),
+    hostname: text('hostname').notNull().unique(),
+    status: domainStatusEnum('status').default('pending').notNull(),
+    vercelDomainId: text('vercel_domain_id'),
+    verification: jsonb('verification'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ============================================================================
+// AGENT RUNTIME (conversations, messages, tools, notifications, project cards)
+// ============================================================================
+
+export const conversations = pgTable('conversations', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').references(() => users.id).notNull(),
+    roleAtTime: userRoleEnum('role_at_time'),
+    title: text('title'),
+    summary: text('summary'),
+    lastMessageAt: timestamp('last_message_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
-    userIdIdx: index('chat_sessions_user_id_idx').on(table.userId),
-    supportTicketIdIdx: index('chat_sessions_support_ticket_id_idx').on(table.supportTicketId),
+    userIdIdx: index('conversations_user_id_idx').on(table.userId),
 }));
+
+export const messages = pgTable('messages', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    conversationId: uuid('conversation_id').references(() => conversations.id, { onDelete: 'cascade' }).notNull(),
+    role: messageRoleEnum('role').notNull(),
+    content: jsonb('content').notNull(), // Anthropic content blocks + ui cards
+    tokensIn: integer('tokens_in'),
+    tokensOut: integer('tokens_out'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    conversationIdCreatedAtIdx: index('messages_conversation_id_created_at_idx').on(table.conversationId, table.createdAt),
+}));
+
+export const toolInvocations = pgTable('tool_invocations', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    messageId: uuid('message_id').references(() => messages.id),
+    conversationId: uuid('conversation_id').references(() => conversations.id, { onDelete: 'cascade' }).notNull(),
+    toolName: text('tool_name').notNull(),
+    input: jsonb('input'),
+    output: jsonb('output'),
+    status: text('status').notNull(), // 'ok' | 'error' | 'pending_confirm' | 'cancelled'
+    confirmedBy: uuid('confirmed_by'),
+    confirmedAt: timestamp('confirmed_at'),
+    idempotencyKey: text('idempotency_key').unique(),
+    durationMs: integer('duration_ms'),
+    error: text('error'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    conversationIdIdx: index('tool_invocations_conversation_id_idx').on(table.conversationId),
+}));
+
+export const notifications = pgTable('notifications', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').references(() => users.id).notNull(),
+    channel: notificationChannelEnum('channel').notNull(),
+    event: text('event').notNull(),
+    payload: jsonb('payload'),
+    status: text('status').default('pending').notNull(),
+    readAt: timestamp('read_at'),
+    sentAt: timestamp('sent_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    userIdIdx: index('notifications_user_id_idx').on(table.userId),
+}));
+
+export const notificationPrefs = pgTable('notification_prefs', {
+    userId: uuid('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+    discordDm: boolean('discord_dm').default(true).notNull(),
+    email: boolean('email').default(true).notNull(),
+    discordUserId: text('discord_user_id'),
+});
+
+// Project Cards Table (the persistent right-hand card mirroring a conversation's state)
+export const projectCards = pgTable('project_cards', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    conversationId: uuid('conversation_id').references(() => conversations.id, { onDelete: 'cascade' }).notNull(),
+    kind: projectKindEnum('kind').notNull(),
+    refId: uuid('ref_id'),
+    state: jsonb('state'),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+    unique('project_cards_conversation_id_unique').on(table.conversationId),
+]);
+
+// ============================================================================
+// SHIPPING
+// ============================================================================
+
+export const shippingZones = pgTable('shipping_zones', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    name: text('name').notNull(),
+    countries: jsonb('countries').default([]), // string[] (ISO-2), [] means "rest of world"
+    flatCents: integer('flat_cents').notNull(),
+    freeOverCents: integer('free_over_cents'),
+    isActive: boolean('is_active').default(true).notNull(),
+});
+
+// ============================================================================
+// GDPR
+// ============================================================================
 
 // GDPR Consents Table
 export const consents = pgTable('consents', {
@@ -214,53 +571,18 @@ export const waitlist = pgTable('waitlist', {
 // SUPPORT / HUMAN HANDOFF TABLES
 // ============================================================================
 
-// Staff Table (Human team members)
-export const staff = pgTable('staff', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    userId: uuid('user_id').references(() => users.id), // Optional link to app user
-    name: text('name').notNull(),
-    email: text('email').notNull().unique(),
-    role: staffRoleEnum('role').notNull(),
-    department: text('department'), // e.g. "Operations", "Design", "Support"
-    avatarUrl: text('avatar_url'),
-    isActive: boolean('is_active').default(true).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => ({
-    emailIdx: index('staff_email_idx').on(table.email),
-    roleIdx: index('staff_role_idx').on(table.role),
-    isActiveIdx: index('staff_is_active_idx').on(table.isActive),
-}));
-
-// Agent-to-Staff Assignments (which human handles which AI agent)
-export const agentStaffAssignments = pgTable('agent_staff_assignments', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    agentId: agentNameEnum('agent_id').notNull(), // 'Leopoldo', 'Francisca', 'Antônia'
-    staffId: uuid('staff_id').references(() => staff.id, { onDelete: 'cascade' }).notNull(),
-    isPrimary: boolean('is_primary').default(false).notNull(),
-    isActive: boolean('is_active').default(true).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => ({
-    agentIdIdx: index('agent_staff_agent_id_idx').on(table.agentId),
-    staffIdIdx: index('agent_staff_staff_id_idx').on(table.staffId),
-    // Partial unique index: only one primary assignment per agent
-    primaryAssignmentIdx: {
-        columns: [table.agentId],
-        name: 'agent_staff_primary_unique',
-        unique: true,
-        where: sql`${table.isPrimary} = true AND ${table.isActive} = true`,
-    },
-}));
-
 // Support Tickets (Human handoff queue)
 export const supportTickets = pgTable('support_tickets', {
     id: uuid('id').defaultRandom().primaryKey(),
-    sessionId: uuid('session_id').references(() => chatSessions.id, { onDelete: 'set null' }),
+    // Was a FK to the now-removed chatSessions table; kept as a plain id (no
+    // referential integrity) since chatSessions is superseded by conversations.
+    sessionId: uuid('session_id'),
     userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
     visitorToken: text('visitor_token'), // For anonymous users from mainpage
     agentId: agentNameEnum('agent_id').notNull(), // Which AI agent was active
-    assignedStaffId: uuid('assigned_staff_id').references(() => staff.id, { onDelete: 'set null' }),
+    // Was a FK to the now-removed staff table (no human-handoff routing in MVP;
+    // admin is the human); kept as a plain id.
+    assignedStaffId: uuid('assigned_staff_id'),
     status: ticketStatusEnum('status').default('pending').notNull(),
     priority: ticketPriorityEnum('priority').default('medium').notNull(),
     subject: text('subject').notNull(),
@@ -298,392 +620,6 @@ export const ticketMessages = pgTable('ticket_messages', {
     createdAtIdx: index('ticket_messages_created_at_idx').on(table.createdAt),
 }));
 
-// Product Blanks Table (Catalog of producible items)
-export const productBlanks = pgTable('product_blanks', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    name: text('name').notNull(), // e.g. "Unisex T-Shirt"
-    category: text('category').notNull(), // "apparel", "drinkware", "accessories"
-    brand: text('brand').notNull(), // e.g. "Gildan", "Fruit of the Loom"
-    sku: text('sku').notNull().unique(),
-    baseCost: integer('base_cost').notNull(), // In cents (cost to produce)
-    suggestedRetail: integer('suggested_retail').notNull(), // In cents (MSRP)
-    imageUrls: jsonb('image_urls').notNull(), // Array of Cloudinary URLs (multiple angles/colors)
-    colors: jsonb('colors'), // Array: { name: "Black", hex: "#000000", available: true }
-    sizes: jsonb('sizes'), // Array: { size: "XS", minQuantity: 6 }
-    specs: jsonb('specs'), // { material: "100% cotton", weight: "6oz", etc }
-    sustainabilityBadges: jsonb('sustainability_badges'), // Array of badge names
-    isActive: boolean('is_active').default(true).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => ({
-    categoryIdx: index('product_blanks_category_idx').on(table.category),
-    isActiveIdx: index('product_blanks_is_active_idx').on(table.isActive),
-}));
-
-// Relations
-export const usersRelations = relations(users, ({ many }) => ({
-    stores: many(artistStores),
-    orders: many(orders),
-    chatSessions: many(chatSessions),
-    consents: many(consents),
-    dataSubjectRequests: many(dataSubjectRequests),
-}));
-
-export const artistStoresRelations = relations(artistStores, ({ one, many }) => ({
-    artist: one(users, {
-        fields: [artistStores.artistId],
-        references: [users.id],
-    }),
-    products: many(products),
-    orders: many(orders),
-    shopCustomization: one(shopCustomizations, {
-        fields: [artistStores.id],
-        references: [shopCustomizations.storeId],
-    }),
-}));
-
-export const shopCustomizationsRelations = relations(shopCustomizations, ({ one }) => ({
-    store: one(artistStores, {
-        fields: [shopCustomizations.storeId],
-        references: [artistStores.id],
-    }),
-}));
-
-export const productsRelations = relations(products, ({ one }) => ({
-    store: one(artistStores, {
-        fields: [products.storeId],
-        references: [artistStores.id],
-    }),
-}));
-
-export const ordersRelations = relations(orders, ({ one, many }) => ({
-    store: one(artistStores, {
-        fields: [orders.storeId],
-        references: [artistStores.id],
-    }),
-    customer: one(users, {
-        fields: [orders.customerId],
-        references: [users.id],
-    }),
-    items: many(orderItems),
-}));
-
-export const orderItemsRelations = relations(orderItems, ({ one }) => ({
-    order: one(orders, {
-        fields: [orderItems.orderId],
-        references: [orders.id],
-    }),
-    product: one(products, {
-        fields: [orderItems.productId],
-        references: [products.id],
-    }),
-    variant: one(productVariants, {
-        fields: [orderItems.variantId],
-        references: [productVariants.id],
-    }),
-}));
-
-// GDPR Relations
-export const consentsRelations = relations(consents, ({ one }) => ({
-    user: one(users, {
-        fields: [consents.userId],
-        references: [users.id],
-    }),
-}));
-
-export const dataSubjectRequestsRelations = relations(dataSubjectRequests, ({ one }) => ({
-    user: one(users, {
-        fields: [dataSubjectRequests.userId],
-        references: [users.id],
-    }),
-}));
-
-// Support / Human Handoff Relations
-export const staffRelations = relations(staff, ({ one, many }) => ({
-    user: one(users, {
-        fields: [staff.userId],
-        references: [users.id],
-    }),
-    assignedTickets: many(supportTickets),
-    agentAssignments: many(agentStaffAssignments),
-}));
-
-export const agentStaffAssignmentsRelations = relations(agentStaffAssignments, ({ one }) => ({
-    staff: one(staff, {
-        fields: [agentStaffAssignments.staffId],
-        references: [staff.id],
-    }),
-}));
-
-export const supportTicketsRelations = relations(supportTickets, ({ one, many }) => ({
-    session: one(chatSessions, {
-        fields: [supportTickets.sessionId],
-        references: [chatSessions.id],
-    }),
-    user: one(users, {
-        fields: [supportTickets.userId],
-        references: [users.id],
-    }),
-    assignedStaff: one(staff, {
-        fields: [supportTickets.assignedStaffId],
-        references: [staff.id],
-    }),
-    messages: many(ticketMessages),
-}));
-
-export const ticketMessagesRelations = relations(ticketMessages, ({ one }) => ({
-    ticket: one(supportTickets, {
-        fields: [ticketMessages.ticketId],
-        references: [supportTickets.id],
-    }),
-}));
-
-// Chat Sessions Relations (update existing)
-export const chatSessionsRelations = relations(chatSessions, ({ one }) => ({
-    user: one(users, {
-        fields: [chatSessions.userId],
-        references: [users.id],
-    }),
-    supportTicket: one(supportTickets, {
-        fields: [chatSessions.supportTicketId],
-        references: [supportTickets.id],
-    }),
-}));
-
-// Product Blanks Relations
-// ProductBlanks are standalone catalog items (no foreign keys)
-// Products table can optionally reference productBlanks for design templates
-
-// Webhook Idempotency Table
-export const processedWebhookEvents = pgTable('processed_webhook_events', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    provider: text('provider').notNull(), // 'stripe', 'clerk', etc.
-    eventId: text('event_id').notNull(),
-    objectId: text('object_id'), // e.g. order ID, user ID
-    processedAt: timestamp('processed_at').defaultNow().notNull(),
-}, (table) => ({
-    providerEventUnique: { 
-        columns: [table.provider, table.eventId],
-        name: 'processed_webhook_events_provider_event_unique'
-    },
-}));
-
-// ============================================================================
-// PRODUCT CATALOG TABLES (Single Source of Truth)
-// ============================================================================
-
-// Enums for Product Catalog
-export const productStatusEnum = pgEnum('product_status', ['active', 'archived', 'discontinued']);
-export const variantStatusEnum = pgEnum('variant_status', ['in_stock', 'low_stock', 'out_of_stock', 'discontinued']);
-export const productBatchStatusEnum = pgEnum('product_batch_status', ['active', 'sold_out', 'expired']);
-export const attributeTypeEnum = pgEnum('attribute_type', ['text', 'number', 'boolean', 'enum', 'json']);
-
-// Categories Table (e.g., T-Shirts, Hoodies, Pants)
-export const categories = pgTable('categories', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    name: text('name').notNull(), // "T-Shirts", "Hoodies"
-    slug: text('slug').notNull().unique(), // "t-shirts", "hoodies"
-    description: text('description'),
-    parentId: uuid('parent_id'), // For subcategories
-    displayOrder: integer('display_order').default(0),
-    imageUrl: text('image_url'), // Category hero image
-    isActive: boolean('is_active').default(true).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => ({
-    slugIdx: index('categories_slug_idx').on(table.slug),
-    parentIdIdx: index('categories_parent_id_idx').on(table.parentId),
-}));
-
-// Category Attribute Definitions (dynamic attributes per category)
-export const categoryAttributes = pgTable('category_attributes', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'cascade' }).notNull(),
-    name: text('name').notNull(), // "fit_type", "fabric_weight", "neckline"
-    label: text('label').notNull(), // "Fit Type", "Fabric Weight"
-    attributeType: attributeTypeEnum('attribute_type').notNull(),
-    required: boolean('required').default(false).notNull(),
-    displayOrder: integer('display_order').default(0),
-    unit: text('unit'), // "gsm", "cm", etc. for number types
-    options: jsonb('options'), // For enum: ["slim", "regular", "relaxed"]
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => ({
-    categoryIdIdx: index('category_attributes_category_id_idx').on(table.categoryId),
-}));
-
-// Colors Table (standardized palette)
-export const colors = pgTable('colors', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    name: text('name').notNull().unique(), // "Black", "White", "Navy"
-    hexCode: text('hex_code'), // "#000000"
-    cloudinaryFolder: text('cloudinary_folder'), // For organizing images
-    displayOrder: integer('display_order').default(0),
-    isActive: boolean('is_active').default(true).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => ({
-    nameIdx: index('colors_name_idx').on(table.name),
-}));
-
-// Sizes Table (standardized)
-export const sizes = pgTable('sizes', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    name: text('name').notNull(), // "S", "M", "L", "XL", "2XL", "3XL"
-    categoryId: uuid('category_id').references(() => categories.id).notNull(), // Different sizes per category
-    displayOrder: integer('display_order').default(0),
-    measurements: jsonb('measurements'), // { chest: "50cm", length: "70cm" }
-    isActive: boolean('is_active').default(true).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => ({
-    categoryIdIdx: index('sizes_category_id_idx').on(table.categoryId),
-}));
-
-// Products Table (Main catalog items - replaces/enhances productBlanks)
-export const catalogProducts = pgTable('catalog_products', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    sku: text('sku').notNull().unique(), // "STTU258" (Hypster Tee)
-    name: text('name').notNull(), // "Stanley/Stella Hypster"
-    description: text('description'),
-    categoryId: uuid('category_id').references(() => categories.id).notNull(),
-    brand: text('brand').notNull(), // "Stanley/Stella"
-    material: text('material'), // "100% Organic Cotton"
-    weightG: integer('weight_g'), // 180 (fabric weight in GSM)
-    
-    // Pricing (all in EUR cents)
-    costPriceEur: integer('cost_price_eur'), // INTERNAL: What WE pay (never exposed)
-    baseCostEur: integer('base_cost_eur').notNull(), // EXTERNAL: What artists pay
-    suggestedRetailEur: integer('suggested_retail_eur'), // EXTERNAL: Recommended retail
-    
-    // Multi-currency support (for future)
-    currencyCode: text('currency_code').default('EUR').notNull(),
-    
-    // Status
-    status: productStatusEnum('status').default('active').notNull(),
-    
-    // Additional attributes (dynamic based on category)
-    attributes: jsonb('attributes'), // { fit_type: "relaxed", fabric_weight: 180 }
-    
-    // Metadata
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => ({
-    skuIdx: index('catalog_products_sku_idx').on(table.sku),
-    categoryIdIdx: index('catalog_products_category_id_idx').on(table.categoryId),
-    statusIdx: index('catalog_products_status_idx').on(table.status),
-}));
-
-// Product Variants Table (Specific size/color combinations)
-export const productVariants = pgTable('product_variants', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    productId: uuid('product_id').references(() => catalogProducts.id, { onDelete: 'cascade' }).notNull(),
-    sku: text('sku').notNull().unique(), // "STTU258-C001-S" (Hypster-Black-Small)
-    colorId: uuid('color_id').references(() => colors.id).notNull(),
-    sizeId: uuid('size_id').references(() => sizes.id).notNull(),
-    barcode: text('barcode'), // EAN/UPC for scanning
-    
-    // Variant-specific pricing (can override product base)
-    baseCostOverride: integer('base_cost_override'), // Null = use product.baseCostEur
-    
-    status: variantStatusEnum('status').default('in_stock').notNull(),
-    
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => {
-    return {
-        skuIdx: index('product_variants_sku_idx').on(table.sku),
-        productIdIdx: index('product_variants_product_id_idx').on(table.productId),
-        colorIdIdx: index('product_variants_color_id_idx').on(table.colorId),
-        sizeIdIdx: index('product_variants_size_id_idx').on(table.sizeId),
-        compositeUnique: { columns: [table.productId, table.colorId, table.sizeId], name: 'product_variants_composite_unique' },
-    };
-});
-
-// Inventory Table (Stock tracking per variant)
-export const inventory = pgTable('inventory', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    variantId: uuid('variant_id').references(() => productVariants.id, { onDelete: 'cascade' }).notNull().unique(),
-    quantityAvailable: integer('quantity_available').default(0).notNull(),
-    quantityReserved: integer('quantity_reserved').default(0).notNull(), // For pending orders
-    quantityOnOrder: integer('quantity_on_order').default(0).notNull(), // Ordered from supplier, not yet received
-    reorderPoint: integer('reorder_point').default(10), // Alert when below this
-    warehouseLocation: text('warehouse_location'), // "A-12-3" for physical picking
-    lastCountedAt: timestamp('last_counted_at'),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => ({
-    variantIdIdx: index('inventory_variant_id_idx').on(table.variantId),
-}));
-
-// Product Images Table (Cloudinary URLs)
-export const productImages = pgTable('product_images', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    variantId: uuid('variant_id').references(() => productVariants.id, { onDelete: 'cascade' }), // NULL = generic product image
-    productId: uuid('product_id').references(() => catalogProducts.id, { onDelete: 'cascade' }).notNull(), // Required
-    
-    cloudinaryPublicId: text('cloudinary_public_id').notNull(),
-    cloudinaryUrl: text('cloudinary_url').notNull(),
-    
-    imageType: text('image_type').notNull(), // "front", "back", "detail", "lifestyle", "swatch"
-    isPrimary: boolean('is_primary').default(false).notNull(),
-    displayOrder: integer('display_order').default(0),
-    altText: text('alt_text'),
-    
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => ({
-    variantIdIdx: index('product_images_variant_id_idx').on(table.variantId),
-    productIdIdx: index('product_images_product_id_idx').on(table.productId),
-}));
-
-// Pricing History Table (Audit trail)
-export const pricingHistory = pgTable('pricing_history', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    productId: uuid('product_id').references(() => catalogProducts.id, { onDelete: 'cascade' }).notNull(),
-    fieldChanged: text('field_changed').notNull(), // "base_cost_eur", "suggested_retail_eur"
-    oldValue: integer('old_value'), // In cents
-    newValue: integer('new_value').notNull(), // In cents
-    changedBy: text('changed_by').notNull(), // "merchstation_tui" or user email
-    changeReason: text('change_reason'), // "Monthly price update", "Stanley Stella promo"
-    effectiveDate: timestamp('effective_date').defaultNow().notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => ({
-    productIdIdx: index('pricing_history_product_id_idx').on(table.productId),
-    effectiveDateIdx: index('pricing_history_effective_date_idx').on(table.effectiveDate),
-}));
-
-// Pricing Schedules Table (Future price changes)
-export const pricingSchedules = pgTable('pricing_schedules', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    productId: uuid('product_id').references(() => catalogProducts.id, { onDelete: 'cascade' }).notNull(),
-    fieldToChange: text('field_to_change').notNull(), // "base_cost_eur", "suggested_retail_eur"
-    newValue: integer('new_value').notNull(),
-    effectiveDate: timestamp('effective_date').notNull(),
-    status: text('status').default('pending').notNull(), // "pending", "applied", "cancelled"
-    createdBy: text('created_by').notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => ({
-    productIdIdx: index('pricing_schedules_product_id_idx').on(table.productId),
-    effectiveDateIdx: index('pricing_schedules_effective_date_idx').on(table.effectiveDate),
-}));
-
-// Product Batches Table (For internal profit tracking)
-export const productBatches = pgTable('product_batches', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    variantId: uuid('variant_id').references(() => productVariants.id, { onDelete: 'cascade' }).notNull(),
-    batchCode: text('batch_code').notNull(), // "SS-PROMO-MAR2026"
-    supplier: text('supplier'), // "Stanley Stella"
-    purchaseCostEur: integer('purchase_cost_eur').notNull(), // What WE paid (INTERNAL)
-    
-    quantityReceived: integer('quantity_received').notNull(),
-    quantityRemaining: integer('quantity_remaining').notNull(),
-    
-    status: productBatchStatusEnum('status').default('active').notNull(),
-    receivedAt: timestamp('received_at').defaultNow().notNull(),
-    notes: text('notes'), // "Last units sale - 40% off wholesale"
-    
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => ({
-    variantIdIdx: index('product_batches_variant_id_idx').on(table.variantId),
-    batchCodeIdx: index('product_batches_batch_code_idx').on(table.batchCode),
-}));
-
 // ============================================================================
 // SUPPLIER ORDERS (Purchase Orders to suppliers)
 // ============================================================================
@@ -710,7 +646,10 @@ export const supplierOrders = pgTable('supplier_orders', {
 export const supplierOrderItems = pgTable('supplier_order_items', {
     id: uuid('id').defaultRandom().primaryKey(),
     orderId: uuid('order_id').references(() => supplierOrders.id, { onDelete: 'cascade' }).notNull(),
-    variantId: uuid('variant_id').references(() => productVariants.id, { onDelete: 'restrict' }).notNull(),
+    // Was a FK to the now-removed productVariants table (legacy catalog); the
+    // blank catalog has no single "variant id" equivalent, so this is kept as
+    // a plain id (blank/colour/size are tracked by the caller).
+    variantId: uuid('variant_id').notNull(),
     quantity: integer('quantity').notNull(),
     unitCostEur: integer('unit_cost_eur').notNull(), // In cents
     receivedQuantity: integer('received_quantity').default(0).notNull(),
@@ -718,122 +657,6 @@ export const supplierOrderItems = pgTable('supplier_order_items', {
 }, (table) => ({
     orderIdIdx: index('supplier_order_items_order_id_idx').on(table.orderId),
     variantIdIdx: index('supplier_order_items_variant_id_idx').on(table.variantId),
-}));
-
-// ============================================================================
-// RELATIONS
-// ============================================================================
-
-// Categories Relations
-export const categoriesRelations = relations(categories, ({ one, many }) => ({
-    parent: one(categories, {
-        fields: [categories.parentId],
-        references: [categories.id],
-    }),
-    children: many(categories),
-    attributes: many(categoryAttributes),
-    products: many(catalogProducts),
-    sizes: many(sizes),
-}));
-
-export const categoryAttributesRelations = relations(categoryAttributes, ({ one }) => ({
-    category: one(categories, {
-        fields: [categoryAttributes.categoryId],
-        references: [categories.id],
-    }),
-}));
-
-// Colors Relations (no relations needed - standalone)
-
-export const sizesRelations = relations(sizes, ({ one }) => ({
-    category: one(categories, {
-        fields: [sizes.categoryId],
-        references: [categories.id],
-    }),
-}));
-
-export const catalogProductsRelations = relations(catalogProducts, ({ one, many }) => ({
-    category: one(categories, {
-        fields: [catalogProducts.categoryId],
-        references: [categories.id],
-    }),
-    variants: many(productVariants),
-    images: many(productImages),
-    pricingHistory: many(pricingHistory),
-    pricingSchedules: many(pricingSchedules),
-}));
-
-export const productVariantsRelations = relations(productVariants, ({ one, many }) => ({
-    product: one(catalogProducts, {
-        fields: [productVariants.productId],
-        references: [catalogProducts.id],
-    }),
-    color: one(colors, {
-        fields: [productVariants.colorId],
-        references: [colors.id],
-    }),
-    size: one(sizes, {
-        fields: [productVariants.sizeId],
-        references: [sizes.id],
-    }),
-    inventory: one(inventory),
-    images: many(productImages),
-    batches: many(productBatches),
-}));
-
-export const inventoryRelations = relations(inventory, ({ one }) => ({
-    variant: one(productVariants, {
-        fields: [inventory.variantId],
-        references: [productVariants.id],
-    }),
-}));
-
-export const productImagesRelations = relations(productImages, ({ one }) => ({
-    product: one(catalogProducts, {
-        fields: [productImages.productId],
-        references: [catalogProducts.id],
-    }),
-    variant: one(productVariants, {
-        fields: [productImages.variantId],
-        references: [productVariants.id],
-    }),
-}));
-
-export const pricingHistoryRelations = relations(pricingHistory, ({ one }) => ({
-    product: one(catalogProducts, {
-        fields: [pricingHistory.productId],
-        references: [catalogProducts.id],
-    }),
-}));
-
-export const pricingSchedulesRelations = relations(pricingSchedules, ({ one }) => ({
-    product: one(catalogProducts, {
-        fields: [pricingSchedules.productId],
-        references: [catalogProducts.id],
-    }),
-}));
-
-export const productBatchesRelations = relations(productBatches, ({ one }) => ({
-    variant: one(productVariants, {
-        fields: [productBatches.variantId],
-        references: [productVariants.id],
-    }),
-}));
-
-// Supplier Orders Relations
-export const supplierOrdersRelations = relations(supplierOrders, ({ many }) => ({
-    items: many(supplierOrderItems),
-}));
-
-export const supplierOrderItemsRelations = relations(supplierOrderItems, ({ one }) => ({
-    order: one(supplierOrders, {
-        fields: [supplierOrderItems.orderId],
-        references: [supplierOrders.id],
-    }),
-    variant: one(productVariants, {
-        fields: [supplierOrderItems.variantId],
-        references: [productVariants.id],
-    }),
 }));
 
 // ─── App Settings ───────────────────────────────────────────────────────────
@@ -848,3 +671,413 @@ export const appSettings = pgTable('app_settings', {
 }, (table) => ({
     keyIdx: index('app_settings_key_idx').on(table.key),
 }));
+
+// Webhook Idempotency Table
+export const processedWebhookEvents = pgTable('processed_webhook_events', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    provider: text('provider').notNull(), // 'stripe', 'clerk', etc.
+    eventId: text('event_id').notNull(),
+    objectId: text('object_id'), // e.g. order ID, user ID
+    processedAt: timestamp('processed_at').defaultNow().notNull(),
+}, (table) => [
+    unique('processed_webhook_events_provider_event_unique').on(table.provider, table.eventId),
+]);
+
+// ============================================================================
+// RELATIONS
+// ============================================================================
+
+export const usersRelations = relations(users, ({ many, one }) => ({
+    stores: many(artistStores),
+    orders: many(orders),
+    conversations: many(conversations),
+    notifications: many(notifications),
+    notificationPrefs: one(notificationPrefs, {
+        fields: [users.id],
+        references: [notificationPrefs.userId],
+    }),
+    consents: many(consents),
+    dataSubjectRequests: many(dataSubjectRequests),
+}));
+
+export const artistStoresRelations = relations(artistStores, ({ one, many }) => ({
+    artist: one(users, {
+        fields: [artistStores.artistId],
+        references: [users.id],
+    }),
+    products: many(products),
+    orders: many(orders),
+    designs: many(designs),
+    collections: many(collections),
+    bulkOrders: many(bulkOrders),
+    customDomains: many(customDomains),
+    payoutLedger: many(payoutLedger),
+    stripeAccount: one(stripeAccounts, {
+        fields: [artistStores.id],
+        references: [stripeAccounts.storeId],
+    }),
+    shopCustomization: one(shopCustomizations, {
+        fields: [artistStores.id],
+        references: [shopCustomizations.storeId],
+    }),
+}));
+
+export const shopCustomizationsRelations = relations(shopCustomizations, ({ one }) => ({
+    store: one(artistStores, {
+        fields: [shopCustomizations.storeId],
+        references: [artistStores.id],
+    }),
+}));
+
+// Blank catalog relations
+export const printServicesRelations = relations(printServices, ({ many }) => ({
+    blankPrintServices: many(blankPrintServices),
+    baseCosts: many(baseCosts),
+    products: many(products),
+}));
+
+export const coloursRelations = relations(colours, ({ many }) => ({
+    blankColours: many(blankColours),
+    productColours: many(productColours),
+}));
+
+export const blanksRelations = relations(blanks, ({ one, many }) => ({
+    blankColours: many(blankColours),
+    blankSizes: many(blankSizes),
+    sizeGuide: one(sizeGuides, {
+        fields: [blanks.code],
+        references: [sizeGuides.blankCode],
+    }),
+    blankPrintServices: many(blankPrintServices),
+    baseCosts: many(baseCosts),
+    products: many(products),
+}));
+
+export const blankColoursRelations = relations(blankColours, ({ one }) => ({
+    blank: one(blanks, {
+        fields: [blankColours.blankCode],
+        references: [blanks.code],
+    }),
+    colour: one(colours, {
+        fields: [blankColours.colourCode],
+        references: [colours.code],
+    }),
+}));
+
+export const blankSizesRelations = relations(blankSizes, ({ one }) => ({
+    blank: one(blanks, {
+        fields: [blankSizes.blankCode],
+        references: [blanks.code],
+    }),
+}));
+
+export const sizeGuidesRelations = relations(sizeGuides, ({ one }) => ({
+    blank: one(blanks, {
+        fields: [sizeGuides.blankCode],
+        references: [blanks.code],
+    }),
+}));
+
+export const blankPrintServicesRelations = relations(blankPrintServices, ({ one }) => ({
+    blank: one(blanks, {
+        fields: [blankPrintServices.blankCode],
+        references: [blanks.code],
+    }),
+    printService: one(printServices, {
+        fields: [blankPrintServices.printServiceCode],
+        references: [printServices.code],
+    }),
+}));
+
+export const baseCostsRelations = relations(baseCosts, ({ one }) => ({
+    blank: one(blanks, {
+        fields: [baseCosts.blankCode],
+        references: [blanks.code],
+    }),
+    printService: one(printServices, {
+        fields: [baseCosts.printServiceCode],
+        references: [printServices.code],
+    }),
+}));
+
+// Designs / collections / products relations
+export const designsRelations = relations(designs, ({ one, many }) => ({
+    store: one(artistStores, {
+        fields: [designs.storeId],
+        references: [artistStores.id],
+    }),
+    products: many(products),
+}));
+
+export const collectionsRelations = relations(collections, ({ one, many }) => ({
+    store: one(artistStores, {
+        fields: [collections.storeId],
+        references: [artistStores.id],
+    }),
+    products: many(products),
+}));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+    store: one(artistStores, {
+        fields: [products.storeId],
+        references: [artistStores.id],
+    }),
+    design: one(designs, {
+        fields: [products.designId],
+        references: [designs.id],
+    }),
+    blank: one(blanks, {
+        fields: [products.blankCode],
+        references: [blanks.code],
+    }),
+    printService: one(printServices, {
+        fields: [products.printServiceCode],
+        references: [printServices.code],
+    }),
+    collection: one(collections, {
+        fields: [products.collectionId],
+        references: [collections.id],
+    }),
+    colours: many(productColours),
+    sizes: many(productSizes),
+    orderItems: many(orderItems),
+    proofs: many(proofs),
+}));
+
+export const productColoursRelations = relations(productColours, ({ one }) => ({
+    product: one(products, {
+        fields: [productColours.productId],
+        references: [products.id],
+    }),
+    colour: one(colours, {
+        fields: [productColours.colourCode],
+        references: [colours.code],
+    }),
+}));
+
+export const productSizesRelations = relations(productSizes, ({ one }) => ({
+    product: one(products, {
+        fields: [productSizes.productId],
+        references: [products.id],
+    }),
+}));
+
+// Orders / bulk orders / proofs relations
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+    store: one(artistStores, {
+        fields: [orders.storeId],
+        references: [artistStores.id],
+    }),
+    customer: one(users, {
+        fields: [orders.customerId],
+        references: [users.id],
+    }),
+    items: many(orderItems),
+    bulkOrder: one(bulkOrders, {
+        fields: [orders.id],
+        references: [bulkOrders.orderId],
+    }),
+    payoutLedger: many(payoutLedger),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+    order: one(orders, {
+        fields: [orderItems.orderId],
+        references: [orders.id],
+    }),
+    product: one(products, {
+        fields: [orderItems.productId],
+        references: [products.id],
+    }),
+}));
+
+export const bulkOrdersRelations = relations(bulkOrders, ({ one, many }) => ({
+    store: one(artistStores, {
+        fields: [bulkOrders.storeId],
+        references: [artistStores.id],
+    }),
+    order: one(orders, {
+        fields: [bulkOrders.orderId],
+        references: [orders.id],
+    }),
+    proofs: many(proofs),
+}));
+
+export const proofsRelations = relations(proofs, ({ one }) => ({
+    product: one(products, {
+        fields: [proofs.productId],
+        references: [products.id],
+    }),
+    bulkOrder: one(bulkOrders, {
+        fields: [proofs.bulkOrderId],
+        references: [bulkOrders.id],
+    }),
+    approvedByUser: one(users, {
+        fields: [proofs.approvedBy],
+        references: [users.id],
+    }),
+}));
+
+// Money relations
+export const payoutLedgerRelations = relations(payoutLedger, ({ one }) => ({
+    order: one(orders, {
+        fields: [payoutLedger.orderId],
+        references: [orders.id],
+    }),
+    store: one(artistStores, {
+        fields: [payoutLedger.storeId],
+        references: [artistStores.id],
+    }),
+}));
+
+export const stripeAccountsRelations = relations(stripeAccounts, ({ one }) => ({
+    store: one(artistStores, {
+        fields: [stripeAccounts.storeId],
+        references: [artistStores.id],
+    }),
+}));
+
+export const customDomainsRelations = relations(customDomains, ({ one }) => ({
+    store: one(artistStores, {
+        fields: [customDomains.storeId],
+        references: [artistStores.id],
+    }),
+}));
+
+// Agent runtime relations
+export const conversationsRelations = relations(conversations, ({ one, many }) => ({
+    user: one(users, {
+        fields: [conversations.userId],
+        references: [users.id],
+    }),
+    messages: many(messages),
+    projectCards: many(projectCards),
+}));
+
+export const messagesRelations = relations(messages, ({ one, many }) => ({
+    conversation: one(conversations, {
+        fields: [messages.conversationId],
+        references: [conversations.id],
+    }),
+    toolInvocations: many(toolInvocations),
+}));
+
+export const toolInvocationsRelations = relations(toolInvocations, ({ one }) => ({
+    message: one(messages, {
+        fields: [toolInvocations.messageId],
+        references: [messages.id],
+    }),
+    conversation: one(conversations, {
+        fields: [toolInvocations.conversationId],
+        references: [conversations.id],
+    }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+    user: one(users, {
+        fields: [notifications.userId],
+        references: [users.id],
+    }),
+}));
+
+export const notificationPrefsRelations = relations(notificationPrefs, ({ one }) => ({
+    user: one(users, {
+        fields: [notificationPrefs.userId],
+        references: [users.id],
+    }),
+}));
+
+export const projectCardsRelations = relations(projectCards, ({ one }) => ({
+    conversation: one(conversations, {
+        fields: [projectCards.conversationId],
+        references: [conversations.id],
+    }),
+}));
+
+// GDPR relations
+export const consentsRelations = relations(consents, ({ one }) => ({
+    user: one(users, {
+        fields: [consents.userId],
+        references: [users.id],
+    }),
+}));
+
+export const dataSubjectRequestsRelations = relations(dataSubjectRequests, ({ one }) => ({
+    user: one(users, {
+        fields: [dataSubjectRequests.userId],
+        references: [users.id],
+    }),
+}));
+
+// Support / Human Handoff Relations
+export const supportTicketsRelations = relations(supportTickets, ({ one, many }) => ({
+    user: one(users, {
+        fields: [supportTickets.userId],
+        references: [users.id],
+    }),
+    messages: many(ticketMessages),
+}));
+
+export const ticketMessagesRelations = relations(ticketMessages, ({ one }) => ({
+    ticket: one(supportTickets, {
+        fields: [ticketMessages.ticketId],
+        references: [supportTickets.id],
+    }),
+}));
+
+// Supplier Orders Relations
+export const supplierOrdersRelations = relations(supplierOrders, ({ many }) => ({
+    items: many(supplierOrderItems),
+}));
+
+export const supplierOrderItemsRelations = relations(supplierOrderItems, ({ one }) => ({
+    order: one(supplierOrders, {
+        fields: [supplierOrderItems.orderId],
+        references: [supplierOrders.id],
+    }),
+}));
+
+// ============================================================================
+// INFERRED TYPES
+// ============================================================================
+
+export type User = typeof users.$inferSelect;
+export type ArtistStore = typeof artistStores.$inferSelect;
+export type ShopCustomization = typeof shopCustomizations.$inferSelect;
+export type PrintService = typeof printServices.$inferSelect;
+export type Colour = typeof colours.$inferSelect;
+export type Blank = typeof blanks.$inferSelect;
+export type BlankColour = typeof blankColours.$inferSelect;
+export type BlankSize = typeof blankSizes.$inferSelect;
+export type SizeGuide = typeof sizeGuides.$inferSelect;
+export type BlankPrintService = typeof blankPrintServices.$inferSelect;
+export type BaseCost = typeof baseCosts.$inferSelect;
+export type Design = typeof designs.$inferSelect;
+export type Collection = typeof collections.$inferSelect;
+export type Product = typeof products.$inferSelect;
+export type ProductColour = typeof productColours.$inferSelect;
+export type ProductSize = typeof productSizes.$inferSelect;
+export type Order = typeof orders.$inferSelect;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type BulkOrder = typeof bulkOrders.$inferSelect;
+export type Proof = typeof proofs.$inferSelect;
+export type PayoutLedgerEntry = typeof payoutLedger.$inferSelect;
+export type StripeAccount = typeof stripeAccounts.$inferSelect;
+export type CustomDomain = typeof customDomains.$inferSelect;
+export type Conversation = typeof conversations.$inferSelect;
+export type Message = typeof messages.$inferSelect;
+export type ToolInvocation = typeof toolInvocations.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type NotificationPrefs = typeof notificationPrefs.$inferSelect;
+export type ProjectCard = typeof projectCards.$inferSelect;
+export type ShippingZone = typeof shippingZones.$inferSelect;
+export type Consent = typeof consents.$inferSelect;
+export type DataSubjectRequest = typeof dataSubjectRequests.$inferSelect;
+export type DataBreachLog = typeof dataBreachLogs.$inferSelect;
+export type WaitlistEntry = typeof waitlist.$inferSelect;
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type TicketMessage = typeof ticketMessages.$inferSelect;
+export type SupplierOrder = typeof supplierOrders.$inferSelect;
+export type SupplierOrderItem = typeof supplierOrderItems.$inferSelect;
+export type ProcessedWebhookEvent = typeof processedWebhookEvents.$inferSelect;
+export type AppSetting = typeof appSettings.$inferSelect;
