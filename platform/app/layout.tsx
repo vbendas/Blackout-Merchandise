@@ -1,14 +1,11 @@
 import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import { auth } from '@clerk/nextjs/server';
-import { oswald } from '@/lib/fonts';
+import { barlow, ibmPlexMono } from '@/lib/fonts';
 import { getUserByClerkId } from '@/lib/services/users';
 import { DEV_BYPASS } from '@/lib/auth';
 import './globals.css';
-import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: {
@@ -33,7 +30,7 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
   const lang = await resolveLang();
 
   const page = (
-    <html lang={lang} className={cn("antialiased", oswald.variable, "font-sans", geist.variable)}>
+    <html lang={lang} className={cn("antialiased", barlow.variable, ibmPlexMono.variable, "font-sans")}>
       <body className="min-h-screen">{children}</body>
     </html>
   );
@@ -46,11 +43,11 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
       appearance={{
         variables: {
           colorPrimary: '#ede4dd',
-          colorBackground: '#221f1c',
+          colorBackground: '#141414',
           // Clerk v7 renamed colorText -> colorForeground and
           // colorInputBackground/colorInputText -> colorInput/colorInputForeground.
           colorForeground: '#ede4dd',
-          colorInput: '#2a2724',
+          colorInput: '#242424',
           colorInputForeground: '#ede4dd',
           borderRadius: '2px',
         },

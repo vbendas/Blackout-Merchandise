@@ -8,10 +8,10 @@
   /* Warm charcoal ground, matching website-v3's dark state. This app is
      dark only — no light-mode block; shadcn/AI Elements variables below map
      straight onto the same MerchFrom tokens instead of a separate palette. */
-  --paper: #221f1c;
+  --paper: #141414;
   --signal: #ede4dd;
   --gutter: 40px;
-  --font-ui: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-ui: var(--font-barlow), 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   --background: var(--paper);
   --foreground: var(--signal);
@@ -51,8 +51,9 @@
   --color-paper: var(--paper);
   --color-signal: var(--signal);
   --font-sans: var(--font-ui);
-  --font-display: var(--font-oswald);
+  --font-display: var(--font-ui);
   --font-heading: var(--font-sans);
+  --font-mono: var(--font-plex-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
