@@ -119,9 +119,10 @@ export function GalleryView() {
                 aria-hidden
                 className="absolute bottom-0 left-0 uppercase opacity-0 transition-opacity duration-[400ms] ease-out group-hover:opacity-100"
                 style={{
+                  fontFamily: 'var(--font-mono), monospace',
                   fontSize: '12px',
                   letterSpacing: '0.08em',
-                  color: '#ede4dd',
+                  color: 'var(--signal)',
                   mixBlendMode: 'difference',
                   padding: '12px',
                   opacity: isTapped ? 1 : undefined,

@@ -1,45 +1,40 @@
 @import "tailwindcss";
 
 :root {
-  /* Warm charcoal ground — softer than near-black, same tone the
-     Catalog's dark state uses, so the whole site shares one dark. */
-  --paper: #221f1c;
-  --signal: #ede4dd;
-  --nav-h: 72px;
-  --gutter: 40px;
-  /* UI face: the reference licenses Neue Haas Grotesk Text Pro (the
-     restored original Helvetica, commercial). Helvetica Neue ships as a
-     system font on Apple devices — this stack renders the genuine
-     Helvetica look there and falls back to Arial elsewhere. */
-  --font-ui: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* Soft charcoal, black-dominant ground. No accent colour, no
+     gradients, no light/charcoal mode switching — this is the one dark
+     the whole site shares now. */
+  --paper: #141414; /* page ground */
+  --raised: #1b1b1b; /* alternate sections (assistant/catalog/agents bands, cards) */
+  --surface: #242424; /* image frames, inputs on raised, product tiles */
+  --well: #101010; /* code blocks */
+  --signal: #ede4dd; /* primary text, primary button fill */
+  --muted: #b3aba4; /* secondary text, labels */
+  --soft: #cfc6bf; /* body copy on dark */
+  --hairline: rgba(237, 228, 221, 0.12); /* rules, borders */
+  --gutter: 64px; /* page side padding, desktop */
+  --header-h: 80px; /* SiteHeader's fixed height — pages pad under it */
 }
 
 @theme inline {
   --color-paper: var(--paper);
+  --color-raised: var(--raised);
+  --color-surface: var(--surface);
+  --color-well: var(--well);
   --color-signal: var(--signal);
-  --font-sans: var(--font-ui);
-  --font-display: var(--font-oswald);
-}
-
-/* Catalog view flips the site to light mode: the tokens invert, and
-   everything derived from them follows. Body animates the swap; the
-   blend-difference corner labels invert continuously with it. */
-:root[data-mode='light'] {
-  --paper: #ede4dd;
-  --signal: #0d0b0a;
-}
-
-/* Soft dark for the Catalog and product modal when light garments need a
-   dark ground: a warm charcoal instead of the main page's near-black, so
-   white products read comfortably rather than harshly. */
-:root[data-mode='charcoal'] {
-  --paper: #221f1c;
-  --signal: #ede4dd;
+  --color-muted: var(--muted);
+  --color-soft: var(--soft);
+  /* Barlow everywhere — body/UI and display both read the same family,
+     just different weights. IBM Plex Mono for labels, facts, code. */
+  --font-sans: var(--font-barlow);
+  --font-display: var(--font-barlow);
+  --font-mono: var(--font-ibm-plex-mono);
 }
 
 @media (max-width: 768px) {
   :root {
-    --gutter: 24px;
+    --gutter: 20px;
+    --header-h: 64px;
   }
 }
 
@@ -56,9 +51,10 @@ body {
 body {
   background: var(--paper);
   color: var(--signal);
-  font-family: var(--font-ui);
+  font-family: var(--font-sans), sans-serif;
   -webkit-font-smoothing: antialiased;
-  /* Theme switch: the whole page dissolves between dark and light. */
+  /* Kept from the old light/dark theme switch: harmless now the tokens
+     are fixed, and still smooths any future ground-colour change. */
   transition: background-color 800ms ease, color 800ms ease;
 }
 
@@ -91,32 +87,20 @@ a {
 }
 
 
+/* No fill-mode, same reason as .route-fade below: a retained opacity
+   animation would keep this wrapper a stacking context and trap the
+   product modal (z 90) underneath the fixed site header (z 50). */
 .view-fade-in {
-  animation: fade-in 450ms ease both;
+  animation: fade-in 450ms ease;
 }
 
 /* Route change: each page fades in over the paper ground. No fill-mode:
    a retained opacity animation would leave this wrapper as a permanent
-   stacking context, trapping the corners' mix-blend-mode difference in
-   an isolated group where it blends against transparency — white-on-white
-   labels in the light Catalog theme. With no fill the stacking context
+   stacking context, which used to trap the old corners' mix-blend-mode
+   difference in an isolated group. With no fill the stacking context
    dissolves the moment the entrance ends. */
 .route-fade {
   animation: fade-in 500ms ease;
-}
-
-/* First-load intro: the registration mark draws itself, stroke by
-   stroke, before the page is revealed. */
-@keyframes intro-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-.intro-stroke {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: intro-draw 700ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* Scroll perf: off-screen cards skip layout/paint/style work until they

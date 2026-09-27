@@ -1,0 +1,199 @@
+# Website v3 Redesign — Build Plan
+
+> Status: **built** (WP1–WP5) · 27 Sep 2026 · uncommitted on `feat/mainpage-redesign`
+> Source of truth for the look: canvas "Merch From v3 Home Mocks", artboards **A — Scenes (desktop)** and **A — Scenes (mobile)**.
+> Scope: `website-v3/` (public site) and a font/palette alignment in `platform/`.
+
+## 1. Decisions (locked)
+
+| Topic | Decision |
+|---|---|
+| Positioning | Agent-first, one assistant, no persona. "Velvet rope" = by-application strategy, **not** a colour. |
+| Location | Barcelona, ES (replace every "Barcelos, PT"). |
+| Palette | Soft charcoal, black-dominant, no accent colour, no gradients. |
+| Type | **Barlow everywhere** (site and platform) — 600 headlines, 400/500 body. IBM Plex Mono for labels, facts, code. No serif, no Oswald, no Helvetica stack. Sentence-case headlines. |
+| Catalog | Dark. The light/charcoal mode switching is removed. |
+| Hero | Split: copy + prompt left, photo right (slow push-in, off under reduced motion). No video, no animation background. |
+| Hero prompt | Honest: "Start" opens a brief card (the brief + what happens next) and hands the brief to the application. No fake mockups or prices. |
+| MCP | Shown as **Soon**. Endpoint text `https://mcp.merchfrom.com` is a placeholder. |
+| Missing facts | Never render placeholders like `[€X]` on the live site: facts come from `lib/site.ts` constants and are hidden when unset. |
+
+## 2. Design tokens
+
+Defined once in `website-v3/app/globals.css` (`:root` + `@theme inline`), mirrored in `platform/app/globals.css`.
+
+| Token | Value | Use |
+|---|---|---|
+| `--paper` | `#141414` | page ground |
+| `--raised` | `#1b1b1b` | alternate sections (assistant/catalog/agents bands, cards) |
+| `--surface` | `#242424` | image frames, inputs on raised, product tiles |
+| `--well` | `#101010` | code blocks |
+| `--signal` | `#ede4dd` | primary text, primary button fill |
+| `--muted` | `#b3aba4` | secondary text, labels |
+| `--soft` | `#cfc6bf` | body copy on dark |
+| `--hairline` | `rgba(237,228,221,.12)` | rules, borders |
+| `--gutter` | `64px` desktop / `20px` mobile | page side padding |
+
+Buttons: primary = `--signal` fill, `--paper` text, radius 4px, height 44–52px. Secondary = transparent, 1px `rgba(237,228,221,.24)` border.
+Type scale: H1 80/1.0 (mobile 40), H2 56/1.05 (mobile 36), H3 32, body 17–20/1.5, labels mono 12px uppercase tracking .08em.
+
+## 3. Information architecture
+
+Header (all routes): mark + `MERCHFROM®` left; right: How it works · Shop & Run · Catalog · Agents | Sign in · **Apply**. Mobile: mark, Apply, menu button → full-screen menu. Current page = `aria-current` + full-opacity/underline (**no blur**).
+`Sign in` links to `NEXT_PUBLIC_PLATFORM_URL` and is hidden when that env var is unset.
+
+Home (`/`) sections, in order: Hero → Printed for → 01 One assistant → 02 Shop & Run → Catalog teaser → Studio → 03 Bring your own agent → Apply → Footer.
+Other routes keep their URLs: `/catalog`, `/gallery`, `/about`, `/contact`, `/waitlist`, 404. The old roster wall (`ListView`) and the intro animation leave the home page.
+Footer: wordmark + tagline, links (Catalog, Shop & Run, Agents, Gallery, About, Contact), language switcher, `© {year} MerchFrom`.
+
+## 4. Work packages
+
+Run order: **WP1 → (WP2 ∥ WP3 ∥ WP4) → WP5**. WP1 owns every shared file so the parallel packages never touch the same file.
+
+### WP1 — Foundations (sequential, first)
+Files: `website-v3/app/layout.tsx`, `app/globals.css`, `components/SiteHeader.tsx` (new), `components/SiteFooter.tsx` (new), `lib/site.ts`, `lib/i18n/types.ts`, `lib/i18n/{en,pt,es,fr,nl,de}.ts`, page files only to swap chrome.
+1. Load Barlow (400/500/600) and IBM Plex Mono (400/500) with `next/font/google`; drop Oswald and the Helvetica stack. Expose `--font-sans` / `--font-mono`; set `--font-display` to Barlow so any leftover reference stays harmonious.
+2. Replace tokens per §2. Delete the `[data-mode='light']` and `[data-mode='charcoal']` blocks.
+3. Build `SiteHeader` / `SiteFooter` per §3 and mount them for every route (layout or each page — whichever keeps the home hero's header overlay working). Remove `Corners`/`PageCorners` usages; delete those files once unused.
+4. `lib/site.ts`: add `SITE_FACTS = { fromPrice: null as string | null, lead: null as string | null }` and `PLATFORM_URL = process.env.NEXT_PUBLIC_PLATFORM_URL ?? null`. Update `SITE_DESCRIPTION` to mention Barcelona.
+5. i18n: add **all** keys in §5 to `types.ts` and every dictionary (real translations for pt/es/fr/nl/de). Replace "Barcelos" with "Barcelona" and "PT" with "ES" in every dictionary.
+6. `npm run lint && npm run build` pass.
+
+### WP2 — Home page
+Files: `app/page.tsx`, `components/home/*` (new). Must not edit WP1/WP3 files; read-only use of `lib/*`.
+- `Hero`: split layout (text column 50%, photo 50% full-height, header overlays it). Prompt input + Start (Enter submits), example chips fill the input, facts line in mono (`{n} blanks` from `PRODUCTS.length`, "Printed in Barcelona", price only if `SITE_FACTS.fromPrice`). On Start, a brief card overlays the photo side: the brief text, three next steps, "Apply with this brief" → `/waitlist?brief=<encoded, max 500 chars>`, and "Edit brief". Mobile: photo on top (~340px), copy below; the brief card replaces the copy block. Temporary photo: an existing `/public/gallery/*.png`, slow push-in, disabled under `prefers-reduced-motion`.
+- `PrintedFor`: one row of client names from `lib/clients.ts` (mobile: 3-column grid).
+- `Assistant`: two-column; left label/title/body, right the five-step timeline (You → Two mockups ready → Quote → Proof approved → Shipped) with mono timestamps; the two mockup tiles use gallery images.
+- `Paths`: Shop and Run cards (image, title, mono meta, body). Link targets: `/waitlist` for now.
+- `CatalogTeaser`: `{n} blanks.` + four real products from `lib/products` (reuse the catalog card image paths), link to `/catalog`.
+- `Studio`: full-bleed photo band with the Barcelona line.
+- `Agents`: "Soon" badge, copy, code block (`claude mcp add merchfrom https://mcp.merchfrom.com` + connector URL), "Claude · ChatGPT · Cursor", link to `/llms.txt`.
+- `ApplySection`: role select + email + Apply, calling the existing `submitWaitlist` action; success/error states reuse `waitlist.*` strings.
+Match the mock's spacing: sections 120px vertical padding desktop / 96px mobile, 12-column grid with 24px gaps, 64px gutters.
+
+### WP3 — Existing pages and fixes
+Files: `components/GridView.tsx`, `ProductModal.tsx`, `ViewShell.tsx`, `GalleryView.tsx`, `ListView.tsx`, `Intro.tsx`, `Cursor.tsx`, `app/catalog`, `app/gallery`, `app/about/*`, `app/contact/*`, `app/waitlist/*`, `app/not-found.tsx`, `app/NotFoundCopy.tsx`, `lib/clients.ts`, `app/llms.txt/route.ts` (new), `app/sitemap.ts`.
+1. Catalog permanently dark: remove every `dataset.mode` write in `ViewShell`, `GridView` and `ProductModal`. Product tiles sit on `--surface` so black garments stay visible; check a black tee and a white tee in screenshots.
+2. Restyle about, contact, waitlist and 404 to the tokens and Barlow scale (sentence-case H1 instead of Oswald caps).
+3. Waitlist: read `brief` from the URL and show "Brief attached"; send it to `submitWaitlist`; the action trims it to 500 chars, adds `ALTER TABLE waitlist_signups ADD COLUMN IF NOT EXISTS brief text` (same pattern as `role`/`favourites`) and includes it in the JSONL fallback. Add role "Festival or promoter" to both option lists; relabel "Tattoo artist" as "Tattoo artist or studio" (keep the canonical value). Add page metadata (`title: 'Waitlist'`).
+4. `lib/clients.ts`: remove "Metallica" and "Feel Like Shit" (still placeholder, fictional names only).
+5. Delete `ListView`, `Intro` and `Cursor` if nothing uses them any more.
+6. `/llms.txt`: plain-text route describing MerchFrom, key pages and "MCP server: coming soon".
+7. `npm run lint && npm run build` pass.
+
+### WP4 — Platform alignment
+Files: `platform/app/layout.tsx`, `platform/lib/fonts.ts`, `platform/app/globals.css` **only**. Do not touch files with uncommitted changes (`components/chat/*`, `lib/agent/*`, `lib/tools/*`, `lib/ui-cards/*`, `package*.json`).
+1. Replace Oswald + Geist with Barlow (400/500/600) and IBM Plex Mono; keep the exported names or update the one import in layout.
+2. `--font-ui`, `--font-sans`, `--font-display`, `--font-heading` → Barlow. `--paper` → `#141414`; Clerk appearance `colorBackground` → `#141414`, `colorInput` → `#242424`.
+3. `npm run lint && npm run build` in `platform/` (report pre-existing failures separately from new ones).
+
+### WP5 — Verification (orchestrator)
+- Both builds green.
+- Playwright screenshots at 1440×900 and 390×844 for `/`, `/catalog` (plus open one product), `/gallery`, `/about`, `/contact`, `/waitlist?brief=test`, the 404, and the hero brief state; compare against the mock.
+- Keyboard pass: header, chips, prompt, brief card, apply form all reachable, visible focus rings.
+- `graphify update .` after code changes.
+
+## 5. New and changed i18n keys (English source)
+
+```
+nav.howItWorks        How it works
+nav.shopRun           Shop & Run
+nav.agents            Agents
+nav.signIn            Sign in
+nav.apply             Apply
+nav.menu              Menu
+nav.close             Close
+corners.tagline       Merch for artists — Barcelona, ES      (changed)
+footer.rights         © {year} MerchFrom
+
+home.hero.title       Merch, made properly.
+home.hero.subline     Describe the piece. Approve the proof. We print, pack and ship it from Barcelona — you keep the margin.
+home.hero.promptLabel Describe your piece
+home.hero.placeholder Black tee, back print, 50 for the tour — need them by May
+home.hero.start       Start
+home.hero.chip.tour   Tour tee, 100 pcs
+home.hero.chip.festival Festival crew shirts
+home.hero.chip.tattoo Tattoo flash on a tee
+home.hero.chip.store  Open a band store
+home.hero.fact.blanks {n} blanks
+home.hero.fact.printed Printed in Barcelona
+home.hero.fact.from   From {price} / piece
+home.brief.label      Your brief
+home.brief.next       What happens next
+home.brief.step1      Mockups on real blanks
+home.brief.step2      A proof and a quote to approve
+home.brief.step3      Printed in Barcelona, shipped to you or the venue
+home.brief.apply      Apply with this brief
+home.brief.edit       Edit brief
+home.brief.close      Close
+
+home.printedFor       Printed for
+
+home.assistant.label  01 — One assistant
+home.assistant.title  You talk. It handles the rest.
+home.assistant.body   Mockups, quotes, proofs, production and shipping run through one conversation. When a decision is yours, it asks. Everything else just moves.
+home.assistant.you    You
+home.assistant.youText “Heavyweight black tee, our logo big on the back, 50 for the tour.”
+home.assistant.mockups Two mockups ready
+home.assistant.draftA Draft A
+home.assistant.draftB Draft B
+home.assistant.quote  Quote
+home.assistant.quoteText 50 pcs · Screen print, 2 colours
+home.assistant.proof  Proof 01 approved
+home.assistant.approved Approved
+home.assistant.shipped Shipped
+home.assistant.shippedText 50 pieces, folded and tagged. Tracking sent to your inbox.
+
+home.paths.label      02 — Two ways to sell
+home.paths.title      Sell as you go, or order a run.
+home.paths.shop.title Shop
+home.paths.shop.meta  No stock · No upfront cost
+home.paths.shop.body  Your store at merchfrom.com/you or your own domain. Each order is printed as it sells, and your share lands with the sale.
+home.paths.shop.link  How Shop works
+home.paths.run.title  Run
+home.paths.run.meta   Bulk runs
+home.paths.run.body   A bulk run for tours, festivals and studios — screen printed or embroidered, folded, tagged and shipped to you or straight to the venue.
+home.paths.run.link   How Run works
+
+home.catalog.title    {n} blanks.
+home.catalog.body     Organic cotton, fair-trade and vegan. Every blank listed is one we print on ourselves.
+home.catalog.link     Browse the catalog
+
+home.studio.title     Printed, folded and tagged in Barcelona.
+home.studio.meta      Studio — Barcelona, ES
+
+home.agents.label     03 — Bring your own agent
+home.agents.soon      Soon
+home.agents.title     Already work with Claude or ChatGPT? Plug it in.
+home.agents.body      Everything the assistant does — mockups, quotes, orders, your store — opens up as an MCP server. Your agent, our press.
+home.agents.connector # Claude, ChatGPT — add a custom connector
+home.agents.clients   Claude · ChatGPT · Cursor
+
+home.apply.label      By application
+home.apply.title      A limited number of artists each month.
+
+waitlist.briefAttached Brief attached: “{brief}”
+waitlist.role.festival Festival or promoter
+waitlist.role.tattoo  Tattoo artist or studio                (changed label)
+```
+Use `nav.*` / `waitlist.*` keys that already exist wherever they fit (email placeholder, privacy line, success/error).
+
+## 6. Out of scope (content session / later)
+Real photography, real client names, prices/MOQ/lead time values, About story rewrite (the 2017 origin text), the platform `waitlist_signups` schema gaining `brief` in Drizzle + admin queue display, the live MCP server, and removal of stale Cat-Suite references in CLAUDE.md, AGENTS.md and the brand guidelines.
+
+## 7. Risks
+- Black garments on the dark catalog: mitigated by `--surface` tiles; verify in screenshots.
+- `brief` column added at runtime by `ALTER TABLE` is not in the platform's Drizzle schema yet; a future `drizzle-kit push` could drop it — add it to the schema in the follow-up.
+- Platform has uncommitted Wave-4 work: WP4 is restricted to three clean files.
+
+## 8. Build log (27 Sep 2026)
+- WP1–WP4 executed by Sonnet subagents; WP5 verification by the orchestrator.
+- Fixes found in verification:
+  - Catalog leads with a light colourway (`displayColourFor` in `lib/variants.ts`, used by the grid, the modal's initial colour and the related strip) because black packshots vanished on dark tiles. 94 of 122 blanks have a light variant.
+  - `.view-fade-in` lost its fill-mode: it trapped the product modal under the fixed header.
+  - Modal detail column uses `justify-content: safe center` so the title and Save no longer clip.
+  - Mobile hero prompt and apply email inputs collapsed (`flex-1` in a column) — now `flex-none md:flex-1`.
+  - MCP code block scrolls horizontally instead of breaking mid-token.
+  - Waitlist shows the brief as body text under a "Your brief" label (dropped `waitlist.briefAttached`).
+  - `ListView` and `Intro` deleted; `Cursor` kept (still used by `app/template.tsx`).
+- Builds: website-v3 and platform pass. Lint: remaining errors are pre-existing (`react-hooks/set-state-in-effect` etc.), none new.

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
-const INTERACTIVE_SELECTOR = 'a, button, [role="button"], input, .list-view-name';
+const INTERACTIVE_SELECTOR = 'a, button, [role="button"], input';
 const TEXT_INPUT_SELECTOR = 'input, textarea';
 const LERP = 0.35;
 

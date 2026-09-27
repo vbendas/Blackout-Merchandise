@@ -364,6 +364,17 @@ export function variantBackSrc(code: string, colour: string): string {
   return `/packshots/PBM0_${code}_${colour}.webp`;
 }
 
+// Light colourways tried first when a blank is shown with no colour
+// filter: the site is dark, and the base black packshots nearly vanish
+// on its tiles, so the catalog leads with a light version where one exists.
+const DISPLAY_PREFERENCE = ['C001', 'C007', 'C054', 'C250'];
+
+/** The colourway to show a blank in by default, or null for base black. */
+export function displayColourFor(code: string): string | null {
+  const variants = VARIANTS[code] ?? [];
+  return DISPLAY_PREFERENCE.find((c) => variants.includes(c)) ?? variants.find((c) => isLightColour(c)) ?? null;
+}
+
 /** Perceived-luminance check: light garments need the dark theme. */
 export function isLightColour(colour: string): boolean {
   const hex = colour === BASE_COLOUR ? BASE_SWATCH : COLOUR_SWATCHES[colour];

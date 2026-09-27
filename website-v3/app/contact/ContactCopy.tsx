@@ -16,31 +16,38 @@ export function ContactCopy() {
   return (
     <>
       <h1
-        className="uppercase leading-[0.94]"
-        style={{ ...display, fontSize: 'clamp(3rem, 8vw, 8rem)' }}
+        className="leading-[1.0]"
+        style={{ ...display, fontWeight: 600, fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}
       >
         {t('contact.headline')}
       </h1>
       <a
         href={`mailto:${EMAIL}`}
-        className="uppercase leading-[0.94] transition-[filter] duration-200 hover:blur-[3px]"
+        className="leading-[1.05] transition-[filter] duration-200 hover:blur-[3px]"
         style={{
           ...display,
-          fontSize: 'clamp(2rem, 5.5vw, 5.5rem)',
-          color: 'color-mix(in srgb, var(--signal) 38%, transparent)',
+          fontWeight: 600,
+          fontSize: 'clamp(1.75rem, 5vw, 3rem)',
+          color: 'var(--muted)',
         }}
       >
         {EMAIL}
       </a>
 
-      <div className="mt-16 grid gap-6 text-[15px] leading-[1.5] md:mt-24 md:grid-cols-12 md:gap-8">
+      <div className="mt-16 grid gap-6 text-[17px] leading-[1.5] md:mt-24 md:grid-cols-12 md:gap-8" style={{ color: 'var(--soft)' }}>
         <p className="md:col-span-4">{t('contact.paragraph')}</p>
-        <div className="flex flex-col gap-1 text-[13px] uppercase tracking-[0.08em] md:col-span-4">
-          <span style={{ color: 'color-mix(in srgb, var(--signal) 50%, transparent)' }}>{t('contact.shop')}</span>
-          <span>Barcelos, Portugal</span>
+        <div
+          className="flex flex-col gap-1 uppercase tracking-[0.08em] md:col-span-4"
+          style={{ fontFamily: 'var(--font-mono), monospace', fontSize: '12px' }}
+        >
+          <span style={{ color: 'var(--muted)' }}>{t('contact.shop')}</span>
+          <span style={{ color: 'var(--signal)' }}>Barcelona, Spain</span>
         </div>
-        <div className="flex flex-col gap-1 text-[13px] uppercase tracking-[0.08em] md:col-span-4">
-          <span style={{ color: 'color-mix(in srgb, var(--signal) 50%, transparent)' }}>{t('contact.elsewhere')}</span>
+        <div
+          className="flex flex-col gap-1 uppercase tracking-[0.08em] md:col-span-4"
+          style={{ fontFamily: 'var(--font-mono), monospace', fontSize: '12px' }}
+        >
+          <span style={{ color: 'var(--muted)' }}>{t('contact.elsewhere')}</span>
           {SOCIALS.map((social) => (
             <a
               key={social.label}
@@ -48,6 +55,7 @@ export function ContactCopy() {
               target="_blank"
               rel="noreferrer"
               className="underline decoration-1 underline-offset-4"
+              style={{ color: 'var(--signal)' }}
             >
               {social.label}
             </a>

@@ -18,12 +18,12 @@ import {
   COLOUR_SWATCHES,
   VARIANTS,
   VARIANT_BACKS,
-  isLightColour,
   variantBackSrc,
   variantSrc,
+  displayColourFor,
 } from '@/lib/variants';
 
-const HAIRLINE = '1px solid color-mix(in srgb, var(--signal) 22%, transparent)';
+const HAIRLINE = '1px solid var(--hairline)';
 
 interface Thumb {
   src: string;
@@ -170,7 +170,7 @@ function RelatedStrip({
   }
 
   const fade = (side: 'left' | 'right') =>
-    `linear-gradient(to ${side}, transparent, var(--paper))`;
+    `linear-gradient(to ${side}, transparent, var(--raised))`;
 
   return (
     <div>
@@ -215,10 +215,10 @@ function RelatedStrip({
                 textAlign: 'left',
               }}
             >
-              <div className="relative aspect-square w-full" style={{ border: HAIRLINE }}>
+              <div className="relative aspect-square w-full" style={{ border: HAIRLINE, background: 'var(--surface)' }}>
                 <div className="absolute inset-[9%]">
                   <Image
-                    src={p.src}
+                    src={displayColourFor(p.code) ? variantSrc(p.code, displayColourFor(p.code) as string) : p.src}
                     alt=""
                     fill
                     sizes="96px"
@@ -265,17 +265,17 @@ function RelatedStrip({
 export function ProductModal({
   product,
   onClose,
-  restoreColour = null,
   origin,
   onPrevProduct,
   onNextProduct,
   position,
   onOpenProduct,
+  initialColour,
 }: {
   product: Product;
+  /** colourway to open on (the grid's filter or its light default); ignored if the blank lacks it */
+  initialColour?: string;
   onClose: () => void;
-  /** the catalog's active colour filter — theme returns to it on close */
-  restoreColour?: string | null;
   /** the clicked card's image-area rect, for a FLIP entrance from it */
   origin?: { x: number; y: number; width: number; height: number };
   /** move to the previous/next product in the catalog's displayed order */
@@ -306,25 +306,6 @@ export function ProductModal({
     return () => mql.removeEventListener('change', update);
   }, []);
 
-  // The mobile bars are fixed and can wrap to two rows (longer languages),
-  // so the panel is fitted between their measured heights rather than a
-  // fixed viewport share.
-  const [bars, setBars] = useState({ top: 0, bottom: 0 });
-  useEffect(() => {
-    if (!isMobile) return;
-    const top = document.querySelector('.mobile-corner-top');
-    const bottom = document.querySelector('.mobile-corner-bottom');
-    const update = () =>
-      setBars({
-        top: top?.getBoundingClientRect().height ?? 0,
-        bottom: bottom?.getBoundingClientRect().height ?? 0,
-      });
-    update();
-    const ro = new ResizeObserver(update);
-    if (top) ro.observe(top);
-    if (bottom) ro.observe(bottom);
-    return () => ro.disconnect();
-  }, [isMobile]);
 
   const related = onOpenProduct
     ? (() => {
@@ -351,7 +332,9 @@ export function ProductModal({
   const [selected, setSelected] = useState(0);
   // Colourways: base black plus the converted variants, if any.
   const colours = [BASE_COLOUR, ...(VARIANTS[product.code] ?? [])];
-  const [colourSel, setColourSel] = useState(BASE_COLOUR);
+  const [colourSel, setColourSel] = useState(
+    initialColour && colours.includes(initialColour) ? initialColour : BASE_COLOUR,
+  );
   const showingVariant = colourSel !== BASE_COLOUR;
 
   // The whole photo set follows the selected colour: base shows
@@ -494,18 +477,6 @@ export function ProductModal({
     return () => cancelAnimationFrame(rafId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Contrast: light garments vanish on the light Catalog ground, so the
-  // selected colour drives the theme — light colour, soft charcoal page
-  // (never the main page's harder near-black). On close the theme
-  // returns to whatever the catalog's colour filter implies.
-  useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.mode = isLightColour(colourSel) ? 'charcoal' : 'light';
-    return () => {
-      root.dataset.mode = restoreColour && isLightColour(restoreColour) ? 'charcoal' : 'light';
-    };
-  }, [colourSel, restoreColour]);
 
   useEffect(() => {
     const len = displayThumbs.length;
@@ -680,7 +651,7 @@ export function ProductModal({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: isMobile ? `${bars.top + 8}px 24px ${bars.bottom + 8}px` : '24px',
+        padding: isMobile ? 'calc(var(--header-h) + 8px) 24px 8px' : '24px',
         background: 'color-mix(in srgb, var(--paper) 82%, transparent)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
@@ -697,8 +668,8 @@ export function ProductModal({
         className="flex w-[94vw] flex-col md:w-[92vw] md:flex-row"
         style={{
           maxWidth: '1080px',
-          maxHeight: isMobile ? `calc(100dvh - ${bars.top + bars.bottom + 16}px)` : '86vh',
-          background: 'var(--paper)',
+          maxHeight: isMobile ? 'calc(100dvh - var(--header-h) - 16px)' : '86vh',
+          background: 'var(--raised)',
           border: HAIRLINE,
           overflowY: 'auto',
           outline: 'none',
@@ -750,7 +721,7 @@ export function ProductModal({
         <div className="md:w-[55%]" style={{ padding: '24px' }}>
           <div
             className="relative w-full overflow-hidden"
-            style={{ aspectRatio: '4 / 5', touchAction: 'pan-y' }}
+            style={{ aspectRatio: '4 / 5', touchAction: 'pan-y', background: 'var(--surface)' }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
@@ -908,7 +879,7 @@ export function ProductModal({
                     position: 'relative',
                     height: '72px',
                     aspectRatio: '4 / 5',
-                    background: 'transparent',
+                    background: 'var(--surface)',
                     border: 'none',
                     padding: 0,
                     cursor: 'pointer',
@@ -960,7 +931,9 @@ export function ProductModal({
             paddingTop: '48px',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
+            // 'safe': when the specs run taller than the panel, fall back to
+            // top alignment instead of pushing the title above its edge.
+            justifyContent: 'safe center',
             gap: '16px',
           }}
         >

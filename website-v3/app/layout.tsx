@@ -1,19 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { Oswald } from "next/font/google";
+import { Barlow, IBM_Plex_Mono } from "next/font/google";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { LanguageProvider } from "@/lib/i18n";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { SOCIALS } from "@/lib/socials";
 import "./globals.css";
 
-// Display face. The reference site licenses Founders Grotesk Condensed
-// Bold (Klim Type Foundry, commercial); Oswald Bold is the closest
-// openly-licensed condensed grotesk. Swap in the real Founders files
-// here if/when a webfont license is purchased.
-const oswald = Oswald({
-  variable: "--font-oswald",
+// UI + display face, everywhere: headlines, body copy and the corner
+// nav all read Barlow now. Non-variable, so the exact weights the site
+// uses (400/500 body, 600 headlines) are requested explicitly.
+const barlow = Barlow({
+  variable: "--font-barlow",
   subsets: ["latin"],
-  weight: "700",
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+// Mono face for labels, facts, timestamps and code — IBM Plex Mono.
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-ibm-plex-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
   display: "swap",
 });
 
@@ -40,7 +49,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#221f1c",
+  themeColor: "#141414",
 };
 
 const organizationJsonLd = {
@@ -55,7 +64,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${oswald.variable} antialiased`}
+      className={`${barlow.variable} ${ibmPlexMono.variable} antialiased`}
     >
       {/* No height pin on <html>: Lenis watches the root element's box to
           recompute its scroll limit, and height:100% would freeze it at
@@ -67,7 +76,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
         <LanguageProvider>
           <SmoothScroll />
+          {/* Fixed/absolute over the page top on every route — see
+              SiteHeader for how it stays legible over the home hero. */}
+          <SiteHeader />
           {children}
+          <SiteFooter />
         </LanguageProvider>
       </body>
     </html>

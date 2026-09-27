@@ -14,7 +14,7 @@ export const LANGS: { code: Lang; label: string }[] = [
 // complete, TypeScript-enforced key coverage — a missing translation is
 // a compile error, not a runtime fallback surprise.
 export type Key =
-  // Corners / PageCorners nav
+  // SiteHeader / SiteFooter nav (formerly Corners / PageCorners)
   | 'nav.partners'
   | 'nav.catalog'
   | 'nav.gallery'
@@ -23,6 +23,16 @@ export type Key =
   | 'nav.waitlist'
   | 'nav.homeAriaLabel'
   | 'corners.tagline'
+
+  // SiteHeader / SiteFooter (v3 redesign)
+  | 'nav.howItWorks'
+  | 'nav.shopRun'
+  | 'nav.agents'
+  | 'nav.signIn'
+  | 'nav.apply'
+  | 'nav.menu'
+  | 'nav.close'
+  | 'footer.rights'
 
   // Catalog (GridView) filters, search, count, empty state
   | 'catalog.filter.type'
@@ -131,6 +141,74 @@ export type Key =
   | 'waitlist.savedBlanks'
   | 'waitlist.savedBlanksAttached.one'
   | 'waitlist.savedBlanksAttached.other'
+  | 'waitlist.role.festival'
+
+  // Home page (v3 redesign)
+  | 'home.hero.title'
+  | 'home.hero.subline'
+  | 'home.hero.promptLabel'
+  | 'home.hero.placeholder'
+  | 'home.hero.start'
+  | 'home.hero.chip.tour'
+  | 'home.hero.chip.festival'
+  | 'home.hero.chip.tattoo'
+  | 'home.hero.chip.store'
+  | 'home.hero.fact.blanks'
+  | 'home.hero.fact.printed'
+  | 'home.hero.fact.from'
+  | 'home.brief.label'
+  | 'home.brief.next'
+  | 'home.brief.step1'
+  | 'home.brief.step2'
+  | 'home.brief.step3'
+  | 'home.brief.apply'
+  | 'home.brief.edit'
+  | 'home.brief.close'
+
+  | 'home.printedFor'
+
+  | 'home.assistant.label'
+  | 'home.assistant.title'
+  | 'home.assistant.body'
+  | 'home.assistant.you'
+  | 'home.assistant.youText'
+  | 'home.assistant.mockups'
+  | 'home.assistant.draftA'
+  | 'home.assistant.draftB'
+  | 'home.assistant.quote'
+  | 'home.assistant.quoteText'
+  | 'home.assistant.proof'
+  | 'home.assistant.approved'
+  | 'home.assistant.shipped'
+  | 'home.assistant.shippedText'
+
+  | 'home.paths.label'
+  | 'home.paths.title'
+  | 'home.paths.shop.title'
+  | 'home.paths.shop.meta'
+  | 'home.paths.shop.body'
+  | 'home.paths.shop.link'
+  | 'home.paths.run.title'
+  | 'home.paths.run.meta'
+  | 'home.paths.run.body'
+  | 'home.paths.run.link'
+
+  | 'home.catalog.title'
+  | 'home.catalog.body'
+  | 'home.catalog.link'
+
+  | 'home.studio.title'
+  | 'home.studio.meta'
+
+  | 'home.agents.label'
+  | 'home.agents.soon'
+  | 'home.agents.title'
+  | 'home.agents.body'
+  | 'home.agents.connector'
+  | 'home.agents.clients'
+
+  | 'home.apply.label'
+  | 'home.apply.title'
 
   // 404
   | 'notFound.headline'

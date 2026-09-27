@@ -9,11 +9,13 @@ const EMAIL_MAX = 254;
 const FIELD_MAX = 32;
 const FAVOURITE_RE = /^[A-Z0-9]{3,12}$/;
 const FAVOURITES_MAX = 50;
+const BRIEF_MAX = 500;
 
-// Must mirror the <select> options in app/waitlist/page.tsx.
+// Must mirror the <select> options in app/waitlist/WaitlistForm.tsx.
 const ROLE_OPTIONS = [
   'Band or musician',
   'Tattoo artist',
+  'Festival or promoter',
   'Illustrator',
   'Label or collective',
   'Brand or company',
@@ -26,6 +28,7 @@ interface WaitlistInput {
   colour?: string;
   role?: string;
   favourites?: string[];
+  brief?: string;
 }
 
 type WaitlistErrorCode = 'invalid_email' | 'server';
@@ -46,6 +49,7 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
     ? input.favourites.filter((code) => typeof code === 'string' && FAVOURITE_RE.test(code)).slice(0, FAVOURITES_MAX)
     : [];
   const favouritesValue = favourites.length ? favourites.join(',') : undefined;
+  const brief = input.brief?.trim().slice(0, BRIEF_MAX) || undefined;
 
   if (!email || email.length > EMAIL_MAX || !EMAIL_RE.test(email)) {
     return { ok: false, error: 'invalid_email' };
@@ -65,9 +69,10 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
       `;
       await sql`ALTER TABLE waitlist_signups ADD COLUMN IF NOT EXISTS role text`;
       await sql`ALTER TABLE waitlist_signups ADD COLUMN IF NOT EXISTS favourites text`;
+      await sql`ALTER TABLE waitlist_signups ADD COLUMN IF NOT EXISTS brief text`;
       await sql`
-        INSERT INTO waitlist_signups (email, product, colour, role, favourites)
-        VALUES (${email}, ${product ?? null}, ${colour ?? null}, ${role ?? null}, ${favouritesValue ?? null})
+        INSERT INTO waitlist_signups (email, product, colour, role, favourites, brief)
+        VALUES (${email}, ${product ?? null}, ${colour ?? null}, ${role ?? null}, ${favouritesValue ?? null}, ${brief ?? null})
       `;
     } else {
       // Dev fallback — no DATABASE_URL configured. Append a JSON line to a
@@ -80,6 +85,7 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
         colour: colour ?? null,
         role: role ?? null,
         favourites: favouritesValue ?? null,
+        brief: brief ?? null,
         at: new Date().toISOString(),
       });
       await appendFile(path.join(dir, 'waitlist.jsonl'), line + '\n', 'utf8');

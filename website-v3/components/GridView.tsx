@@ -16,13 +16,19 @@ import {
   COLOUR_SWATCHES,
   VARIANTS,
   VARIANT_BACKS,
-  isLightColour,
   variantBackSrc,
   variantSrc,
+  displayColourFor,
 } from '@/lib/variants';
 
 const TYPE_ORDER = ['T-shirts', 'Sweats & Hoodies', 'Jackets', 'Polos', 'Shirts', 'Bottoms', 'Bags & Accessories', 'Kids & Baby'];
-const HAIRLINE = '1px solid color-mix(in srgb, var(--signal) 22%, transparent)';
+const HAIRLINE = '1px solid var(--hairline)';
+const MONO: React.CSSProperties = {
+  fontFamily: 'var(--font-mono), monospace',
+  fontSize: '12px',
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+};
 const FIT_ORDER = ['Medium', 'Relaxed', 'Fitted', 'Oversized'];
 
 const TYPES = TYPE_ORDER.filter((t) => PRODUCTS.some((p) => typeFor(p.code) === t));
@@ -156,14 +162,6 @@ export function GridView() {
   // black, in black.
   const effectiveColour = useMemo(() => colour ?? colourMatchingQuery(query), [colour, query]);
 
-  // Contrast: a light colour filter flips the Catalog to the soft
-  // charcoal theme so pale garments never sit on the pale ground. The
-  // main page's harder near-black stays reserved for the List view.
-  useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.mode = effectiveColour && isLightColour(effectiveColour) ? 'charcoal' : 'light';
-  }, [effectiveColour]);
-
   const showVariant = effectiveColour !== null && effectiveColour !== BASE_COLOUR;
   const filtered = products.filter((p) => {
     if (type && typeFor(p.code) !== type) return false;
@@ -292,9 +290,7 @@ export function GridView() {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    fontSize: '12px',
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
+    ...MONO,
     background: 'none',
     border: 'none',
     padding: '6px 0',
@@ -307,7 +303,7 @@ export function GridView() {
     top: 'calc(100% + 10px)',
     left: 0,
     zIndex: 30,
-    background: 'var(--paper)',
+    background: 'var(--raised)',
     border: HAIRLINE,
     padding: '10px 0',
     minWidth: '200px',
@@ -317,9 +313,8 @@ export function GridView() {
     display: 'block',
     width: '100%',
     textAlign: 'left',
-    fontSize: '12px',
+    ...MONO,
     letterSpacing: '0.06em',
-    textTransform: 'uppercase',
     background: 'none',
     border: 'none',
     padding: '8px 16px',
@@ -491,9 +486,7 @@ export function GridView() {
           placeholder={t('catalog.searchPlaceholder')}
           aria-label={t('catalog.searchAriaLabel')}
           style={{
-            fontSize: '12px',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
+            ...MONO,
             background: 'none',
             border: 'none',
             borderBottom: HAIRLINE,
@@ -504,15 +497,7 @@ export function GridView() {
           }}
         />
 
-        <span
-          aria-live="polite"
-          className="mf-dim"
-          style={{
-            fontSize: '12px',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-          }}
-        >
+        <span aria-live="polite" className="mf-dim" style={MONO}>
           {t.tPlural('catalog.count', displayed.length)}
         </span>
 
@@ -546,10 +531,12 @@ export function GridView() {
       >
         {displayed.map((product, i) => {
           const name = PRODUCT_DETAILS[product.code]?.name ?? product.name;
-          const frontSrc = showVariant ? variantSrc(product.code, effectiveColour as string) : product.src;
-          const backSrc = showVariant
-            ? VARIANT_BACKS[product.code]?.includes(effectiveColour as string)
-              ? variantBackSrc(product.code, effectiveColour as string)
+          // No colour filter: lead with a light colourway where one exists.
+          const cardColour = showVariant ? (effectiveColour as string) : effectiveColour === null ? displayColourFor(product.code) : null;
+          const frontSrc = cardColour ? variantSrc(product.code, cardColour) : product.src;
+          const backSrc = cardColour
+            ? VARIANT_BACKS[product.code]?.includes(cardColour)
+              ? variantBackSrc(product.code, cardColour)
               : null
             : (product.back ?? null);
           const loaded = loadedSrcs.has(frontSrc);
@@ -571,9 +558,10 @@ export function GridView() {
                 }
               }}
             >
-              {/* Inset so the garment never touches its cell — the ground
-                  breathes around every product. */}
-              <div className="catalog-card-media">
+              {/* Inset so the garment never touches its cell — the tile
+                  sits on --surface (lighter than the page ground) so a
+                  black garment still reads against it. */}
+              <div className="catalog-card-media" style={{ background: 'var(--surface)' }}>
                 <div className="catalog-card-frame" data-loaded={loaded || undefined}>
                   <Image
                     src={frontSrc}
@@ -630,11 +618,13 @@ export function GridView() {
         <ProductModal
           key={open.code}
           product={open}
+          initialColour={
+            effectiveColour !== null ? effectiveColour : (displayColourFor(open.code) ?? undefined)
+          }
           onClose={() => {
             setOpen(null);
             setOrigin(undefined);
           }}
-          restoreColour={effectiveColour}
           origin={origin}
           onPrevProduct={hasProductNav ? () => goToProduct(-1) : undefined}
           onNextProduct={hasProductNav ? () => goToProduct(1) : undefined}
