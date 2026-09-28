@@ -38,26 +38,19 @@ const applyButton: React.CSSProperties = {
 };
 
 /**
- * Fixed, transparent-by-default site header mounted once in the root
- * layout so it's present on every route. It overlays whatever the page
- * renders underneath (the home hero included) instead of pushing it
- * down — a subtle backdrop only appears once the page has scrolled, so
- * the header stays legible without ever blurring anything.
+ * Site header mounted once in the root layout. Not sticky: it sits
+ * absolutely at the top of the page as part of each page's hero and
+ * scrolls away with it. Transparent everywhere, it takes the page's own
+ * palette — bone over the dark pages, warm-black ink on the vintage
+ * (catalog, gallery) pages via the same data-theme those pages use.
  */
 export function SiteHeader() {
   const pathname = usePathname();
   const t = useT();
-  const [scrolled, setScrolled] = useState(false);
+  const vintage = pathname.startsWith('/catalog') || pathname.startsWith('/gallery');
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const firstMenuLinkRef = useRef<HTMLAnchorElement>(null);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   // A route change is the one thing that should always close the mobile
   // menu — including the in-page hash jumps the nav itself triggers.
@@ -99,13 +92,16 @@ export function SiteHeader() {
   return (
     <>
       <header
-        className="fixed inset-x-0 top-0 z-50 flex items-center justify-between transition-colors duration-300"
+        data-theme={vintage ? 'vintage' : undefined}
+        // Pinned only while the mobile menu is open, so its close button
+        // stays reachable however far the page was scrolled.
+        className={`${menuOpen ? 'fixed' : 'absolute'} inset-x-0 top-0 z-50 flex items-center justify-between`}
         style={{
           height: 'var(--header-h)',
           paddingLeft: 'var(--gutter)',
           paddingRight: 'var(--gutter)',
-          background: scrolled ? 'color-mix(in srgb, var(--paper) 92%, transparent)' : 'transparent',
-          borderBottom: scrolled ? HAIRLINE : '1px solid transparent',
+          color: 'var(--signal)',
+          background: 'transparent',
         }}
       >
         <Link href="/" aria-label={t('nav.homeAriaLabel')} className="flex items-center gap-2">
@@ -185,6 +181,7 @@ export function SiteHeader() {
       {menuOpen && (
         <div
           id="site-menu"
+          data-theme={vintage ? 'vintage' : undefined}
           role="dialog"
           aria-modal="true"
           aria-label={t('nav.menu')}

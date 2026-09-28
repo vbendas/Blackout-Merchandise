@@ -13,7 +13,14 @@
   --soft: #cfc6bf; /* body copy on dark */
   --hairline: rgba(237, 228, 221, 0.12); /* rules, borders */
   --gutter: 64px; /* page side padding, desktop */
-  --header-h: 80px; /* SiteHeader's fixed height — pages pad under it */
+  --header-h: 80px; /* SiteHeader's height — it overlays the top of each page, which pads under it */
+  /* Fixed bone tone for dark accent blocks inside the vintage catalog/
+     gallery (note tile, editorial photo captions, the zero-upfront
+     band) — those blocks stay dark regardless of theme, so their text
+     can't read --signal (which flips to ink under [data-theme=vintage]). */
+  --bone: #ede4dd;
+  /* Modal backdrop: a light wash over the dark site. */
+  --scrim: color-mix(in srgb, var(--paper) 82%, transparent);
 }
 
 @theme inline {
@@ -36,6 +43,36 @@
     --gutter: 20px;
     --header-h: 64px;
   }
+}
+
+/* Vintage-paper theme — scoped to the catalog and gallery page wrappers
+   only (ViewShell). The fixed SiteHeader/SiteFooter sit outside that
+   subtree, so they keep the dark tokens above; only the page content
+   between them repaints to the ecru ground. */
+/* One paper tone for everything on the vintage pages — page, modal,
+   image wells, thumbnails. Near-identical beiges side by side read as
+   mistakes, so separation comes from hairlines and a warm dark scrim
+   behind the modal, never from a second paper colour. */
+[data-theme='vintage'] {
+  --paper: #ece5da;
+  --raised: #ece5da;
+  --surface: #ece5da;
+  --scrim: rgba(26, 23, 20, 0.55);
+  --well: #1a1714;
+  --signal: #1a1714;
+  --muted: #6b6258;
+  --soft: #3a342e;
+  --hairline: rgba(26, 23, 20, 0.14);
+}
+
+/* Visible keyboard focus in the current theme's ink colour. Elements
+   that intentionally suppress their own outline (the modal's
+   programmatic focus target) set outline:none inline, which — being an
+   inline style — always wins over this rule, so this is safe to apply
+   globally. */
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
 }
 
 * {
@@ -117,21 +154,65 @@ a {
   cursor: pointer;
 }
 
+/* Round 3 vintage catalog: packshots float on the paper ground — no
+   tile fill until hover, when the field washes to --raised (bone/
+   parchment) and the garment nudges up in scale. overflow: hidden also
+   clips the "Start with this blank" bar sliding up from below. */
 .catalog-card-media {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: transparent;
+  transition: background-color 350ms ease;
+}
+
+.catalog-card:hover .catalog-card-media,
+.catalog-card:focus-within .catalog-card-media {
+  background: var(--raised);
 }
 
 .catalog-card-frame {
   position: absolute;
   inset: 9%;
   opacity: 0;
-  transition: opacity 400ms ease;
+  transition: opacity 400ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .catalog-card-frame[data-loaded] {
   opacity: 1;
+}
+
+.catalog-card:hover .catalog-card-frame {
+  transform: scale(1.04);
+}
+
+/* "Start with this blank →" bar: hidden below the tile until hover or
+   keyboard focus (focus-within, since the anchor is a real, separately
+   focusable link nested in the card). */
+.catalog-card-cta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: var(--well);
+  color: var(--bone);
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: translateY(100%);
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.catalog-card:hover .catalog-card-cta,
+.catalog-card:focus-within .catalog-card-cta {
+  transform: none;
 }
 
 .catalog-card-img {
@@ -201,6 +282,65 @@ a {
 .catalog-card:hover .catalog-card-caption-reveal {
   transform: none;
   opacity: 0.62;
+}
+
+/* Index view rows (table of the whole catalog) — hover wash matches the
+   grid tile's bone/parchment field. */
+.catalog-index-row {
+  cursor: pointer;
+  transition: box-shadow 250ms ease;
+}
+
+.catalog-index-row:hover,
+.catalog-index-row:focus-visible {
+  /* An ink marker, not a second paper tone. */
+  box-shadow: inset 2px 0 0 var(--signal);
+}
+
+/* Filter drawer (replaces the old sidebar + mobile bottom sheet): one
+   right-edge panel at every breakpoint. Same paper ground as the page,
+   separated by a hairline rather than a second surface tone. Starts
+   translated fully off-screen / transparent; [data-open] slides and
+   fades it in. */
+.catalog-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--scrim);
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+.catalog-drawer-backdrop[data-open] {
+  opacity: 1;
+}
+
+.catalog-drawer-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 81;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  color: var(--signal);
+  border-left: 1px solid var(--hairline);
+  transform: translateX(100%);
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.catalog-drawer-panel[data-open] {
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-drawer-backdrop,
+  .catalog-drawer-panel {
+    transition: none;
+  }
 }
 
 /* Catalog entrance: cards rise into place as they enter the viewport.

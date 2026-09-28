@@ -33,6 +33,49 @@ export const es: Dictionary = {
   'catalog.cardDetails': 'detalles',
   'catalog.noSavedBlanks': 'Aún no hay prendas guardadas.',
 
+  'catalog.intro.label': 'Catálogo',
+  'catalog.intro.title': 'Las prendas en blanco.',
+  'catalog.intro.body':
+    '{n} prendas sobre las que imprimimos, y ninguna que no llevaríamos. Probado OEKO-TEX, algodón orgánico en la mayor parte de la gama, pesos de hasta {gsm} gsm.',
+  'catalog.stat.gots': 'Orgánico GOTS',
+  'catalog.stat.heavy': 'Pesado 220 gsm+',
+  'catalog.stat.methods': 'Métodos de impresión',
+  'catalog.tabs.ariaLabel': 'Tipo',
+  'catalog.toggle.heavy': 'Pesado 220+',
+  'catalog.toggle.gots': 'Orgánico GOTS',
+  'catalog.badge.heavy': 'Pesado',
+  'catalog.badge.gots': 'GOTS',
+  'catalog.card.colours.one': '{n} color',
+  'catalog.card.colours.other': '{n} colores',
+  'catalog.band.label': 'Sin coste inicial',
+  'catalog.band.title': '¿Ya la encontraste? Lánzala sin pagar un céntimo por adelantado.',
+  'catalog.band.body':
+    'Elige una prenda en blanco, describe el diseño, fija tu precio. Imprimimos cada prenda cuando se vende — tú te quedas con todo lo que supere nuestro coste base.',
+  'catalog.band.cta': 'Solicitar lanzamiento',
+  'catalog.band.bulk': 'Prefiero una tirada grande',
+
+  'catalog.filter.cloth': 'Tela',
+  'catalog.view.grid': 'Cuadrícula',
+  'catalog.view.index': 'Índice',
+  'catalog.index.name': 'Nombre',
+  'catalog.index.type': 'Tipo',
+  'catalog.index.weight': 'Peso',
+  'catalog.index.cert': 'Certif.',
+  'catalog.index.colours': 'Colores',
+  'catalog.card.start': 'Empezar con esta prenda base',
+  'catalog.filters.button': 'Filtros',
+  'catalog.filter.title': 'Filtrar',
+  'catalog.filter.close': 'Cerrar filtros',
+  'catalog.filter.show.one': 'Ver {n} prenda base',
+  'catalog.filter.show.other': 'Ver {n} prendas base',
+  'catalog.note.kicker': 'MerchFrom · Prendas base',
+  'catalog.note.title': 'Hecho para la mesa de merch.',
+  'catalog.note.foot': 'Pesado · Orgánico · Impreso en Barcelona',
+  'catalog.editorial.cloth.kicker': 'Tela · Barcelona',
+  'catalog.editorial.cloth.title': 'Tela pesada.\nEtiquetas honestas.',
+  'catalog.editorial.studio.kicker': 'Estudio · Barcelona',
+  'catalog.editorial.studio.title': 'Impreso, doblado\ny etiquetado aquí.',
+
   'catalog.type.tshirts': 'Camisetas',
   'catalog.type.sweatsHoodies': 'Sudaderas y hoodies',
   'catalog.type.jackets': 'Chaquetas',
@@ -82,6 +125,9 @@ export const es: Dictionary = {
 
   'gallery.pieceLabel': 'Pieza MerchFrom {n}',
   'gallery.tapHint': 'toca para ver el otro ángulo',
+  'gallery.title': 'Trabajos',
+  'gallery.count.one': '{n} pieza',
+  'gallery.count.other': '{n} piezas',
 
   'about.headline': 'No somos para todos.',
   'about.subline': 'Pero mamá siempre dijo que tú no eres como los demás.',
@@ -123,9 +169,9 @@ export const es: Dictionary = {
 
   'home.hero.title': 'Merch, hecho como debe ser.',
   'home.hero.subline':
-    'Describe la pieza. Aprueba la prueba. Nosotros imprimimos, empaquetamos y enviamos desde Barcelona — tú te quedas con el margen.',
+    'Prendas en blanco pesadas y de algodón orgánico, impresas en nuestro estudio de Barcelona. Lanza una colección sin coste inicial — tú pones el precio, tú te quedas con la diferencia.',
   'home.hero.promptLabel': 'Describe tu pieza',
-  'home.hero.placeholder': 'Camiseta negra, estampado en la espalda, 50 para la gira — las necesito para mayo',
+  'home.hero.placeholder': 'Camiseta negra 280 gsm, estampado en la espalda, 50 para la gira — las necesito para mayo',
   'home.hero.start': 'Empezar',
   'home.hero.chip.tour': 'Camiseta de gira, 100 uds.',
   'home.hero.chip.festival': 'Camisetas para el equipo del festival',
@@ -134,6 +180,8 @@ export const es: Dictionary = {
   'home.hero.fact.blanks': '{n} prendas en blanco',
   'home.hero.fact.printed': 'Impreso en Barcelona',
   'home.hero.fact.from': 'Desde {price} / prenda',
+  'home.hero.fact.zero': 'Sin coste inicial',
+  'home.hero.fact.weight': 'Hasta {gsm} gsm',
   'home.brief.label': 'Tu brief',
   'home.brief.next': 'Qué pasa después',
   'home.brief.step1': 'Mockups sobre prendas reales',
@@ -145,7 +193,28 @@ export const es: Dictionary = {
 
   'home.printedFor': 'Impreso para',
 
-  'home.assistant.label': '01 — Un asistente',
+  'home.cloth.label': '01 — La tela',
+  'home.cloth.title': 'Tela pesada. Etiquetas honestas.',
+  'home.cloth.body':
+    'Solo imprimimos sobre prendas en blanco que nosotros mismos llevaríamos a un concierto: algodón orgánico denso, certificado de principio a fin, hecho para sobrevivir a una gira y a cada lavado después de ella.',
+  'home.cloth.stat.heaviest': 'Nuestra prenda en blanco más pesada',
+  'home.cloth.stat.heaviestTee': 'Nuestra camiseta más pesada',
+  'home.cloth.stat.gots': 'Prendas en blanco orgánicas certificadas GOTS',
+  'home.cloth.stat.oeko': 'Probado OEKO-TEX',
+
+  'home.zero.label': '02 — Sin coste inicial',
+  'home.zero.title': 'Lanza una colección. No pagues nada por adelantado.',
+  'home.zero.stock.title': 'Sin stock.',
+  'home.zero.stock.body': 'Imprimimos cada prenda cuando se vende. Nada se queda parado en un almacén a tu costa.',
+  'home.zero.min.title': 'Sin mínimos.',
+  'home.zero.min.body': 'Lanza un diseño o una colección completa, y añade prendas nuevas cuando quieras.',
+  'home.zero.margin.title': 'Tu precio, tu margen.',
+  'home.zero.margin.body':
+    'Tú pones el precio de venta. Todo lo que supere nuestro coste base es tuyo, pagado con cada venta.',
+  'home.zero.cta': 'Solicitar lanzamiento',
+  'home.zero.bulk': '¿Necesitas una tirada grande en su lugar?',
+
+  'home.assistant.label': '03 — Un asistente',
   'home.assistant.title': 'Tú hablas. Él se encarga del resto.',
   'home.assistant.body':
     'Mockups, presupuestos, pruebas, producción y envío pasan por una sola conversación. Cuando la decisión es tuya, pregunta. Todo lo demás simplemente avanza.',
@@ -161,7 +230,7 @@ export const es: Dictionary = {
   'home.assistant.shipped': 'Enviado',
   'home.assistant.shippedText': '50 prendas, dobladas y etiquetadas. Seguimiento enviado a tu correo.',
 
-  'home.paths.label': '02 — Dos formas de vender',
+  'home.paths.label': '04 — Dos formas de vender',
   'home.paths.title': 'Vende sobre la marcha, o encarga una tirada.',
   'home.paths.shop.title': 'Shop',
   'home.paths.shop.meta': 'Sin stock · Sin coste inicial',
@@ -175,13 +244,14 @@ export const es: Dictionary = {
   'home.paths.run.link': 'Cómo funciona Run',
 
   'home.catalog.title': '{n} prendas en blanco.',
-  'home.catalog.body': 'Algodón orgánico, comercio justo y vegano. Cada prenda en blanco listada es una que imprimimos nosotros mismos.',
+  'home.catalog.body':
+    'Probado OEKO-TEX, todas ellas. Algodón orgánico en la mayor parte de la gama, {gots} prendas certificadas GOTS — desde camisetas de {min} gsm hasta prendas pesadas de {max} gsm.',
   'home.catalog.link': 'Ver el catálogo',
 
   'home.studio.title': 'Impreso, doblado y etiquetado en Barcelona.',
   'home.studio.meta': 'Estudio — Barcelona, ES',
 
-  'home.agents.label': '03 — Trae tu propio agente',
+  'home.agents.label': '05 — Trae tu propio agente',
   'home.agents.soon': 'Próximamente',
   'home.agents.title': '¿Ya trabajas con Claude o ChatGPT? Conéctalo.',
   'home.agents.body':

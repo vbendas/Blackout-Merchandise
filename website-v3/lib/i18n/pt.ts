@@ -35,6 +35,49 @@ export const pt: Dictionary = {
   'catalog.cardDetails': 'detalhes',
   'catalog.noSavedBlanks': 'Ainda não há peças guardadas.',
 
+  'catalog.intro.label': 'Catálogo',
+  'catalog.intro.title': 'As peças lisas.',
+  'catalog.intro.body':
+    '{n} peças em que imprimimos, e nenhuma que não vestiríamos. Testado OEKO-TEX, algodão orgânico na maior parte da gama, pesos até {gsm} gsm.',
+  'catalog.stat.gots': 'Orgânico GOTS',
+  'catalog.stat.heavy': 'Pesado 220 gsm+',
+  'catalog.stat.methods': 'Métodos de impressão',
+  'catalog.tabs.ariaLabel': 'Tipo',
+  'catalog.toggle.heavy': 'Pesado 220+',
+  'catalog.toggle.gots': 'Orgânico GOTS',
+  'catalog.badge.heavy': 'Pesado',
+  'catalog.badge.gots': 'GOTS',
+  'catalog.card.colours.one': '{n} cor',
+  'catalog.card.colours.other': '{n} cores',
+  'catalog.band.label': 'Sem custo inicial',
+  'catalog.band.title': 'Encontraste a peça? Lança-a sem pagar um cêntimo à cabeça.',
+  'catalog.band.body':
+    'Escolhe uma peça lisa, descreve o design, define o teu preço. Imprimimos cada peça quando é vendida — tu ficas com tudo o que ultrapassa o nosso custo base.',
+  'catalog.band.cta': 'Candidatar para lançar',
+  'catalog.band.bulk': 'Prefiro um lote',
+
+  'catalog.filter.cloth': 'Tecido',
+  'catalog.view.grid': 'Grelha',
+  'catalog.view.index': 'Índice',
+  'catalog.index.name': 'Nome',
+  'catalog.index.type': 'Tipo',
+  'catalog.index.weight': 'Peso',
+  'catalog.index.cert': 'Certif.',
+  'catalog.index.colours': 'Cores',
+  'catalog.card.start': 'Começar com esta peça base',
+  'catalog.filters.button': 'Filtros',
+  'catalog.filter.title': 'Filtrar',
+  'catalog.filter.close': 'Fechar filtros',
+  'catalog.filter.show.one': 'Ver {n} peça base',
+  'catalog.filter.show.other': 'Ver {n} peças base',
+  'catalog.note.kicker': 'MerchFrom · Peças base',
+  'catalog.note.title': 'Feito para a mesa do merch.',
+  'catalog.note.foot': 'Pesado · Orgânico · Impresso em Barcelona',
+  'catalog.editorial.cloth.kicker': 'Tecido · Barcelona',
+  'catalog.editorial.cloth.title': 'Tecido pesado.\nEtiquetas honestas.',
+  'catalog.editorial.studio.kicker': 'Estúdio · Barcelona',
+  'catalog.editorial.studio.title': 'Impresso, dobrado\ne etiquetado aqui.',
+
   'catalog.type.tshirts': 'T-shirts',
   'catalog.type.sweatsHoodies': 'Sweatshirts e hoodies',
   'catalog.type.jackets': 'Casacos',
@@ -84,6 +127,9 @@ export const pt: Dictionary = {
 
   'gallery.pieceLabel': 'Peça MerchFrom {n}',
   'gallery.tapHint': 'toque para ver o outro ângulo',
+  'gallery.title': 'Trabalhos',
+  'gallery.count.one': '{n} peça',
+  'gallery.count.other': '{n} peças',
 
   'about.headline': 'Não somos para todos.',
   'about.subline': 'Mas a mãe sempre disse que tu não és como os outros.',
@@ -125,9 +171,9 @@ export const pt: Dictionary = {
 
   'home.hero.title': 'Merch, feito como deve ser.',
   'home.hero.subline':
-    'Descreve a peça. Aprova a prova. Nós imprimimos, embalamos e enviamos a partir de Barcelona — tu ficas com a margem.',
+    'Peças lisas pesadas em algodão orgânico, impressas no nosso estúdio em Barcelona. Lança uma coleção sem custo inicial — tu defines o preço, tu ficas com a diferença.',
   'home.hero.promptLabel': 'Descreve a tua peça',
-  'home.hero.placeholder': 'T-shirt preta, estampado nas costas, 50 para a digressão — preciso até maio',
+  'home.hero.placeholder': 'T-shirt preta 280 gsm, estampado nas costas, 50 para a digressão — preciso até maio',
   'home.hero.start': 'Começar',
   'home.hero.chip.tour': 'T-shirt de digressão, 100 unid.',
   'home.hero.chip.festival': 'T-shirts para a equipa do festival',
@@ -136,6 +182,8 @@ export const pt: Dictionary = {
   'home.hero.fact.blanks': '{n} peças lisas',
   'home.hero.fact.printed': 'Impresso em Barcelona',
   'home.hero.fact.from': 'Desde {price} / peça',
+  'home.hero.fact.zero': 'Sem custo inicial',
+  'home.hero.fact.weight': 'Até {gsm} gsm',
   'home.brief.label': 'O teu brief',
   'home.brief.next': 'O que acontece a seguir',
   'home.brief.step1': 'Mockups em peças reais',
@@ -147,7 +195,28 @@ export const pt: Dictionary = {
 
   'home.printedFor': 'Impresso para',
 
-  'home.assistant.label': '01 — Um assistente',
+  'home.cloth.label': '01 — O tecido',
+  'home.cloth.title': 'Tecido pesado. Etiquetas honestas.',
+  'home.cloth.body':
+    'Só imprimimos em peças lisas que nós próprios vestiríamos num concerto: algodão orgânico denso, certificado do início ao fim, feito para sobreviver a uma digressão e a todas as lavagens depois dela.',
+  'home.cloth.stat.heaviest': 'A nossa peça lisa mais pesada',
+  'home.cloth.stat.heaviestTee': 'A nossa t-shirt mais pesada',
+  'home.cloth.stat.gots': 'Peças lisas orgânicas certificadas GOTS',
+  'home.cloth.stat.oeko': 'Testado OEKO-TEX',
+
+  'home.zero.label': '02 — Sem custo inicial',
+  'home.zero.title': 'Lança uma coleção. Não pagues nada à cabeça.',
+  'home.zero.stock.title': 'Sem stock.',
+  'home.zero.stock.body': 'Imprimimos cada peça quando é vendida. Nada fica parado num armazém à tua custa.',
+  'home.zero.min.title': 'Sem mínimos.',
+  'home.zero.min.body': 'Lança um design ou uma coleção completa, e acrescenta novas peças quando quiseres.',
+  'home.zero.margin.title': 'O teu preço, a tua margem.',
+  'home.zero.margin.body':
+    'Tu defines o preço de venda. Tudo o que ultrapassa o nosso custo base é teu, pago a cada venda.',
+  'home.zero.cta': 'Candidatar para lançar',
+  'home.zero.bulk': 'Precisas antes de um lote?',
+
+  'home.assistant.label': '03 — Um assistente',
   'home.assistant.title': 'Tu falas. Ele trata do resto.',
   'home.assistant.body':
     'Mockups, orçamentos, provas, produção e envio passam por uma única conversa. Quando a decisão é tua, ele pergunta. O resto avança sozinho.',
@@ -163,7 +232,7 @@ export const pt: Dictionary = {
   'home.assistant.shipped': 'Enviado',
   'home.assistant.shippedText': '50 peças, dobradas e etiquetadas. Rastreio enviado para o teu email.',
 
-  'home.paths.label': '02 — Duas formas de vender',
+  'home.paths.label': '04 — Duas formas de vender',
   'home.paths.title': 'Vende à medida, ou encomenda um lote.',
   'home.paths.shop.title': 'Shop',
   'home.paths.shop.meta': 'Sem stock · Sem custo inicial',
@@ -177,13 +246,14 @@ export const pt: Dictionary = {
   'home.paths.run.link': 'Como funciona o Run',
 
   'home.catalog.title': '{n} peças lisas.',
-  'home.catalog.body': 'Algodão orgânico, comércio justo e vegan. Cada peça lisa listada é uma que imprimimos nós próprios.',
+  'home.catalog.body':
+    'Testado OEKO-TEX, todas elas. Algodão orgânico na maior parte da gama, {gots} peças lisas certificadas GOTS — desde t-shirts de {min} gsm a peças pesadas de {max} gsm.',
   'home.catalog.link': 'Ver o catálogo',
 
   'home.studio.title': 'Impresso, dobrado e etiquetado em Barcelona.',
   'home.studio.meta': 'Estúdio — Barcelona, ES',
 
-  'home.agents.label': '03 — Traz o teu próprio agente',
+  'home.agents.label': '05 — Traz o teu próprio agente',
   'home.agents.soon': 'Brevemente',
   'home.agents.title': 'Já trabalhas com o Claude ou o ChatGPT? Liga-o.',
   'home.agents.body':

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { typeFor } from '@/lib/catalog-filters';
+import { CATALOG_STATS } from '@/lib/catalog-stats';
 import { useT } from '@/lib/i18n';
 import { PRODUCT_DETAILS } from '@/lib/product-details';
 import { PRODUCTS } from '@/lib/products';
@@ -35,10 +36,14 @@ export function CatalogTeaser() {
       <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
         <div className="flex flex-col gap-4">
           <h2 className="m-0 text-[36px] leading-[1.08] font-semibold tracking-[-0.015em] md:text-[56px] md:leading-[1.05]">
-            {t('home.catalog.title', { n: PRODUCTS.length })}
+            {t('home.catalog.title', { n: CATALOG_STATS.total })}
           </h2>
           <p className="m-0 max-w-[520px] text-[16px] leading-[1.5] md:text-[18px]" style={{ color: 'var(--muted)' }}>
-            {t('home.catalog.body')}
+            {t('home.catalog.body', {
+              gots: CATALOG_STATS.gots,
+              min: CATALOG_STATS.lightestTeeGsm,
+              max: CATALOG_STATS.heaviestGsm,
+            })}
           </p>
         </div>
         <Link

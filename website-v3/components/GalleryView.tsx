@@ -55,16 +55,56 @@ export function GalleryView() {
   }, []);
 
   return (
-    <div
-      className="columns-1 sm:columns-2 lg:columns-3"
-      style={{
-        columnGap: '20px',
-        paddingLeft: 'var(--gutter)',
-        paddingRight: 'var(--gutter)',
-        paddingTop: '48px',
-        paddingBottom: '48px',
-      }}
-    >
+    <>
+      {/* Same giant-header treatment as the catalog's vintage intro
+          band: kicker, big title, a mono count. */}
+      <section
+        style={{
+          paddingLeft: 'var(--gutter)',
+          paddingRight: 'var(--gutter)',
+          paddingTop: 'clamp(28px, 5vw, 48px)',
+          paddingBottom: '32px',
+          borderBottom: '1px solid var(--hairline)',
+        }}
+      >
+        <div className="flex flex-wrap items-start gap-4">
+          <h1
+            style={{
+              margin: 0,
+              fontFamily: 'var(--font-display), sans-serif',
+              fontWeight: 600,
+              fontSize: 'clamp(3.25rem, 11vw, 9.5rem)',
+              lineHeight: 0.85,
+              letterSpacing: '-0.03em',
+            }}
+          >
+            {t('gallery.title')}
+          </h1>
+          <span
+            style={{
+              fontFamily: 'var(--font-mono), monospace',
+              fontSize: '12px',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              marginTop: '10px',
+              opacity: 0.62,
+            }}
+          >
+            {t('nav.gallery')} · {t.tPlural('gallery.count', ALL_IMAGES.length)}
+          </span>
+        </div>
+      </section>
+
+      <div
+        className="columns-1 sm:columns-2 lg:columns-3"
+        style={{
+          columnGap: '20px',
+          paddingLeft: 'var(--gutter)',
+          paddingRight: 'var(--gutter)',
+          paddingTop: '48px',
+          paddingBottom: '48px',
+        }}
+      >
       {images.map((photo, index) => {
         const aspect = ASPECT_RATIOS[index % ASPECT_RATIOS.length];
         const width = WIDTHS[index % WIDTHS.length];
@@ -134,6 +174,7 @@ export function GalleryView() {
           </div>
         );
       })}
-    </div>
+      </div>
+    </>
   );
 }

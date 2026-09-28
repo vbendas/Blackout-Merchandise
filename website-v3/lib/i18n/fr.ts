@@ -33,6 +33,49 @@ export const fr: Dictionary = {
   'catalog.cardDetails': 'détails',
   'catalog.noSavedBlanks': 'Aucune pièce enregistrée pour l’instant.',
 
+  'catalog.intro.label': 'Catalogue',
+  'catalog.intro.title': 'Les pièces vierges.',
+  'catalog.intro.body':
+    '{n} pièces sur lesquelles nous imprimons, et aucune que nous ne porterions pas. Testées OEKO-TEX, coton biologique sur la majeure partie de la gamme, des grammages jusqu’à {gsm} gsm.',
+  'catalog.stat.gots': 'Biologique GOTS',
+  'catalog.stat.heavy': 'Épais 220 gsm+',
+  'catalog.stat.methods': 'Méthodes d’impression',
+  'catalog.tabs.ariaLabel': 'Type',
+  'catalog.toggle.heavy': 'Épais 220+',
+  'catalog.toggle.gots': 'Biologique GOTS',
+  'catalog.badge.heavy': 'Épais',
+  'catalog.badge.gots': 'GOTS',
+  'catalog.card.colours.one': '{n} couleur',
+  'catalog.card.colours.other': '{n} couleurs',
+  'catalog.band.label': 'Sans frais initiaux',
+  'catalog.band.title': 'Vous l’avez trouvée ? Lancez-la sans payer un centime d’avance.',
+  'catalog.band.body':
+    'Choisissez une pièce vierge, décrivez le design, fixez votre prix. Nous imprimons chaque pièce au moment de la vente — vous gardez tout ce qui dépasse notre coût de base.',
+  'catalog.band.cta': 'Postuler pour lancer',
+  'catalog.band.bulk': 'Une série en gros plutôt',
+
+  'catalog.filter.cloth': 'Tissu',
+  'catalog.view.grid': 'Grille',
+  'catalog.view.index': 'Index',
+  'catalog.index.name': 'Nom',
+  'catalog.index.type': 'Type',
+  'catalog.index.weight': 'Poids',
+  'catalog.index.cert': 'Certif.',
+  'catalog.index.colours': 'Couleurs',
+  'catalog.card.start': 'Démarrer avec ce blanc',
+  'catalog.filters.button': 'Filtres',
+  'catalog.filter.title': 'Filtrer',
+  'catalog.filter.close': 'Fermer les filtres',
+  'catalog.filter.show.one': 'Voir {n} blanc',
+  'catalog.filter.show.other': 'Voir {n} blancs',
+  'catalog.note.kicker': 'MerchFrom · Blancs',
+  'catalog.note.title': 'Fait pour la table du merch.',
+  'catalog.note.foot': 'Épais · Biologique · Imprimé à Barcelona',
+  'catalog.editorial.cloth.kicker': 'Tissu · Barcelona',
+  'catalog.editorial.cloth.title': 'Un tissu épais.\nDes étiquettes honnêtes.',
+  'catalog.editorial.studio.kicker': 'Atelier · Barcelona',
+  'catalog.editorial.studio.title': 'Imprimé, plié\net étiqueté ici.',
+
   'catalog.type.tshirts': 'T-shirts',
   'catalog.type.sweatsHoodies': 'Sweats et hoodies',
   'catalog.type.jackets': 'Vestes',
@@ -82,6 +125,9 @@ export const fr: Dictionary = {
 
   'gallery.pieceLabel': 'Pièce MerchFrom {n}',
   'gallery.tapHint': 'toucher pour voir l’autre angle',
+  'gallery.title': 'Travaux',
+  'gallery.count.one': '{n} pièce',
+  'gallery.count.other': '{n} pièces',
 
   'about.headline': 'On n’est pas faits pour tout le monde.',
   'about.subline': 'Mais maman a toujours dit que toi, tu n’es pas comme les autres.',
@@ -123,9 +169,9 @@ export const fr: Dictionary = {
 
   'home.hero.title': 'Du merch fait dans les règles.',
   'home.hero.subline':
-    'Décrivez la pièce. Validez l’épreuve. Nous imprimons, conditionnons et expédions depuis Barcelona — vous gardez la marge.',
+    'Des pièces vierges épaisses en coton biologique, imprimées dans notre atelier de Barcelona. Lancez une collection sans frais initiaux — vous fixez le prix, vous gardez la différence.',
   'home.hero.promptLabel': 'Décrivez votre pièce',
-  'home.hero.placeholder': 'T-shirt noir, impression au dos, 50 pour la tournée — il les faut pour mai',
+  'home.hero.placeholder': 'T-shirt noir 280 gsm, impression au dos, 50 pour la tournée — il les faut pour mai',
   'home.hero.start': 'Commencer',
   'home.hero.chip.tour': 'T-shirt de tournée, 100 pièces',
   'home.hero.chip.festival': 'T-shirts pour l’équipe du festival',
@@ -134,6 +180,8 @@ export const fr: Dictionary = {
   'home.hero.fact.blanks': '{n} pièces vierges',
   'home.hero.fact.printed': 'Imprimé à Barcelona',
   'home.hero.fact.from': 'À partir de {price} / pièce',
+  'home.hero.fact.zero': 'Sans frais initiaux',
+  'home.hero.fact.weight': 'Jusqu’à {gsm} gsm',
   'home.brief.label': 'Votre brief',
   'home.brief.next': 'La suite',
   'home.brief.step1': 'Des mockups sur de vraies pièces',
@@ -145,7 +193,29 @@ export const fr: Dictionary = {
 
   'home.printedFor': 'Imprimé pour',
 
-  'home.assistant.label': '01 — Un seul assistant',
+  'home.cloth.label': '01 — Le tissu',
+  'home.cloth.title': 'Un tissu épais. Des étiquettes honnêtes.',
+  'home.cloth.body':
+    'Nous n’imprimons que sur des pièces vierges que nous porterions nous-mêmes à un concert : coton biologique dense, certifié de bout en bout, conçu pour survivre à une tournée et à chaque lavage après elle.',
+  'home.cloth.stat.heaviest': 'Notre pièce vierge la plus lourde',
+  'home.cloth.stat.heaviestTee': 'Notre t-shirt le plus lourd',
+  'home.cloth.stat.gots': 'Pièces vierges biologiques certifiées GOTS',
+  'home.cloth.stat.oeko': 'Testé OEKO-TEX',
+
+  'home.zero.label': '02 — Sans frais initiaux',
+  'home.zero.title': 'Lancez une collection. Ne payez rien d’avance.',
+  'home.zero.stock.title': 'Pas de stock.',
+  'home.zero.stock.body': 'Nous imprimons chaque pièce au moment de la vente. Rien ne dort en entrepôt à vos frais.',
+  'home.zero.min.title': 'Pas de minimum.',
+  'home.zero.min.body':
+    'Lancez un seul modèle ou une collection complète, et ajoutez de nouvelles pièces quand vous le souhaitez.',
+  'home.zero.margin.title': 'Votre prix, votre marge.',
+  'home.zero.margin.body':
+    'Vous fixez le prix de vente. Tout ce qui dépasse notre coût de base vous revient, versé à chaque vente.',
+  'home.zero.cta': 'Postuler pour lancer',
+  'home.zero.bulk': 'Besoin d’une série en gros à la place ?',
+
+  'home.assistant.label': '03 — Un seul assistant',
   'home.assistant.title': 'Vous parlez. Il gère le reste.',
   'home.assistant.body':
     'Mockups, devis, épreuves, production et expédition passent par une seule conversation. Quand la décision vous revient, il demande. Tout le reste avance tout seul.',
@@ -161,7 +231,7 @@ export const fr: Dictionary = {
   'home.assistant.shipped': 'Expédié',
   'home.assistant.shippedText': '50 pièces, pliées et étiquetées. Suivi envoyé par email.',
 
-  'home.paths.label': '02 — Deux façons de vendre',
+  'home.paths.label': '04 — Deux façons de vendre',
   'home.paths.title': 'Vendez au fil de l’eau, ou commandez une série.',
   'home.paths.shop.title': 'Shop',
   'home.paths.shop.meta': 'Pas de stock · Pas de frais initiaux',
@@ -175,13 +245,14 @@ export const fr: Dictionary = {
   'home.paths.run.link': 'Comment fonctionne Run',
 
   'home.catalog.title': '{n} pièces vierges.',
-  'home.catalog.body': 'Coton biologique, commerce équitable et vegan. Chaque pièce vierge listée est une pièce que nous imprimons nous-mêmes.',
+  'home.catalog.body':
+    'Testées OEKO-TEX, toutes sans exception. Coton biologique sur la majeure partie de la gamme, {gots} pièces certifiées GOTS — des t-shirts à {min} gsm aux pièces épaisses à {max} gsm.',
   'home.catalog.link': 'Parcourir le catalogue',
 
   'home.studio.title': 'Imprimé, plié et étiqueté à Barcelona.',
   'home.studio.meta': 'Atelier — Barcelona, ES',
 
-  'home.agents.label': '03 — Apportez votre propre agent',
+  'home.agents.label': '05 — Apportez votre propre agent',
   'home.agents.soon': 'Bientôt',
   'home.agents.title': 'Vous travaillez déjà avec Claude ou ChatGPT ? Branchez-le.',
   'home.agents.body':

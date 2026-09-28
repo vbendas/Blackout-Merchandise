@@ -20,7 +20,6 @@ import {
   VARIANT_BACKS,
   variantBackSrc,
   variantSrc,
-  displayColourFor,
 } from '@/lib/variants';
 
 const HAIRLINE = '1px solid var(--hairline)';
@@ -218,7 +217,7 @@ function RelatedStrip({
               <div className="relative aspect-square w-full" style={{ border: HAIRLINE, background: 'var(--surface)' }}>
                 <div className="absolute inset-[9%]">
                   <Image
-                    src={displayColourFor(p.code) ? variantSrc(p.code, displayColourFor(p.code) as string) : p.src}
+                    src={p.src}
                     alt=""
                     fill
                     sizes="96px"
@@ -651,8 +650,8 @@ export function ProductModal({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: isMobile ? 'calc(var(--header-h) + 8px) 24px 8px' : '24px',
-        background: 'color-mix(in srgb, var(--paper) 82%, transparent)',
+        padding: isMobile ? '16px 24px' : '24px',
+        background: 'var(--scrim)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
       }}
@@ -668,7 +667,7 @@ export function ProductModal({
         className="flex w-[94vw] flex-col md:w-[92vw] md:flex-row"
         style={{
           maxWidth: '1080px',
-          maxHeight: isMobile ? 'calc(100dvh - var(--header-h) - 16px)' : '86vh',
+          maxHeight: isMobile ? 'calc(100dvh - 32px)' : '86vh',
           background: 'var(--raised)',
           border: HAIRLINE,
           overflowY: 'auto',

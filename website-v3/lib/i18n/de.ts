@@ -33,6 +33,49 @@ export const de: Dictionary = {
   'catalog.cardDetails': 'Details',
   'catalog.noSavedBlanks': 'Noch keine gespeicherten Rohlinge.',
 
+  'catalog.intro.label': 'Katalog',
+  'catalog.intro.title': 'Die Rohlinge.',
+  'catalog.intro.body':
+    '{n} Teile, auf die wir drucken, und keines, das wir nicht selbst tragen würden. OEKO-TEX getestet, Bio-Baumwolle im größten Teil des Sortiments, Gewichte bis zu {gsm} gsm.',
+  'catalog.stat.gots': 'GOTS Bio',
+  'catalog.stat.heavy': 'Schwer 220 gsm+',
+  'catalog.stat.methods': 'Druckmethoden',
+  'catalog.tabs.ariaLabel': 'Typ',
+  'catalog.toggle.heavy': 'Schwer 220+',
+  'catalog.toggle.gots': 'GOTS Bio',
+  'catalog.badge.heavy': 'Schwer',
+  'catalog.badge.gots': 'GOTS',
+  'catalog.card.colours.one': '{n} Farbe',
+  'catalog.card.colours.other': '{n} Farben',
+  'catalog.band.label': 'Keine Vorabkosten',
+  'catalog.band.title': 'Gefunden? Starte es, ohne einen Cent im Voraus zu zahlen.',
+  'catalog.band.body':
+    'Wähle einen Rohling, beschreibe das Design, lege deinen Preis fest. Wir drucken jedes Stück, sobald es verkauft ist — du behältst alles über unseren Basispreis.',
+  'catalog.band.cta': 'Für den Start bewerben',
+  'catalog.band.bulk': 'Lieber eine Großauflage',
+
+  'catalog.filter.cloth': 'Stoff',
+  'catalog.view.grid': 'Raster',
+  'catalog.view.index': 'Index',
+  'catalog.index.name': 'Name',
+  'catalog.index.type': 'Typ',
+  'catalog.index.weight': 'Gewicht',
+  'catalog.index.cert': 'Zertif.',
+  'catalog.index.colours': 'Farben',
+  'catalog.card.start': 'Mit diesem Rohling starten',
+  'catalog.filters.button': 'Filter',
+  'catalog.filter.title': 'Filter',
+  'catalog.filter.close': 'Filter schließen',
+  'catalog.filter.show.one': '{n} Rohling anzeigen',
+  'catalog.filter.show.other': '{n} Rohlinge anzeigen',
+  'catalog.note.kicker': 'MerchFrom · Rohlinge',
+  'catalog.note.title': 'Gemacht für den Merch-Tisch.',
+  'catalog.note.foot': 'Schwer · Bio · Gedruckt in Barcelona',
+  'catalog.editorial.cloth.kicker': 'Stoff · Barcelona',
+  'catalog.editorial.cloth.title': 'Schwerer Stoff.\nEhrliche Labels.',
+  'catalog.editorial.studio.kicker': 'Studio · Barcelona',
+  'catalog.editorial.studio.title': 'Hier gedruckt, gefaltet\nund etikettiert.',
+
   'catalog.type.tshirts': 'T-Shirts',
   'catalog.type.sweatsHoodies': 'Sweatshirts & Hoodies',
   'catalog.type.jackets': 'Jacken',
@@ -82,6 +125,9 @@ export const de: Dictionary = {
 
   'gallery.pieceLabel': 'MerchFrom-Stück {n}',
   'gallery.tapHint': 'antippen für die andere Ansicht',
+  'gallery.title': 'Arbeiten',
+  'gallery.count.one': '{n} Stück',
+  'gallery.count.other': '{n} Stücke',
 
   'about.headline': 'Wir sind nicht für jeden.',
   'about.subline': 'Aber Mama hat immer gesagt, du bist nicht wie alle anderen.',
@@ -123,9 +169,9 @@ export const de: Dictionary = {
 
   'home.hero.title': 'Merch, richtig gemacht.',
   'home.hero.subline':
-    'Beschreibe das Stück. Gib den Proof frei. Wir drucken, verpacken und verschicken aus Barcelona — die Marge behältst du.',
+    'Schwere Rohlinge aus Bio-Baumwolle, gedruckt in unserem Studio in Barcelona. Starte eine Kollektion ohne Vorabkosten — du legst den Preis fest, du behältst die Differenz.',
   'home.hero.promptLabel': 'Beschreibe dein Stück',
-  'home.hero.placeholder': 'Schwarzes T-Shirt, Rückendruck, 50 für die Tour — brauche sie bis Mai',
+  'home.hero.placeholder': 'Schwarzes T-Shirt 280 gsm, Rückendruck, 50 für die Tour — brauche sie bis Mai',
   'home.hero.start': 'Start',
   'home.hero.chip.tour': 'Tour-Shirt, 100 Stück',
   'home.hero.chip.festival': 'Shirts für die Festival-Crew',
@@ -134,6 +180,8 @@ export const de: Dictionary = {
   'home.hero.fact.blanks': '{n} Rohlinge',
   'home.hero.fact.printed': 'Gedruckt in Barcelona',
   'home.hero.fact.from': 'Ab {price} / Stück',
+  'home.hero.fact.zero': 'Keine Vorabkosten',
+  'home.hero.fact.weight': 'Bis zu {gsm} gsm',
   'home.brief.label': 'Dein Brief',
   'home.brief.next': 'So geht’s weiter',
   'home.brief.step1': 'Mockups auf echten Rohlingen',
@@ -145,7 +193,28 @@ export const de: Dictionary = {
 
   'home.printedFor': 'Gedruckt für',
 
-  'home.assistant.label': '01 — Ein Assistent',
+  'home.cloth.label': '01 — Der Stoff',
+  'home.cloth.title': 'Schwerer Stoff. Ehrliche Labels.',
+  'home.cloth.body':
+    'Wir drucken nur auf Rohlingen, die wir selbst zu einer Show tragen würden: dichte Bio-Baumwolle, durchgehend zertifiziert, gebaut, um eine Tour und jede Wäsche danach zu überstehen.',
+  'home.cloth.stat.heaviest': 'Unser schwerster Rohling',
+  'home.cloth.stat.heaviestTee': 'Unser schwerstes T-Shirt',
+  'home.cloth.stat.gots': 'GOTS-zertifizierte Bio-Rohlinge',
+  'home.cloth.stat.oeko': 'OEKO-TEX getestet',
+
+  'home.zero.label': '02 — Keine Vorabkosten',
+  'home.zero.title': 'Starte eine Kollektion. Zahle nichts im Voraus.',
+  'home.zero.stock.title': 'Kein Lager.',
+  'home.zero.stock.body': 'Wir drucken jedes Stück, sobald es verkauft ist. Nichts liegt auf deine Kosten im Lager.',
+  'home.zero.min.title': 'Keine Mindestmenge.',
+  'home.zero.min.body': 'Starte mit einem Design oder einer ganzen Kollektion und füge jederzeit neue Stücke hinzu.',
+  'home.zero.margin.title': 'Dein Preis, deine Marge.',
+  'home.zero.margin.body':
+    'Du legst den Verkaufspreis fest. Alles über unseren Basispreis gehört dir, ausgezahlt bei jedem Verkauf.',
+  'home.zero.cta': 'Für den Start bewerben',
+  'home.zero.bulk': 'Lieber eine Großauflage?',
+
+  'home.assistant.label': '03 — Ein Assistent',
   'home.assistant.title': 'Du sprichst. Er erledigt den Rest.',
   'home.assistant.body':
     'Mockups, Angebote, Proofs, Produktion und Versand laufen über ein einziges Gespräch. Wenn die Entscheidung bei dir liegt, fragt er nach. Alles andere läuft einfach.',
@@ -161,7 +230,7 @@ export const de: Dictionary = {
   'home.assistant.shipped': 'Versendet',
   'home.assistant.shippedText': '50 Stück, gefaltet und etikettiert. Sendungsverfolgung an dein Postfach.',
 
-  'home.paths.label': '02 — Zwei Wege zu verkaufen',
+  'home.paths.label': '04 — Zwei Wege zu verkaufen',
   'home.paths.title': 'Verkaufe laufend, oder bestelle eine Auflage.',
   'home.paths.shop.title': 'Shop',
   'home.paths.shop.meta': 'Kein Lager · Keine Vorabkosten',
@@ -175,13 +244,14 @@ export const de: Dictionary = {
   'home.paths.run.link': 'So funktioniert Run',
 
   'home.catalog.title': '{n} Rohlinge.',
-  'home.catalog.body': 'Bio-Baumwolle, fair gehandelt und vegan. Jeder gelistete Rohling ist einer, den wir selbst bedrucken.',
+  'home.catalog.body':
+    'Alle OEKO-TEX getestet. Bio-Baumwolle im größten Teil des Sortiments, {gots} Rohlinge GOTS-zertifiziert — von {min} gsm T-Shirts bis zu {max} gsm schweren Stücken.',
   'home.catalog.link': 'Katalog durchsuchen',
 
   'home.studio.title': 'Gedruckt, gefaltet und etikettiert in Barcelona.',
   'home.studio.meta': 'Studio — Barcelona, ES',
 
-  'home.agents.label': '03 — Bring deinen eigenen Agenten mit',
+  'home.agents.label': '05 — Bring deinen eigenen Agenten mit',
   'home.agents.soon': 'Bald',
   'home.agents.title': 'Arbeitest du schon mit Claude oder ChatGPT? Schließ ihn an.',
   'home.agents.body':

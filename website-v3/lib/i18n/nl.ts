@@ -33,6 +33,49 @@ export const nl: Dictionary = {
   'catalog.cardDetails': 'details',
   'catalog.noSavedBlanks': 'Nog geen opgeslagen items.',
 
+  'catalog.intro.label': 'Catalogus',
+  'catalog.intro.title': 'De blanco items.',
+  'catalog.intro.body':
+    '{n} items waar we op drukken, en niets wat we zelf niet zouden dragen. OEKO-TEX getest, biologisch katoen in het grootste deel van het assortiment, gewichten tot {gsm} gsm.',
+  'catalog.stat.gots': 'GOTS biologisch',
+  'catalog.stat.heavy': 'Zwaar 220 gsm+',
+  'catalog.stat.methods': 'Drukmethodes',
+  'catalog.tabs.ariaLabel': 'Type',
+  'catalog.toggle.heavy': 'Zwaar 220+',
+  'catalog.toggle.gots': 'GOTS biologisch',
+  'catalog.badge.heavy': 'Zwaar',
+  'catalog.badge.gots': 'GOTS',
+  'catalog.card.colours.one': '{n} kleur',
+  'catalog.card.colours.other': '{n} kleuren',
+  'catalog.band.label': 'Geen voorafgaande kosten',
+  'catalog.band.title': 'Gevonden? Lanceer het zonder een cent vooraf te betalen.',
+  'catalog.band.body':
+    'Kies een blanco item, beschrijf het ontwerp, bepaal je prijs. We drukken elk stuk zodra het verkocht is — jij houdt alles boven onze basiskosten.',
+  'catalog.band.cta': 'Aanmelden om te lanceren',
+  'catalog.band.bulk': 'Liever een grote oplage',
+
+  'catalog.filter.cloth': 'Stof',
+  'catalog.view.grid': 'Raster',
+  'catalog.view.index': 'Index',
+  'catalog.index.name': 'Naam',
+  'catalog.index.type': 'Type',
+  'catalog.index.weight': 'Gewicht',
+  'catalog.index.cert': 'Certif.',
+  'catalog.index.colours': 'Kleuren',
+  'catalog.card.start': 'Begin met dit basisstuk',
+  'catalog.filters.button': 'Filters',
+  'catalog.filter.title': 'Filter',
+  'catalog.filter.close': 'Filters sluiten',
+  'catalog.filter.show.one': '{n} basisstuk tonen',
+  'catalog.filter.show.other': '{n} basisstukken tonen',
+  'catalog.note.kicker': 'MerchFrom · Basisstukken',
+  'catalog.note.title': 'Gemaakt voor de merchtafel.',
+  'catalog.note.foot': 'Zwaar · Biologisch · Gedrukt in Barcelona',
+  'catalog.editorial.cloth.kicker': 'Stof · Barcelona',
+  'catalog.editorial.cloth.title': 'Zware stof.\nEerlijke labels.',
+  'catalog.editorial.studio.kicker': 'Studio · Barcelona',
+  'catalog.editorial.studio.title': 'Hier gedrukt, gevouwen\nen gelabeld.',
+
   'catalog.type.tshirts': 'T-shirts',
   'catalog.type.sweatsHoodies': 'Sweaters en hoodies',
   'catalog.type.jackets': 'Jassen',
@@ -82,6 +125,9 @@ export const nl: Dictionary = {
 
   'gallery.pieceLabel': 'MerchFrom stuk {n}',
   'gallery.tapHint': 'tik om de andere kant te zien',
+  'gallery.title': 'Werk',
+  'gallery.count.one': '{n} stuk',
+  'gallery.count.other': '{n} stukken',
 
   'about.headline': 'We zijn niet voor iedereen.',
   'about.subline': 'Maar mama zei altijd al dat jij niet iedereen bent.',
@@ -123,9 +169,9 @@ export const nl: Dictionary = {
 
   'home.hero.title': 'Merch, goed gemaakt.',
   'home.hero.subline':
-    'Beschrijf het stuk. Keur de proef goed. Wij drukken, verpakken en verzenden vanuit Barcelona — jij houdt de marge.',
+    'Zware biologisch-katoenen items, gedrukt in onze studio in Barcelona. Lanceer een collectie zonder voorafgaande kosten — jij bepaalt de prijs, jij houdt het verschil.',
   'home.hero.promptLabel': 'Beschrijf jouw stuk',
-  'home.hero.placeholder': 'Zwarte t-shirt, print op de rug, 50 voor de tour — nodig voor mei',
+  'home.hero.placeholder': 'Zwarte t-shirt 280 gsm, print op de rug, 50 voor de tour — nodig voor mei',
   'home.hero.start': 'Start',
   'home.hero.chip.tour': 'Tour-shirt, 100 stuks',
   'home.hero.chip.festival': 'Shirts voor de festivalcrew',
@@ -134,6 +180,8 @@ export const nl: Dictionary = {
   'home.hero.fact.blanks': '{n} blanco items',
   'home.hero.fact.printed': 'Gedrukt in Barcelona',
   'home.hero.fact.from': 'Vanaf {price} / stuk',
+  'home.hero.fact.zero': 'Geen voorafgaande kosten',
+  'home.hero.fact.weight': 'Tot {gsm} gsm',
   'home.brief.label': 'Jouw brief',
   'home.brief.next': 'Wat er nu gebeurt',
   'home.brief.step1': 'Mockups op echte items',
@@ -145,7 +193,28 @@ export const nl: Dictionary = {
 
   'home.printedFor': 'Gedrukt voor',
 
-  'home.assistant.label': '01 — Eén assistent',
+  'home.cloth.label': '01 — De stof',
+  'home.cloth.title': 'Zware stof. Eerlijke labels.',
+  'home.cloth.body':
+    'Wij drukken alleen op blanco items die we zelf naar een show zouden dragen: dicht biologisch katoen, van begin tot eind gecertificeerd, gemaakt om een tour en elke wasbeurt daarna te overleven.',
+  'home.cloth.stat.heaviest': 'Ons zwaarste blanco item',
+  'home.cloth.stat.heaviestTee': 'Ons zwaarste shirt',
+  'home.cloth.stat.gots': 'GOTS-gecertificeerde biologische items',
+  'home.cloth.stat.oeko': 'OEKO-TEX getest',
+
+  'home.zero.label': '02 — Geen voorafgaande kosten',
+  'home.zero.title': 'Lanceer een collectie. Betaal niets vooraf.',
+  'home.zero.stock.title': 'Geen voorraad.',
+  'home.zero.stock.body': 'We drukken elk stuk zodra het verkocht is. Niets ligt op jouw kosten in een magazijn.',
+  'home.zero.min.title': 'Geen minimum.',
+  'home.zero.min.body': 'Lanceer één ontwerp of een volledige collectie, en voeg nieuwe stukken toe wanneer je wilt.',
+  'home.zero.margin.title': 'Jouw prijs, jouw marge.',
+  'home.zero.margin.body':
+    'Jij bepaalt de verkoopprijs. Alles boven onze basiskosten is voor jou, uitbetaald bij elke verkoop.',
+  'home.zero.cta': 'Aanmelden om te lanceren',
+  'home.zero.bulk': 'Liever een grote oplage?',
+
+  'home.assistant.label': '03 — Eén assistent',
   'home.assistant.title': 'Jij praat. Hij regelt de rest.',
   'home.assistant.body':
     'Mockups, offertes, proeven, productie en verzending lopen via één gesprek. Als de beslissing aan jou is, vraagt hij het. De rest gaat vanzelf.',
@@ -161,7 +230,7 @@ export const nl: Dictionary = {
   'home.assistant.shipped': 'Verzonden',
   'home.assistant.shippedText': '50 stuks, gevouwen en gelabeld. Track & trace naar jouw inbox.',
 
-  'home.paths.label': '02 — Twee manieren om te verkopen',
+  'home.paths.label': '04 — Twee manieren om te verkopen',
   'home.paths.title': 'Verkoop terwijl je gaat, of bestel een oplage.',
   'home.paths.shop.title': 'Shop',
   'home.paths.shop.meta': 'Geen voorraad · Geen voorafgaande kosten',
@@ -175,13 +244,14 @@ export const nl: Dictionary = {
   'home.paths.run.link': 'Hoe Run werkt',
 
   'home.catalog.title': '{n} blanco items.',
-  'home.catalog.body': 'Biologisch katoen, fair trade en veganistisch. Elk blanco item in de lijst is er een die wij zelf bedrukken.',
+  'home.catalog.body':
+    'Allemaal OEKO-TEX getest. Biologisch katoen in het grootste deel van het assortiment, {gots} items GOTS-gecertificeerd — van {min} gsm shirts tot {max} gsm zware items.',
   'home.catalog.link': 'Bekijk de catalogus',
 
   'home.studio.title': 'Gedrukt, gevouwen en gelabeld in Barcelona.',
   'home.studio.meta': 'Studio — Barcelona, ES',
 
-  'home.agents.label': '03 — Breng je eigen agent mee',
+  'home.agents.label': '05 — Breng je eigen agent mee',
   'home.agents.soon': 'Binnenkort',
   'home.agents.title': 'Werk je al met Claude of ChatGPT? Sluit hem aan.',
   'home.agents.body':

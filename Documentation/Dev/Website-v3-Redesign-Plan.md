@@ -197,3 +197,118 @@ Real photography, real client names, prices/MOQ/lead time values, About story re
   - Waitlist shows the brief as body text under a "Your brief" label (dropped `waitlist.briefAttached`).
   - `ListView` and `Intro` deleted; `Cursor` kept (still used by `app/template.tsx`).
 - Builds: website-v3 and platform pass. Lint: remaining errors are pre-existing (`react-hooks/set-state-in-effect` etc.), none new.
+
+---
+
+# Round 2 — Copy and catalog (28 Sep 2026)
+
+Approved mock: canvas row "Round 2 — copy & catalog" (artboards `HomeCopyV2`, `CatalogV2`).
+Local copies: `…/scratchpad/mocks/project/HomeCopyV2.dc.html`, `CatalogV2.dc.html`.
+
+## R2 rules
+- Every claim is verifiable from `lib/product-details` / `lib/variants`. **Compute stats from data**, never hardcode: heaviest blank gsm, heaviest tee gsm, lightest tee gsm, GOTS count (`certifications` includes `'GOTS'`), OEKO-TEX count, heavyweight count (`weightGsm >= 220`), print-method count (distinct techniques in `lib/product-details`).
+- Remove "vegan" and blanket "fair-trade" claims (only 12/122 are PETA-approved vegan). Allowed: "GOTS-certified", "OEKO-TEX tested", "organic cotton across most of the range", Fair Wear only as "made in Fair Wear member factories" if stated per product.
+- "Zero upfront" applies to the Shop path only (print on sale, no stock, no minimums, artist sets retail price, margin above base cost paid out per sale).
+
+## R2 work packages
+Order: **R2-1 → (R2-2 ∥ R2-3) → orchestrator verify**.
+
+### R2-1 — i18n (all six dictionaries + types.ts)
+Add/change these keys (EN source; translate naturally into pt/es/fr/nl/de; keep `{placeholders}`):
+```
+home.hero.subline        (changed) Heavyweight organic blanks, printed in our Barcelona studio. Launch a collection with zero upfront cost — you set the price, you keep the difference.
+home.hero.placeholder    (changed) Black 280 gsm tee, back print, 50 for the tour — need them by May
+home.hero.fact.zero      Zero upfront
+home.hero.fact.weight    Up to {gsm} gsm
+home.cloth.label         01 — The cloth
+home.cloth.title         Heavy cloth. Honest labels.
+home.cloth.body          We only print on blanks we’d wear to a show ourselves: dense organic cotton, certified end to end, built to survive a tour and every wash after it.
+home.cloth.stat.heaviest Our heaviest blank
+home.cloth.stat.heaviestTee Our heaviest tee
+home.cloth.stat.gots     GOTS-certified organic blanks
+home.cloth.stat.oeko     OEKO-TEX tested
+home.zero.label          02 — Zero upfront
+home.zero.title          Launch a collection. Pay nothing upfront.
+home.zero.stock.title    No stock.
+home.zero.stock.body     We print each piece when it sells. Nothing sits in a warehouse on your dime.
+home.zero.min.title      No minimums.
+home.zero.min.body       Launch one design or a full collection, and add new pieces whenever you like.
+home.zero.margin.title   Your price, your margin.
+home.zero.margin.body    You set the retail price. Everything above our base cost is yours, paid out with every sale.
+home.zero.cta            Apply to launch
+home.zero.bulk           Need a bulk run instead?
+home.assistant.label     (changed) 03 — One assistant
+home.paths.label         (changed) 04 — Two ways to sell
+home.agents.label        (changed) 05 — Bring your own agent
+home.catalog.body        (changed) OEKO-TEX tested, every one. Organic cotton across most of the range, {gots} blanks GOTS-certified — from {min} gsm tees to {max} gsm heavyweights.
+catalog.intro.label      Catalog
+catalog.intro.title      The blanks.
+catalog.intro.body       {n} garments we print on, and nothing we wouldn’t wear. OEKO-TEX tested, organic cotton across most of the range, weights up to {gsm} gsm.
+catalog.stat.gots        GOTS organic
+catalog.stat.heavy       Heavyweight 220 gsm+
+catalog.stat.methods     Print methods
+catalog.tabs.ariaLabel   Type
+catalog.toggle.heavy     Heavyweight 220+
+catalog.toggle.gots      GOTS organic
+catalog.badge.heavy      Heavyweight
+catalog.badge.gots       GOTS
+catalog.card.colours.one   {n} colour
+catalog.card.colours.other {n} colours
+catalog.band.label       Zero upfront
+catalog.band.title       Found the one? Launch it without paying a cent upfront.
+catalog.band.body        Pick a blank, describe the design, set your price. We print each piece when it sells — you keep everything above our base cost.
+catalog.band.cta         Apply to launch
+catalog.band.bulk        Bulk run instead
+```
+Also fix `app/llms.txt/route.ts` claim line (no vegan/fair-trade blanket claim; use the verifiable wording).
+
+### R2-2 — Home
+Files: `components/home/*`, `app/page.tsx`, new `lib/catalog-stats.ts` (shared computed stats — R2-3 imports it read-only).
+- Hero subline/placeholder; facts line: Zero upfront · {n} blanks · Up to {max} gsm · Printed in Barcelona.
+- New `Cloth` section after PrintedFor (mock `HomeCopyV2`): label, 2-line title, body right column, 4-stat row with hairline dividers (big Barlow 600 ~84px numbers, `gsm` suffix smaller, `/122` muted), three heavyweight product tiles (light colourway packshots via `displayColourFor`, captions name · type · gsm).
+- New `ZeroUpfront` section (raised band): label, title, 3 columns under a hairline, CTA "Apply to launch" → `/waitlist`, link "Need a bulk run instead?" → `/#paths`.
+- Section order: Hero → PrintedFor → Cloth → ZeroUpfront → Assistant → Paths → CatalogTeaser → Studio → Agents → ApplySection. Teaser copy uses computed values.
+
+### R2-3 — Catalog page
+Files: `components/GridView.tsx` (+ new `components/catalog/*` if it helps), `app/catalog/*`. Read-only: `lib/catalog-stats.ts` (wait for R2-2 to create it; if absent, create it with the agreed exports — see below — and tell the orchestrator).
+- Intro band: label, H1 "The blanks.", body, 3 stats on the right (GOTS count, heavyweight count, print methods).
+- Type dropdown → tab strip with counts (All + each type from `lib/catalog-filters`), horizontally scrollable on mobile; keep Fit/Colour/search and URL sync (`type` param).
+- Toggles: Heavyweight 220+ (`heavy=1`) and GOTS organic (`gots=1`), synced to the URL.
+- Cards: HEAVYWEIGHT / GOTS badges top-left of the tile; name + colour count on one line; mono meta "type · gsm · fit".
+- Zero-upfront band after the first 8 cards (desktop: 2 rows) linking to `/waitlist`; hidden when fewer than 8 results.
+- Keep the modal, favourites, light-colourway default and the entrance animation working.
+
+`lib/catalog-stats.ts` agreed exports: `CATALOG_STATS = { total, gots, oeko, heavy, heaviestGsm, heaviestTeeGsm, lightestTeeGsm, methods }` and `isHeavy(code)`, `isGots(code)`.
+
+---
+
+# Round 3 — Vintage-paper catalog and gallery (28 Sep 2026)
+
+Approved mock: canvas artboard "Round 3 — White catalog (fashion)" (`…/scratchpad/mocks/project/CatalogWhite.dc.html`), with the owner's change: **a vintage white, not a stark white**. Research notes: Entire Studios (packshots float on tinted paper), Our Legacy (giant header + sidebar), Billie Eilish store (dark text tile opens the grid), OUTFIT (oversized editorial tiles), grid/index toggles.
+
+## Vintage theme tokens
+Scoped with `[data-theme='vintage']` on the catalog and gallery page wrappers (header and footer keep the dark frame):
+| Token | Value |
+|---|---|
+| `--paper` | `#ECE5DA` (ecru page) |
+| `--raised` | `#E3DACB` (hover field, index row hover) |
+| `--surface` | `#E3DACB` |
+| `--well` | `#1A1714` |
+| `--signal` | `#1A1714` (warm black ink) |
+| `--muted` | `#6B6258` |
+| `--soft` | `#3A342E` |
+| `--hairline` | `rgba(26,23,20,.14)` |
+Dark accent blocks inside the vintage pages use `#1A1714` with bone `#EDE4DD` text.
+
+## R3 — Catalog + gallery (one agent; owns GridView, ProductModal, GalleryView, ViewShell, app/catalog, app/gallery, app/globals.css, components/catalog/*, lib/i18n/*)
+- Theme: add the vintage block to globals.css; the catalog/gallery wrappers set `data-theme="vintage"` and paint their own background so the ecru reaches the viewport edges between the dark header and footer. Transition feels deliberate (the route fade is enough; no flashing).
+- Catalog layout per mock: giant header "The blanks" + `(122)`, copy line, stats (from `lib/catalog-stats`); left sticky sidebar (Type list with counts, Cloth checkboxes Heavyweight 220+ / GOTS, Colour swatch grid, Fit list); right: count, search, Grid/Index toggle; 3-column grid, 44px row / 12px column gaps; packshots float on paper (no tile), hover = bone/parchment field + slight scale + dark "Start with this blank →" bar (links to `/waitlist?product=CODE`); card: uppercase name 13px/500, gsm right, mono spec line, 4 swatches + "+N" (only when N>0).
+- On vintage pages lead with the **base black** colourway (skip `displayColourFor` in the grid and modal initial colour); keep the helper for dark contexts (home teaser).
+- Editorial cells only when no filter/search is active: first cell dark note tile ("Built for the merch table."), a 2-column campaign-photo tile after row 1 ("Heavy cloth. Honest labels.", gallery photo), the dark "Zero upfront" band spanning the grid after row 3 (existing `catalog.band.*` keys), and a second 2-column photo tile further down ("Printed, folded and tagged here.").
+- Index view: table rows (thumb, name, type, gsm, certifications, colours), row click opens the modal; state synced to URL (`view=index`). Toggles `heavy=1` / `gots=1` and `type` synced to URL.
+- Mobile: sidebar becomes a horizontally scrolling type strip + a "Filters" button opening a sheet; grid 2 columns; editorial tiles span 2.
+- Product modal inherits the vintage tokens when opened from the catalog.
+- Gallery on vintage paper with the same header treatment (big "Work" title + count), captions in mono.
+- New i18n keys (all six dictionaries): note tile kicker/title/foot, the two editorial titles and kickers, `catalog.view.grid`, `catalog.view.index`, index column headers, sidebar section labels not already present, "Start with this blank", "Filters", gallery title.
+
+## R2-2 — Home (unchanged from Round 2; runs in parallel, owns components/home/* and app/page.tsx only)

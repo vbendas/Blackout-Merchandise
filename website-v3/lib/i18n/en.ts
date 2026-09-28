@@ -36,6 +36,49 @@ export const en: Dictionary = {
   'catalog.cardDetails': 'details',
   'catalog.noSavedBlanks': 'No saved blanks yet.',
 
+  'catalog.intro.label': 'Catalog',
+  'catalog.intro.title': 'The blanks.',
+  'catalog.intro.body':
+    '{n} garments we print on, and nothing we wouldn’t wear. OEKO-TEX tested, organic cotton across most of the range, weights up to {gsm} gsm.',
+  'catalog.stat.gots': 'GOTS organic',
+  'catalog.stat.heavy': 'Heavyweight 220 gsm+',
+  'catalog.stat.methods': 'Print methods',
+  'catalog.tabs.ariaLabel': 'Type',
+  'catalog.toggle.heavy': 'Heavyweight 220+',
+  'catalog.toggle.gots': 'GOTS organic',
+  'catalog.badge.heavy': 'Heavyweight',
+  'catalog.badge.gots': 'GOTS',
+  'catalog.card.colours.one': '{n} colour',
+  'catalog.card.colours.other': '{n} colours',
+  'catalog.band.label': 'Zero upfront',
+  'catalog.band.title': 'Found the one? Launch it without paying a cent upfront.',
+  'catalog.band.body':
+    'Pick a blank, describe the design, set your price. We print each piece when it sells — you keep everything above our base cost.',
+  'catalog.band.cta': 'Apply to launch',
+  'catalog.band.bulk': 'Bulk run instead',
+
+  'catalog.filter.cloth': 'Cloth',
+  'catalog.view.grid': 'Grid',
+  'catalog.view.index': 'Index',
+  'catalog.index.name': 'Name',
+  'catalog.index.type': 'Type',
+  'catalog.index.weight': 'Weight',
+  'catalog.index.cert': 'Cert.',
+  'catalog.index.colours': 'Colours',
+  'catalog.card.start': 'Start with this blank',
+  'catalog.filters.button': 'Filters',
+  'catalog.filter.title': 'Filter',
+  'catalog.filter.close': 'Close filters',
+  'catalog.filter.show.one': 'Show {n} blank',
+  'catalog.filter.show.other': 'Show {n} blanks',
+  'catalog.note.kicker': 'MerchFrom · Blanks',
+  'catalog.note.title': 'Built for the merch table.',
+  'catalog.note.foot': 'Heavyweight · Organic · Printed in Barcelona',
+  'catalog.editorial.cloth.kicker': 'Cloth · Barcelona',
+  'catalog.editorial.cloth.title': 'Heavy cloth.\nHonest labels.',
+  'catalog.editorial.studio.kicker': 'Studio · Barcelona',
+  'catalog.editorial.studio.title': 'Printed, folded\nand tagged here.',
+
   'catalog.type.tshirts': 'T-shirts',
   'catalog.type.sweatsHoodies': 'Sweats & Hoodies',
   'catalog.type.jackets': 'Jackets',
@@ -85,6 +128,9 @@ export const en: Dictionary = {
 
   'gallery.pieceLabel': 'MerchFrom piece {n}',
   'gallery.tapHint': 'tap to see the other angle',
+  'gallery.title': 'Work',
+  'gallery.count.one': '{n} piece',
+  'gallery.count.other': '{n} pieces',
 
   'about.headline': 'We’re not for everyone.',
   'about.subline': 'But mom always said you’re not everyone else.',
@@ -126,9 +172,9 @@ export const en: Dictionary = {
 
   'home.hero.title': 'Merch, made properly.',
   'home.hero.subline':
-    'Describe the piece. Approve the proof. We print, pack and ship it from Barcelona — you keep the margin.',
+    'Heavyweight organic blanks, printed in our Barcelona studio. Launch a collection with zero upfront cost — you set the price, you keep the difference.',
   'home.hero.promptLabel': 'Describe your piece',
-  'home.hero.placeholder': 'Black tee, back print, 50 for the tour — need them by May',
+  'home.hero.placeholder': 'Black 280 gsm tee, back print, 50 for the tour — need them by May',
   'home.hero.start': 'Start',
   'home.hero.chip.tour': 'Tour tee, 100 pcs',
   'home.hero.chip.festival': 'Festival crew shirts',
@@ -137,6 +183,8 @@ export const en: Dictionary = {
   'home.hero.fact.blanks': '{n} blanks',
   'home.hero.fact.printed': 'Printed in Barcelona',
   'home.hero.fact.from': 'From {price} / piece',
+  'home.hero.fact.zero': 'Zero upfront',
+  'home.hero.fact.weight': 'Up to {gsm} gsm',
   'home.brief.label': 'Your brief',
   'home.brief.next': 'What happens next',
   'home.brief.step1': 'Mockups on real blanks',
@@ -148,7 +196,28 @@ export const en: Dictionary = {
 
   'home.printedFor': 'Printed for',
 
-  'home.assistant.label': '01 — One assistant',
+  'home.cloth.label': '01 — The cloth',
+  'home.cloth.title': 'Heavy cloth. Honest labels.',
+  'home.cloth.body':
+    'We only print on blanks we’d wear to a show ourselves: dense organic cotton, certified end to end, built to survive a tour and every wash after it.',
+  'home.cloth.stat.heaviest': 'Our heaviest blank',
+  'home.cloth.stat.heaviestTee': 'Our heaviest tee',
+  'home.cloth.stat.gots': 'GOTS-certified organic blanks',
+  'home.cloth.stat.oeko': 'OEKO-TEX tested',
+
+  'home.zero.label': '02 — Zero upfront',
+  'home.zero.title': 'Launch a collection. Pay nothing upfront.',
+  'home.zero.stock.title': 'No stock.',
+  'home.zero.stock.body': 'We print each piece when it sells. Nothing sits in a warehouse on your dime.',
+  'home.zero.min.title': 'No minimums.',
+  'home.zero.min.body': 'Launch one design or a full collection, and add new pieces whenever you like.',
+  'home.zero.margin.title': 'Your price, your margin.',
+  'home.zero.margin.body':
+    'You set the retail price. Everything above our base cost is yours, paid out with every sale.',
+  'home.zero.cta': 'Apply to launch',
+  'home.zero.bulk': 'Need a bulk run instead?',
+
+  'home.assistant.label': '03 — One assistant',
   'home.assistant.title': 'You talk. It handles the rest.',
   'home.assistant.body':
     'Mockups, quotes, proofs, production and shipping run through one conversation. When a decision is yours, it asks. Everything else just moves.',
@@ -164,7 +233,7 @@ export const en: Dictionary = {
   'home.assistant.shipped': 'Shipped',
   'home.assistant.shippedText': '50 pieces, folded and tagged. Tracking sent to your inbox.',
 
-  'home.paths.label': '02 — Two ways to sell',
+  'home.paths.label': '04 — Two ways to sell',
   'home.paths.title': 'Sell as you go, or order a run.',
   'home.paths.shop.title': 'Shop',
   'home.paths.shop.meta': 'No stock · No upfront cost',
@@ -178,13 +247,14 @@ export const en: Dictionary = {
   'home.paths.run.link': 'How Run works',
 
   'home.catalog.title': '{n} blanks.',
-  'home.catalog.body': 'Organic cotton, fair-trade and vegan. Every blank listed is one we print on ourselves.',
+  'home.catalog.body':
+    'OEKO-TEX tested, every one. Organic cotton across most of the range, {gots} blanks GOTS-certified — from {min} gsm tees to {max} gsm heavyweights.',
   'home.catalog.link': 'Browse the catalog',
 
   'home.studio.title': 'Printed, folded and tagged in Barcelona.',
   'home.studio.meta': 'Studio — Barcelona, ES',
 
-  'home.agents.label': '03 — Bring your own agent',
+  'home.agents.label': '05 — Bring your own agent',
   'home.agents.soon': 'Soon',
   'home.agents.title': 'Already work with Claude or ChatGPT? Plug it in.',
   'home.agents.body':

@@ -3,8 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, type CSSProperties, type KeyboardEvent } from 'react';
-import { PRODUCTS } from '@/lib/products';
-import { SITE_FACTS } from '@/lib/site';
+import { CATALOG_STATS } from '@/lib/catalog-stats';
 import { useT, type Key, type TFunction } from '@/lib/i18n';
 import { FOCUS_RING, HAIRLINE, MONO_LABEL, PRIMARY_BTN, SECONDARY_BTN } from './styles';
 
@@ -119,10 +118,11 @@ export function Hero() {
   }
 
   const facts = [
-    SITE_FACTS.fromPrice ? t('home.hero.fact.from', { price: SITE_FACTS.fromPrice }) : null,
-    t('home.hero.fact.blanks', { n: PRODUCTS.length }),
+    t('home.hero.fact.zero'),
+    t('home.hero.fact.blanks', { n: CATALOG_STATS.total }),
+    t('home.hero.fact.weight', { gsm: CATALOG_STATS.heaviestGsm }),
     t('home.hero.fact.printed'),
-  ].filter((fact): fact is string => Boolean(fact));
+  ];
 
   const copyClassName = `flex-col gap-7 ${sent ? 'hidden md:flex' : 'flex'} md:order-1`;
 
