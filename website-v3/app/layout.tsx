@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow, IBM_Plex_Mono } from "next/font/google";
+import { Barlow, Barlow_Condensed, IBM_Plex_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SmoothScroll } from "@/components/SmoothScroll";
@@ -14,7 +14,16 @@ import "./globals.css";
 const barlow = Barlow({
   variable: "--font-barlow",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+});
+
+// Condensed caps display face: masthead, outlined words, set list,
+// wordmarks, ink buttons.
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-condensed",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 
@@ -64,7 +73,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${barlow.variable} ${ibmPlexMono.variable} antialiased`}
+      className={`${barlow.variable} ${barlowCondensed.variable} ${ibmPlexMono.variable} antialiased`}
     >
       {/* No height pin on <html>: Lenis watches the root element's box to
           recompute its scroll limit, and height:100% would freeze it at
@@ -79,7 +88,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {/* Fixed/absolute over the page top on every route — see
               SiteHeader for how it stays legible over the home hero. */}
           <SiteHeader />
-          {children}
+          {/* Round 7: paper on every route. The footer (sibling) stays dark. */}
+          <div data-theme="vintage" style={{ background: "var(--paper)", color: "var(--signal)" }}>
+            {children}
+          </div>
           <SiteFooter />
         </LanguageProvider>
       </body>

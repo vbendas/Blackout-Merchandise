@@ -1,66 +1,84 @@
 'use client';
 
 import Link from 'next/link';
-import { RegisterMark } from '@/components/RegisterMark';
+import { FittedWord } from '@/components/editorial/FittedWord';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useT, type Key } from '@/lib/i18n';
-import { SITE_NAME } from '@/lib/site';
+import { SOCIALS } from '@/lib/socials';
 
-const FOOTER_LINKS: { href: string; key: Key }[] = [
-  { href: '/catalog', key: 'nav.catalog' },
+const INDEX_LINKS: { href: string; key: Key }[] = [
+  { href: '/#cloth', key: 'nav.cloth' },
   { href: '/#paths', key: 'nav.shopRun' },
+  { href: '/#catalog', key: 'nav.blanks' },
   { href: '/#agents', key: 'nav.agents' },
-  { href: '/gallery', key: 'nav.gallery' },
-  { href: '/about', key: 'nav.about' },
-  { href: '/contact', key: 'nav.contact' },
 ];
 
-// Mounted once in the root layout, after `children` — normal document
-// flow, at the bottom of every route.
+const STUDIO_LINKS: { href: string; key: Key }[] = [
+  { href: '/about', key: 'nav.about' },
+  { href: '/gallery', key: 'nav.gallery' },
+  { href: '/contact', key: 'nav.contact' },
+  { href: '/waitlist', key: 'nav.apply' },
+];
+
+// Mounted once in the root layout, after `children` — the only dark band
+// on the paper site. Signature: MERCHFROM fitted to the content width.
 export function SiteFooter() {
   const t = useT();
   const year = new Date().getFullYear();
 
   return (
-    <footer
-      className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between"
-      style={{
-        borderTop: '1px solid var(--hairline)',
-        background: 'var(--raised)',
-        paddingLeft: 'var(--gutter)',
-        paddingRight: 'var(--gutter)',
-        paddingTop: '56px',
-        paddingBottom: '32px',
-      }}
-    >
-      <div className="flex flex-col gap-3">
-        <Link href="/" aria-label={t('nav.homeAriaLabel')} className="flex items-center gap-2">
-          <RegisterMark className="h-5 w-5" />
-          <span className="text-sm" style={{ fontWeight: 600, letterSpacing: '0.02em' }}>
-            {SITE_NAME}
-          </span>
-        </Link>
-        <p className="text-sm" style={{ color: 'var(--muted)' }}>
-          {t('corners.tagline')}
-        </p>
+    <footer className="site-footer">
+      <div className="site-footer-cols">
+        <div className="site-footer-intro flex flex-col gap-3">
+          <span className="site-footer-label">MerchFrom</span>
+          <p className="m-0 max-w-[360px] text-[20px] font-light leading-[1.35] md:text-[22px]">
+            {t('footer.tagline')}
+          </p>
+        </div>
+
+        <nav className="site-footer-col flex flex-col gap-2.5" aria-label={t('footer.index')}>
+          <span className="site-footer-label mb-1.5">{t('footer.index')}</span>
+          {INDEX_LINKS.map(({ href, key }) => (
+            <Link key={href} href={href} className="site-footer-link">
+              {t(key)}
+            </Link>
+          ))}
+        </nav>
+
+        <nav className="site-footer-col flex flex-col gap-2.5" aria-label={t('footer.studio')}>
+          <span className="site-footer-label mb-1.5">{t('footer.studio')}</span>
+          {STUDIO_LINKS.map(({ href, key }) => (
+            <Link key={href} href={href} className="site-footer-link">
+              {t(key)}
+            </Link>
+          ))}
+        </nav>
+
+        <nav className="site-footer-col flex flex-col gap-2.5" aria-label={t('footer.elsewhere')}>
+          <span className="site-footer-label mb-1.5">{t('footer.elsewhere')}</span>
+          {SOCIALS.map(({ label, href }) => (
+            <a key={label} href={href} className="site-footer-link" target="_blank" rel="noreferrer">
+              {label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="site-footer-col flex flex-col items-start gap-2.5">
+          <span className="site-footer-label mb-1.5">{t('footer.language')}</span>
+          <LanguageSwitcher />
+        </div>
       </div>
 
-      <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm" style={{ color: 'var(--soft)' }}>
-        {FOOTER_LINKS.map(({ href, key }) => (
-          <Link key={href} href={href}>
-            {t(key)}
-          </Link>
-        ))}
-      </nav>
+      <div style={{ marginTop: '40px' }}>
+        <FittedWord text="MerchFrom" className="site-footer-word" decorative />
+      </div>
 
-      <div className="flex flex-col items-start gap-4 md:items-end">
-        <LanguageSwitcher />
-        <p
-          className="text-xs"
-          style={{ fontFamily: 'var(--font-mono), monospace', color: 'var(--muted)' }}
-        >
-          {t('footer.rights', { year })}
-        </p>
+      <div className="site-footer-base">
+        <span>{t('footer.copyright', { year })}</span>
+        <span>{t('footer.motto')}</span>
+        <a href="/llms.txt" className="site-footer-link" style={{ fontSize: 'inherit', color: 'inherit' }}>
+          llms.txt
+        </a>
       </div>
     </footer>
   );

@@ -1,9 +1,9 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
+import { Halftone } from '@/components/editorial/Halftone';
 import { useT, type Key } from '@/lib/i18n';
-import { FOCUS_RING, HAIRLINE, MONO_LABEL, MORE_LINK, SECTION_PAD } from './styles';
+import { MONO_LABEL } from './styles';
 
 interface PathCard {
   image: string;
@@ -22,7 +22,7 @@ const CARDS: PathCard[] = [
     linkKey: 'home.paths.shop.link',
   },
   {
-    image: '/gallery/9a.png',
+    image: '/gallery/2a.png',
     titleKey: 'home.paths.run.title',
     metaKey: 'home.paths.run.meta',
     bodyKey: 'home.paths.run.body',
@@ -36,30 +36,40 @@ export function Paths() {
   return (
     <section
       id="paths"
-      className={`flex flex-col gap-10 md:gap-14 ${SECTION_PAD}`}
-      style={{ paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)', borderTop: HAIRLINE }}
+      className="home-section"
+      style={{ paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)', borderTop: '1px solid var(--hairline)' }}
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5" style={{ borderBottom: '1px solid var(--signal)', paddingBottom: '16px' }}>
         <span style={MONO_LABEL}>{t('home.paths.label')}</span>
-        <h2 className="m-0 text-[36px] leading-[1.08] font-semibold tracking-[-0.015em] md:text-[56px] md:leading-[1.05]">
+        <h2 className="home-setlist-heading" style={{ margin: 0, maxWidth: '16ch' }}>
           {t('home.paths.title')}
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-6">
-        {CARDS.map((card) => (
-          <div key={card.titleKey} className="flex flex-col gap-5">
-            <div className="relative h-[260px] overflow-hidden md:h-[320px]" style={{ background: 'var(--surface)' }}>
-              <Image src={card.image} alt="" fill className="object-cover" sizes="(min-width: 768px) 45vw, 100vw" />
+      <div className="grid grid-cols-1 gap-14 md:grid-cols-2 md:gap-8">
+        {CARDS.map((card, i) => (
+          <div key={card.titleKey} className="flex flex-col gap-5" data-rise>
+            <Halftone
+              src={card.image}
+              sizes="(min-width: 768px) 45vw, 100vw"
+              className="h-[300px] md:h-[440px]"
+            />
+            <div
+              className="flex items-baseline justify-between gap-4"
+              style={{ borderBottom: '1px solid var(--hairline)', paddingBottom: '14px' }}
+            >
+              <span className="flex items-baseline gap-4">
+                <span style={MONO_LABEL}>{String(i + 1).padStart(2, '0')}</span>
+                <h3 className="home-setlist-title" style={{ margin: 0 }}>
+                  {t(card.titleKey)}
+                </h3>
+              </span>
+              <span style={{ ...MONO_LABEL, textAlign: 'right' }}>{t(card.metaKey)}</span>
             </div>
-            <div className="flex items-baseline justify-between">
-              <h3 className="m-0 text-[26px] font-semibold md:text-[32px]">{t(card.titleKey)}</h3>
-              <span style={MONO_LABEL}>{t(card.metaKey)}</span>
-            </div>
-            <p className="m-0 max-w-[520px] text-[16px] leading-[1.5] md:text-[17px]" style={{ color: 'var(--soft)' }}>
+            <p className="m-0 max-w-[520px] text-[16px] leading-[1.55]" style={{ color: 'var(--soft)' }}>
               {t(card.bodyKey)}
             </p>
-            <Link href="/waitlist" className={`self-start text-[15px] ${FOCUS_RING}`} style={MORE_LINK}>
+            <Link href="/waitlist" className="link-ink self-start">
               {t(card.linkKey)} →
             </Link>
           </div>

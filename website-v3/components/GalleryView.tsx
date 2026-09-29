@@ -143,7 +143,7 @@ export function GalleryView() {
                 alt={t('gallery.pieceLabel', { n: index + 1 })}
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover transition-opacity duration-500 ease-out group-hover:opacity-0"
+                className="gallery-zoom object-cover transition-opacity duration-500 ease-out group-hover:opacity-0"
                 style={{ opacity: isTapped ? 0 : undefined }}
               />
               <Image
@@ -152,25 +152,22 @@ export function GalleryView() {
                 aria-hidden
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+                className="gallery-zoom object-cover opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
                 style={{ opacity: isTapped ? 1 : undefined }}
               />
-              <span
-                aria-hidden
-                className="absolute bottom-0 left-0 uppercase opacity-0 transition-opacity duration-[400ms] ease-out group-hover:opacity-100"
-                style={{
-                  fontFamily: 'var(--font-mono), monospace',
-                  fontSize: '12px',
-                  letterSpacing: '0.08em',
-                  color: 'var(--signal)',
-                  mixBlendMode: 'difference',
-                  padding: '12px',
-                  opacity: isTapped ? 1 : undefined,
-                }}
-              >
-                {photo.client} — {photo.category}
-              </span>
             </div>
+            <span
+              className="block uppercase"
+              style={{
+                fontFamily: 'var(--font-mono), monospace',
+                fontSize: '12px',
+                letterSpacing: '0.08em',
+                color: 'var(--muted)',
+                paddingTop: '10px',
+              }}
+            >
+              {photo.client} · {photo.category}
+            </span>
           </div>
         );
       })}

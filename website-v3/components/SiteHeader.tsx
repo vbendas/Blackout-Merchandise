@@ -3,10 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { RegisterMark } from '@/components/RegisterMark';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useT, type Key } from '@/lib/i18n';
-import { PLATFORM_URL, SITE_NAME } from '@/lib/site';
+import { PLATFORM_URL } from '@/lib/site';
 
 const HAIRLINE = '1px solid var(--hairline)';
 
@@ -15,25 +14,29 @@ interface NavLink {
   key: Key;
 }
 
-// Home's own sections (built in WP2). Anchor links work from any route
-// since they carry the leading "/".
+// Home's own sections (Round 6 — premium editorial rewrite). Anchor
+// links work from any route since they carry the leading "/". Shared by
+// both header variants: the home issue-line nav and the wordmark nav on
+// every other route.
 const NAV_LINKS: NavLink[] = [
-  { href: '/#assistant', key: 'nav.howItWorks' },
+  { href: '/#cloth', key: 'nav.cloth' },
   { href: '/#paths', key: 'nav.shopRun' },
-  { href: '/catalog', key: 'nav.catalog' },
+  { href: '/#catalog', key: 'nav.blanks' },
   { href: '/#agents', key: 'nav.agents' },
 ];
 
+// Ink block, square corners — same on both header variants.
 const applyButton: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
-  height: '44px',
-  padding: '0 20px',
-  borderRadius: '4px',
+  height: '40px',
+  padding: '0 18px',
   background: 'var(--signal)',
   color: 'var(--paper)',
-  fontSize: '13px',
-  fontWeight: 600,
+  fontSize: '12px',
+  fontWeight: 500,
+  letterSpacing: '0.14em',
+  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 };
 
@@ -47,7 +50,13 @@ const applyButton: React.CSSProperties = {
 export function SiteHeader() {
   const pathname = usePathname();
   const t = useT();
-  const vintage = pathname.startsWith('/catalog') || pathname.startsWith('/gallery');
+  const isHome = pathname === '/';
+  // Round 6: the home page moves to the same vintage paper ground as
+  // the catalog/gallery, and the header re-scopes with it so the issue
+  // line and nav read in ink, not bone.
+  // Round 7: paper on every route. Round 8: the home hero is an ink
+  // band, so on '/' the header (which overlays it) reads bone on black.
+  const theme = isHome ? 'ink' : 'vintage';
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const firstMenuLinkRef = useRef<HTMLAnchorElement>(null);
@@ -92,10 +101,14 @@ export function SiteHeader() {
   return (
     <>
       <header
-        data-theme={vintage ? 'vintage' : undefined}
+        data-theme={theme}
         // Pinned only while the mobile menu is open, so its close button
-        // stays reachable however far the page was scrolled.
-        className={`${menuOpen ? 'fixed' : 'absolute'} inset-x-0 top-0 z-50 flex items-center justify-between`}
+        // stays reachable however far the page was scrolled. Home has no
+        // left-side brand mark (the fitted masthead below is the logo),
+        // so its mobile row only has the right-hand Apply+menu block —
+        // justify-end there, back to justify-between once the issue
+        // line reappears at md.
+        className={`${menuOpen ? 'fixed' : 'absolute'} inset-x-0 top-0 z-50 flex items-center ${isHome ? 'justify-end md:justify-between' : 'justify-between'}`}
         style={{
           height: 'var(--header-h)',
           paddingLeft: 'var(--gutter)',
@@ -104,15 +117,34 @@ export function SiteHeader() {
           background: 'transparent',
         }}
       >
-        <Link href="/" aria-label={t('nav.homeAriaLabel')} className="flex items-center gap-2">
-          <RegisterMark className="h-6 w-6" />
-          <span className="text-sm" style={{ fontWeight: 600, letterSpacing: '0.02em' }}>
-            {SITE_NAME}
+        {isHome ? (
+          // Home variant: mono issue line instead of the crosshair mark
+          // + wordmark — the giant masthead in Cover is the only logo
+          // on this page. Desktop only; mobile keeps just Apply + menu.
+          <span
+            className="hidden md:inline"
+            style={{
+              fontFamily: 'var(--font-mono), monospace',
+              fontSize: '11px',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+            }}
+          >
+            {t('home.header.line')}
           </span>
-        </Link>
+        ) : (
+          <Link href="/" aria-label={t('nav.homeAriaLabel')} className="flex items-center">
+            <span className="site-wordmark">MerchFrom</span>
+          </Link>
+        )}
 
-        {/* Desktop nav — hidden below 768px per the mobile layout. */}
-        <nav className="hidden items-center gap-7 text-sm md:flex" style={{ fontWeight: 500 }}>
+        {/* Desktop nav — hidden below 768px per the mobile layout. Home
+            reads small-caps (uppercase, tracked) instead of the plain
+            sentence-case nav used elsewhere. */}
+        <nav
+          className="header-cap hidden items-center gap-9 md:flex"
+        >
           {NAV_LINKS.map(({ href, key }) => (
             <Link
               key={href}
@@ -123,10 +155,6 @@ export function SiteHeader() {
               {t(key)}
             </Link>
           ))}
-
-          <span aria-hidden style={{ opacity: 0.3 }}>
-            |
-          </span>
 
           {PLATFORM_URL && (
             <a href={PLATFORM_URL} style={{ opacity: 0.7 }}>
@@ -140,7 +168,7 @@ export function SiteHeader() {
 
         {/* Mobile: mark + wordmark (above), Apply + menu trigger (here). */}
         <div className="flex items-center gap-3 md:hidden">
-          <Link href="/waitlist" style={{ ...applyButton, height: '36px', padding: '0 16px', fontSize: '12px' }}>
+          <Link href="/waitlist" style={{ ...applyButton, height: '36px', padding: '0 16px' }}>
             {t('nav.apply')}
           </Link>
           <button
@@ -181,7 +209,7 @@ export function SiteHeader() {
       {menuOpen && (
         <div
           id="site-menu"
-          data-theme={vintage ? 'vintage' : undefined}
+          data-theme={theme}
           role="dialog"
           aria-modal="true"
           aria-label={t('nav.menu')}

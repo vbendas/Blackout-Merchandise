@@ -2,39 +2,31 @@
 
 import { CLIENTS } from '@/lib/clients';
 import { useT } from '@/lib/i18n';
-import { HAIRLINE, MONO_LABEL } from './styles';
+import { MONO_LABEL } from './styles';
 
-// One row of client names — the mock shows six; slice rather than
-// render all twelve placeholder entries so the row stays a single,
-// evenly spaced line on desktop.
-const NAMES = CLIENTS.slice(0, 6).map((client) => client.name);
+// Round 6: the roster of client names is still the placeholder set from
+// the v2 gallery pieces (see lib/clients.ts) — not real clients yet. Per
+// the redesign plan, this section is kept in the tree but renders
+// nothing until CLIENTS holds real entries; flip this flag once it
+// does, and the single quiet mono line below picks it up automatically.
+const CLIENTS_ARE_REAL = false;
 
 export function PrintedFor() {
   const t = useT();
 
+  if (!CLIENTS_ARE_REAL || CLIENTS.length === 0) return null;
+
+  const names = CLIENTS.slice(0, 8).map((client) => client.name);
+
   return (
-    <section
-      aria-label={t('home.printedFor')}
-      className="flex flex-col gap-4 md:flex-row md:items-center md:gap-14"
-      style={{
-        borderBottom: HAIRLINE,
-        paddingLeft: 'var(--gutter)',
-        paddingRight: 'var(--gutter)',
-        paddingTop: '24px',
-        paddingBottom: '24px',
-        minHeight: '120px',
-        boxSizing: 'border-box',
-      }}
+    <div
+      className="flex flex-wrap items-center gap-x-4 gap-y-2"
+      style={{ paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)', paddingBottom: '64px' }}
     >
-      <span style={{ ...MONO_LABEL, flexShrink: 0 }}>{t('home.printedFor')}</span>
-      <div
-        className="grid grid-cols-3 gap-x-4 gap-y-3 text-[15px] md:flex md:flex-1 md:flex-row md:justify-between md:text-[20px]"
-        style={{ fontWeight: 500, letterSpacing: '0.02em', color: 'var(--soft)' }}
-      >
-        {NAMES.map((name) => (
-          <span key={name}>{name}</span>
-        ))}
-      </div>
-    </section>
+      <span style={MONO_LABEL}>{t('home.printedFor')}</span>
+      <span style={{ ...MONO_LABEL, color: 'var(--soft)', textTransform: 'none', letterSpacing: 'normal' }}>
+        {names.join(' · ')}
+      </span>
+    </div>
   );
 }

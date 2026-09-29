@@ -1,67 +1,43 @@
 'use client';
 
+import { EditorialPage, Row } from '@/components/editorial/EditorialPage';
 import { useT } from '@/lib/i18n';
 import { SOCIALS } from '@/lib/socials';
 
-const display = {
-  fontFamily: 'var(--font-display), sans-serif',
-};
-
 // PLACEHOLDER — swap for the real address when the inbox exists.
 const EMAIL = 'hello@merchfrom.com';
+
+const VALUE = 'font-[family-name:var(--font-condensed)] text-[32px] leading-none font-semibold uppercase';
 
 export function ContactCopy() {
   const t = useT();
 
   return (
-    <>
-      <h1
-        className="leading-[1.0]"
-        style={{ ...display, fontWeight: 600, fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}
-      >
-        {t('contact.headline')}
-      </h1>
-      <a
-        href={`mailto:${EMAIL}`}
-        className="leading-[1.05] transition-[filter] duration-200 hover:blur-[3px]"
-        style={{
-          ...display,
-          fontWeight: 600,
-          fontSize: 'clamp(1.75rem, 5vw, 3rem)',
-          color: 'var(--muted)',
-        }}
-      >
-        {EMAIL}
-      </a>
-
-      <div className="mt-16 grid gap-6 text-[17px] leading-[1.5] md:mt-24 md:grid-cols-12 md:gap-8" style={{ color: 'var(--soft)' }}>
-        <p className="md:col-span-4">{t('contact.paragraph')}</p>
-        <div
-          className="flex flex-col gap-1 uppercase tracking-[0.08em] md:col-span-4"
-          style={{ fontFamily: 'var(--font-mono), monospace', fontSize: '12px' }}
-        >
-          <span style={{ color: 'var(--muted)' }}>{t('contact.shop')}</span>
-          <span style={{ color: 'var(--signal)' }}>Barcelona, Spain</span>
-        </div>
-        <div
-          className="flex flex-col gap-1 uppercase tracking-[0.08em] md:col-span-4"
-          style={{ fontFamily: 'var(--font-mono), monospace', fontSize: '12px' }}
-        >
-          <span style={{ color: 'var(--muted)' }}>{t('contact.elsewhere')}</span>
+    <EditorialPage
+      index={`INDX.30 — ${t('contact.headline')}`}
+      title={t('contact.headline')}
+      statement={t('contact.statement')}
+      plate={{ src: '/gallery/7a.png', caption: `${t('plate.label')} 03 — Void · Outerwear` }}
+    >
+      <Row n="01" label={t('contact.email')}>
+        <a href={`mailto:${EMAIL}`} className="link-ink w-fit text-[13px]">
+          {EMAIL}
+        </a>
+      </Row>
+      <Row n="02" label={t('contact.shop')}>
+        <span className={VALUE}>Barcelona, Spain</span>
+      </Row>
+      <Row n="03" label={t('contact.elsewhere')} last>
+        <ul className="flex flex-wrap gap-x-8 gap-y-3">
           {SOCIALS.map((social) => (
-            <a
-              key={social.label}
-              href={social.href}
-              target="_blank"
-              rel="noreferrer"
-              className="underline decoration-1 underline-offset-4"
-              style={{ color: 'var(--signal)' }}
-            >
-              {social.label}
-            </a>
+            <li key={social.label}>
+              <a href={social.href} target="_blank" rel="noreferrer" className="link-ink">
+                {social.label}
+              </a>
+            </li>
           ))}
-        </div>
-      </div>
-    </>
+        </ul>
+      </Row>
+    </EditorialPage>
   );
 }

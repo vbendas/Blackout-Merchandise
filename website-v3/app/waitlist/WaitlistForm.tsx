@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import Image from 'next/image';
+import { useEffect, useId, useRef, useState, useTransition } from 'react';
+import { EditorialPage, MONO, Row } from '@/components/editorial/EditorialPage';
 import { PRODUCTS, type Product } from '@/lib/products';
 import { PRODUCT_DETAILS } from '@/lib/product-details';
 import { colourName } from '@/lib/colour-names';
@@ -8,19 +10,7 @@ import { useFavourites } from '@/lib/favourites';
 import { useT, type Key } from '@/lib/i18n';
 import { submitWaitlist } from './actions';
 
-const HAIRLINE = '1px solid var(--hairline)';
 const BRIEF_MAX = 500;
-
-const display = {
-  fontFamily: 'var(--font-display), sans-serif',
-};
-
-const mono: React.CSSProperties = {
-  fontFamily: 'var(--font-mono), monospace',
-  fontSize: '12px',
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-};
 
 // Canonical English values — sent to the server and validated there
 // against the exact same list (see actions.ts); only the displayed
@@ -65,6 +55,8 @@ export function WaitlistForm() {
   const [urlFavourites, setUrlFavourites] = useState<string[]>([]);
   const [dismissed, setDismissed] = useState<string[]>([]);
   const [attachedFavourites, setAttachedFavourites] = useState(0);
+  const roleGroupId = useId();
+  const roleRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const { codes: favouriteCodes, has: hasFavourite, toggle: toggleFavourite } = useFavourites();
 
   useEffect(() => {
@@ -102,6 +94,19 @@ export function WaitlistForm() {
     setDismissed((prev) => (prev.includes(code) ? prev : [...prev, code]));
   }
 
+  function onRoleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>, index: number) {
+    const last = ROLE_OPTIONS.length - 1;
+    let next = -1;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = index === last ? 0 : index + 1;
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = index === 0 ? last : index - 1;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = last;
+    if (next < 0) return;
+    e.preventDefault();
+    setRole(ROLE_OPTIONS[next]);
+    roleRefs.current[next]?.focus();
+  }
+
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -124,162 +129,165 @@ export function WaitlistForm() {
     });
   }
 
+  const showAttachments = Boolean(brief || project || savedBlanks.length > 0);
+  const roleIndex = ROLE_OPTIONS.indexOf(role);
+  const tabbable = roleIndex === -1 ? 0 : roleIndex;
+  const nextRows = [t('waitlist.next1'), t('waitlist.next2'), t('waitlist.next3')];
+
+  const nextAside = (
+    <div style={{ marginTop: '36px', borderTop: '1px solid var(--signal)' }}>
+      <h2 style={{ ...MONO, margin: 0, padding: '14px 0', fontWeight: 400 }}>{t('home.brief.next')}</h2>
+      <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        {nextRows.map((text, i) => (
+          <li
+            key={i}
+            className="grid grid-cols-[40px_1fr]"
+            style={{ padding: '14px 0', borderTop: '1px solid var(--hairline)' }}
+          >
+            <span style={MONO}>{String(i + 1).padStart(2, '0')}</span>
+            <span className="text-[16px] leading-[1.45]">{text}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+
   return (
-    <>
-      <h1 className="leading-[1.0]" style={{ ...display, fontWeight: 600, fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}>
-        {t('waitlist.headline')}
-      </h1>
-      <p
-        style={{
-          ...mono,
-          marginTop: '16px',
-          color: 'var(--muted)',
-        }}
-      >
-        {t('waitlist.subline')}
-      </p>
-
-      {brief && (
-        <div
-          className="mt-10 md:max-w-md"
-          style={{ border: HAIRLINE, background: 'var(--raised)', padding: '12px 16px', fontSize: '14px' }}
-        >
-          <span style={{ ...mono, display: 'block', marginBottom: '6px', color: 'var(--muted)' }}>
-            {t('home.brief.label')}
-          </span>
-          <span style={{ display: 'block', fontSize: '15px', lineHeight: 1.5, color: 'var(--soft)' }}>“{brief}”</span>
+    <EditorialPage
+      index={`INDX.10 — ${t('waitlist.headline')}`}
+      title={t('waitlist.headline')}
+      statement={t('waitlist.statement')}
+      plate={{ src: '/gallery/3a.png', caption: `${t('plate.label')} 01 — Yujin · Tour merch`, priority: true }}
+      aside={nextAside}
+    >
+      {submitted ? (
+        <div role="status" style={{ borderTop: '1px solid var(--hairline)', borderBottom: '1px solid var(--hairline)', padding: '32px 0 36px' }}>
+          <p
+            className="font-[family-name:var(--font-condensed)] font-bold uppercase"
+            style={{ margin: 0, fontSize: 'clamp(64px, 15vw, 168px)', lineHeight: 0.85, letterSpacing: '-0.02em' }}
+          >
+            {t('waitlist.received')}
+          </p>
+          <p className="text-[20px] leading-[1.4] font-light" style={{ margin: '24px 0 0' }}>
+            {t('waitlist.success')}
+          </p>
+          {project && (
+            <p style={{ ...MONO, marginTop: '12px' }}>{t('waitlist.projectAttached', { code: project.code })}</p>
+          )}
+          {attachedFavourites > 0 && (
+            <p style={{ ...MONO, marginTop: '4px' }}>{t.tPlural('waitlist.savedBlanksAttached', attachedFavourites)}</p>
+          )}
         </div>
-      )}
-
-      {project && (
-        <div
-          className="mt-4 flex flex-wrap items-center justify-between gap-4 md:max-w-md"
-          style={{ border: HAIRLINE, padding: '12px 16px', fontSize: '14px' }}
-        >
-          <span style={{ ...mono, color: 'var(--muted)' }}>{t('waitlist.projectLabel')}</span>
-          <span style={{ color: 'var(--signal)' }}>
-            {project.code} — {project.name}
-            {project.colour ? ` — ${colourName(project.colour)}` : ''}
-          </span>
-        </div>
-      )}
-
-      {savedBlanks.length > 0 && (
-        <div
-          className="mt-4 flex flex-col gap-3 md:max-w-md"
-          style={{ border: HAIRLINE, padding: '12px 16px', fontSize: '14px' }}
-        >
-          <span style={{ ...mono, color: 'var(--muted)' }}>{t('waitlist.savedBlanks')}</span>
-          {savedBlanks.map((product) => (
-            <div key={product.code} className="flex items-center justify-between gap-4">
-              <span style={{ ...mono, color: 'var(--signal)' }}>
-                {PRODUCT_DETAILS[product.code]?.name ?? product.name} — {product.code}
-              </span>
-              <button
-                type="button"
-                onClick={() => removeSavedBlank(product.code)}
-                style={{
-                  ...mono,
-                  textDecoration: 'underline',
-                  textDecorationThickness: '1px',
-                  background: 'transparent',
-                  border: 'none',
-                  padding: 0,
-                  cursor: 'pointer',
-                  color: 'var(--muted)',
-                }}
-              >
-                {t('common.remove')}
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="mt-8 md:max-w-md">
-        {submitted ? (
-          <>
-            <p style={{ ...mono, color: 'var(--muted)' }}>{t('waitlist.success')}</p>
-            {project && (
-              <p style={{ ...mono, marginTop: '4px', color: 'var(--muted)' }}>
-                {t('waitlist.projectAttached', { code: project.code })}
-              </p>
-            )}
-            {attachedFavourites > 0 && (
-              <p style={{ ...mono, marginTop: '4px', color: 'var(--muted)' }}>
-                {t.tPlural('waitlist.savedBlanksAttached', attachedFavourites)}
-              </p>
-            )}
-          </>
-        ) : (
-          <>
-            <form onSubmit={onSubmit} className="flex flex-col gap-3">
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                disabled={isPending}
-                className="bg-transparent disabled:opacity-50"
-                style={{
-                  ...mono,
-                  border: HAIRLINE,
-                  padding: '14px',
-                  color: 'var(--signal)',
-                  background: 'var(--surface)',
-                }}
-              >
-                <option value="" style={{ background: 'var(--surface)' }}>
-                  {t('waitlist.rolePlaceholder')}
-                </option>
-                {ROLE_OPTIONS.map((option) => (
-                  <option key={option} value={option} style={{ background: 'var(--surface)' }}>
-                    {t(ROLE_KEYS[option])}
-                  </option>
-                ))}
-              </select>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <input
-                  type="email"
-                  required
-                  placeholder={t('waitlist.emailPlaceholder')}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isPending}
-                  className="flex-1 bg-transparent placeholder:text-[color-mix(in_srgb,var(--signal)_50%,transparent)] disabled:opacity-50"
-                  style={{
-                    ...mono,
-                    border: HAIRLINE,
-                    padding: '14px',
-                    color: 'var(--signal)',
-                    background: 'var(--surface)',
-                  }}
-                />
+      ) : (
+        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--hairline)' }}>
+          <Row n="01">
+            <span id={roleGroupId} style={MONO}>
+              {t('waitlist.roleLabel')}
+            </span>
+            <div role="radiogroup" aria-labelledby={roleGroupId} className="flex flex-wrap gap-x-[22px] gap-y-[6px]">
+              {ROLE_OPTIONS.map((option, i) => (
                 <button
-                  type="submit"
-                  disabled={isPending}
-                  className="transition-colors duration-500 disabled:cursor-not-allowed disabled:opacity-50"
-                  style={{
-                    ...mono,
-                    padding: '14px 24px',
-                    cursor: 'pointer',
-                    background: 'var(--signal)',
-                    color: 'var(--paper)',
-                    border: 'none',
-                    borderRadius: '4px',
+                  key={option}
+                  ref={(el) => {
+                    roleRefs.current[i] = el;
                   }}
+                  type="button"
+                  role="radio"
+                  aria-checked={role === option}
+                  tabIndex={i === tabbable ? 0 : -1}
+                  disabled={isPending}
+                  className="role-choice"
+                  onClick={() => setRole(option)}
+                  onKeyDown={(e) => onRoleKeyDown(e, i)}
                 >
-                  {isPending ? t('waitlist.applying') : t('waitlist.apply')}
+                  {t(ROLE_KEYS[option])}
                 </button>
-              </div>
-            </form>
-            <p style={{ fontSize: '13px', marginTop: '10px', color: 'var(--muted)' }}>{t('waitlist.privacy')}</p>
+              ))}
+            </div>
+          </Row>
+
+          {showAttachments && (
+            <Row n="02">
+              {brief && (
+                <>
+                  <span style={MONO}>{t('home.brief.label')}</span>
+                  <span className="text-[20px] leading-[1.4] font-light">“{brief}”</span>
+                </>
+              )}
+              {project && (
+                <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                  <span style={MONO}>{t('waitlist.projectLabel')}</span>
+                  <span style={{ ...MONO, color: 'var(--signal)' }}>
+                    {project.code} — {project.name}
+                    {project.colour ? ` — ${colourName(project.colour)}` : ''}
+                  </span>
+                </div>
+              )}
+              {savedBlanks.length > 0 && (
+                <>
+                  <span style={MONO}>{t('waitlist.savedBlanks')}</span>
+                  <ul className="flex flex-wrap gap-x-6 gap-y-4" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                    {savedBlanks.map((product) => (
+                      <li key={product.code} className="flex items-center gap-3">
+                        <Image src={product.src} alt="" width={56} height={64} className="h-16 w-14 object-contain" />
+                        <span className="flex flex-col items-start gap-1">
+                          <span style={{ ...MONO, color: 'var(--signal)' }}>{product.code}</span>
+                          <span className="text-[13px] leading-tight" style={{ color: 'var(--muted)' }}>
+                            {PRODUCT_DETAILS[product.code]?.name ?? product.name}
+                          </span>
+                          <button
+                            type="button"
+                            className="link-ink"
+                            style={{ fontSize: '11px' }}
+                            onClick={() => removeSavedBlank(product.code)}
+                          >
+                            {t('common.remove')}
+                            <span className="sr-only"> {product.code}</span>
+                          </button>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </Row>
+          )}
+
+          <Row n={showAttachments ? '03' : '02'}>
+            <label htmlFor="waitlist-email" style={MONO}>
+              {t('waitlist.emailLabel')}
+            </label>
+            <input
+              id="waitlist-email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="you@yourband.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isPending}
+              aria-invalid={error === 'invalid_email' ? true : undefined}
+              aria-describedby={error ? 'waitlist-error' : undefined}
+              className="h-14 w-full border-0 bg-transparent px-0 text-[22px] font-light placeholder:text-[color-mix(in_srgb,var(--signal)_40%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--signal)] disabled:opacity-50"
+              style={{ borderBottom: '1px solid var(--signal)', borderRadius: 0, color: 'var(--signal)' }}
+            />
             {error && (
-              <p style={{ ...mono, marginTop: '12px', color: 'var(--signal)' }}>
+              <p id="waitlist-error" role="alert" style={{ ...MONO, margin: 0, color: 'var(--signal)' }}>
                 {t(error === 'invalid_email' ? 'waitlist.errorInvalidEmail' : 'waitlist.errorGeneric')}
               </p>
             )}
-          </>
-        )}
-      </div>
-    </>
+          </Row>
+
+          <div className="flex flex-col gap-6 pt-7 pb-8 md:flex-row md:items-center md:justify-between md:pl-[72px]">
+            <p className="max-w-[380px] text-[13px] leading-[1.7]" style={{ margin: 0, color: 'var(--muted)' }}>
+              {t('waitlist.privacy')}
+            </p>
+            <button type="submit" disabled={isPending} className="btn-ink" style={{ height: '64px', padding: '0 40px', fontSize: '26px' }}>
+              {isPending ? t('waitlist.applying') : `${t('waitlist.apply')} →`}
+            </button>
+          </div>
+        </form>
+      )}
+    </EditorialPage>
   );
 }

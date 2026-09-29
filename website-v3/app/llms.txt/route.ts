@@ -29,7 +29,7 @@ Key pages:
 - ${SITE_URL}/contact — contact
 - ${SITE_URL}/waitlist — apply
 
-MCP server: coming soon.
+MCP server: coming soon — for Claude, ChatGPT, Gemini and Grok.
 `;
 
   return new Response(body, {

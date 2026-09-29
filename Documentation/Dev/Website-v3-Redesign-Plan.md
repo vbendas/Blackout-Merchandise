@@ -312,3 +312,82 @@ Dark accent blocks inside the vintage pages use `#1A1714` with bone `#EDE4DD` te
 - New i18n keys (all six dictionaries): note tile kicker/title/foot, the two editorial titles and kickers, `catalog.view.grid`, `catalog.view.index`, index column headers, sidebar section labels not already present, "Start with this blank", "Filters", gallery title.
 
 ## R2-2 — Home (unchanged from Round 2; runs in parallel, owns components/home/* and app/page.tsx only)
+
+---
+
+# Round 6 — Premium editorial home + scroll presentation (28 Sep 2026)
+
+Approved mock: canvas artboard "Round 5 — Premium editorial" (`…/scratchpad/mocks/project/Editorial.dc.html`, paper ground), with the owner's changes:
+- The masthead **MERCHFROM** is fitted exactly to the full content width (edge to edge within the gutter), recomputed on resize/font load. Kept as one word.
+- No ® after the masthead, and no crosshair mark in the home header: the masthead is the logo on `/`.
+- Scroll effects that "lock the content in the centre" to create a presentation feel — pinned scenes on native scroll, never scroll-hijacking.
+
+## Design rules
+- Home switches to the vintage paper ground (`data-theme="vintage"` on the home wrapper and on SiteHeader when `pathname === '/'`), matching catalog/gallery. Footer stays dark.
+- Type: Barlow Condensed for masthead, outlined words, set list; Barlow 300 for statements; IBM Plex Mono labels. No new fonts.
+- Restraint: no tickers, stickers, tickets, stamps, barcodes, rotations.
+- Every number still comes from `lib/catalog-stats.ts`.
+
+## Home structure (top → bottom)
+1. **Issue line + nav** (home variant of SiteHeader): mono "Issue 01 — Autumn/Winter 2026 — Barcelona" left, small-caps nav right (Cloth · Shop & Run · Blanks · Agents · Apply). No crosshair.
+2. **Masthead + cover**: fitted MERCHFROM, hairline facts row (Merch for bands, tattoo artists & festivals · Heavyweight organic · Printed in Barcelona · Zero upfront · By application), halftone B&W cover photo (fine dot screen via CSS), caption + "Heavy cloth, honest labels." + the brief input (existing brief-card behaviour → `/waitlist?brief=`).
+3. **Statement**: one centred light paragraph.
+4. **CLOTH**: giant outlined word, four light stats, three black packshots with MF codes.
+5. **Plates**: two halftone photos offset as a spread with captions.
+6. **ZERO** (zero upfront): giant outlined "Zero" + three terse lines (No stock / No minimums / Your price, your margin) + "Apply to launch".
+7. **Set list**: 01 The brief → 05 Encore.
+8. **Shop & Run**: two plates with captions and links.
+9. **Blanks** (catalog teaser): four packshots on paper, link to `/catalog`.
+10. **Agents**: small mono block (MCP soon, connector snippet, llms.txt).
+11. **APPLY**: giant outlined word + one line + email field (existing `submitWaitlist`).
+Printed-for names move into a single quiet mono line under the plates (or are dropped until real clients exist — keep the component but render only if `CLIENTS` has real entries flag).
+
+## Scroll presentation (GSAP ScrollTrigger + existing Lenis)
+Add `gsap` (ScrollTrigger is free). Sync with Lenis: `lenis.on('scroll', ScrollTrigger.update)` and drive Lenis from `gsap.ticker` (one RAF loop). Expose the Lenis instance (context or module singleton) from `components/SmoothScroll.tsx`.
+Scenes (each pinned ≈ 60–120% of viewport height, scrub-linked, eased, never blocking native scroll):
+- **Cover**: pinned; cover image grows from inset (≈ 86% width) to full-bleed while the masthead drifts up/fades slightly; caption fades in at the end.
+- **Statement**: pinned centred; words reveal from 15% to 100% opacity as you scroll.
+- **CLOTH**: pinned; the outlined word fills with ink left→right (clip/mask on a filled copy), stats count up once, packshots rise in with stagger.
+- **Plates**: light parallax between the two photos (no pin).
+- **Zero**: outlined word fills like CLOTH; three lines stagger in.
+- **Set list**: pinned; one line active at a time (full ink, others 30%), mono counter "01 / 05".
+- **Apply**: outlined word fills on enter.
+Rules: `prefers-reduced-motion` → no pins, no scrub, everything static and visible. Mobile (<768px): no pinning, simple fade/rise on enter only. All content present in the DOM and readable without JS. Refresh ScrollTrigger after fonts/images load; kill all triggers on unmount/route change. No layout shift, no horizontal overflow. 60fps: transforms/opacity/clip-path only.
+
+## Work packages
+- **R6-A (Sonnet) — Home editorial layout**: files `app/page.tsx`, `components/home/*` (rewrite/replace), `components/SiteHeader.tsx` (home variant), `lib/i18n/*` (new keys, all six locales), `app/globals.css` (home rules only). Static, fully styled page with stable hooks for motion: `data-scene="cover|statement|cloth|plates|zero|setlist|apply"` and named child hooks (`data-fill`, `data-count`, `data-rise`, `data-step`). Remove unused old home components.
+- **R6-B (Sonnet) — Scroll presentation**, after R6-A: add `gsap`, wire Lenis ↔ ScrollTrigger in `components/SmoothScroll.tsx`, new `components/home/ScrollScenes.tsx` (client) that targets the hooks; reduced-motion and mobile rules above. Files: `package.json`/lock, `components/SmoothScroll.tsx`, `components/home/ScrollScenes.tsx`, minimal hook-only edits in `components/home/*`.
+- **Orchestrator**: verify desktop/mobile/reduced-motion in the browser, build, commit on request.
+
+---
+
+# Round 7 — One editorial system across the site (29 Sep 2026)
+
+Approved mock: canvas artboard "Round 6 — Waitlist + signature footer" (`…/scratchpad/mocks/project/WaitlistEditorial.dc.html`; screenshots `.playwright-mcp/preview/wl-a.png`, `wl-b.png`). Goal from the final review: the premium editorial language (paper, condensed caps display, outlined words, halftone plates, hairlines, mono index labels) must run through every page, with one button system and one brand mark.
+
+## Rules
+- Brand mark: no crosshair, no ® anywhere in the UI (keep ® only in metadata/title). Home header = issue line (existing). Inner pages header = small condensed **MERCHFROM** wordmark left, same small-caps nav + ink Apply right.
+- Paper (`data-theme="vintage"`) on every page now: home, catalog, gallery, waitlist, about, contact, 404. Footer is the only dark band.
+- Buttons: one primary = ink block (`--signal` on paper), Barlow Condensed caps 600, letter-spacing .04em, height 52–64px, square corners; one text link = small-caps 12px, .16em tracking, hairline underline. No other button styles.
+- Photography: halftone B&W in editorial moments (home plates/shop & run, page plates); colour only inside the gallery (with captions).
+- Every number from `lib/catalog-stats.ts`; no placeholders like [N] rendered — hide a fact if its value is unknown.
+
+## R7-A — Chrome, primitives, bug fixes (first; owns shared files)
+- `components/editorial/FittedWord.tsx`: extract the masthead fit logic from `components/home/Cover.tsx` (measure-and-scale, ResizeObserver, fonts.ready) into a reusable component; Cover uses it.
+- `components/editorial/Halftone.tsx`: next/image wrapper with the grayscale+contrast filter and dot overlay (move the CSS into globals as `.halftone`).
+- `app/globals.css`: `.btn-ink`, `.link-ink` classes (+ focus rings); vintage theme defaults to paper for all pages.
+- `components/SiteHeader.tsx`: inner-page variant (wordmark, no RegisterMark), vintage theme on all routes; mobile menu unchanged in behaviour.
+- `components/SiteFooter.tsx`: signature footer per mock — mono column labels (Index / Studio / Elsewhere / Language), one-line tagline, full-width fitted **MERCHFROM** in bone on #141414 (FittedWord), bottom mono row (© 2026 MerchFrom — Barcelona, ES · Issue 01 · Autumn/Winter 2026 · Privacy · Terms · llms.txt — only link routes that exist).
+- Fonts: load Barlow (300/400/500/600) + Barlow Condensed (500/600/700) + IBM Plex Mono once in `app/layout.tsx`; remove the page-level loaders in `app/page.tsx`.
+- Bug: catalog zero-upfront band must span the full row (`col-span-full`) in `components/GridView.tsx`.
+- i18n: add footer keys (all six locales).
+
+## R7-B — Waitlist, About, Contact, 404 (after R7-A, parallel with R7-C; owns lib/i18n)
+- Waitlist per mock: index line, OutlinedWord "Apply" (fills on load; static under reduced motion), statement line, numbered form rows (01 role as condensed-caps radio choices, 02 brief/saved blanks — shown only when present, 03 email), ink Apply button, privacy line; right column Halftone plate + caption + "What happens next" (3 rows; no "[N] days" — omit the number until set). Keep submitWaitlist, URL params (product, colour, favourites, brief), validation, success/error states (restyle success as a big condensed "Received." moment).
+- About, Contact, 404: same system — index line, OutlinedWord (About / Contact / 404), light statement, numbered rows for facts (About: Est. / Studio / Press; Contact: email, studio, elsewhere), Halftone plate. Keep existing copy keys where possible; rewrite About headline pair into one editorial statement.
+- i18n: all new keys in six locales; remove unused.
+
+## R7-C — Home lower half + gallery (after R7-A, parallel with R7-B; must NOT edit lib/i18n — reuse existing keys, report any new copy needed)
+- `components/home/Paths.tsx`, `CatalogTeaser.tsx`, `Agents.tsx`: editorial vocabulary — condensed caps headings matching Set list scale, mono index labels, Halftone plates for Shop/Run, packshots on paper for blanks, Agents as a quiet mono spec block (no dark terminal box), ink buttons / text links only.
+- Gallery (`components/GalleryView.tsx`): colour photos with mono captions under each (client · piece), subtle hover zoom; header stays.
+- Keep all `data-*` motion hooks intact; ScrollScenes must keep working.

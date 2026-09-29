@@ -1,30 +1,36 @@
 import { Agents } from '@/components/home/Agents';
 import { ApplySection } from '@/components/home/ApplySection';
-import { Assistant } from '@/components/home/Assistant';
 import { CatalogTeaser } from '@/components/home/CatalogTeaser';
 import { Cloth } from '@/components/home/Cloth';
-import { Hero } from '@/components/home/Hero';
+import { Cover } from '@/components/home/Cover';
 import { Paths } from '@/components/home/Paths';
+import { ScrollScenes } from '@/components/home/ScrollScenes';
+import { Plates } from '@/components/home/Plates';
 import { PrintedFor } from '@/components/home/PrintedFor';
-import { Studio } from '@/components/home/Studio';
+import { SetList } from '@/components/home/SetList';
+import { Statement } from '@/components/home/Statement';
 import { ZeroUpfront } from '@/components/home/ZeroUpfront';
 
-// Home (R2-2): Hero → Printed for → 01 The cloth → 02 Zero upfront →
-// 03 One assistant → 04 Two ways to sell → Catalog teaser → Studio →
-// 05 Bring your own agent → Apply. The old roster wall (ListView) and
-// intro animation no longer live here — see
-// Documentation/Dev/Website-v3-Redesign-Plan.md.
+// Home (Round 6 — premium editorial rewrite): Cover → Statement → Cloth
+// → Plates → Zero upfront → Set list → Shop & Run → Blanks (catalog
+// teaser) → Agents → Apply. Always on the vintage paper ground — see
+// Documentation/Dev/Website-v3-Redesign-Plan.md, "Round 6".
 export default function Page() {
   return (
-    <main>
-      <Hero />
-      <PrintedFor />
+    <main
+      data-theme="vintage"
+      style={{ background: 'var(--paper)', color: 'var(--signal)' }}
+    >
+      <ScrollScenes />
+      <Cover />
+      <Statement />
       <Cloth />
+      <Plates />
+      <PrintedFor />
       <ZeroUpfront />
-      <Assistant />
+      <SetList />
       <Paths />
       <CatalogTeaser />
-      <Studio />
       <Agents />
       <ApplySection />
     </main>

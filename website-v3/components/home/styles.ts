@@ -32,6 +32,10 @@ export const PRIMARY_BTN: CSSProperties = {
   border: 'none',
 };
 
+// Ink-relative translucency (color-mix against --signal) rather than a
+// literal bone rgba() — the whole home page lives on the vintage paper
+// ground now, where --signal is warm-black ink, not bone, so a
+// hardcoded rgba(237,228,221,…) would render invisible/wrong here.
 export const SECONDARY_BTN: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
@@ -41,7 +45,7 @@ export const SECONDARY_BTN: CSSProperties = {
   borderRadius: '4px',
   background: 'transparent',
   color: 'var(--signal)',
-  border: '1px solid rgba(237,228,221,.24)',
+  border: '1px solid color-mix(in srgb, var(--signal) 24%, transparent)',
   fontWeight: 500,
   fontSize: '15px',
   cursor: 'pointer',
@@ -49,7 +53,7 @@ export const SECONDARY_BTN: CSSProperties = {
 
 export const MORE_LINK: CSSProperties = {
   fontSize: '15px',
-  borderBottom: '1px solid rgba(237,228,221,.35)',
+  borderBottom: '1px solid color-mix(in srgb, var(--signal) 35%, transparent)',
   paddingBottom: '3px',
 };
 

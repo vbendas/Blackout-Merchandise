@@ -599,7 +599,7 @@ export function GridView() {
     return (
       <div
         key="band"
-        className="col-span-2 md:col-span-3 flex flex-col gap-6 md:flex-row md:items-center md:justify-between"
+        className="col-span-full flex flex-col gap-6 md:flex-row md:items-center md:justify-between"
         style={{ background: 'var(--well)', color: 'var(--bone)', padding: '32px 28px' }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
