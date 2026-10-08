@@ -6,7 +6,16 @@ import type { NextConfig } from "next";
 // replaces.
 const CATALOG_QUERY_KEYS = ["product", "type", "fit", "colour", "q"];
 
+// WP3: dev-only routes. `page.dev.tsx` is only a route when this extension
+// is registered, so a production build has no /dev/* route at all (the
+// pages in app/dev/** are not compiled). It is the FULL default set plus
+// the dev extension. SPECIMEN=1 opts a production build in (the page then
+// also checks the flag at request time). Docs:
+// node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/pageExtensions.md
+const DEV_ROUTES = process.env.NODE_ENV !== "production" || process.env.SPECIMEN === "1";
+
 const nextConfig: NextConfig = {
+  pageExtensions: ["tsx", "ts", "jsx", "js", ...(DEV_ROUTES ? ["dev.tsx"] : [])],
   async redirects() {
     return [
       {
