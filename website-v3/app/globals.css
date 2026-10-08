@@ -647,11 +647,22 @@ a {
   flex: 1;
   min-width: 0;
   border: none;
-  outline: none;
   background: transparent;
   color: var(--signal);
   font-size: 16px;
   font-family: var(--font-sans), sans-serif;
+}
+
+/* Cover brief and Apply email share this row. The old `outline: none` above
+   beat the global :focus-visible ring (unlayered, higher specificity), so these
+   two inputs had no focus indicator. Temporary: Field replaces this in WP7/WP13. */
+.home-brief-input-row:focus-within {
+  box-shadow: inset 0 -2px 0 var(--signal);
+}
+
+.home-brief-input-row input:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
 }
 
 .home-brief-input-row input::placeholder {
