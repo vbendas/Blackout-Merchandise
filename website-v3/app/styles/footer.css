@@ -1,0 +1,82 @@
+/* Site footer. Owner: WP9.
+   Split verbatim from globals.css (WP2a, Round 9). Selector text unchanged. */
+
+/* Signature footer: the only dark band on the paper site. */
+.site-footer {
+  background: #141414;
+  color: #ede4dd;
+  padding: 72px var(--gutter) 40px;
+}
+
+.site-footer-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px 24px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(237, 228, 221, 0.14);
+}
+
+.site-footer-intro {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .site-footer-cols {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    padding-bottom: 56px;
+  }
+
+  .site-footer-intro {
+    grid-column: span 4;
+  }
+
+  .site-footer-col {
+    grid-column: span 2;
+  }
+}
+
+.site-footer-label {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9d958f;
+}
+
+.site-footer-link {
+  font-size: 15px;
+  color: rgba(237, 228, 221, 0.78);
+  transition: color 160ms ease;
+}
+
+.site-footer-link:hover {
+  color: #ede4dd;
+}
+
+.site-footer :focus-visible {
+  outline-color: #ede4dd;
+}
+
+.site-footer-word {
+  font-family: var(--font-condensed), var(--font-sans), sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 0.8;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+  color: #ede4dd;
+  font-size: clamp(48px, 17vw, 331px);
+}
+
+.site-footer-base {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px 24px;
+  margin-top: 28px;
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9d958f;
+}

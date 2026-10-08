@@ -1,0 +1,70 @@
+/* Legacy tokens (:root, vintage and ink theme scopes). Owner: WP2b / WP21 deletes.
+   Split verbatim from globals.css (WP2a, Round 9). Selector text unchanged. */
+
+:root {
+  /* Soft charcoal, black-dominant ground. No accent colour, no
+     gradients, no light/charcoal mode switching — this is the one dark
+     the whole site shares now. */
+  --paper: #141414; /* page ground */
+  --raised: #1b1b1b; /* alternate sections (assistant/catalog/agents bands, cards) */
+  --surface: #242424; /* image frames, inputs on raised, product tiles */
+  --well: #101010; /* code blocks */
+  --signal: #ede4dd; /* primary text, primary button fill */
+  --muted: #b3aba4; /* secondary text, labels */
+  --soft: #cfc6bf; /* body copy on dark */
+  --hairline: rgba(237, 228, 221, 0.12); /* rules, borders */
+  --gutter: 64px; /* page side padding, desktop */
+  --header-h: 80px; /* SiteHeader's height — it overlays the top of each page, which pads under it */
+  /* Fixed bone tone for dark accent blocks inside the vintage catalog/
+     gallery (note tile, editorial photo captions, the zero-upfront
+     band) — those blocks stay dark regardless of theme, so their text
+     can't read --signal (which flips to ink under [data-theme=vintage]). */
+  --bone: #ede4dd;
+  /* Modal backdrop: a light wash over the dark site. */
+  --scrim: color-mix(in srgb, var(--paper) 82%, transparent);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --gutter: 20px;
+    --header-h: 64px;
+  }
+}
+
+/* Vintage-paper theme — scoped to the catalog and gallery page wrappers
+   only (ViewShell). The fixed SiteHeader/SiteFooter sit outside that
+   subtree, so they keep the dark tokens above; only the page content
+   between them repaints to the ecru ground. */
+/* One paper tone for everything on the vintage pages — page, modal,
+   image wells, thumbnails. Near-identical beiges side by side read as
+   mistakes, so separation comes from hairlines and a warm dark scrim
+   behind the modal, never from a second paper colour. */
+[data-theme='vintage'] {
+  --paper: #ece5da;
+  --raised: #ece5da;
+  --surface: #ece5da;
+  --scrim: rgba(26, 23, 20, 0.55);
+  --well: #1a1714;
+  --signal: #1a1714;
+  --muted: #6b6258;
+  --soft: #3a342e;
+  --hairline: rgba(26, 23, 20, 0.14);
+}
+
+/* Ink bands inside the paper site: the home hero and the zero-upfront
+   band (the footer is the third dark moment). Re-scopes the tokens back
+   to the dark palette so everything inside — outlined words, buttons,
+   hairlines, focus rings — flips with it. Hard edges, like an editorial
+   spread turning from a black page to a white one. */
+[data-theme='ink'] {
+  --paper: #141414;
+  --raised: #1b1b1b;
+  --surface: #242424;
+  --well: #0c0b0a;
+  --signal: #ede4dd;
+  --muted: #b3aba4;
+  --soft: #cfc6bf;
+  --hairline: rgba(237, 228, 221, 0.14);
+  background: var(--paper);
+  color: var(--signal);
+}

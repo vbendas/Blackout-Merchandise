@@ -1,0 +1,36 @@
+/* Editorial inner-page title (.page-word). Owner: WP9 only; WP14 owns contact-waitlist.css.
+   Split verbatim from globals.css (WP2a, Round 9). Selector text unchanged. */
+
+/* Round 7-B — editorial inner pages (waitlist / about / contact / 404).
+   .page-word sizes the outlined title to its column: --chars is set per
+   page from the word's length so long translations shrink instead of
+   overflowing. Fills in on load; static under reduced motion. */
+.page-word {
+  --avail: calc(100vw - 2 * var(--gutter));
+  --max: 300px;
+}
+
+@media (min-width: 1024px) {
+  .page-word {
+    --avail: calc((100vw - 2 * var(--gutter)) * 0.56);
+  }
+}
+
+.home-outline-word.page-word > * {
+  font-size: min(var(--max), calc(var(--avail) / (var(--chars, 5) * 0.5)));
+}
+
+@keyframes page-word-fill {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-word .home-outline-word-fill {
+    animation: page-word-fill 1200ms cubic-bezier(0.65, 0, 0.35, 1) 250ms backwards;
+  }
+}

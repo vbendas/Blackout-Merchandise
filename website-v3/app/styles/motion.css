@@ -1,0 +1,134 @@
+/* Legacy motion: route fade, view fade, keyframes, halftone hover, line-reveal state, route panel, load intro. Owner: WP10m / WP16.
+   Split verbatim from globals.css (WP2a, Round 9). Selector text unchanged. */
+
+@keyframes band-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+
+/* No fill-mode, same reason as .route-fade below: a retained opacity
+   animation would keep this wrapper a stacking context and trap the
+   product modal (z 90) underneath the fixed site header (z 50). */
+.view-fade-in {
+  animation: fade-in 450ms ease;
+}
+
+/* Route change: each page fades in over the paper ground. No fill-mode:
+   a retained opacity animation would leave this wrapper as a permanent
+   stacking context, which used to trap the old corners' mix-blend-mode
+   difference in an isolated group. With no fill the stacking context
+   dissolves the moment the entrance ends. */
+.route-fade {
+  animation: fade-in 500ms ease;
+}
+
+/* ---------------------------------------------------------------------
+   Round 8-C — motion pack. Everything here is either transform / opacity /
+   clip-path, or gated behind a state that only JS sets, so the resting
+   (SSR, no-JS, reduced-motion) page is complete and visible. */
+
+/* Halftone -> full tone on hover: a colour <img> stacked over the
+   grayscale one fades in while the dot screen fades out. */
+.halftone img.halftone-tone {
+  filter: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (hover: none) {
+  .halftone img.halftone-tone {
+    display: none;
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .halftone img.halftone-tone,
+  .halftone::after {
+    transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .halftone[data-tone]:hover img.halftone-tone {
+    opacity: 1;
+  }
+
+  .halftone[data-tone]:hover {
+    --dots: 0;
+  }
+}
+
+/* Heading line reveals: hidden only after JS marks the heading pending. */
+[data-lines-pending] {
+  opacity: 0;
+}
+
+/* Route sweep panel (PageTransition). Parked off-screen and hidden. */
+.route-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  visibility: hidden;
+  transform: translateY(-100%);
+  background: var(--paper);
+  border-bottom: 1px solid var(--signal);
+}
+
+/* First-load choreography start state (see components/motion/LoadIntro).
+   The arming script sets html:has(meta[name='mf-intro']) only on desktop, with
+   motion allowed, at the top of a fresh session. A failsafe animation
+   reveals everything after 3s should hydration never come. */
+@keyframes intro-failsafe {
+  to {
+    transform: none;
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes intro-failsafe-vars {
+  to {
+    --line: 1;
+    --dots: 1;
+  }
+}
+
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  html:has(meta[name='mf-intro']) .home-masthead {
+    transform: translateY(105%);
+    animation: intro-failsafe 1ms 3s forwards;
+  }
+
+  html:has(meta[name='mf-intro']) .home-facts-row {
+    --line: 0;
+    animation: intro-failsafe-vars 1ms 3s forwards;
+  }
+
+  html:has(meta[name='mf-intro']) .home-facts-row > * {
+    opacity: 0;
+    animation: intro-failsafe 1ms 3s forwards;
+  }
+
+  html:has(meta[name='mf-intro']) .home-cover-media {
+    --dots: 0;
+    animation: intro-failsafe-vars 1ms 3s forwards;
+  }
+
+  html:has(meta[name='mf-intro']) .home-cover-media img {
+    clip-path: inset(49% 0 49% 0);
+    animation: intro-failsafe 1ms 3s forwards;
+  }
+}

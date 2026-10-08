@@ -1,0 +1,152 @@
+/* Legacy buttons (.btn-ink, .link-ink) and role picker. Owner: WP6a.
+   Split verbatim from globals.css (WP2a, Round 9). Selector text unchanged. */
+
+/* ---------------------------------------------------------------------
+   Round 7 — shared editorial system: one primary button, one text link,
+   inner-page wordmark, signature footer. */
+
+/* Primary button: ink block on paper. Works on <a> and <button>. */
+.btn-ink {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 0;
+  background: var(--signal);
+  color: var(--paper);
+  font-family: var(--font-condensed), var(--font-sans), sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 160ms ease, color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn-ink::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--signal);
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Squeegee: the paper fill is pulled across left to right on hover and
+   keeps going out to the right on release. Reduced motion (or a touch
+   pointer) keeps the plain opacity dip instead. */
+.btn-ink:hover:not(:disabled) {
+  opacity: 0.86;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .btn-ink:hover:not(:disabled) {
+    opacity: 1;
+    color: var(--signal);
+  }
+
+  .btn-ink:hover:not(:disabled)::before {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+}
+
+.btn-ink:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+.btn-ink:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Text link: small caps, wide tracking, hairline underline. */
+.link-ink {
+  display: inline-block;
+  padding-bottom: 3px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--signal) 40%, transparent);
+  background: none;
+  color: var(--signal);
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 160ms ease;
+  position: relative;
+}
+
+.link-ink:hover {
+  border-bottom-color: var(--signal);
+}
+
+/* Underline draw: a full-ink rule scales in from the left, and leaves to
+   the right. Transform-only; motion-safe pointers only. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .link-ink::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .link-ink:hover::after,
+  .link-ink:focus-visible::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+}
+
+.link-ink:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}
+
+/* Role picker: condensed-caps radio choices. */
+.role-choice {
+  padding: 0 0 2px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: color-mix(in srgb, var(--signal) 52%, var(--paper));
+  font-family: var(--font-condensed), var(--font-sans), sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.3;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.role-choice:hover,
+.role-choice[aria-checked='true'] {
+  color: var(--signal);
+}
+
+.role-choice[aria-checked='true'] {
+  border-bottom-color: var(--signal);
+}
+
+.role-choice:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}

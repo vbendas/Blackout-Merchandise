@@ -1,0 +1,213 @@
+/* Catalog cards, index rows, entrance, flip. Owner: WP10.
+   Split verbatim from globals.css (WP2a, Round 9). Selector text unchanged. */
+
+/* Scroll perf: off-screen cards skip layout/paint/style work until they
+   near the viewport. content-visibility: auto still lets the browser
+   compute intersection with the viewport (and its rootMargin-expanded
+   variant), so the IntersectionObserver entrance below still fires as
+   each card approaches — this only defers rendering, not visibility
+   detection. contain-intrinsic-size reserves space up front so the page
+   doesn't jump as cards' real size is measured. */
+.catalog-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 520px;
+  position: relative;
+  cursor: pointer;
+}
+
+/* Round 3 vintage catalog: packshots float on the paper ground — no
+   tile fill until hover, when the field washes to --raised (bone/
+   parchment) and the garment nudges up in scale. overflow: hidden also
+   clips the "Start with this blank" bar sliding up from below. */
+.catalog-card-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: transparent;
+  transition: background-color 350ms ease;
+}
+
+.catalog-card:hover .catalog-card-media,
+.catalog-card:focus-within .catalog-card-media {
+  background: var(--raised);
+}
+
+.catalog-card-frame {
+  position: absolute;
+  inset: 9%;
+  opacity: 0;
+  transition: opacity 400ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.catalog-card-frame[data-loaded] {
+  opacity: 1;
+}
+
+.catalog-card:hover .catalog-card-frame {
+  transform: scale(1.04);
+}
+
+/* "Start with this blank →" bar: hidden below the tile until hover or
+   keyboard focus (focus-within, since the anchor is a real, separately
+   focusable link nested in the card). */
+.catalog-card-cta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: var(--well);
+  color: var(--bone);
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: translateY(100%);
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.catalog-card:hover .catalog-card-cta,
+.catalog-card:focus-within .catalog-card-cta {
+  transform: none;
+}
+
+.catalog-card-img {
+  object-fit: contain;
+  transition: opacity 500ms ease-out;
+}
+
+.catalog-card-img.flip-back {
+  opacity: 0;
+}
+
+.catalog-card-save {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--signal);
+  transition: opacity 300ms ease, background-color 300ms ease;
+}
+
+@media (hover: hover) {
+  .catalog-card-save {
+    opacity: 0;
+  }
+
+  .catalog-card:hover .catalog-card-save {
+    opacity: 1;
+  }
+}
+
+.catalog-card-save[aria-pressed='true'] {
+  opacity: 1;
+  background: currentColor;
+}
+
+.mf-dim {
+  opacity: 0.62;
+}
+
+/* Index view rows (table of the whole catalog) — hover wash matches the
+   grid tile's bone/parchment field. */
+.catalog-index-row {
+  cursor: pointer;
+  transition: box-shadow 250ms ease;
+}
+
+.catalog-index-row:hover,
+.catalog-index-row:focus-visible {
+  /* An ink marker, not a second paper tone. */
+  box-shadow: inset 2px 0 0 var(--signal);
+}
+
+/* Catalog entrance: cards rise into place as they enter the viewport.
+   The hidden state only applies once JS arms the container, so the grid
+   is never invisible without a script to reveal it. The per-card --i
+   custom property (0 once the observer has fired) staggers the wave. */
+[data-armed] .catalog-card {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 600ms ease,
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--i, 0) * 18ms);
+}
+
+[data-armed] .catalog-card.catalog-card-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Once a filter has been touched, results appear immediately — the
+   entrance stagger is for the first arrival only, not for re-filtering. */
+[data-armed][data-filters-touched] .catalog-card {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* While hovered, the card alternates front and back every ~2s so both
+   sides of the garment are seen hands-free. The two images animate in
+   opposite phase — they are transparent PNGs, so both must never be
+   opaque at once. On mouse-out the transition eases back to the front.
+   The 1s delay keeps a cursor merely passing over a card from flipping. */
+@media (hover: hover) {
+  .catalog-card:hover .flip-front {
+    animation: flip-front 4s ease-in-out 1000ms infinite;
+  }
+
+  .catalog-card:hover .flip-back {
+    animation: flip-back 4s ease-in-out 1000ms infinite;
+  }
+}
+
+@keyframes flip-front {
+  0%, 100% {
+    opacity: 1;
+  }
+  12.5%, 50% {
+    opacity: 0;
+  }
+  62.5% {
+    opacity: 1;
+  }
+}
+
+@keyframes flip-back {
+  0%, 100% {
+    opacity: 0;
+  }
+  12.5%, 50% {
+    opacity: 1;
+  }
+  62.5% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001s !important;
+    transition-duration: 0.001s !important;
+  }
+
+  /* An infinite alternating animation at near-zero duration would
+     strobe — exactly what reduced-motion users must not get. */
+  .flip-front,
+  .flip-back {
+    animation: none !important;
+  }
+}
