@@ -8,6 +8,7 @@ import { useUpload } from '@/components/chat/useUpload';
 import { TopBar } from '@/components/chat/TopBar';
 import { Thread } from '@/components/chat/Thread';
 import { Composer } from '@/components/chat/Composer';
+import { VoiceOverlay } from '@/components/chat/VoiceOverlay';
 import { EmptyGreeting, QuickActionsRow } from '@/components/chat/EmptyState';
 import { ChecklistRow } from '@/components/chat/ChecklistRow';
 import { Spinner } from '@/components/ui/spinner';
@@ -27,12 +28,14 @@ export function ChatShell({ showUser = true, role }: { showUser?: boolean; role?
     sending,
     loadingHistory,
     confirmResolutions,
+    onAssistantDone,
     sendText,
     resolveConfirm,
   } = useConversation();
 
   const upload = useUpload();
   const [isDragging, setIsDragging] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const dragDepth = useRef(0);
 
   const onDragEnter = useCallback((event: DragEvent<HTMLDivElement>) => {
@@ -131,12 +134,19 @@ export function ChatShell({ showUser = true, role }: { showUser?: boolean; role?
                 dropdownPosition={isEmpty ? 'below' : 'above'}
                 upload={upload}
                 isDragging={isDragging}
+                onOpenVoice={() => setVoiceOpen(true)}
               />
             </motion.div>
             {isEmpty && checklist ? <ChecklistRow steps={checklist} onPrompt={sendText} /> : null}
           </div>
         )}
       </div>
+      <VoiceOverlay
+        open={voiceOpen}
+        onClose={() => setVoiceOpen(false)}
+        sendText={sendText}
+        onAssistantDone={onAssistantDone}
+      />
     </div>
   );
 }

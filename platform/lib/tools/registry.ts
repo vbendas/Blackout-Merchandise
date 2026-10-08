@@ -14,6 +14,7 @@ import { WAITLIST_TOOLS } from '@/lib/tools/waitlist';
 import { SUPPORT_TOOLS } from '@/lib/tools/support';
 import { DOMAIN_TOOLS } from '@/lib/tools/domains';
 import { COMMERCE_TOOLS } from '@/lib/tools/commerce';
+import { DISCORD_TOOLS } from '@/lib/tools/discord';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ALL_TOOLS: Tool<any, any>[] = [
@@ -37,6 +38,7 @@ const ALL_TOOLS: Tool<any, any>[] = [
   ...SUPPORT_TOOLS,
   ...DOMAIN_TOOLS,
   ...COMMERCE_TOOLS,
+  ...DISCORD_TOOLS,
 ];
 
 /** Tools visible to a caller with this role, in a deterministic (name-sorted) order. */

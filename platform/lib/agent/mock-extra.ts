@@ -250,4 +250,23 @@ export const EXTRA_MOCK_RULES: MockRule[] = [
     input: { id: '', text: '' },
     buildInput: (match) => ({ id: match?.[1] ?? '', text: match?.[2] ?? '' }),
   },
+  // -- wave 4: reach (discord) ---------------------------------------------
+  {
+    match: 'connect discord',
+    text: 'Checking your Discord connection...',
+    tool: 'connect_discord',
+    input: {},
+  },
+  {
+    match: /turn off discord|stop discord dms/i,
+    text: 'Turning off Discord DMs...',
+    tool: 'update_notification_prefs',
+    input: { discordDm: false },
+  },
+  {
+    match: 'notification settings',
+    text: 'Here are your notification settings...',
+    tool: 'update_notification_prefs',
+    input: {},
+  },
 ];

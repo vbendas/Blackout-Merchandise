@@ -1,4 +1,14 @@
-import type { AgentEvent, AgentRequest, ConfirmRequest, HistoryResponse, Suggestion, SuggestResponse } from '@/lib/agent/protocol';
+import type {
+  AgentEvent,
+  AgentRequest,
+  ConfirmRequest,
+  HistoryResponse,
+  Suggestion,
+  SuggestResponse,
+  TranscribeResponse,
+  TtsRequest,
+  VoiceSessionResponse,
+} from '@/lib/agent/protocol';
 
 export const AGENT_ENDPOINT = process.env.NEXT_PUBLIC_AGENT_ENDPOINT ?? '/api/agent';
 
@@ -165,6 +175,53 @@ export function uploadDesign(file: File, handlers: UploadHandlers = {}): Promise
     formData.append('file', file);
     xhr.send(formData);
   });
+}
+
+export const VOICE_ENDPOINT = '/api/voice';
+
+/** POST /api/voice/transcribe (multipart `audio`) — another workstream owns
+ * this route; until it ships this rejects and callers surface an error. */
+export async function transcribeAudio(audio: Blob, signal?: AbortSignal): Promise<TranscribeResponse> {
+  const formData = new FormData();
+  formData.append('audio', audio, 'audio.webm');
+  let response: Response;
+  try {
+    response = await fetch(`${VOICE_ENDPOINT}/transcribe`, { method: 'POST', body: formData, signal });
+  } catch {
+    throw new Error('Could not reach the transcription service.');
+  }
+  if (!response.ok) throw new Error(`Transcription failed (${response.status}).`);
+  return (await response.json()) as TranscribeResponse;
+}
+
+/** POST /api/voice/tts { text } → audio/mpeg stream. Another workstream owns
+ * this route; until it ships this rejects and callers surface an error. */
+export async function fetchTts(text: string, signal?: AbortSignal): Promise<Blob> {
+  let response: Response;
+  try {
+    response = await fetch(`${VOICE_ENDPOINT}/tts`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text } satisfies TtsRequest),
+      signal,
+    });
+  } catch {
+    throw new Error('Could not reach the voice service.');
+  }
+  if (!response.ok) throw new Error(`Voice playback failed (${response.status}).`);
+  return await response.blob();
+}
+
+/** GET /api/voice/session — another workstream owns this route; a 404 or
+ * network error resolves to the fallback engine rather than throwing. */
+export async function fetchVoiceSession(signal?: AbortSignal): Promise<VoiceSessionResponse> {
+  try {
+    const response = await fetch(`${VOICE_ENDPOINT}/session`, { signal });
+    if (!response.ok) return { mode: 'fallback' };
+    return (await response.json()) as VoiceSessionResponse;
+  } catch {
+    return { mode: 'fallback' };
+  }
 }
 
 export function loadStoredConversationId(): string {

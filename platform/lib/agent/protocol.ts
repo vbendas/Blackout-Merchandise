@@ -90,3 +90,24 @@ export interface CheckoutResponse {
   url: string;
   sessionId: string;
 }
+
+// --- Voice (wave 4) ---
+
+/** POST /api/voice/transcribe (multipart `audio`, webm/opus or wav) */
+export interface TranscribeResponse {
+  text: string;
+  language?: string;
+  durationMs?: number;
+}
+
+/** POST /api/voice/tts { text } → audio/mpeg stream */
+export interface TtsRequest {
+  text: string;
+}
+
+/** GET /api/voice/session → a signed URL for ElevenLabs Conversational AI (null when no agent is configured) */
+export interface VoiceSessionResponse {
+  mode: 'conversational' | 'fallback';
+  signedUrl?: string;
+  agentId?: string;
+}

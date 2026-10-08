@@ -388,6 +388,98 @@
   }
 }
 
+/* Full-screen hands-free conversation mode (voice-dialog button). */
+.mf-voice-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 24px;
+  background: var(--paper);
+  color: var(--signal);
+}
+
+.mf-voice-ring {
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  border: var(--hairline-strong);
+  background: var(--tint-8);
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 400ms var(--ease-settle), border-color 400ms var(--ease-settle), opacity 400ms var(--ease-settle);
+}
+
+.mf-voice-ring[data-state='listening'] {
+  background: var(--tint-14);
+  animation: mf-voice-breathe 2400ms ease-in-out infinite;
+}
+
+.mf-voice-ring[data-state='speaking'] {
+  background: color-mix(in srgb, var(--signal) 20%, transparent);
+  border-color: var(--signal);
+  animation: mf-voice-breathe 1100ms ease-in-out infinite;
+}
+
+.mf-voice-ring[data-state='thinking'],
+.mf-voice-ring[data-state='connecting'] {
+  opacity: 0.7;
+  animation: mf-spinner-pulse 1100ms var(--ease-settle) infinite;
+}
+
+.mf-voice-ring[data-state='paused'] {
+  opacity: 0.4;
+}
+
+.mf-voice-ring[data-state='error'] {
+  border-color: color-mix(in srgb, var(--danger) 60%, transparent);
+  opacity: 0.8;
+}
+
+@keyframes mf-voice-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--signal) 22%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 24px transparent;
+  }
+}
+
+.mf-voice-state-label {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.mf-voice-transcript {
+  max-width: 560px;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Push-to-talk mic button while recording: fills cream, paired with a
+   Square (stop) icon swapped in from Composer. */
+.mf-mic-recording {
+  background: var(--signal);
+  color: var(--paper);
+  border: var(--hairline-strong);
+  border-color: var(--signal);
+}
+
+.mf-mic-timer {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mf-app *,
   .mf-app *::before,

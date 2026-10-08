@@ -201,6 +201,15 @@ export const cardSchema = z.discriminatedUnion('kind', [
     rows: z.array(z.object({ orderId: z.string(), reference: z.string(), placedAt: z.string(), status: z.string(), productionStatus: z.string().optional(), grossCents: z.number(), transferCents: z.number().optional(), prompt: z.string().optional() })).max(50),
     total: z.number().optional(),
   }),
+  // --- wave 4: reach ---
+  z.object({
+    ...base,
+    kind: z.literal('discord_link'),
+    linked: z.boolean(),
+    discordUsername: z.string().optional(),
+    dmEnabled: z.boolean(),
+    linkUrl: z.string().optional(),
+  }),
   // --- wave 3: bulk + admin ---
   z.object({
     ...base,

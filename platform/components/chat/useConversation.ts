@@ -51,9 +51,30 @@ export function useConversation() {
   const [sending, setSending] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [confirmResolutions, setConfirmResolutions] = useState<Record<string, 'approved' | 'rejected'>>({});
+  const [lastAssistantText, setLastAssistantText] = useState('');
 
   const currentMessageId = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // Mirrors the streaming assistant text outside React state so the voice
+  // loop (useVoice) can read the finished turn's text the instant it ends,
+  // without waiting on a render to land in `messages`.
+  const currentTextRef = useRef('');
+  const assistantDoneListeners = useRef<Set<(text: string) => void>>(new Set());
+
+  const notifyAssistantDone = useCallback((text: string) => {
+    setLastAssistantText(text);
+    for (const listener of assistantDoneListeners.current) listener(text);
+  }, []);
+
+  /** Subscribes to the end of the next assistant turn (message_end, an
+   * error, or a confirm_required pause) — used by the voice conversation
+   * loop to know when to speak the reply. Returns an unsubscribe function. */
+  const onAssistantDone = useCallback((callback: (text: string) => void) => {
+    assistantDoneListeners.current.add(callback);
+    return () => {
+      assistantDoneListeners.current.delete(callback);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -119,6 +140,7 @@ export function useConversation() {
             storeConversationId(event.conversationId);
           }
           currentMessageId.current = event.messageId;
+          currentTextRef.current = '';
           setMessages((prev) => [
             ...prev,
             { id: event.messageId, role: 'assistant', text: '', cards: [], streaming: true },
@@ -128,6 +150,7 @@ export function useConversation() {
         case 'text_delta': {
           const id = currentMessageId.current;
           if (!id) break;
+          currentTextRef.current += event.text;
           updateMessage(id, (message) => ({ ...message, text: message.text + event.text }));
           break;
         }
@@ -184,6 +207,9 @@ export function useConversation() {
           setWorkingLabel(null);
           setSending(false);
           if (id) appendCards(id, [event.card]);
+          // The turn pauses here rather than reaching message_end — the
+          // voice loop still needs to be unblocked, even with no text to say.
+          notifyAssistantDone(currentTextRef.current);
           break;
         }
         case 'message_end': {
@@ -192,6 +218,7 @@ export function useConversation() {
           setSending(false);
           setWorkingLabel(null);
           currentMessageId.current = null;
+          notifyAssistantDone(currentTextRef.current);
           break;
         }
         case 'error': {
@@ -210,13 +237,15 @@ export function useConversation() {
             const newId = makeId('assistant');
             setMessages((prev) => [...prev, { id: newId, role: 'assistant', text: '', cards: [noticeCard] }]);
           }
+          // Nothing to speak, but the voice loop is waiting for this turn.
+          notifyAssistantDone('');
           break;
         }
         default:
           break;
       }
     },
-    [appendCards, conversationId, updateMessage],
+    [appendCards, conversationId, notifyAssistantDone, updateMessage],
   );
 
   const sendText = useCallback(
@@ -261,6 +290,8 @@ export function useConversation() {
     sending,
     loadingHistory,
     confirmResolutions,
+    lastAssistantText,
+    onAssistantDone,
     sendText,
     resolveConfirm,
   };
