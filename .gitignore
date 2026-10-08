@@ -34,3 +34,9 @@ data/LoRAs/*.zip
 # Print-ready PSDs are 0.8-1.2 GB, over the GitHub 100 MB file limit; keep them local
 services/color-separation/print_pipeline_v2_process/halftone/print_ready.psd
 services/color-separation/print_pipeline_v2_spot/halftone/print_ready.psd
+
+# Local tooling noise and verification output (Round 9 WP0)
+.playwright-mcp/
+.mcp.json.lock
+graphify-out/cache/
+website-v3/.verify/
