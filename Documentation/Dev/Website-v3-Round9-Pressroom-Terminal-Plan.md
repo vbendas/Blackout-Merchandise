@@ -410,6 +410,14 @@ Conventions: one owner per file per wave; "owns" is exclusive; every WP ends wit
 - **Acceptance**: A1 diff 0.1% or less on all routes; A2 either passes at 0.1% (layer order printed) or is reverted with the fallback recorded; page heights within 1px; `globals.css` under 200 lines; lint+build pass.
 - **Size**: M.
 
+**WP2a outcome and recorded A2 fallback (8 Oct 2026).** A1 landed (commit ad91c2e): `globals.css` is 39 lines plus 14 partials in `website-v3/app/styles/`, screenshot diff 189/189 identical. A2 (`layer(legacy)`) was applied, FAILED the 0.1% diff on `/contact` and was reverted. Fallback in force:
+- The legacy partials are imported UNLAYERED. The statement `@layer theme, base, legacy, components, utilities;` stays first in `globals.css` and `legacy` is declared but empty. The compiled order is correct (theme, base, legacy, components, utilities).
+- Consequence for WP2b: unlayered legacy rules still beat the `components` and `utilities` layers, so the global focus rule must rely on `outline: ... !important` plus the `outline:none` check (this section's fallback), not on layer order.
+- A2 is blocked by two latent conflicts between legacy rules and Tailwind utilities in components that WP2a does not own: (1) `website-v3/app/contact/ContactCopy.tsx:24` (`text-[13px]` on `.link-ink`, which renders 12px today; owner WP14 must remove or decide it); (2) `website-v3/components/GalleryView.tsx:146` and `:155` (`transition-opacity duration-500` vs `.gallery-zoom` `transition: opacity 500ms, transform 900ms`; hover-only, not caught by screenshots; owner WP15). Multi-line and `cn()` classNames in `SiteHeader.tsx` and `SiteFooter.tsx` were not scanned for the same conflict class.
+- Retry A2 (one-line sed: add `layer(legacy)` to each partial import) after WP14 and WP15 land, with a before/after diff on `/contact` and a manual hover check on `/gallery`. WP2b may attempt it as its last step if those fixes are in; otherwise WP21.
+- WP2b also takes over: the stale "Barlow everywhere" comment in the `@theme inline` block, and moving the global `prefers-reduced-motion` rule (currently at the tail of `catalog.css`) into `design-tokens/base.css`, leaving only `.flip-front/.flip-back` in `catalog.css`. Note that a layered `!important` in `legacy` outranks `!important` in later layers.
+- `home.css` holds `.home-tile-*` used by `CatalogTeaser`; WP8's ProductBand may reuse them (`product-band.css` is an empty stub).
+
 ### WP2b: Shared tokens, theme flip, layout
 - **Goal**: create the three-layer token source with Hazard Press values, make ink the default and paper an insert, and wire both apps' import route.
 - **Depends on**: WP2a. **Parallel with**: none.

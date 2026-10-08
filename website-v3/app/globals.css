@@ -1,6 +1,11 @@
 /* Entry stylesheet. Order matters (plan section 3.1):
    1. layer-order statement, 2. tailwindcss, 3. shared tokens (WP2b),
    4. legacy partials in original cascade order, 5. rules (@theme inline).
+   A2 FALLBACK IN FORCE: the legacy partials are imported UNLAYERED, so the
+   `legacy` layer above is declared but empty and legacy rules still beat the
+   components and utilities layers. Do not add layer(legacy) until the
+   ContactCopy.tsx:24 and GalleryView.tsx:146/155 utility conflicts are fixed.
+   Details: Documentation/Dev/Website-v3-Round9-Pressroom-Terminal-Plan.md, WP2a.
    Every @import precedes every other rule. */
 @layer theme, base, legacy, components, utilities;
 
