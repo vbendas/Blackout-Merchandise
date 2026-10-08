@@ -133,7 +133,7 @@ export const de: Dictionary = {
 
   'gallery.pieceLabel': 'MerchFrom-Stück {n}',
   'gallery.tapHint': 'antippen für die andere Ansicht',
-  'gallery.title': 'Arbeiten',
+  'gallery.title': 'Gedruckte Arbeiten',
   'gallery.count.one': '{n} Stück',
   'gallery.count.other': '{n} Stücke',
 
@@ -292,4 +292,66 @@ export const de: Dictionary = {
   'common.related': 'Ähnliche Produkte',
   'common.clearAll': 'Alles zurücksetzen',
   'common.clearAllAriaLabel': 'Alle Filter zurücksetzen',
+
+  'nav.home': 'Start',
+
+  'home.hero.promise': 'Beschreib das Stück. Wir machen Mockup und Angebot, drucken es und versenden es.',
+  'home.hero.tagline': 'Gedruckt für alle, die laut spielen.',
+  'home.hero.run': 'Run {run} · {city}',
+  'home.composer.label': 'Dein Brief',
+  'home.composer.placeholder.1': 'Schwarzes 280-gsm-Shirt, Rückendruck, 50 für die Tour',
+  'home.composer.placeholder.2': 'Flash-Sheet-Tote, zwei Farben, 100 fürs Studio',
+  'home.composer.placeholder.3': 'Festival-Crew-Hoodies, Front- und Ärmeldruck',
+  'home.composer.placeholder.4': 'Label-Capsule: 30 Shirts, 30 Hoodies, ein Logo',
+  'home.composer.chipsLabel': 'Startpunkte',
+  'home.composer.chip.1': 'Tour-Shirt, 50 Stk.',
+  'home.composer.chip.2': 'Flash-Sheet-Drop',
+  'home.composer.chip.3': 'Festival-Crew-Hoodies',
+  'home.composer.chip.4': 'Label-Capsule-Run',
+  'home.composer.send': 'Brief starten',
+  'home.composer.hint': 'Enter sendet. Shift+Enter fügt eine Zeile hinzu.',
+
+  'product.index': 'Der Ablauf', // REVIEW-NATIVE
+  'product.title': 'Brief rein. Proof raus.', // REVIEW-NATIVE
+  'product.frameLabel': 'Beispiel vom Brief zum Proof',
+  'product.example': 'Beispiel',
+  'product.breadcrumb': 'Projekt / {run}',
+  'product.breadcrumb.project': 'Projekt',
+  'product.you': 'Du',
+  'product.agent': 'Agent',
+  'product.brief': 'Tour-Shirt für die Band. Rückendruck in {colours}. {qty} Stück.',
+  'product.agent.reading': 'Liest den Brief.',
+  'product.agent.mockup': 'Mockup auf {name}. Rückendruck in {colours}.',
+  'product.agent.quote': 'Angebot liegt vor. Prüf die Positionen, dann freigeben.',
+  'product.agent.proof': 'Proof freigegeben. Als Nächstes kommt der Druck.',
+  'product.mockup.caption': '{sku} · {name} · {colours}',
+  'product.quote.title': 'Angebot',
+  'product.quote.blank': 'Rohling',
+  'product.quote.print': 'Druck',
+  'product.quote.qty': 'Menge',
+  'product.quote.lead': 'Lieferzeit',
+  'product.quote.total': 'Gesamt',
+  'product.quote.priced': 'Angebot kalkuliert', // REVIEW-NATIVE
+  'product.proof.approved': 'Proof freigegeben',
+  'product.agentLive': 'Agent aktiv',
+  'product.caption': 'Echter Ablauf, statisch gezeigt',
+  'product.mcp': 'Eigenen Agenten mitbringen ab {date}.',
+
+  'about.index': 'Über uns',
+  'about.claim.1': 'Schwerer Stoff. Ehrliche Labels.',
+  'about.claim.2': 'Bei uns gedruckt, gefaltet und etikettiert.',
+  'about.facts.method': 'Druckverfahren',
+  'about.facts.method.value': 'Siebdruck',
+  'about.facts.cert': 'Stoffnachweis', // REVIEW-NATIVE
+  'about.facts.cert.value': 'GOTS, OEKO-TEX',
+  'about.facts.vegan': 'Vegan',
+  'about.facts.vegan.value': 'Alle {n} Rohlinge',
+  'about.plate.credit': 'Foto: {credit}',
+
+  'catalog.header.index': 'Katalog / Rohlinge',
+  'catalog.insert.label': 'Einlage {n} / {name}', // REVIEW-NATIVE
+  'catalog.card.sku': 'MF-{code}',
+  'catalog.card.from': 'Ab {price}',
+  'catalog.card.moq': 'MOQ {n}',
+  'catalog.card.lead': 'Lieferzeit {lead}',
 };

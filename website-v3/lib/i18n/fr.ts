@@ -133,7 +133,7 @@ export const fr: Dictionary = {
 
   'gallery.pieceLabel': 'Pièce MerchFrom {n}',
   'gallery.tapHint': 'toucher pour voir l’autre angle',
-  'gallery.title': 'Travaux',
+  'gallery.title': 'Pièces imprimées', // REVIEW-NATIVE
   'gallery.count.one': '{n} pièce',
   'gallery.count.other': '{n} pièces',
 
@@ -293,4 +293,66 @@ export const fr: Dictionary = {
   'common.related': 'Voir aussi',
   'common.clearAll': 'Tout effacer',
   'common.clearAllAriaLabel': 'Effacer tous les filtres',
+
+  'nav.home': 'Accueil',
+
+  'home.hero.promise': 'Décrivez la pièce. On la maquette, on la chiffre, on l’imprime et on l’expédie.',
+  'home.hero.tagline': 'Imprimé pour ceux qui jouent fort.',
+  'home.hero.run': 'Série {run} · {city}',
+  'home.composer.label': 'Votre brief',
+  'home.composer.placeholder.1': 'T-shirt noir 280 gsm, impression au dos, 50 pour la tournée',
+  'home.composer.placeholder.2': 'Tote bag feuille de flash, deux couleurs, 100 pour le studio', // REVIEW-NATIVE
+  'home.composer.placeholder.3': 'Sweats équipe festival, impression devant et manche',
+  'home.composer.placeholder.4': 'Capsule label : 30 tee-shirts, 30 sweats, un logo',
+  'home.composer.chipsLabel': 'Points de départ',
+  'home.composer.chip.1': 'T-shirt tournée, 50 pcs',
+  'home.composer.chip.2': 'Feuille de flash',
+  'home.composer.chip.3': 'Sweats équipe festival',
+  'home.composer.chip.4': 'Série capsule label', // REVIEW-NATIVE
+  'home.composer.send': 'Lancer votre brief',
+  'home.composer.hint': 'Entrée envoie. Maj+Entrée ajoute une ligne.',
+
+  'product.index': 'Le parcours',
+  'product.title': 'Du brief à l’épreuve.', // REVIEW-NATIVE
+  'product.frameLabel': 'Exemple du parcours, du brief à l’épreuve',
+  'product.example': 'Exemple',
+  'product.breadcrumb': 'Projet / {run}',
+  'product.breadcrumb.project': 'Projet',
+  'product.you': 'Vous',
+  'product.agent': 'Agent',
+  'product.brief': 'T-shirt de tournée pour le groupe. Impression au dos en {colours}. {qty} pièces.',
+  'product.agent.reading': 'Lecture du brief.',
+  'product.agent.mockup': 'Maquette sur {name}. Impression au dos en {colours}.',
+  'product.agent.quote': 'Devis prêt. Vérifiez les lignes, puis validez.',
+  'product.agent.proof': 'Épreuve validée. L’impression est la suite.',
+  'product.mockup.caption': '{sku} · {name} · {colours}',
+  'product.quote.title': 'Devis',
+  'product.quote.blank': 'Pièce vierge',
+  'product.quote.print': 'Impression',
+  'product.quote.qty': 'Quantité',
+  'product.quote.lead': 'Délai',
+  'product.quote.total': 'Total',
+  'product.quote.priced': 'Devis chiffré',
+  'product.proof.approved': 'Épreuve validée',
+  'product.agentLive': 'Agent actif',
+  'product.caption': 'Vrai parcours, affiché en statique',
+  'product.mcp': 'Apportez votre propre agent dès le {date}.',
+
+  'about.index': 'À propos',
+  'about.claim.1': 'Tissu lourd. Étiquettes honnêtes.',
+  'about.claim.2': 'Imprimé, plié et étiqueté par nous.',
+  'about.facts.method': 'Méthode d’impression',
+  'about.facts.method.value': 'Sérigraphie',
+  'about.facts.cert': 'Preuve du tissu',
+  'about.facts.cert.value': 'GOTS, OEKO-TEX',
+  'about.facts.vegan': 'Vegan',
+  'about.facts.vegan.value': 'Toutes les {n} pièces vierges',
+  'about.plate.credit': 'Photo : {credit}',
+
+  'catalog.header.index': 'Catalogue / Pièces vierges',
+  'catalog.insert.label': 'Feuillet {n} / {name}', // REVIEW-NATIVE
+  'catalog.card.sku': 'MF-{code}',
+  'catalog.card.from': 'Dès {price}',
+  'catalog.card.moq': 'Qté min. {n}', // REVIEW-NATIVE
+  'catalog.card.lead': 'Délai {lead}',
 };

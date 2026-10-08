@@ -13,7 +13,7 @@ export const LANGS: { code: Lang; label: string }[] = [
 // nested objects) so `Record<Key, string>` gives every dictionary
 // complete, TypeScript-enforced key coverage — a missing translation is
 // a compile error, not a runtime fallback surprise.
-export type Key =
+export type BaseKey =
   // SiteHeader / SiteFooter nav (formerly Corners / PageCorners)
   | 'nav.partners'
   | 'nav.catalog'
@@ -313,4 +313,83 @@ export type Key =
   | 'common.clearAll'
   | 'common.clearAllAriaLabel';
 
-export type Dictionary = Record<Key, string>;
+// Round 9 slice keys (WP5). Transitional: English must define every one
+// (a missing key in en.ts fails tsc); the other five locales may omit them
+// and t() falls back to English. WP21 folds NewKey into BaseKey and makes
+// every locale strict again.
+export type NewKey =
+  // Nav
+  | 'nav.home'
+
+  // Home hero: promise, tagline, run label, composer
+  | 'home.hero.promise'
+  | 'home.hero.tagline'
+  | 'home.hero.run'
+  | 'home.composer.label'
+  | 'home.composer.placeholder.1'
+  | 'home.composer.placeholder.2'
+  | 'home.composer.placeholder.3'
+  | 'home.composer.placeholder.4'
+  | 'home.composer.chipsLabel'
+  | 'home.composer.chip.1'
+  | 'home.composer.chip.2'
+  | 'home.composer.chip.3'
+  | 'home.composer.chip.4'
+  | 'home.composer.send'
+  | 'home.composer.hint'
+
+  // Product band / AppFrame (static example flow)
+  | 'product.index'
+  | 'product.title'
+  | 'product.frameLabel'
+  | 'product.example'
+  | 'product.breadcrumb'
+  | 'product.breadcrumb.project'
+  | 'product.you'
+  | 'product.agent'
+  | 'product.brief'
+  | 'product.agent.reading'
+  | 'product.agent.mockup'
+  | 'product.agent.quote'
+  | 'product.agent.proof'
+  | 'product.mockup.caption'
+  | 'product.quote.title'
+  | 'product.quote.blank'
+  | 'product.quote.print'
+  | 'product.quote.qty'
+  | 'product.quote.lead'
+  | 'product.quote.total'
+  | 'product.quote.priced'
+  | 'product.proof.approved'
+  | 'product.agentLive'
+  | 'product.caption'
+  | 'product.mcp'
+
+  // About
+  | 'about.index'
+  | 'about.claim.1'
+  | 'about.claim.2'
+  | 'about.facts.method'
+  | 'about.facts.method.value'
+  | 'about.facts.cert'
+  | 'about.facts.cert.value'
+  | 'about.facts.vegan'
+  | 'about.facts.vegan.value'
+  | 'about.plate.credit'
+
+  // Catalog header, paper insert, spec captions
+  | 'catalog.header.index'
+  | 'catalog.insert.label'
+  | 'catalog.card.sku'
+  | 'catalog.card.from'
+  | 'catalog.card.moq'
+  | 'catalog.card.lead';
+
+export type Key = BaseKey | NewKey;
+
+// Locales other than English: full BaseKey coverage is enforced, NewKey
+// is optional until WP21.
+export type Dictionary = Record<BaseKey, string> & Partial<Record<NewKey, string>>;
+
+// English is the source: every key, base and new, is required.
+export type EnglishDictionary = Record<Key, string>;

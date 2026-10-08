@@ -5,7 +5,7 @@ import type { Dictionary, Key, Lang } from './types';
 import { LANGS } from './types';
 import { en } from './en';
 
-export type { Dictionary, Key, Lang } from './types';
+export type { Dictionary, EnglishDictionary, BaseKey, NewKey, Key, Lang } from './types';
 export { LANGS } from './types';
 export { typeKey, fitKey, techniqueKey } from './catalog-keys';
 
@@ -132,9 +132,9 @@ export interface TFunction {
 }
 
 // Translated strings for the active language, with {var} interpolation.
-// Falls back to English for any key missing from the active dictionary
-// (shouldn't happen — Dictionary's type enforces full coverage — but
-// keeps a bad translation file from ever rendering blank).
+// Falls back to English for any key missing from the active dictionary.
+// Round 9 NewKey entries are optional in the non-English dictionaries
+// until WP21, so this fallback is load-bearing, not just defensive.
 export function useT(): TFunction {
   const { dict } = useLang();
 

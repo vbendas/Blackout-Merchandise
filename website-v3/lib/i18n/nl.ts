@@ -133,7 +133,7 @@ export const nl: Dictionary = {
 
   'gallery.pieceLabel': 'MerchFrom stuk {n}',
   'gallery.tapHint': 'tik om de andere kant te zien',
-  'gallery.title': 'Werk',
+  'gallery.title': 'Gedrukt werk',
   'gallery.count.one': '{n} stuk',
   'gallery.count.other': '{n} stukken',
 
@@ -292,4 +292,67 @@ export const nl: Dictionary = {
   'common.related': 'Gerelateerd',
   'common.clearAll': 'Alles wissen',
   'common.clearAllAriaLabel': 'Alle filters wissen',
+
+  // Round 9 slice copy (WP5)
+  'nav.home': 'Home',
+
+  'home.hero.promise': 'Beschrijf het stuk. Wij maken de mockup, geven een offerte, drukken en verzenden.',
+  'home.hero.tagline': 'Gedrukt voor wie hard speelt.', // REVIEW-NATIVE
+  'home.hero.run': 'Run {run} · {city}',
+  'home.composer.label': 'Jouw briefing',
+  'home.composer.placeholder.1': 'Zwart shirt 280 gsm, rugprint, 50 voor de tour',
+  'home.composer.placeholder.2': 'Flash sheet tote, twee kleuren, 100 voor de studio',
+  'home.composer.placeholder.3': 'Festivalcrew-hoodies, print op voorkant en mouw', // REVIEW-NATIVE
+  'home.composer.placeholder.4': 'Labelcapsule: 30 shirts, 30 hoodies, één logo',
+  'home.composer.chipsLabel': 'Startpunten',
+  'home.composer.chip.1': 'Tourshirt, 50 st.',
+  'home.composer.chip.2': 'Flash sheet-drop', // REVIEW-NATIVE
+  'home.composer.chip.3': 'Festivalcrew-hoodies',
+  'home.composer.chip.4': 'Labelcapsule-run',
+  'home.composer.send': 'Start je briefing',
+  'home.composer.hint': 'Enter verstuurt. Shift+Enter voegt een regel toe.',
+
+  'product.index': 'De flow',
+  'product.title': 'Briefing erin. Proef eruit.',
+  'product.frameLabel': 'Voorbeeld van de flow van briefing naar proef',
+  'product.example': 'Voorbeeld',
+  'product.breadcrumb': 'Project / {run}',
+  'product.breadcrumb.project': 'Project',
+  'product.you': 'Jij',
+  'product.agent': 'Agent',
+  'product.brief': 'Tourshirt voor de band. Rugprint in {colours}. {qty} stuks.', // REVIEW-NATIVE
+  'product.agent.reading': 'De briefing wordt gelezen.',
+  'product.agent.mockup': 'Mockup op {name}. Rugprint in {colours}.',
+  'product.agent.quote': 'Offerte klaar. Controleer de regels en keur goed.',
+  'product.agent.proof': 'Proef goedgekeurd. Drukken is de volgende stap.',
+  'product.mockup.caption': '{sku} · {name} · {colours}',
+  'product.quote.title': 'Offerte',
+  'product.quote.blank': 'Basisstuk',
+  'product.quote.print': 'Druk',
+  'product.quote.qty': 'Aantal',
+  'product.quote.lead': 'Levertijd',
+  'product.quote.total': 'Totaal',
+  'product.quote.priced': 'Offerte geprijsd',
+  'product.proof.approved': 'Proef goedgekeurd',
+  'product.agentLive': 'Agent actief',
+  'product.caption': 'Echte flow, statisch getoond',
+  'product.mcp': 'Breng je eigen agent mee vanaf {date}.', // REVIEW-NATIVE
+
+  'about.index': 'Over ons',
+  'about.claim.1': 'Zwaar stof. Eerlijke labels.',
+  'about.claim.2': 'Door ons gedrukt, gevouwen en gelabeld.',
+  'about.facts.method': 'Drukmethode',
+  'about.facts.method.value': 'Zeefdruk',
+  'about.facts.cert': 'Stofbewijs', // REVIEW-NATIVE
+  'about.facts.cert.value': 'GOTS, OEKO-TEX',
+  'about.facts.vegan': 'Vegan',
+  'about.facts.vegan.value': 'Alle {n} basisstukken',
+  'about.plate.credit': 'Foto: {credit}',
+
+  'catalog.header.index': 'Catalogus / Basisstukken',
+  'catalog.insert.label': 'Bijlage {n} / {name}', // REVIEW-NATIVE
+  'catalog.card.sku': 'MF-{code}',
+  'catalog.card.from': 'Vanaf {price}',
+  'catalog.card.moq': 'MOQ {n}',
+  'catalog.card.lead': 'Levertijd {lead}',
 };

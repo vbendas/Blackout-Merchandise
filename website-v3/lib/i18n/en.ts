@@ -1,9 +1,9 @@
-import type { Dictionary } from './types';
+import type { EnglishDictionary } from './types';
 
 // Source of truth: the exact English strings currently hardcoded across
 // the site. Every other dictionary is a translation of this one, and
 // TypeScript enforces they all cover the same key set.
-export const en: Dictionary = {
+export const en: EnglishDictionary = {
   'nav.partners': 'Partners',
   'nav.catalog': 'Catalog',
   'nav.gallery': 'Gallery',
@@ -136,7 +136,7 @@ export const en: Dictionary = {
 
   'gallery.pieceLabel': 'MerchFrom piece {n}',
   'gallery.tapHint': 'tap to see the other angle',
-  'gallery.title': 'Work',
+  'gallery.title': 'Printed work',
   'gallery.count.one': '{n} piece',
   'gallery.count.other': '{n} pieces',
 
@@ -295,4 +295,67 @@ export const en: Dictionary = {
   'common.related': 'Related',
   'common.clearAll': 'Clear all',
   'common.clearAllAriaLabel': 'Clear all filters',
+
+  // ---- Round 9 slice keys (WP5). Facts arrive as params, never typed here.
+  'nav.home': 'Home',
+
+  'home.hero.promise': 'Describe the piece. We mock it up, quote it, print it and ship it.',
+  'home.hero.tagline': 'Printed for the ones who play loud.',
+  'home.hero.run': 'Run {run} · {city}',
+  'home.composer.label': 'Your brief',
+  'home.composer.placeholder.1': 'Black 280 gsm tee, back print, 50 for the tour',
+  'home.composer.placeholder.2': 'Flash sheet tote, two colours, 100 for the studio',
+  'home.composer.placeholder.3': 'Festival crew hoodies, front and sleeve print',
+  'home.composer.placeholder.4': 'Label capsule: 30 tees, 30 hoodies, one logo',
+  'home.composer.chipsLabel': 'Starting points',
+  'home.composer.chip.1': 'Tour tee, 50 pcs',
+  'home.composer.chip.2': 'Flash sheet drop',
+  'home.composer.chip.3': 'Festival crew hoodies',
+  'home.composer.chip.4': 'Label capsule run',
+  'home.composer.send': 'Start your brief',
+  'home.composer.hint': 'Enter sends. Shift+Enter adds a line.',
+
+  'product.index': 'The flow',
+  'product.title': 'Brief in. Proof out.',
+  'product.frameLabel': 'Example of the brief to proof flow',
+  'product.example': 'Example',
+  'product.breadcrumb': 'Project / {run}',
+  'product.breadcrumb.project': 'Project',
+  'product.you': 'You',
+  'product.agent': 'Agent',
+  'product.brief': 'Tour tee for the band. Back print in {colours}. {qty} pieces.',
+  'product.agent.reading': 'Reading the brief.',
+  'product.agent.mockup': 'Mockup on {name}. Back print in {colours}.',
+  'product.agent.quote': 'Quote is ready. Check the lines, then approve.',
+  'product.agent.proof': 'Proof approved. Printing is next.',
+  'product.mockup.caption': '{sku} · {name} · {colours}',
+  'product.quote.title': 'Quote',
+  'product.quote.blank': 'Blank',
+  'product.quote.print': 'Print',
+  'product.quote.qty': 'Quantity',
+  'product.quote.lead': 'Lead time',
+  'product.quote.total': 'Total',
+  'product.quote.priced': 'Quote priced',
+  'product.proof.approved': 'Proof approved',
+  'product.agentLive': 'Agent live',
+  'product.caption': 'Real flow, shown static',
+  'product.mcp': 'Bring your own agent from {date}.',
+
+  'about.index': 'About',
+  'about.claim.1': 'Heavy cloth. Honest labels.',
+  'about.claim.2': 'Printed, folded and tagged by us.',
+  'about.facts.method': 'Print method',
+  'about.facts.method.value': 'Screen print',
+  'about.facts.cert': 'Cloth proof',
+  'about.facts.cert.value': 'GOTS, OEKO-TEX',
+  'about.facts.vegan': 'Vegan',
+  'about.facts.vegan.value': 'All {n} blanks',
+  'about.plate.credit': 'Photo: {credit}',
+
+  'catalog.header.index': 'Catalog / Blanks',
+  'catalog.insert.label': 'Insert {n} / {name}',
+  'catalog.card.sku': 'MF-{code}',
+  'catalog.card.from': 'From {price}',
+  'catalog.card.moq': 'MOQ {n}',
+  'catalog.card.lead': 'Lead {lead}',
 };

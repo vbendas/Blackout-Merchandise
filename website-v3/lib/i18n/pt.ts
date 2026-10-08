@@ -135,7 +135,7 @@ export const pt: Dictionary = {
 
   'gallery.pieceLabel': 'Peça MerchFrom {n}',
   'gallery.tapHint': 'toque para ver o outro ângulo',
-  'gallery.title': 'Trabalhos',
+  'gallery.title': 'Trabalho impresso',
   'gallery.count.one': '{n} peça',
   'gallery.count.other': '{n} peças',
 
@@ -294,4 +294,67 @@ export const pt: Dictionary = {
   'common.related': 'Relacionados',
   'common.clearAll': 'Limpar tudo',
   'common.clearAllAriaLabel': 'Limpar todos os filtros',
+
+  // ---- Round 9 slice keys (WP5-pt). Facts arrive as params, never typed here.
+  'nav.home': 'Início',
+
+  'home.hero.promise': 'Descreve a peça. Fazemos o mockup, cotamos, imprimimos e enviamos.',
+  'home.hero.tagline': 'Impresso para quem toca alto.',
+  'home.hero.run': 'Lote {run} · {city}',
+  'home.composer.label': 'O teu briefing',
+  'home.composer.placeholder.1': 'T-shirt preta 280 gsm, estampado nas costas, 50 para a digressão',
+  'home.composer.placeholder.2': 'Tote com folha flash, duas cores, 100 para o estúdio', // REVIEW-NATIVE
+  'home.composer.placeholder.3': 'Hoodies para a equipa do festival, estampado na frente e na manga',
+  'home.composer.placeholder.4': 'Cápsula da editora: 30 t-shirts, 30 hoodies, um logótipo', // REVIEW-NATIVE
+  'home.composer.chipsLabel': 'Pontos de partida',
+  'home.composer.chip.1': 'T-shirt da digressão, 50 un.',
+  'home.composer.chip.2': 'Lançamento de folha flash', // REVIEW-NATIVE
+  'home.composer.chip.3': 'Hoodies de festival',
+  'home.composer.chip.4': 'Lote de cápsula da editora', // REVIEW-NATIVE
+  'home.composer.send': 'Começar o briefing',
+  'home.composer.hint': 'Enter envia. Shift+Enter muda de linha.',
+
+  'product.index': 'O fluxo',
+  'product.title': 'Briefing entra. Prova sai.',
+  'product.frameLabel': 'Exemplo do fluxo de briefing até à prova',
+  'product.example': 'Exemplo',
+  'product.breadcrumb': 'Projeto / {run}',
+  'product.breadcrumb.project': 'Projeto',
+  'product.you': 'Tu',
+  'product.agent': 'Agente',
+  'product.brief': 'T-shirt da digressão para a banda. Estampado nas costas em {colours}. {qty} peças.',
+  'product.agent.reading': 'A ler o briefing.',
+  'product.agent.mockup': 'Mockup em {name}. Estampado nas costas em {colours}.',
+  'product.agent.quote': 'Orçamento pronto. Verifica as linhas e aprova.',
+  'product.agent.proof': 'Prova aprovada. Segue-se a impressão.',
+  'product.mockup.caption': '{sku} · {name} · {colours}',
+  'product.quote.title': 'Orçamento',
+  'product.quote.blank': 'Peça base',
+  'product.quote.print': 'Impressão',
+  'product.quote.qty': 'Quantidade',
+  'product.quote.lead': 'Prazo',
+  'product.quote.total': 'Total',
+  'product.quote.priced': 'Orçamento com preço',
+  'product.proof.approved': 'Prova aprovada',
+  'product.agentLive': 'Agente ativo',
+  'product.caption': 'Fluxo real, mostrado estático',
+  'product.mcp': 'Traz o teu próprio agente a partir de {date}.',
+
+  'about.index': 'Sobre',
+  'about.claim.1': 'Tecido pesado. Etiquetas honestas.',
+  'about.claim.2': 'Impresso, dobrado e etiquetado por nós.',
+  'about.facts.method': 'Método de impressão',
+  'about.facts.method.value': 'Serigrafia',
+  'about.facts.cert': 'Prova do tecido',
+  'about.facts.cert.value': 'GOTS, OEKO-TEX',
+  'about.facts.vegan': 'Vegan',
+  'about.facts.vegan.value': 'Todas as {n} peças base',
+  'about.plate.credit': 'Foto: {credit}',
+
+  'catalog.header.index': 'Catálogo / Peças base',
+  'catalog.insert.label': 'Inserção {n} / {name}', // REVIEW-NATIVE
+  'catalog.card.sku': 'MF-{code}',
+  'catalog.card.from': 'A partir de {price}',
+  'catalog.card.moq': 'Mín. {n} peças',
+  'catalog.card.lead': 'Prazo {lead}',
 };
