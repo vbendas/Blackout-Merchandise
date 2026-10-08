@@ -218,6 +218,115 @@
         "paper"
       ],
       "use": "text"
+    },
+    {
+      "fg": "bg",
+      "bg": "fg",
+      "min": 7,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text",
+      "note": "WP6a: ink button, selected chip (text on a --fg fill)."
+    },
+    {
+      "fg": "fg",
+      "bg": "well",
+      "min": 7,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text",
+      "note": "WP6a: Field text on the --well control ground."
+    },
+    {
+      "fg": "fg-muted",
+      "bg": "well",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text",
+      "note": "WP6a: Field placeholder on --well."
+    },
+    {
+      "fg": "rule",
+      "bg": "well",
+      "min": 3,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "ui",
+      "note": "WP6a: Field border on --well."
+    },
+    {
+      "fg": "brand",
+      "bg": "well",
+      "min": 3,
+      "themes": [
+        "ink"
+      ],
+      "use": "ui",
+      "note": "WP6a: invalid bottom rule on ink (paper uses --fg)."
+    },
+    {
+      "fg": "fg",
+      "bg": "scrim",
+      "min": 7,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text",
+      "note": "WP6a: SpecCard caption over the flat --scrim bar (composited on --bg)."
+    },
+    {
+      "fg": "fg-muted",
+      "bg": "scrim",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text",
+      "note": "WP6a: SpecCard code/labels on the --scrim bar."
+    },
+    {
+      "fg": "bg",
+      "bg": "fg",
+      "min": 3,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "ui",
+      "note": "WP6c: check glyph / switch knob on the --fg fill of a checked Toggle"
+    },
+    {
+      "fg": "rule",
+      "bg": "bg-raised",
+      "min": 3,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "ui",
+      "note": "WP6c: Toggle box, Tabs rule and Dialog panel edge on --bg-raised"
+    },
+    {
+      "fg": "focus",
+      "bg": "bg-raised",
+      "min": 3,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "ui",
+      "note": "WP6c: selected Swatch ring and focus ring inside a Dialog panel"
     }
   ],
   "forbid": [
