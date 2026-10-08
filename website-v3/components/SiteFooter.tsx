@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FittedWord } from '@/components/editorial/FittedWord';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { FooterEcho } from '@/components/motion/FooterEcho';
 import { useT, type Key } from '@/lib/i18n';
 import { SOCIALS } from '@/lib/socials';
 
@@ -28,11 +29,12 @@ export function SiteFooter() {
 
   return (
     <footer className="site-footer">
+      <FooterEcho />
       <div className="site-footer-cols">
         <div className="site-footer-intro flex flex-col gap-3">
           <span className="site-footer-label">MerchFrom</span>
           <p className="m-0 max-w-[360px] text-[20px] font-light leading-[1.35] md:text-[22px]">
-            {t('footer.tagline')}
+            {t('home.header.line')}
           </p>
         </div>
 

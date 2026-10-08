@@ -8,7 +8,7 @@ export async function GET() {
 MerchFrom is premium merchandise for artists, brands and companies —
 tees, hoodies and more, designed, printed and shipped in-house from
 Barcelona, Spain. OEKO-TEX tested blanks, organic cotton across most
-of the range, many GOTS-certified.
+of the range, many GOTS-certified, all vegan (no animal materials).
 
 MerchFrom is by application: a limited number of artists are accepted
 each month, not an open storefront. One assistant handles onboarding,

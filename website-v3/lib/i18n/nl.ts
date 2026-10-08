@@ -20,13 +20,12 @@ export const nl: Dictionary = {
   'footer.studio': 'Studio',
   'footer.elsewhere': 'Elders',
   'footer.language': 'Taal',
-  'footer.tagline': 'Merch voor bands, tattoo-artiesten en festivals. Gedrukt in Barcelona.',
   'footer.copyright': '© {year} MerchFrom — Barcelona, ES',
   'footer.motto': 'Op aanvraag · Nul vooraf',
 
   'nav.cloth': 'Stof',
   'nav.blanks': 'Basisstukken',
-  'home.header.line': 'Aanmeldingen open — Gedrukt in Barcelona',
+  'home.header.line': 'Premium merchandise voor artiesten.',
 
   'catalog.filter.type': 'Type',
   'catalog.filter.fit': 'Pasvorm',
@@ -45,7 +44,7 @@ export const nl: Dictionary = {
   'catalog.intro.label': 'Catalogus',
   'catalog.intro.title': 'De blanco items.',
   'catalog.intro.body':
-    '{n} items waar we op drukken, en niets wat we zelf niet zouden dragen. OEKO-TEX getest, biologisch katoen in het grootste deel van het assortiment, gewichten tot {gsm} gsm.',
+    '{n} items waar we op drukken, en niets wat we zelf niet zouden dragen. OEKO-TEX getest, biologisch katoen in het grootste deel van het assortiment, gewichten tot {gsm} gsm. Allemaal vegan.',
   'catalog.stat.gots': 'GOTS biologisch',
   'catalog.stat.heavy': 'Zwaar 220 gsm+',
   'catalog.stat.methods': 'Drukmethodes',
@@ -79,7 +78,7 @@ export const nl: Dictionary = {
   'catalog.filter.show.other': '{n} basisstukken tonen',
   'catalog.note.kicker': 'MerchFrom · Basisstukken',
   'catalog.note.title': 'Gemaakt voor de merchtafel.',
-  'catalog.note.foot': 'Zwaar · Biologisch · Gedrukt in Barcelona',
+  'catalog.note.foot': 'Zwaar · Biologisch · Vegan',
   'catalog.editorial.cloth.kicker': 'Stof · Barcelona',
   'catalog.editorial.cloth.title': 'Zware stof.\nEerlijke labels.',
   'catalog.editorial.studio.kicker': 'Studio · Barcelona',
@@ -139,27 +138,29 @@ export const nl: Dictionary = {
   'gallery.count.other': '{n} stukken',
 
   'about.headline': 'Over ons',
-  'about.statement': 'We zijn niet voor iedereen — maar mama zei altijd al dat jij niet iedereen bent.',
+  'about.statement': 'De pers is dezelfde. Jij hoeft niet meer in de ruimte te zijn.',
   'about.paragraph1':
     'MerchFrom begon in 2017 als zeefdrukatelier in Barcelona, Spanje, en drukte voor touring bands en tattoostudio’s die genoeg hadden van merch die na de eerste wasbeurt al uit elkaar viel.',
   'about.paragraph2':
-    'De pers is dezelfde gebleven. Wat veranderd is: je hoeft niet meer in de ruimte te staan. Beschrijf het stuk, keur de proef goed, en wij drukken, vouwen, labelen en verzenden. De marge is voor jou.',
+    'Beschrijf het stuk, keur de proef goed, en wij drukken, vouwen, labelen en verzenden. De marge is voor jou.',
   'about.est': 'Sinds',
   'about.shop': 'Atelier',
   'about.press': 'Pers',
 
   'contact.headline': 'Contact',
-  'contact.statement': 'Zeg hallo. Voor projecten, grote oplages en alles rond drukwerk: schrijf ons, of solliciteer naar een plek via de wachtlijst.',
+  'contact.statement': 'Praat met de pers.',
+  'contact.line':
+    'Projecten, grote oplages, alles wat met drukwerk te maken heeft — schrijf ons, of solliciteer naar een plek.',
   'contact.shop': 'Atelier',
   'contact.email': 'Email',
   'contact.elsewhere': 'Elders',
 
   'waitlist.headline': 'Aanmelden',
+  'apply.index': 'Wie het weet, weet het.',
   'waitlist.statement': 'Op aanvraag. Elke maand een beperkt aantal makers — en niets vooraf op het Shop-pad.',
   'waitlist.projectLabel': 'Project',
   'waitlist.success': 'Genoteerd — we nemen contact op.',
   'waitlist.projectAttached': 'Project {code} toegevoegd.',
-  'waitlist.rolePlaceholder': 'Ik ben…',
   'waitlist.roleLabel': 'Ik ben',
   'waitlist.role.band': 'Band of muzikant',
   'waitlist.role.tattoo': 'Tatoeëerder of tatoeagestudio',
@@ -187,6 +188,7 @@ export const nl: Dictionary = {
   'home.hero.promptLabel': 'Beschrijf jouw stuk',
   'home.hero.placeholder': 'Zwarte t-shirt 280 gsm, print op de rug, 50 voor de tour — nodig voor mei',
   'home.hero.start': 'Versturen',
+  'home.hero.startBrief': 'Start je briefing ↓',
   'home.hero.fact.printed': 'Gedrukt in Barcelona',
   'home.hero.fact.zero': 'Geen voorafgaande kosten',
   'home.brief.label': 'Jouw brief',
@@ -200,11 +202,12 @@ export const nl: Dictionary = {
 
   'home.printedFor': 'Gedrukt voor',
 
-  'home.cover.fact.audience': 'Merch voor bands, tatoeëerders & festivals',
-  'home.cover.fact.organic': 'Zwaar en biologisch',
+  'home.cover.fact.organic': 'Biologisch katoen · Vegan',
   'home.cover.fact.application': 'Op aanvraag',
   'home.cover.caption': 'Cover — Zeefdruk, twee kleuren',
-  'home.cover.tagline': 'Zware stof, eerlijke labels.',
+  'home.cover.tagline': 'Zeefdruk in Barcelona.',
+  'home.cloth.line': 'Je fans dragen je kunst. Waarom kleed je ze in rommel?',
+  'home.cloth.eco': 'Milieuvriendelijk, en we kunnen het bewijzen: GOTS- en OEKO-TEX-gecertificeerde stof, vegan tot de laatste draad, bedrukt met inkt op waterbasis.',
 
   'home.statement.body':
     'Wij maken merch zoals een label een collectie maakt — zwaar biologisch katoen, gedrukt in onze eigen pers in Barcelona, voor bands, tatoeëerders en festivals. Jij ontwerpt het en bepaalt de prijs. Wij drukken het zodra het verkocht is.',
@@ -213,16 +216,15 @@ export const nl: Dictionary = {
   'home.cloth.stat.heaviestTee': 'Ons zwaarste shirt',
   'home.cloth.stat.gots': 'GOTS-gecertificeerde biologische items',
   'home.cloth.stat.oeko': 'OEKO-TEX getest',
-
-  'home.plates.caption1': 'Plaat 01 — Zeefdruk',
-  'home.plates.caption2': 'Plaat 02 — Op tour',
+  'home.cloth.cta': 'Bekijk alle {n} blanco items',
 
   'home.zero.word': 'Zero',
+  'home.zero.headline': 'Deuren: gratis. Merch: van jou.',
   'home.zero.stock.title': 'Geen voorraad.',
-  'home.zero.stock.body': 'We drukken elk stuk zodra het verkocht is. Niets ligt op jouw kosten in een magazijn.',
+  'home.zero.stock.body': 'We drukken elk stuk zodra het verkocht is. Niets ligt op jouw kosten in een magazijn. Geen overschot, niets dat op de stort belandt.',
   'home.zero.min.title': 'Geen minimum.',
   'home.zero.min.body': 'Lanceer één ontwerp of een volledige collectie, en voeg nieuwe stukken toe wanneer je wilt.',
-  'home.zero.margin.title': 'Jouw prijs, jouw marge.',
+  'home.zero.margin.title': 'Jij maakte de kunst. Jij houdt de marge.',
   'home.zero.margin.body':
     'Jij bepaalt de verkoopprijs. Alles boven onze basiskosten is voor jou, uitbetaald bij elke verkoop.',
   'home.zero.cta': 'Aanmelden om te lanceren',
@@ -237,7 +239,7 @@ export const nl: Dictionary = {
   'home.setlist.step3.title': 'Proef & offerte',
   'home.setlist.step3.body': 'Niets gaat naar de pers voordat jij het goedkeurt.',
   'home.setlist.step4.title': 'Op de pers',
-  'home.setlist.step4.body': 'Zeefdruk, borduurwerk of DTG — in Barcelona.',
+  'home.setlist.step4.body': 'Zeefdruk, borduurwerk of DTG, met inkt op waterbasis — in Barcelona.',
   'home.setlist.step5.title': 'Toegift',
   'home.setlist.step5.body': 'Naar je fans terwijl het verkoopt, of verpakt voor jou en de locatie.',
 
@@ -256,14 +258,14 @@ export const nl: Dictionary = {
 
   'home.catalog.title': '{n} blanco items.',
   'home.catalog.body':
-    'Allemaal OEKO-TEX getest. Biologisch katoen in het grootste deel van het assortiment, {gots} items GOTS-gecertificeerd — van {min} gsm shirts tot {max} gsm zware items.',
+    'Allemaal OEKO-TEX getest. Biologisch katoen in het grootste deel van het assortiment, {gots} items GOTS-gecertificeerd — van {min} gsm shirts tot {max} gsm zware items. Allemaal vegan.',
   'home.catalog.link': 'Bekijk de catalogus',
 
   'home.agents.label': 'Breng je eigen agent mee',
   'home.agents.soon': 'Binnenkort',
-  'home.agents.title': 'Werk je al met Claude, ChatGPT, Gemini of Grok? Sluit hem aan.',
+  'home.agents.title': 'Jouw agent, onze pers.',
   'home.agents.body':
-    'Alles wat de assistent doet — mockups, offertes, bestellingen, jouw winkel — wordt beschikbaar als MCP-server. Jouw agent, onze pers.',
+    'Werkt met Claude, ChatGPT, Gemini en Grok. Alles wat de assistent doet — mockups, offertes, bestellingen, jouw winkel — wordt beschikbaar als MCP-server.',
   'home.agents.connector': '# Claude · ChatGPT · Gemini · Grok — voeg toe als MCP-connector',
   'home.agents.clients': 'Claude · ChatGPT · Gemini · Grok',
   'home.agents.endpoint': 'Endpoint',
@@ -273,8 +275,7 @@ export const nl: Dictionary = {
   'home.agents.copy': 'Kopiëren',
   'home.agents.copied': 'Gekopieerd',
 
-  'home.apply.label': 'Op aanvraag',
-  'home.apply.title': 'Een beperkt aantal artiesten per maand.',
+  'home.apply.title': 'We zijn niet voor iedereen — maar mama zei altijd dat jij niet iedereen bent.',
 
   'notFound.headline': 'Buiten registratie.',
   'notFound.paragraph': 'Deze pagina bestaat niet — de platen liepen nooit gelijk.',

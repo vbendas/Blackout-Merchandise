@@ -10,6 +10,13 @@ interface HalftoneProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children'>
   priority?: boolean;
   /** Class on the <img> (default 'object-cover'). */
   imgClassName?: string;
+  /**
+   * Hover-capable pointers dissolve dot screen + grayscale into the
+   * continuous-tone photo (~600ms). Done as a second, colour <img> that
+   * fades in (opacity only) rather than animating a filter. Off for
+   * priority images. Default true.
+   */
+  hoverTone?: boolean;
 }
 
 /**
@@ -25,12 +32,15 @@ export function Halftone({
   sizes = '100vw',
   priority,
   imgClassName = 'object-cover',
+  hoverTone = true,
   className,
   ...rest
 }: HalftoneProps) {
+  const tone = hoverTone && !priority;
   return (
-    <div {...rest} className={`halftone${className ? ` ${className}` : ''}`}>
+    <div {...rest} className={`halftone${className ? ` ${className}` : ''}`} data-tone={tone ? '' : undefined}>
       <Image src={src} alt={alt} fill priority={priority} sizes={sizes} className={imgClassName} />
+      {tone && <Image src={src} alt="" aria-hidden fill sizes={sizes} className={`${imgClassName} halftone-tone`} />}
     </div>
   );
 }

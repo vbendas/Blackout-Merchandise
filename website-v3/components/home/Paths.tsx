@@ -36,26 +36,30 @@ export function Paths() {
   return (
     <section
       id="paths"
+      // Ink band: the home alternates dark and paper sections.
+      data-theme="ink"
       className="home-section"
-      style={{ paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)', borderTop: '1px solid var(--hairline)' }}
+      style={{ paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)' }}
     >
       <div className="flex flex-col gap-5" style={{ borderBottom: '1px solid var(--signal)', paddingBottom: '16px' }}>
         <span style={MONO_LABEL}>{t('home.paths.label')}</span>
-        <h2 className="home-setlist-heading" style={{ margin: 0, maxWidth: '16ch' }}>
+        <h2 className="home-setlist-heading" data-lines style={{ margin: 0, maxWidth: '16ch' }}>
           {t('home.paths.title')}
         </h2>
       </div>
 
       <div className="grid grid-cols-1 gap-14 md:grid-cols-2 md:gap-8">
         {CARDS.map((card, i) => (
-          <div key={card.titleKey} className="flex flex-col gap-5" data-rise>
+          <div key={card.titleKey} className="flex flex-col gap-5" data-path-card>
             <Halftone
               src={card.image}
               sizes="(min-width: 768px) 45vw, 100vw"
               className="h-[300px] md:h-[440px]"
+              data-wipe
             />
             <div
               className="flex items-baseline justify-between gap-4"
+              data-rise
               style={{ borderBottom: '1px solid var(--hairline)', paddingBottom: '14px' }}
             >
               <span className="flex items-baseline gap-4">
@@ -66,10 +70,10 @@ export function Paths() {
               </span>
               <span style={{ ...MONO_LABEL, textAlign: 'right' }}>{t(card.metaKey)}</span>
             </div>
-            <p className="m-0 max-w-[520px] text-[16px] leading-[1.55]" style={{ color: 'var(--soft)' }}>
+            <p className="m-0 max-w-[520px] text-[16px] leading-[1.55]" data-rise style={{ color: 'var(--soft)' }}>
               {t(card.bodyKey)}
             </p>
-            <Link href="/waitlist" className="link-ink self-start">
+            <Link href="/waitlist" className="link-ink self-start" data-rise>
               {t(card.linkKey)} →
             </Link>
           </div>

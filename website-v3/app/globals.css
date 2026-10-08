@@ -481,7 +481,7 @@ a {
   font-weight: 500;
 }
 
-/* Halftone treatment for the cover photo and the two plates: grayscale
+/* Halftone treatment for the cover photo and page plates: grayscale
    + contrast filter on the image itself, plus a fine dot-screen overlay
    blended over it — a cheap CSS stand-in for a real halftone screen. */
 .halftone {
@@ -501,6 +501,7 @@ a {
   background-size: 3.5px 3.5px;
   mix-blend-mode: multiply;
   pointer-events: none;
+  opacity: var(--dots, 1);
 }
 
 /* Giant outlined word (CLOTH / Zero / Apply): a stroked outline (the
@@ -562,7 +563,25 @@ a {
   gap: 8px 28px;
   margin-top: 22px;
   padding-top: 14px;
-  border-top: 1px solid var(--hairline);
+  position: relative;
+}
+
+/* The hairline is a pseudo-element so the load choreography can draw it
+   (transform only) without scaling the row's text. --line rests at 1. */
+.home-facts-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--hairline);
+  transform: scaleX(var(--line, 1));
+  transform-origin: left center;
+}
+
+.home-facts-cta {
+  margin-left: auto;
 }
 
 .home-cover-media {
@@ -588,8 +607,10 @@ a {
   display: grid;
   grid-template-columns: 1fr;
   gap: 28px;
-  margin-top: 22px;
-  align-items: end;
+  /* Matches the cover's bottom padding so the caption + brief row sits
+     centred in the black band under the photo. */
+  margin-top: clamp(48px, 7vw, 96px);
+  align-items: center;
 }
 
 @media (min-width: 768px) {
@@ -801,39 +822,6 @@ a {
   }
 }
 
-/* Plates (two offset halftone photos, second one pushed down on desktop
-   per the mock) */
-.home-plates-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 24px;
-}
-
-@media (min-width: 768px) {
-  .home-plates-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .home-plate-two {
-    margin-top: 120px;
-  }
-}
-
-.home-plate-media {
-  position: relative;
-  height: 420px;
-}
-
-@media (min-width: 768px) {
-  .home-plate-media {
-    height: 640px;
-  }
-
-  .home-plate-two .home-plate-media {
-    height: 520px;
-  }
-}
-
 /* Set list rows */
 .home-setlist-row {
   display: grid;
@@ -903,6 +891,9 @@ a {
 
 /* Primary button: ink block on paper. Works on <a> and <button>. */
 .btn-ink {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -920,11 +911,38 @@ a {
   text-transform: uppercase;
   white-space: nowrap;
   cursor: pointer;
-  transition: opacity 160ms ease;
+  transition: opacity 160ms ease, color 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.btn-ink:hover {
+.btn-ink::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--signal);
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Squeegee: the paper fill is pulled across left to right on hover and
+   keeps going out to the right on release. Reduced motion (or a touch
+   pointer) keeps the plain opacity dip instead. */
+.btn-ink:hover:not(:disabled) {
   opacity: 0.86;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .btn-ink:hover:not(:disabled) {
+    opacity: 1;
+    color: var(--signal);
+  }
+
+  .btn-ink:hover:not(:disabled)::before {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
 }
 
 .btn-ink:focus-visible {
@@ -952,10 +970,34 @@ a {
   text-transform: uppercase;
   cursor: pointer;
   transition: border-color 160ms ease;
+  position: relative;
 }
 
 .link-ink:hover {
   border-bottom-color: var(--signal);
+}
+
+/* Underline draw: a full-ink rule scales in from the left, and leaves to
+   the right. Transform-only; motion-safe pointers only. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .link-ink::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .link-ink:hover::after,
+  .link-ink:focus-visible::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
 }
 
 .link-ink:focus-visible {
@@ -1017,7 +1059,7 @@ a {
 
 .site-footer-label {
   font-family: var(--font-mono), monospace;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #9d958f;
@@ -1055,7 +1097,7 @@ a {
   gap: 10px 24px;
   margin-top: 28px;
   font-family: var(--font-mono), monospace;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #9d958f;
@@ -1133,4 +1175,153 @@ a {
 .role-choice:focus-visible {
   outline: 2px solid var(--signal);
   outline-offset: 4px;
+}
+
+
+/* ---------------------------------------------------------------------
+   Round 8-C — motion pack. Everything here is either transform / opacity /
+   clip-path, or gated behind a state that only JS sets, so the resting
+   (SSR, no-JS, reduced-motion) page is complete and visible. */
+
+/* Halftone -> full tone on hover: a colour <img> stacked over the
+   grayscale one fades in while the dot screen fades out. */
+.halftone img.halftone-tone {
+  filter: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (hover: none) {
+  .halftone img.halftone-tone {
+    display: none;
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .halftone img.halftone-tone,
+  .halftone::after {
+    transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .halftone[data-tone]:hover img.halftone-tone {
+    opacity: 1;
+  }
+
+  .halftone[data-tone]:hover {
+    --dots: 0;
+  }
+}
+
+/* Heading line reveals: hidden only after JS marks the heading pending. */
+[data-lines-pending] {
+  opacity: 0;
+}
+
+/* Route sweep panel (PageTransition). Parked off-screen and hidden. */
+.route-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  visibility: hidden;
+  transform: translateY(-100%);
+  background: var(--paper);
+  border-bottom: 1px solid var(--signal);
+}
+
+/* Set list plates: desktop, motion-safe only. Rows keep the full width
+   everywhere else. */
+.home-setlist-frame {
+  display: none;
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .home-setlist-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(280px, 26vw, 400px);
+    gap: 56px;
+    align-items: stretch;
+  }
+
+  .home-setlist-layout .home-setlist-row {
+    grid-template-columns: 56px minmax(0, 1fr) 240px;
+  }
+
+  .home-setlist-frame {
+    display: block;
+    position: relative;
+    margin: 26px 0;
+    min-height: 360px;
+  }
+
+  .home-setlist-plate {
+    position: absolute;
+    inset: 0;
+  }
+
+  .home-setlist-plate:not(:first-child) {
+    opacity: 0;
+  }
+}
+
+/* First-load choreography start state (see components/motion/LoadIntro).
+   The arming script sets html:has(meta[name='mf-intro']) only on desktop, with
+   motion allowed, at the top of a fresh session. A failsafe animation
+   reveals everything after 3s should hydration never come. */
+@keyframes intro-failsafe {
+  to {
+    transform: none;
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes intro-failsafe-vars {
+  to {
+    --line: 1;
+    --dots: 1;
+  }
+}
+
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  html:has(meta[name='mf-intro']) .home-masthead {
+    transform: translateY(105%);
+    animation: intro-failsafe 1ms 3s forwards;
+  }
+
+  html:has(meta[name='mf-intro']) .home-facts-row {
+    --line: 0;
+    animation: intro-failsafe-vars 1ms 3s forwards;
+  }
+
+  html:has(meta[name='mf-intro']) .home-facts-row > * {
+    opacity: 0;
+    animation: intro-failsafe 1ms 3s forwards;
+  }
+
+  html:has(meta[name='mf-intro']) .home-cover-media {
+    --dots: 0;
+    animation: intro-failsafe-vars 1ms 3s forwards;
+  }
+
+  html:has(meta[name='mf-intro']) .home-cover-media img {
+    clip-path: inset(49% 0 49% 0);
+    animation: intro-failsafe 1ms 3s forwards;
+  }
+}
+
+/* Eco line under the CLOTH stats: body copy, not a label, so it reads as a
+   statement backed by the numbers right above it. */
+.home-cloth-eco {
+  margin: 28px 0 0;
+  max-width: 720px;
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--soft);
+}
+
+@media (min-width: 768px) {
+  .home-cloth-eco {
+    font-size: 20px;
+  }
 }

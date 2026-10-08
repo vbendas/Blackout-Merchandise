@@ -35,7 +35,6 @@ export type Key =
   | 'footer.studio'
   | 'footer.elsewhere'
   | 'footer.language'
-  | 'footer.tagline'
   | 'footer.copyright'
   | 'footer.motto'
 
@@ -172,17 +171,18 @@ export type Key =
   // Contact page
   | 'contact.headline'
   | 'contact.statement'
+  | 'contact.line'
   | 'contact.email'
   | 'contact.shop'
   | 'contact.elsewhere'
 
   // Waitlist page + actions
   | 'waitlist.headline'
+  | 'apply.index'
   | 'waitlist.statement'
   | 'waitlist.projectLabel'
   | 'waitlist.success'
   | 'waitlist.projectAttached'
-  | 'waitlist.rolePlaceholder'
   | 'waitlist.roleLabel'
   | 'waitlist.role.band'
   | 'waitlist.role.tattoo'
@@ -211,6 +211,7 @@ export type Key =
   | 'home.hero.promptLabel'
   | 'home.hero.placeholder'
   | 'home.hero.start'
+  | 'home.hero.startBrief'
   | 'home.hero.fact.printed'
   | 'home.hero.fact.zero'
   | 'home.brief.label'
@@ -224,11 +225,12 @@ export type Key =
 
   | 'home.printedFor'
 
-  | 'home.cover.fact.audience'
   | 'home.cover.fact.organic'
   | 'home.cover.fact.application'
   | 'home.cover.caption'
   | 'home.cover.tagline'
+  | 'home.cloth.line'
+  | 'home.cloth.eco'
 
   | 'home.statement.body'
 
@@ -236,11 +238,10 @@ export type Key =
   | 'home.cloth.stat.heaviestTee'
   | 'home.cloth.stat.gots'
   | 'home.cloth.stat.oeko'
-
-  | 'home.plates.caption1'
-  | 'home.plates.caption2'
+  | 'home.cloth.cta'
 
   | 'home.zero.word'
+  | 'home.zero.headline'
   | 'home.zero.stock.title'
   | 'home.zero.stock.body'
   | 'home.zero.min.title'
@@ -291,7 +292,6 @@ export type Key =
   | 'home.agents.copy'
   | 'home.agents.copied'
 
-  | 'home.apply.label'
   | 'home.apply.title'
 
   // 404

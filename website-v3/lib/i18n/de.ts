@@ -20,13 +20,12 @@ export const de: Dictionary = {
   'footer.studio': 'Studio',
   'footer.elsewhere': 'Anderswo',
   'footer.language': 'Sprache',
-  'footer.tagline': 'Merch für Bands, Tätowierer und Festivals. Gedruckt in Barcelona.',
   'footer.copyright': '© {year} MerchFrom — Barcelona, ES',
   'footer.motto': 'Nur auf Bewerbung · Null Vorkasse',
 
   'nav.cloth': 'Stoff',
   'nav.blanks': 'Rohlinge',
-  'home.header.line': 'Bewerbungen offen — Gedruckt in Barcelona',
+  'home.header.line': 'Premium-Merchandise für Künstler.',
 
   'catalog.filter.type': 'Typ',
   'catalog.filter.fit': 'Passform',
@@ -45,7 +44,7 @@ export const de: Dictionary = {
   'catalog.intro.label': 'Katalog',
   'catalog.intro.title': 'Die Rohlinge.',
   'catalog.intro.body':
-    '{n} Teile, auf die wir drucken, und keines, das wir nicht selbst tragen würden. OEKO-TEX getestet, Bio-Baumwolle im größten Teil des Sortiments, Gewichte bis zu {gsm} gsm.',
+    '{n} Teile, auf die wir drucken, und keines, das wir nicht selbst tragen würden. OEKO-TEX getestet, Bio-Baumwolle im größten Teil des Sortiments, Gewichte bis zu {gsm} gsm. Alle vegan.',
   'catalog.stat.gots': 'GOTS Bio',
   'catalog.stat.heavy': 'Schwer 220 gsm+',
   'catalog.stat.methods': 'Druckmethoden',
@@ -79,7 +78,7 @@ export const de: Dictionary = {
   'catalog.filter.show.other': '{n} Rohlinge anzeigen',
   'catalog.note.kicker': 'MerchFrom · Rohlinge',
   'catalog.note.title': 'Gemacht für den Merch-Tisch.',
-  'catalog.note.foot': 'Schwer · Bio · Gedruckt in Barcelona',
+  'catalog.note.foot': 'Schwer · Bio · Vegan',
   'catalog.editorial.cloth.kicker': 'Stoff · Barcelona',
   'catalog.editorial.cloth.title': 'Schwerer Stoff.\nEhrliche Labels.',
   'catalog.editorial.studio.kicker': 'Studio · Barcelona',
@@ -139,27 +138,29 @@ export const de: Dictionary = {
   'gallery.count.other': '{n} Stücke',
 
   'about.headline': 'Über uns',
-  'about.statement': 'Wir sind nicht für jeden — aber Mama hat immer gesagt, du bist nicht wie alle anderen.',
+  'about.statement': 'Die Presse ist dieselbe. Du musst nicht mehr im Raum sein.',
   'about.paragraph1':
     'MerchFrom startete 2017 als Siebdruckwerkstatt in Barcelona, Spanien, und druckte für Touring-Bands und Tattoo-Studios, die genug hatten von Merch, der beim ersten Waschen auseinanderfiel.',
   'about.paragraph2':
-    'Die Presse ist dieselbe geblieben. Was sich geändert hat: Du musst nicht mehr vor Ort sein. Beschreibe das Stück, gib den Proof frei, und wir drucken, falten, etikettieren und verschicken. Die Marge behältst du.',
+    'Beschreibe das Stück, gib den Proof frei, und wir drucken, falten, etikettieren und verschicken. Die Marge behältst du.',
   'about.est': 'Seit',
   'about.shop': 'Werkstatt',
   'about.press': 'Presse',
 
   'contact.headline': 'Kontakt',
-  'contact.statement': 'Sag hallo. Für Projekte, Großaufträge und alles rund um Druck: schreib uns, oder bewirb dich über die Warteliste um einen Platz.',
+  'contact.statement': 'Sprich mit der Presse.',
+  'contact.line':
+    'Projekte, Großaufträge, alles rund um Druck — schreib uns, oder bewirb dich um einen Platz.',
   'contact.shop': 'Werkstatt',
   'contact.email': 'Email',
   'contact.elsewhere': 'Anderswo',
 
   'waitlist.headline': 'Bewerben',
+  'apply.index': 'Wer’s weiß, der weiß.',
   'waitlist.statement': 'Nur auf Bewerbung. Jeden Monat eine begrenzte Zahl an Kreativen — und beim Shop-Weg null Vorkosten.',
   'waitlist.projectLabel': 'Projekt',
   'waitlist.success': 'Notiert — wir melden uns.',
   'waitlist.projectAttached': 'Projekt {code} angehängt.',
-  'waitlist.rolePlaceholder': 'Ich bin…',
   'waitlist.roleLabel': 'Ich bin',
   'waitlist.role.band': 'Band oder Musiker',
   'waitlist.role.tattoo': 'Tätowierer oder Tattoo-Studio',
@@ -187,6 +188,7 @@ export const de: Dictionary = {
   'home.hero.promptLabel': 'Beschreibe dein Stück',
   'home.hero.placeholder': 'Schwarzes T-Shirt 280 gsm, Rückendruck, 50 für die Tour — brauche sie bis Mai',
   'home.hero.start': 'Senden',
+  'home.hero.startBrief': 'Starte dein Briefing ↓',
   'home.hero.fact.printed': 'Gedruckt in Barcelona',
   'home.hero.fact.zero': 'Keine Vorabkosten',
   'home.brief.label': 'Dein Brief',
@@ -200,11 +202,12 @@ export const de: Dictionary = {
 
   'home.printedFor': 'Gedruckt für',
 
-  'home.cover.fact.audience': 'Merch für Bands, Tätowierer & Festivals',
-  'home.cover.fact.organic': 'Schwer und bio',
+  'home.cover.fact.organic': 'Bio-Baumwolle · Vegan',
   'home.cover.fact.application': 'Auf Bewerbung',
   'home.cover.caption': 'Cover — Siebdruck, zwei Farben',
-  'home.cover.tagline': 'Schwerer Stoff, ehrliche Labels.',
+  'home.cover.tagline': 'Siebdruck in Barcelona.',
+  'home.cloth.line': 'Deine Fans tragen deine Kunst. Warum sie in Müll kleiden?',
+  'home.cloth.eco': 'Umweltfreundlich, und wir können es belegen: GOTS- und OEKO-TEX-zertifizierter Stoff, vegan bis zum letzten Faden, bedruckt mit Farben auf Wasserbasis.',
 
   'home.statement.body':
     'Wir machen Merch, wie ein Label eine Kollektion macht — schwere Bio-Baumwolle, gedruckt in unserer eigenen Presse in Barcelona, für Bands, Tätowierer und Festivals. Du entwirfst und legst den Preis fest. Wir drucken, sobald es verkauft ist.',
@@ -213,16 +216,15 @@ export const de: Dictionary = {
   'home.cloth.stat.heaviestTee': 'Unser schwerstes T-Shirt',
   'home.cloth.stat.gots': 'GOTS-zertifizierte Bio-Rohlinge',
   'home.cloth.stat.oeko': 'OEKO-TEX getestet',
-
-  'home.plates.caption1': 'Tafel 01 — Siebdruck',
-  'home.plates.caption2': 'Tafel 02 — Auf Tour',
+  'home.cloth.cta': 'Alle {n} Rohlinge ansehen',
 
   'home.zero.word': 'Zero',
+  'home.zero.headline': 'Eintritt: frei. Merch: deins.',
   'home.zero.stock.title': 'Kein Lager.',
-  'home.zero.stock.body': 'Wir drucken jedes Stück, sobald es verkauft ist. Nichts liegt auf deine Kosten im Lager.',
+  'home.zero.stock.body': 'Wir drucken jedes Stück, sobald es verkauft ist. Nichts liegt auf deine Kosten im Lager. Keine Überproduktion, nichts landet auf der Deponie.',
   'home.zero.min.title': 'Keine Mindestmenge.',
   'home.zero.min.body': 'Starte mit einem Design oder einer ganzen Kollektion und füge jederzeit neue Stücke hinzu.',
-  'home.zero.margin.title': 'Dein Preis, deine Marge.',
+  'home.zero.margin.title': 'Du hast die Kunst gemacht. Du behältst die Marge.',
   'home.zero.margin.body':
     'Du legst den Verkaufspreis fest. Alles über unseren Basispreis gehört dir, ausgezahlt bei jedem Verkauf.',
   'home.zero.cta': 'Für den Start bewerben',
@@ -237,7 +239,7 @@ export const de: Dictionary = {
   'home.setlist.step3.title': 'Proof & Angebot',
   'home.setlist.step3.body': 'Nichts geht in den Druck, bevor du freigibst.',
   'home.setlist.step4.title': 'Auf der Presse',
-  'home.setlist.step4.body': 'Siebdruck, Stickerei oder DTG — in Barcelona.',
+  'home.setlist.step4.body': 'Siebdruck, Stickerei oder DTG, mit Farben auf Wasserbasis — in Barcelona.',
   'home.setlist.step5.title': 'Zugabe',
   'home.setlist.step5.body': 'An deine Fans, sobald es verkauft ist, oder verpackt für dich und den Veranstaltungsort.',
 
@@ -256,14 +258,14 @@ export const de: Dictionary = {
 
   'home.catalog.title': '{n} Rohlinge.',
   'home.catalog.body':
-    'Alle OEKO-TEX getestet. Bio-Baumwolle im größten Teil des Sortiments, {gots} Rohlinge GOTS-zertifiziert — von {min} gsm T-Shirts bis zu {max} gsm schweren Stücken.',
+    'Alle OEKO-TEX getestet. Bio-Baumwolle im größten Teil des Sortiments, {gots} Rohlinge GOTS-zertifiziert — von {min} gsm T-Shirts bis zu {max} gsm schweren Stücken. Alle vegan.',
   'home.catalog.link': 'Katalog durchsuchen',
 
   'home.agents.label': 'Bring deinen eigenen Agenten mit',
   'home.agents.soon': 'Bald',
-  'home.agents.title': 'Arbeitest du schon mit Claude, ChatGPT, Gemini oder Grok? Schließ ihn an.',
+  'home.agents.title': 'Dein Agent, unsere Presse.',
   'home.agents.body':
-    'Alles, was der Assistent macht — Mockups, Angebote, Bestellungen, dein Shop — öffnet sich als MCP-Server. Dein Agent, unsere Presse.',
+    'Funktioniert mit Claude, ChatGPT, Gemini und Grok. Alles, was der Assistent macht — Mockups, Angebote, Bestellungen, dein Shop — öffnet sich als MCP-Server.',
   'home.agents.connector': '# Claude · ChatGPT · Gemini · Grok — als MCP-Connector hinzufügen',
   'home.agents.clients': 'Claude · ChatGPT · Gemini · Grok',
   'home.agents.endpoint': 'Endpoint',
@@ -273,8 +275,7 @@ export const de: Dictionary = {
   'home.agents.copy': 'Kopieren',
   'home.agents.copied': 'Kopiert',
 
-  'home.apply.label': 'Auf Bewerbung',
-  'home.apply.title': 'Eine begrenzte Zahl an Künstlern pro Monat.',
+  'home.apply.title': 'Wir sind nicht für jeden — aber Mama hat immer gesagt, du bist nicht jeder.',
 
   'notFound.headline': 'Außer Register.',
   'notFound.paragraph': 'Diese Seite gibt es nicht — die Druckplatten haben nie gepasst.',

@@ -23,13 +23,12 @@ export const en: Dictionary = {
   'footer.studio': 'Studio',
   'footer.elsewhere': 'Elsewhere',
   'footer.language': 'Language',
-  'footer.tagline': 'Merch for bands, tattoo artists and festivals. Printed in Barcelona.',
   'footer.copyright': '© {year} MerchFrom — Barcelona, ES',
   'footer.motto': 'By application · Zero upfront',
 
   'nav.cloth': 'Cloth',
   'nav.blanks': 'Blanks',
-  'home.header.line': 'Applications open — Printed in Barcelona',
+  'home.header.line': 'Premium merchandise for artists.',
 
   'catalog.filter.type': 'Type',
   'catalog.filter.fit': 'Fit',
@@ -48,7 +47,7 @@ export const en: Dictionary = {
   'catalog.intro.label': 'Catalog',
   'catalog.intro.title': 'The blanks.',
   'catalog.intro.body':
-    '{n} garments we print on, and nothing we wouldn’t wear. OEKO-TEX tested, organic cotton across most of the range, weights up to {gsm} gsm.',
+    '{n} garments we print on, and nothing we wouldn’t wear. OEKO-TEX tested, organic cotton across most of the range, weights up to {gsm} gsm. Every one vegan.',
   'catalog.stat.gots': 'GOTS organic',
   'catalog.stat.heavy': 'Heavyweight 220 gsm+',
   'catalog.stat.methods': 'Print methods',
@@ -82,7 +81,7 @@ export const en: Dictionary = {
   'catalog.filter.show.other': 'Show {n} blanks',
   'catalog.note.kicker': 'MerchFrom · Blanks',
   'catalog.note.title': 'Built for the merch table.',
-  'catalog.note.foot': 'Heavyweight · Organic · Printed in Barcelona',
+  'catalog.note.foot': 'Heavyweight · Organic · Vegan',
   'catalog.editorial.cloth.kicker': 'Cloth · Barcelona',
   'catalog.editorial.cloth.title': 'Heavy cloth.\nHonest labels.',
   'catalog.editorial.studio.kicker': 'Studio · Barcelona',
@@ -142,27 +141,29 @@ export const en: Dictionary = {
   'gallery.count.other': '{n} pieces',
 
   'about.headline': 'About',
-  'about.statement': 'We’re not for everyone — but mom always said you’re not everyone else.',
+  'about.statement': 'The press is the same. You no longer have to be in the room.',
   'about.paragraph1':
     'MerchFrom started in 2017 as a screen-print shop in Barcelona, Spain, printing for touring bands and tattoo studios tired of merch that fell apart on the first wash.',
   'about.paragraph2':
-    'The press is the same. What changed is that you no longer have to be in the room. Describe the piece, approve the proof, and we print, fold, tag and ship it. You keep the margin.',
+    'Describe the piece, approve the proof, and we print, fold, tag and ship it. You keep the margin.',
   'about.est': 'Est.',
   'about.shop': 'Shop',
   'about.press': 'Press',
 
   'contact.headline': 'Contact',
-  'contact.statement': 'Say hello. For projects, bulk runs and everything print: write to us, or apply for a slot through the waitlist.',
+  'contact.statement': 'Talk to the press.',
+  'contact.line':
+    'Projects, bulk runs, anything print — write to us, or apply for a slot.',
   'contact.shop': 'Shop',
   'contact.email': 'Email',
   'contact.elsewhere': 'Elsewhere',
 
   'waitlist.headline': 'Apply',
+  'apply.index': 'If you know, you know.',
   'waitlist.statement': 'By application. A limited number of artists each month — and zero upfront on the Shop path.',
   'waitlist.projectLabel': 'Project',
   'waitlist.success': 'Noted — we will be in touch.',
   'waitlist.projectAttached': 'Project {code} attached.',
-  'waitlist.rolePlaceholder': 'I’m a…',
   'waitlist.roleLabel': 'I’m a',
   'waitlist.role.band': 'Band or musician',
   'waitlist.role.tattoo': 'Tattoo artist or studio',
@@ -190,6 +191,7 @@ export const en: Dictionary = {
   'home.hero.promptLabel': 'Describe your piece',
   'home.hero.placeholder': 'Black 280 gsm tee, back print, 50 for the tour — need them by May',
   'home.hero.start': 'Send',
+  'home.hero.startBrief': 'Start your brief ↓',
   'home.hero.fact.printed': 'Printed in Barcelona',
   'home.hero.fact.zero': 'Zero upfront',
   'home.brief.label': 'Your brief',
@@ -203,11 +205,12 @@ export const en: Dictionary = {
 
   'home.printedFor': 'Printed for',
 
-  'home.cover.fact.audience': 'Merch for bands, tattoo artists & festivals',
-  'home.cover.fact.organic': 'Heavyweight organic',
+  'home.cover.fact.organic': 'Organic cotton · Vegan',
   'home.cover.fact.application': 'By application',
   'home.cover.caption': 'Cover — Screen print, two colours',
-  'home.cover.tagline': 'Heavy cloth, honest labels.',
+  'home.cover.tagline': 'Screen printed in Barcelona.',
+  'home.cloth.line': 'Your fans wear your art. Why dress them in garbage?',
+  'home.cloth.eco': 'Eco-friendly, and we can prove it: GOTS and OEKO-TEX certified cloth, vegan to the last thread, printed with water-based inks.',
 
   'home.statement.body':
     'We make merch the way a label makes a collection — heavyweight organic cloth, printed in our own Barcelona press, for bands, tattoo artists and festivals. You design it and set the price. We print it when it sells.',
@@ -216,16 +219,15 @@ export const en: Dictionary = {
   'home.cloth.stat.heaviestTee': 'Our heaviest tee',
   'home.cloth.stat.gots': 'GOTS-certified organic blanks',
   'home.cloth.stat.oeko': 'OEKO-TEX tested',
-
-  'home.plates.caption1': 'Plate 01 — Screen print',
-  'home.plates.caption2': 'Plate 02 — On tour',
+  'home.cloth.cta': 'See all {n} blanks',
 
   'home.zero.word': 'Zero',
+  'home.zero.headline': 'Doors: free. Merch: yours.',
   'home.zero.stock.title': 'No stock.',
-  'home.zero.stock.body': 'We print each piece when it sells. Nothing sits in a warehouse on your dime.',
+  'home.zero.stock.body': 'We print each piece when it sells. Nothing sits in a warehouse on your dime. No overstock, nothing headed for landfill.',
   'home.zero.min.title': 'No minimums.',
   'home.zero.min.body': 'Launch one design or a full collection, and add new pieces whenever you like.',
-  'home.zero.margin.title': 'Your price, your margin.',
+  'home.zero.margin.title': 'You made the art. You keep the margin.',
   'home.zero.margin.body':
     'You set the retail price. Everything above our base cost is yours, paid out with every sale.',
   'home.zero.cta': 'Apply to launch',
@@ -240,7 +242,7 @@ export const en: Dictionary = {
   'home.setlist.step3.title': 'Proof & quote',
   'home.setlist.step3.body': 'Nothing goes to press until you approve it.',
   'home.setlist.step4.title': 'On the press',
-  'home.setlist.step4.body': 'Screen, embroidery or DTG — in Barcelona.',
+  'home.setlist.step4.body': 'Screen, embroidery or DTG, with water-based inks — in Barcelona.',
   'home.setlist.step5.title': 'Encore',
   'home.setlist.step5.body': 'To your fans as it sells, or boxed to you and the venue.',
 
@@ -259,14 +261,14 @@ export const en: Dictionary = {
 
   'home.catalog.title': '{n} blanks.',
   'home.catalog.body':
-    'OEKO-TEX tested, every one. Organic cotton across most of the range, {gots} blanks GOTS-certified — from {min} gsm tees to {max} gsm heavyweights.',
+    'OEKO-TEX tested, every one. Organic cotton across most of the range, {gots} blanks GOTS-certified — from {min} gsm tees to {max} gsm heavyweights. Every one vegan.',
   'home.catalog.link': 'Browse the catalog',
 
   'home.agents.label': 'Bring your own agent',
   'home.agents.soon': 'Soon',
-  'home.agents.title': 'Already work with Claude, ChatGPT, Gemini or Grok? Plug it in.',
+  'home.agents.title': 'Your agent, our press.',
   'home.agents.body':
-    'Everything the assistant does — mockups, quotes, orders, your store — opens up as an MCP server. Your agent, our press.',
+    'Works with Claude, ChatGPT, Gemini and Grok. Everything the assistant does — mockups, quotes, orders, your store — opens up as an MCP server.',
   'home.agents.connector': '# Claude · ChatGPT · Gemini · Grok — add as an MCP connector',
   'home.agents.clients': 'Claude · ChatGPT · Gemini · Grok',
   'home.agents.endpoint': 'Endpoint',
@@ -276,8 +278,7 @@ export const en: Dictionary = {
   'home.agents.copy': 'Copy',
   'home.agents.copied': 'Copied',
 
-  'home.apply.label': 'By application',
-  'home.apply.title': 'A limited number of artists each month.',
+  'home.apply.title': 'We’re not for everyone — but mom always said you’re not everyone else.',
 
   'notFound.headline': 'Off registration.',
   'notFound.paragraph': 'This page does not exist — the plates never lined up.',

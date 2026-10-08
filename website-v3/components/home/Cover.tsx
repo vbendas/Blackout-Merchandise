@@ -3,8 +3,11 @@
 import { FittedWord } from '@/components/editorial/FittedWord';
 import { Halftone } from '@/components/editorial/Halftone';
 import Link from 'next/link';
-import { useState, type CSSProperties, type KeyboardEvent } from 'react';
-import { useT, type TFunction } from '@/lib/i18n';
+import { useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { getLenis } from '@/components/SmoothScroll';
+import { LoadIntro } from '@/components/motion/LoadIntro';
+import { useBriefPlaceholder } from '@/components/motion/useBriefPlaceholder';
+import { useLang, useT, type TFunction } from '@/lib/i18n';
 import { FOCUS_RING, MONO_LABEL, PRIMARY_BTN, SECONDARY_BTN } from './styles';
 
 const COVER_IMAGE = '/gallery/7a.png';
@@ -93,9 +96,14 @@ function BriefCard({ t, brief, onEdit, onClose }: BriefCardProps) {
 
 export function Cover() {
   const t = useT();
+  const { lang } = useLang();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState('');
   const [sent, setSent] = useState(false);
   const [brief, setBrief] = useState('');
+  const briefRef = useRef<HTMLDivElement>(null);
+
+  useBriefPlaceholder(inputRef, t('home.hero.placeholder'), lang === 'en', sent);
 
   function send() {
     const value = prompt.trim() || t('home.hero.placeholder');
@@ -110,8 +118,34 @@ export function Cover() {
     }
   }
 
+  // Hero action: glide to the brief input and focus it. Lenis owns the
+  // scroll when it's running (it intercepts native smooth scrolling);
+  // otherwise — reduced motion, or before mount — fall back to native.
+  function startBrief() {
+    const run = () => {
+      const block = briefRef.current;
+      if (!block) return;
+      const input = document.getElementById('coverBrief');
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const lenis = getLenis();
+      input?.focus({ preventScroll: true });
+      if (lenis && !reduce) {
+        const offset = -Math.max(96, (window.innerHeight - block.offsetHeight) / 2);
+        lenis.scrollTo(block, { offset, duration: 1.4 });
+      } else {
+        block.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+      }
+    };
+    if (sent) {
+      // The brief card replaced the input; bring the input back first.
+      setSent(false);
+      requestAnimationFrame(run);
+    } else {
+      run();
+    }
+  }
+
   const facts = [
-    t('home.cover.fact.audience'),
     t('home.cover.fact.organic'),
     t('home.hero.fact.printed'),
     t('home.hero.fact.zero'),
@@ -125,12 +159,16 @@ export function Cover() {
       data-theme="ink"
       style={{ paddingTop: 'var(--header-h)', paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)', paddingBottom: 'clamp(48px, 7vw, 96px)' }}
     >
+      <LoadIntro />
       <FittedWord as="h1" text="MerchFrom" className="home-masthead" wrapClassName="home-masthead-wrap" />
 
       <div className="home-facts-row" style={{ ...MONO_LABEL }}>
         {facts.map((fact) => (
           <span key={fact}>{fact}</span>
         ))}
+        <button type="button" onClick={startBrief} className="link-ink home-facts-cta">
+          {t('home.hero.startBrief')}
+        </button>
       </div>
 
       <Halftone
@@ -147,7 +185,7 @@ export function Cover() {
           <p className="home-cover-tagline">{t('home.cover.tagline')}</p>
         </div>
 
-        <div className="flex flex-col gap-2.5" data-rise>
+        <div ref={briefRef} className="flex flex-col gap-2.5" data-rise>
           {sent ? (
             <BriefCard t={t} brief={brief} onEdit={() => setSent(false)} onClose={() => setSent(false)} />
           ) : (
@@ -159,6 +197,7 @@ export function Cover() {
                 </label>
                 <input
                   id="coverBrief"
+                  ref={inputRef}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   onKeyDown={onKeyDown}

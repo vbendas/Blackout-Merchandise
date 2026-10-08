@@ -380,7 +380,7 @@ export function GridView() {
           {badgeParts.length > 0 && (
             <span
               aria-hidden
-              style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 2, ...MONO, fontSize: '10px' }}
+              style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 2, ...MONO, fontSize: '12px' }}
             >
               {badgeParts.join(' · ')}
             </span>

@@ -7,7 +7,7 @@ import { fitKey, typeKey, useT } from '@/lib/i18n';
 const HAIRLINE = '1px solid var(--hairline)';
 const MONO: CSSProperties = {
   fontFamily: 'var(--font-mono), monospace',
-  fontSize: '11px',
+  fontSize: '12px',
   letterSpacing: '0.08em',
   textTransform: 'uppercase',
 };

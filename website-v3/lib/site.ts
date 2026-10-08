@@ -2,8 +2,7 @@
 // Organization JSON-LD block.
 export const SITE_URL = 'https://merchfrom.com'; // PLACEHOLDER — set the real production domain
 export const SITE_NAME = 'MERCHFROM®';
-export const SITE_DESCRIPTION =
-  'We help artists, musicians and creators design, source and sell premium merchandise, printed, folded and shipped from Barcelona. By application only.';
+export const SITE_DESCRIPTION = 'Premium merchandise for artists, musicians and creators: designed, sourced and sold, printed, folded and shipped from Barcelona. By application only.';
 
 // Facts that don't have a confirmed value yet. Kept null rather than a
 // placeholder string — anything reading these must hide the fact

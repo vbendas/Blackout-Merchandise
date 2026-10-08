@@ -4,7 +4,7 @@ import { Halftone } from './Halftone';
 
 export const MONO: CSSProperties = {
   fontFamily: 'var(--font-mono), monospace',
-  fontSize: '11px',
+  fontSize: '12px',
   letterSpacing: '0.08em',
   textTransform: 'uppercase',
   color: 'var(--muted)',
@@ -19,6 +19,8 @@ interface EditorialPageProps {
   title: string;
   /** Light statement under the title. */
   statement: string;
+  /** Optional smaller line under the statement. */
+  lede?: string;
   /** Halftone plate (right column on desktop, below the rows on mobile). */
   plate: { src: string; alt?: string; caption: string; priority?: boolean };
   /** Extra content under the plate (e.g. "What happens next"). */
@@ -32,7 +34,7 @@ interface EditorialPageProps {
  * outlined title, light statement, numbered hairline rows, halftone
  * plate with a mono caption.
  */
-export function EditorialPage({ index, title, statement, plate, aside, children }: EditorialPageProps) {
+export function EditorialPage({ index, title, statement, lede, plate, aside, children }: EditorialPageProps) {
   return (
     <main
       className="min-h-screen"
@@ -57,6 +59,11 @@ export function EditorialPage({ index, title, statement, plate, aside, children 
           >
             {statement}
           </p>
+          {lede ? (
+            <p className="max-w-[520px] text-[17px] leading-[1.5]" style={{ margin: '20px 0 0', color: 'var(--soft)' }}>
+              {lede}
+            </p>
+          ) : null}
           <div style={{ marginTop: '48px' }}>{children}</div>
         </div>
 

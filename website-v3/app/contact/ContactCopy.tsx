@@ -17,6 +17,7 @@ export function ContactCopy() {
       index={`INDX.30 — ${t('contact.headline')}`}
       title={t('contact.headline')}
       statement={t('contact.statement')}
+      lede={t('contact.line')}
       plate={{ src: '/gallery/7a.png', caption: `${t('plate.label')} 03 — Void · Outerwear` }}
     >
       <Row n="01" label={t('contact.email')}>

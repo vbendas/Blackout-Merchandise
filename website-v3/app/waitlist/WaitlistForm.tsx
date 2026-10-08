@@ -1,39 +1,17 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useId, useRef, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { EditorialPage, MONO, Row } from '@/components/editorial/EditorialPage';
+import { RolePicker } from '@/components/editorial/RolePicker';
 import { PRODUCTS, type Product } from '@/lib/products';
 import { PRODUCT_DETAILS } from '@/lib/product-details';
 import { colourName } from '@/lib/colour-names';
 import { useFavourites } from '@/lib/favourites';
-import { useT, type Key } from '@/lib/i18n';
+import { useT } from '@/lib/i18n';
 import { submitWaitlist } from './actions';
 
 const BRIEF_MAX = 500;
-
-// Canonical English values — sent to the server and validated there
-// against the exact same list (see actions.ts); only the displayed
-// option label is translated.
-const ROLE_OPTIONS = [
-  'Band or musician',
-  'Tattoo artist',
-  'Festival or promoter',
-  'Illustrator',
-  'Label or collective',
-  'Brand or company',
-  'Something else',
-];
-
-const ROLE_KEYS: Record<string, Key> = {
-  'Band or musician': 'waitlist.role.band',
-  'Tattoo artist': 'waitlist.role.tattoo',
-  'Festival or promoter': 'waitlist.role.festival',
-  Illustrator: 'waitlist.role.illustrator',
-  'Label or collective': 'waitlist.role.label',
-  'Brand or company': 'waitlist.role.brand',
-  'Something else': 'waitlist.role.other',
-};
 
 interface ProjectContext {
   code: string;
@@ -55,8 +33,6 @@ export function WaitlistForm() {
   const [urlFavourites, setUrlFavourites] = useState<string[]>([]);
   const [dismissed, setDismissed] = useState<string[]>([]);
   const [attachedFavourites, setAttachedFavourites] = useState(0);
-  const roleGroupId = useId();
-  const roleRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const { codes: favouriteCodes, has: hasFavourite, toggle: toggleFavourite } = useFavourites();
 
   useEffect(() => {
@@ -94,19 +70,6 @@ export function WaitlistForm() {
     setDismissed((prev) => (prev.includes(code) ? prev : [...prev, code]));
   }
 
-  function onRoleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>, index: number) {
-    const last = ROLE_OPTIONS.length - 1;
-    let next = -1;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = index === last ? 0 : index + 1;
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = index === 0 ? last : index - 1;
-    else if (e.key === 'Home') next = 0;
-    else if (e.key === 'End') next = last;
-    if (next < 0) return;
-    e.preventDefault();
-    setRole(ROLE_OPTIONS[next]);
-    roleRefs.current[next]?.focus();
-  }
-
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -130,8 +93,6 @@ export function WaitlistForm() {
   }
 
   const showAttachments = Boolean(brief || project || savedBlanks.length > 0);
-  const roleIndex = ROLE_OPTIONS.indexOf(role);
-  const tabbable = roleIndex === -1 ? 0 : roleIndex;
   const nextRows = [t('waitlist.next1'), t('waitlist.next2'), t('waitlist.next3')];
 
   const nextAside = (
@@ -154,7 +115,7 @@ export function WaitlistForm() {
 
   return (
     <EditorialPage
-      index={`INDX.10 — ${t('waitlist.headline')}`}
+      index={`INDX.10 — ${t('apply.index')}`}
       title={t('waitlist.headline')}
       statement={t('waitlist.statement')}
       plate={{ src: '/gallery/3a.png', caption: `${t('plate.label')} 01 — Yujin · Tour merch`, priority: true }}
@@ -181,29 +142,7 @@ export function WaitlistForm() {
       ) : (
         <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--hairline)' }}>
           <Row n="01">
-            <span id={roleGroupId} style={MONO}>
-              {t('waitlist.roleLabel')}
-            </span>
-            <div role="radiogroup" aria-labelledby={roleGroupId} className="flex flex-wrap gap-x-[22px] gap-y-[6px]">
-              {ROLE_OPTIONS.map((option, i) => (
-                <button
-                  key={option}
-                  ref={(el) => {
-                    roleRefs.current[i] = el;
-                  }}
-                  type="button"
-                  role="radio"
-                  aria-checked={role === option}
-                  tabIndex={i === tabbable ? 0 : -1}
-                  disabled={isPending}
-                  className="role-choice"
-                  onClick={() => setRole(option)}
-                  onKeyDown={(e) => onRoleKeyDown(e, i)}
-                >
-                  {t(ROLE_KEYS[option])}
-                </button>
-              ))}
-            </div>
+            <RolePicker value={role} onChange={setRole} disabled={isPending} />
           </Row>
 
           {showAttachments && (
@@ -238,7 +177,7 @@ export function WaitlistForm() {
                           <button
                             type="button"
                             className="link-ink"
-                            style={{ fontSize: '11px' }}
+                            style={{ fontSize: '12px' }}
                             onClick={() => removeSavedBlank(product.code)}
                           >
                             {t('common.remove')}

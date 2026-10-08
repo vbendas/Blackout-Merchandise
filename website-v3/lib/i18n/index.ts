@@ -1,20 +1,38 @@
 'use client';
 
-import { createContext, createElement, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Dictionary, Key, Lang } from './types';
 import { LANGS } from './types';
 import { en } from './en';
-import { pt } from './pt';
-import { es } from './es';
-import { fr } from './fr';
-import { nl } from './nl';
-import { de } from './de';
 
 export type { Dictionary, Key, Lang } from './types';
 export { LANGS } from './types';
 export { typeKey, fitKey, techniqueKey } from './catalog-keys';
 
-const DICTIONARIES: Record<Lang, Dictionary> = { en, pt, es, fr, nl, de };
+// English ships in the initial bundle (SSR + first paint are always
+// English). Every other dictionary is its own lazily-loaded chunk,
+// fetched the first time that language is selected or detected.
+const LOADERS: Record<Exclude<Lang, 'en'>, () => Promise<Dictionary>> = {
+  pt: () => import('./pt').then((m) => m.pt),
+  es: () => import('./es').then((m) => m.es),
+  fr: () => import('./fr').then((m) => m.fr),
+  nl: () => import('./nl').then((m) => m.nl),
+  de: () => import('./de').then((m) => m.de),
+};
+
+// Latest requested language; a slow chunk for an earlier pick must not
+// overwrite a newer choice.
+let latestRequest: Lang = 'en';
+
+const loaded: Partial<Record<Lang, Dictionary>> = { en };
+
+async function loadDictionary(lang: Lang): Promise<Dictionary> {
+  const cached = loaded[lang];
+  if (cached) return cached;
+  const dict = await LOADERS[lang as Exclude<Lang, 'en'>]();
+  loaded[lang] = dict;
+  return dict;
+}
 const SUPPORTED_LANGS = LANGS.map((l) => l.code);
 const STORAGE_KEY = 'mf-lang';
 
@@ -41,6 +59,7 @@ function detectLang(): Lang {
 
 interface LanguageContextValue {
   lang: Lang;
+  dict: Dictionary;
   setLang: (lang: Lang) => void;
 }
 
@@ -50,29 +69,46 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // Always starts 'en' for SSR and first client paint — localStorage and
   // navigator.language only exist client-side, and guessing at them
   // during the initial render would produce a hydration mismatch.
-  // detectLang() runs once after mount instead.
-  const [lang, setLangState] = useState<Lang>('en');
-
-  useEffect(() => {
-    setLangState(detectLang());
+  // detectLang() runs once after mount instead. `lang` and `dict` are
+  // committed together, only once the dictionary chunk has arrived, so
+  // the UI never renders a language without its strings.
+  const [state, setState] = useState<{ lang: Lang; dict: Dictionary }>({ lang: 'en', dict: en });
+  const apply = useCallback((next: Lang) => {
+    latestRequest = next;
+    loadDictionary(next)
+      .then((dict) => {
+        if (latestRequest === next) setState({ lang: next, dict });
+      })
+      .catch(() => {
+        // chunk failed to load (offline) — stay on the current language
+      });
   }, []);
 
   useEffect(() => {
-    document.documentElement.lang = lang;
-  }, [lang]);
+    apply(detectLang());
+  }, [apply]);
 
-  const setLang = useCallback((next: Lang) => {
-    setLangState(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // storage unavailable — the in-memory state still updates for
-      // this session
-    }
-  }, []);
+  useEffect(() => {
+    document.documentElement.lang = state.lang;
+  }, [state.lang]);
+
+  const setLang = useCallback(
+    (next: Lang) => {
+      try {
+        localStorage.setItem(STORAGE_KEY, next);
+      } catch {
+        // storage unavailable — the in-memory state still updates for
+        // this session
+      }
+      apply(next);
+    },
+    [apply]
+  );
+
+  const value = useMemo(() => ({ lang: state.lang, dict: state.dict, setLang }), [state, setLang]);
 
   // Plain createElement (not JSX) so this file can stay a .ts module.
-  return createElement(LanguageContext.Provider, { value: { lang, setLang } }, children);
+  return createElement(LanguageContext.Provider, { value }, children);
 }
 
 export function useLang(): LanguageContextValue {
@@ -100,8 +136,7 @@ export interface TFunction {
 // (shouldn't happen — Dictionary's type enforces full coverage — but
 // keeps a bad translation file from ever rendering blank).
 export function useT(): TFunction {
-  const { lang } = useLang();
-  const dict = DICTIONARIES[lang];
+  const { dict } = useLang();
 
   const t = ((key: Key, vars?: Record<string, string | number>): string => {
     const template = dict[key] ?? en[key];

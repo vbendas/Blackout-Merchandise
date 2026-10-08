@@ -20,13 +20,12 @@ export const fr: Dictionary = {
   'footer.studio': 'Atelier',
   'footer.elsewhere': 'Ailleurs',
   'footer.language': 'Langue',
-  'footer.tagline': 'Du merch pour groupes, tatoueurs et festivals. Imprimé à Barcelone.',
   'footer.copyright': '© {year} MerchFrom — Barcelone, ES',
   'footer.motto': 'Sur candidature · Zéro avance',
 
   'nav.cloth': 'Tissu',
   'nav.blanks': 'Pièces vierges',
-  'home.header.line': 'Candidatures ouvertes — Imprimé à Barcelone',
+  'home.header.line': 'Du merch premium pour les artistes.',
 
   'catalog.filter.type': 'Type',
   'catalog.filter.fit': 'Coupe',
@@ -45,7 +44,7 @@ export const fr: Dictionary = {
   'catalog.intro.label': 'Catalogue',
   'catalog.intro.title': 'Les pièces vierges.',
   'catalog.intro.body':
-    '{n} pièces sur lesquelles nous imprimons, et aucune que nous ne porterions pas. Testées OEKO-TEX, coton biologique sur la majeure partie de la gamme, des grammages jusqu’à {gsm} gsm.',
+    '{n} pièces sur lesquelles nous imprimons, et aucune que nous ne porterions pas. Testées OEKO-TEX, coton biologique sur la majeure partie de la gamme, des grammages jusqu’à {gsm} gsm. Toutes vegan.',
   'catalog.stat.gots': 'Biologique GOTS',
   'catalog.stat.heavy': 'Épais 220 gsm+',
   'catalog.stat.methods': 'Méthodes d’impression',
@@ -79,7 +78,7 @@ export const fr: Dictionary = {
   'catalog.filter.show.other': 'Voir {n} blancs',
   'catalog.note.kicker': 'MerchFrom · Blancs',
   'catalog.note.title': 'Fait pour la table du merch.',
-  'catalog.note.foot': 'Épais · Biologique · Imprimé à Barcelona',
+  'catalog.note.foot': 'Épais · Bio · Vegan',
   'catalog.editorial.cloth.kicker': 'Tissu · Barcelona',
   'catalog.editorial.cloth.title': 'Un tissu épais.\nDes étiquettes honnêtes.',
   'catalog.editorial.studio.kicker': 'Atelier · Barcelona',
@@ -139,27 +138,29 @@ export const fr: Dictionary = {
   'gallery.count.other': '{n} pièces',
 
   'about.headline': 'À propos',
-  'about.statement': 'On n’est pas faits pour tout le monde — mais maman a toujours dit que toi, tu n’es pas comme les autres.',
+  'about.statement': 'La presse est la même. Vous n’avez plus besoin d’être dans la salle.',
   'about.paragraph1':
     'MerchFrom a démarré en 2017 comme atelier de sérigraphie à Barcelona, en Espagne, imprimant pour des groupes en tournée et des studios de tatouage lassés d’un merch qui se déglinguait au premier lavage.',
   'about.paragraph2':
-    'La presse est restée la même. Ce qui a changé, c’est que vous n’avez plus besoin d’être sur place. Décrivez la pièce, validez l’épreuve, et nous imprimons, plions, étiquetons et expédions. Vous gardez la marge.',
+    'Décrivez la pièce, validez l’épreuve, et nous imprimons, plions, étiquetons et expédions. Vous gardez la marge.',
   'about.est': 'Depuis',
   'about.shop': 'Atelier',
   'about.press': 'Presse',
 
   'contact.headline': 'Contact',
-  'contact.statement': 'Dites bonjour. Pour vos projets, les grandes séries et tout ce qui touche à l’impression : écrivez-nous, ou postulez pour une place via la liste d’attente.',
+  'contact.statement': 'Parlez à la presse.',
+  'contact.line':
+    'Projets, grandes séries, tout ce qui s’imprime — écrivez-nous, ou postulez pour une place.',
   'contact.shop': 'Atelier',
   'contact.email': 'Email',
   'contact.elsewhere': 'Ailleurs',
 
   'waitlist.headline': 'Postuler',
+  'apply.index': 'Qui sait, sait.',
   'waitlist.statement': 'Sur candidature. Un nombre limité d’artistes chaque mois — et zéro avance sur la voie Shop.',
   'waitlist.projectLabel': 'Projet',
   'waitlist.success': 'C’est noté — nous vous recontactons.',
   'waitlist.projectAttached': 'Projet {code} joint.',
-  'waitlist.rolePlaceholder': 'Je suis…',
   'waitlist.roleLabel': 'Je suis',
   'waitlist.role.band': 'Groupe ou musicien',
   'waitlist.role.tattoo': 'Tatoueur ou studio de tatouage',
@@ -187,6 +188,7 @@ export const fr: Dictionary = {
   'home.hero.promptLabel': 'Décrivez votre pièce',
   'home.hero.placeholder': 'T-shirt noir 280 gsm, impression au dos, 50 pour la tournée — il les faut pour mai',
   'home.hero.start': 'Envoyer',
+  'home.hero.startBrief': 'Lancez votre brief ↓',
   'home.hero.fact.printed': 'Imprimé à Barcelona',
   'home.hero.fact.zero': 'Sans frais initiaux',
   'home.brief.label': 'Votre brief',
@@ -200,11 +202,12 @@ export const fr: Dictionary = {
 
   'home.printedFor': 'Imprimé pour',
 
-  'home.cover.fact.audience': 'Merch pour groupes, tatoueurs et festivals',
-  'home.cover.fact.organic': 'Épais et biologique',
+  'home.cover.fact.organic': 'Coton bio · Vegan',
   'home.cover.fact.application': 'Sur candidature',
   'home.cover.caption': 'Couverture — Sérigraphie, deux couleurs',
-  'home.cover.tagline': 'Un tissu épais, des étiquettes honnêtes.',
+  'home.cover.tagline': 'Sérigraphié à Barcelone.',
+  'home.cloth.line': 'Tes fans portent ton art. Pourquoi les habiller de camelote ?',
+  'home.cloth.eco': 'Écoresponsable, et on peut le prouver : tissu certifié GOTS et OEKO-TEX, vegan jusqu’au dernier fil, imprimé avec des encres à base d’eau.',
 
   'home.statement.body':
     'Nous faisons du merch comme un label fait une collection — coton biologique épais, imprimé dans notre propre atelier de Barcelona, pour les groupes, les tatoueurs et les festivals. Vous le concevez et fixez le prix. Nous l’imprimons au moment de la vente.',
@@ -213,17 +216,16 @@ export const fr: Dictionary = {
   'home.cloth.stat.heaviestTee': 'Notre t-shirt le plus lourd',
   'home.cloth.stat.gots': 'Pièces vierges biologiques certifiées GOTS',
   'home.cloth.stat.oeko': 'Testé OEKO-TEX',
-
-  'home.plates.caption1': 'Planche 01 — Sérigraphie',
-  'home.plates.caption2': 'Planche 02 — En tournée',
+  'home.cloth.cta': 'Voir les {n} pièces vierges',
 
   'home.zero.word': 'Zéro',
+  'home.zero.headline': 'Entrée : gratuite. Merch : à vous.',
   'home.zero.stock.title': 'Pas de stock.',
-  'home.zero.stock.body': 'Nous imprimons chaque pièce au moment de la vente. Rien ne dort en entrepôt à vos frais.',
+  'home.zero.stock.body': 'Nous imprimons chaque pièce au moment de la vente. Rien ne dort en entrepôt à vos frais. Pas de surstock, rien qui finit à la décharge.',
   'home.zero.min.title': 'Pas de minimum.',
   'home.zero.min.body':
     'Lancez un seul modèle ou une collection complète, et ajoutez de nouvelles pièces quand vous le souhaitez.',
-  'home.zero.margin.title': 'Votre prix, votre marge.',
+  'home.zero.margin.title': 'Vous avez fait l’œuvre. Vous gardez la marge.',
   'home.zero.margin.body':
     'Vous fixez le prix de vente. Tout ce qui dépasse notre coût de base vous revient, versé à chaque vente.',
   'home.zero.cta': 'Postuler pour lancer',
@@ -238,7 +240,7 @@ export const fr: Dictionary = {
   'home.setlist.step3.title': 'Épreuve et devis',
   'home.setlist.step3.body': 'Rien ne part à l’impression tant que vous n’avez pas validé.',
   'home.setlist.step4.title': 'Sur la presse',
-  'home.setlist.step4.body': 'Sérigraphie, broderie ou DTG — à Barcelona.',
+  'home.setlist.step4.body': 'Sérigraphie, broderie ou DTG, avec des encres à base d’eau — à Barcelone.',
   'home.setlist.step5.title': 'Rappel',
   'home.setlist.step5.body': 'À vos fans au fil des ventes, ou emballé pour vous et le lieu.',
 
@@ -257,14 +259,14 @@ export const fr: Dictionary = {
 
   'home.catalog.title': '{n} pièces vierges.',
   'home.catalog.body':
-    'Testées OEKO-TEX, toutes sans exception. Coton biologique sur la majeure partie de la gamme, {gots} pièces certifiées GOTS — des t-shirts à {min} gsm aux pièces épaisses à {max} gsm.',
+    'Testées OEKO-TEX, toutes sans exception. Coton biologique sur la majeure partie de la gamme, {gots} pièces certifiées GOTS — des t-shirts à {min} gsm aux pièces épaisses à {max} gsm. Toutes vegan.',
   'home.catalog.link': 'Parcourir le catalogue',
 
   'home.agents.label': 'Apportez votre propre agent',
   'home.agents.soon': 'Bientôt',
-  'home.agents.title': 'Vous travaillez déjà avec Claude, ChatGPT, Gemini ou Grok ? Branchez-le.',
+  'home.agents.title': 'Votre agent, notre presse.',
   'home.agents.body':
-    'Tout ce que fait l’assistant — mockups, devis, commandes, votre boutique — s’ouvre comme serveur MCP. Votre agent, notre presse.',
+    'Compatible avec Claude, ChatGPT, Gemini et Grok. Tout ce que fait l’assistant — mockups, devis, commandes, votre boutique — s’ouvre comme serveur MCP.',
   'home.agents.connector': '# Claude · ChatGPT · Gemini · Grok — ajoutez-le comme connecteur MCP',
   'home.agents.clients': 'Claude · ChatGPT · Gemini · Grok',
   'home.agents.endpoint': 'Endpoint',
@@ -274,8 +276,7 @@ export const fr: Dictionary = {
   'home.agents.copy': 'Copier',
   'home.agents.copied': 'Copié',
 
-  'home.apply.label': 'Sur candidature',
-  'home.apply.title': 'Un nombre limité d’artistes chaque mois.',
+  'home.apply.title': 'On n’est pas pour tout le monde — mais maman a toujours dit que tu n’étais pas tout le monde.',
 
   'notFound.headline': 'Hors registre.',
   'notFound.paragraph': 'Cette page n’existe pas — les plaques ne se sont jamais alignées.',

@@ -45,12 +45,14 @@ export function Agents() {
   return (
     <section
       id="agents"
+      // Ink band: the home alternates dark and paper sections.
+      data-theme="ink"
       className="home-section"
-      style={{ paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)', borderTop: '1px solid var(--hairline)' }}
+      style={{ paddingLeft: 'var(--gutter)', paddingRight: 'var(--gutter)' }}
     >
       <div className="flex flex-col gap-5" style={{ borderBottom: '1px solid var(--signal)', paddingBottom: '16px' }}>
         <span style={MONO_LABEL}>{t('home.agents.label')}</span>
-        <h2 className="home-setlist-heading" style={{ margin: 0, maxWidth: '18ch' }}>
+        <h2 className="home-setlist-heading" data-lines style={{ margin: 0, maxWidth: '18ch' }}>
           {t('home.agents.title')}
         </h2>
       </div>

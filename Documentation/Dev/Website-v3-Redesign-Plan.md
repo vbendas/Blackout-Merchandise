@@ -391,3 +391,49 @@ Approved mock: canvas artboard "Round 6 — Waitlist + signature footer" (`…/s
 - `components/home/Paths.tsx`, `CatalogTeaser.tsx`, `Agents.tsx`: editorial vocabulary — condensed caps headings matching Set list scale, mono index labels, Halftone plates for Shop/Run, packshots on paper for blanks, Agents as a quiet mono spec block (no dark terminal box), ink buttons / text links only.
 - Gallery (`components/GalleryView.tsx`): colour photos with mono captions under each (client · piece), subtle hover zoom; header stays.
 - Keep all `data-*` motion hooks intact; ScrollScenes must keep working.
+
+---
+
+# Round 8 — Voice, finishing, motion pack (29 Sep 2026)
+
+From the final UI/UX + copy audit. Checkpoint before this round: `2bfbc2e`.
+
+## Copy map (EN source; translate to pt/es/fr/nl/de)
+| Where | New copy |
+|---|---|
+| Signature line — hero facts row (first item), meta description, OG image, footer tagline | **Printed for the ones who play loud.** |
+| Hero first-screen action (facts row, right) | "Start your brief ↓" (scrolls to the brief input and focuses it) |
+| CLOTH section line (under the outlined word, above stats) | **Heavy cloth. Honest labels.** |
+| Cover tagline (under photo) | "Screen printed in Barcelona." (the old tagline moves to CLOTH) |
+| ZERO band headline (under outlined ZERO) | **Doors: free. Merch: yours.** |
+| ZERO margin column title | **You made the art. You keep the margin.** |
+| Agents title | **Your agent, our press.** — body keeps the four clients (Claude · ChatGPT · Gemini · Grok) |
+| About statement | **The press is the same. You no longer have to be in the room.** |
+| Contact statement | **Talk to the press.** + "Projects, bulk runs, anything print — write to us, or apply for a slot." |
+| Waitlist / home Apply index line | **If you know, you know.** |
+Claims still to verify with the owner (do not invent): origin story (2017 / city), "our own Barcelona press", "Anatol Volt-M".
+
+## R8-A — Copy, a11y, home Apply, perf (owns lib/i18n/*, components/home/* except motion-only edits later, app/about|contact|waitlist copy, lib/site.ts, app/layout.tsx metadata)
+- Apply the copy map; remove keys that become unused.
+- OutlinedWord: the solid `[data-fill]` copy gets `aria-hidden="true"` (headings were read twice).
+- Home ApplySection: reuse the Waitlist role radiogroup + `.btn-ink` (extract a shared `RolePicker` into components/editorial/).
+- Perf: compute `CATALOG_STATS` in a server component and pass values as props (no product dataset in the home client bundle); load non-English dictionaries lazily (dynamic import on language switch) keeping SSR/first paint English.
+- Mono labels min 12px on mobile.
+
+## R8-B — Mobile menu + share image + icons (owns components/SiteHeader.tsx, app/opengraph-image.*, app/icon.* / favicon)
+- Mobile menu: full-screen ink band, big numbered condensed caps index (01 Cloth, 02 Shop & Run, 03 Blanks → /catalog, 04 Gallery, 05 Agents, 06 About, 07 Contact) + language switcher + `.btn-ink` Apply; focus trap/Escape kept.
+- OG image (1200×630): black ground, fitted bone MERCHFROM, a halftone crop of the cover photo, signature line in mono. Prefer `app/opengraph-image.tsx` with `next/og` and local Barlow Condensed font files; otherwise a generated PNG.
+- Favicon/app icon: bone condensed "M" (or "MF") on #141414, square; replace favicon.ico + add icon.png/apple-icon.
+- If new i18n keys are needed, report them (R8-A owns i18n).
+
+## R8-C — Motion pack (after R8-A; owns components/home/ScrollScenes.tsx, app/template.tsx, components/motion/*, motion-only edits elsewhere, app/globals.css motion rules)
+1. First-load choreography (once per session, ~1.4s): masthead letters rise from a baseline mask (stagger ~35ms), hairline draws, facts fade, cover opens from a slit to its frame. Must not break FittedWord measurement or the full-bleed scroll reveal.
+2. Halftone → full tone on hover (desktop) for Halftone images: dot screen and grayscale dissolve to the continuous-tone photo (~600ms).
+3. Line-mask heading reveals on enter for section h2s (lines slide up from a mask), replacing the generic fade-rise for headings.
+4. Image wipe reveals (clip-path from bottom + slight scale) for plates and Shop & Run photos on enter.
+5. Page transitions: a panel in the destination ground colour sweeps up and away (~450ms) between routes; no flash; respects reduced motion.
+6. Squeegee hover: `.btn-ink` fill pulls left→right; `.link-ink` underline draws from the left.
+7. Set list: halftone image per step crossfading inside the pinned scene.
+8. Footer echo: MERCHFROM letters rise as the footer enters.
+9. Rotating brief placeholder: real example briefs type in, stop on focus.
+Rules: transforms/opacity/clip-path only; everything static and visible under reduced motion; mobile keeps it light; no CLS; kill triggers on unmount.

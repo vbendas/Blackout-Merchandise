@@ -29,6 +29,10 @@ export function ZeroUpfront() {
     >
       <OutlinedWord as="h2">{t('home.zero.word')}</OutlinedWord>
 
+      <p className="home-cover-tagline" data-lines style={{ marginTop: '-16px' }}>
+        {t('home.zero.headline')}
+      </p>
+
       <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-8" style={{ borderTop: '1px solid var(--hairline)', paddingTop: '32px' }}>
         {COLUMNS.map((col) => (
           <div key={col.titleKey} className="flex flex-col gap-3" data-rise>

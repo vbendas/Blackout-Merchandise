@@ -7,6 +7,18 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useT, type Key } from '@/lib/i18n';
 import { PLATFORM_URL } from '@/lib/site';
 
+// Mobile menu index (numbered). Anchors are the ids that exist on the home
+// page: #cloth, #paths, #agents.
+const MENU_LINKS: NavLink[] = [
+  { href: '/#cloth', key: 'nav.cloth' },
+  { href: '/#paths', key: 'nav.shopRun' },
+  { href: '/catalog', key: 'nav.blanks' },
+  { href: '/gallery', key: 'nav.gallery' },
+  { href: '/#agents', key: 'nav.agents' },
+  { href: '/about', key: 'nav.about' },
+  { href: '/contact', key: 'nav.contact' },
+];
+
 const HAIRLINE = '1px solid var(--hairline)';
 
 interface NavLink {
@@ -56,9 +68,10 @@ export function SiteHeader() {
   // line and nav read in ink, not bone.
   // Round 7: paper on every route. Round 8: the home hero is an ink
   // band, so on '/' the header (which overlays it) reads bone on black.
-  const theme = isHome ? 'ink' : 'vintage';
   const [menuOpen, setMenuOpen] = useState(false);
+  const theme = isHome || menuOpen ? 'ink' : 'vintage';
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const firstMenuLinkRef = useRef<HTMLAnchorElement>(null);
 
   // A route change is the one thing that should always close the mobile
@@ -80,12 +93,42 @@ export function SiteHeader() {
         menuButtonRef.current?.focus();
       }
     }
+    // Focus trap: Tab cycles between the header's menu button and the
+    // menu's own controls only.
+    function onTrap(e: KeyboardEvent) {
+      if (e.key !== 'Tab') return;
+      const inMenu = Array.from(
+        menuRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled])') ?? [],
+      );
+      const items = menuButtonRef.current ? [menuButtonRef.current, ...inMenu] : inMenu;
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !items.includes(active as HTMLElement))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !items.includes(active as HTMLElement))) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    // Leaving the mobile breakpoint with the menu open would strand the
+    // scroll lock, so close it.
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onMq = () => {
+      if (mq.matches) setMenuOpen(false);
+    };
+    mq.addEventListener('change', onMq);
     document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keydown', onTrap);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const raf = requestAnimationFrame(() => firstMenuLinkRef.current?.focus());
     return () => {
       document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keydown', onTrap);
+      mq.removeEventListener('change', onMq);
       document.body.style.overflow = previousOverflow;
       cancelAnimationFrame(raf);
     };
@@ -125,7 +168,7 @@ export function SiteHeader() {
             className="hidden md:inline"
             style={{
               fontFamily: 'var(--font-mono), monospace',
-              fontSize: '11px',
+              fontSize: '12px',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
               color: 'var(--muted)',
@@ -168,7 +211,14 @@ export function SiteHeader() {
 
         {/* Mobile: mark + wordmark (above), Apply + menu trigger (here). */}
         <div className="flex items-center gap-3 md:hidden">
-          <Link href="/waitlist" style={{ ...applyButton, height: '36px', padding: '0 16px' }}>
+          <Link
+            href="/waitlist"
+            tabIndex={menuOpen ? -1 : undefined}
+            aria-hidden={menuOpen || undefined}
+            // Hidden while the menu is open: the menu has its own full-width
+            // Apply, and two side by side read as a mistake.
+            style={{ ...applyButton, height: '36px', padding: '0 16px', visibility: menuOpen ? 'hidden' : 'visible' }}
+          >
             {t('nav.apply')}
           </Link>
           <button
@@ -205,43 +255,86 @@ export function SiteHeader() {
         </div>
       </header>
 
-      {/* Full-screen mobile menu */}
+      {/* Full-screen mobile menu: an ink band with a numbered index. */}
       {menuOpen && (
         <div
           id="site-menu"
-          data-theme={theme}
+          ref={menuRef}
+          data-theme="ink"
           role="dialog"
           aria-modal="true"
           aria-label={t('nav.menu')}
           className="fixed inset-0 z-40 flex flex-col md:hidden"
-          style={{ background: 'var(--paper)', paddingTop: 'var(--header-h)' }}
+          style={{ background: 'var(--paper)', color: 'var(--signal)', paddingTop: 'var(--header-h)' }}
         >
           <nav
-            className="flex flex-1 flex-col gap-6 overflow-y-auto"
-            style={{ padding: '32px var(--gutter)', fontSize: '28px', fontWeight: 600 }}
+            aria-label={t('nav.menu')}
+            className="flex flex-1 flex-col overflow-y-auto"
+            style={{ padding: '8px var(--gutter) 0' }}
           >
-            {NAV_LINKS.map(({ href, key }, index) => (
-              <Link
-                key={href}
-                href={href}
-                ref={index === 0 ? firstMenuLinkRef : undefined}
-                aria-current={isCurrent(href) ? 'page' : undefined}
-                style={{ opacity: isCurrent(href) ? 1 : 0.7 }}
-              >
-                {t(key)}
-              </Link>
-            ))}
+            <ol className="m-0 flex list-none flex-col p-0" style={{ borderTop: HAIRLINE }}>
+              {MENU_LINKS.map(({ href, key }, index) => {
+                const current = isCurrent(href);
+                return (
+                  <li key={href} style={{ borderBottom: HAIRLINE }}>
+                    <Link
+                      href={href}
+                      ref={index === 0 ? firstMenuLinkRef : undefined}
+                      aria-current={current ? 'page' : undefined}
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-baseline gap-4"
+                      style={{ padding: '12px 0', opacity: current ? 1 : 0.78 }}
+                    >
+                      <span
+                        aria-hidden
+                        style={{
+                          width: '28px',
+                          fontFamily: 'var(--font-mono), monospace',
+                          fontSize: '12px',
+                          letterSpacing: '0.08em',
+                          color: 'var(--muted)',
+                        }}
+                      >
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span
+                        style={{
+                          flex: 1,
+                          fontFamily: 'var(--font-condensed), var(--font-sans), sans-serif',
+                          fontWeight: 600,
+                          fontSize: 'clamp(38px, 11vw, 52px)',
+                          lineHeight: 1,
+                          letterSpacing: '0.02em',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {t(key)}
+                      </span>
+                      {current && (
+                        <span
+                          aria-hidden
+                          style={{ width: '8px', height: '8px', background: 'var(--signal)', alignSelf: 'center' }}
+                        />
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ol>
             {PLATFORM_URL && (
-              <a href={PLATFORM_URL} style={{ fontSize: '18px', fontWeight: 500, opacity: 0.7 }}>
+              <a href={PLATFORM_URL} className="link-ink self-start" style={{ marginTop: '20px' }}>
                 {t('nav.signIn')}
               </a>
             )}
           </nav>
           <div
-            className="flex items-center justify-between"
-            style={{ padding: '24px var(--gutter)', borderTop: HAIRLINE }}
+            className="flex flex-col gap-4"
+            style={{ padding: '20px var(--gutter) calc(24px + env(safe-area-inset-bottom))', borderTop: HAIRLINE }}
           >
             <LanguageSwitcher />
+            <Link href="/waitlist" className="btn-ink w-full" onClick={() => setMenuOpen(false)}>
+              {t('nav.apply')}
+            </Link>
           </div>
         </div>
       )}

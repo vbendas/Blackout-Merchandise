@@ -3,6 +3,7 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useLayoutEffect, useRef } from 'react';
+import { splitLines, type Split } from '@/components/motion/split';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -183,19 +184,6 @@ export function ScrollScenes() {
         }
       }
 
-      // ---- Plates (parallax only, no pin) -------------------------
-      const plates = scene('plates');
-      if (plates) {
-        const [a, b] = q(plates, '[data-rise]');
-        const opts = (to: number) => ({
-          y: to,
-          ease: 'none',
-          scrollTrigger: { trigger: plates, start: 'top bottom', end: 'bottom top', scrub: 1 },
-        });
-        if (a) gsap.fromTo(a, { y: 36 }, opts(-36));
-        if (b) gsap.fromTo(b, { y: 72 }, opts(-44));
-      }
-
       // ---- Zero (fill scrubbed, then stagger) ---------------------
       const zero = scene('zero');
       if (zero) {
@@ -219,6 +207,7 @@ export function ScrollScenes() {
         const rows = q(setlist, '[data-step]');
         const counter = setlist.querySelector<HTMLElement>('[data-counter]');
         const total = rows.length;
+        const plates = q(setlist, '[data-step-img]');
         let active = -1;
         const setActive = (i: number) => {
           if (i === active) return;
@@ -227,6 +216,13 @@ export function ScrollScenes() {
             gsap.to(row, { opacity: idx === i ? 1 : 0.3, duration: 0.35, ease: 'power2.out', overwrite: 'auto' }),
           );
           if (counter) counter.textContent = `${String(i + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
+          // Plate crossfade (only visible on desktop, where the frame is shown).
+          plates.forEach((plate, idx) => {
+            gsap.to(plate, { opacity: idx === i ? 1 : 0, duration: 0.7, ease: 'power2.out', overwrite: 'auto' });
+            if (idx === i) {
+              gsap.fromTo(plate.querySelectorAll('img'), { scale: 1.06 }, { scale: 1, duration: 1.1, ease: 'power3.out', overwrite: 'auto' });
+            }
+          });
         };
         setActive(0);
         ScrollTrigger.create({
@@ -242,8 +238,56 @@ export function ScrollScenes() {
         });
       }
 
-      // ---- Enter reveals: Zero stagger, Paths, Agents, Apply ------
-      const skip = new Set([scene('cover'), scene('cloth'), scene('plates')]);
+      // ---- Heading line-mask reveals ------------------------------
+      // Each [data-lines] heading is hidden (opacity, via the pending
+      // attribute) until it nears the viewport, then split into lines
+      // that slide up out of masks; the split is reverted afterwards so
+      // the DOM returns to plain text.
+      const splits = new Set<Split>();
+      for (const el of q(root, '[data-lines]')) {
+        el.setAttribute('data-lines-pending', '');
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 88%',
+          once: true,
+          onEnter: () => {
+            const split = splitLines(el);
+            el.removeAttribute('data-lines-pending');
+            if (!split) return;
+            splits.add(split);
+            gsap.set(split.parts, { yPercent: 110 });
+            gsap.to(split.parts, {
+              yPercent: 0,
+              duration: 0.9,
+              stagger: 0.09,
+              ease: 'expo.out',
+              onComplete: () => {
+                split.revert();
+                splits.delete(split);
+              },
+            });
+          },
+        });
+      }
+      cleanups.push(() => {
+        for (const el of q(root, '[data-lines]')) el.removeAttribute('data-lines-pending');
+        splits.forEach((split) => split.revert());
+        splits.clear();
+      });
+
+      // ---- Shop & Run: image wipe, then the card's text ------------
+      for (const card of q(root, '#paths [data-path-card]')) {
+        const box = card.querySelector<HTMLElement>('[data-wipe]');
+        if (!box) continue;
+        const imgs = q(box, 'img');
+        const tl = gsap.timeline({ scrollTrigger: { trigger: card, start: 'top 82%', once: true } });
+        tl.fromTo(box, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1, ease: 'expo.out' }, 0);
+        tl.fromTo(imgs, { scale: 1.12 }, { scale: 1, duration: 1.3, ease: 'power3.out' }, 0);
+        tl.from(q(card, '[data-rise]'), { y: 24, opacity: 0, duration: 0.7, stagger: 0.08, ease: 'power3.out' }, 0.35);
+      }
+
+      // ---- Enter reveals: Zero stagger, Agents, Apply ------
+      const skip = new Set([scene('cover'), scene('cloth'), root.querySelector<HTMLElement>('#paths')]);
       for (const section of q(root, 'section')) {
         if (skip.has(section)) continue;
         const items = q(section, '[data-rise]');
@@ -299,7 +343,17 @@ export function ScrollScenes() {
         });
       };
 
+      // Shop & Run: per-card clip-path wipe (no scale) and text fade.
+      for (const card of q(root, '#paths [data-path-card]')) {
+        const box = card.querySelector<HTMLElement>('[data-wipe]');
+        if (!box) continue;
+        const tl = gsap.timeline({ scrollTrigger: { trigger: card, start: 'top 88%', once: true } });
+        tl.fromTo(box, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.9, ease: 'power3.out' }, 0);
+        tl.from(q(card, '[data-rise]'), { y: 20, opacity: 0, duration: 0.6, stagger: 0.08, ease: 'power2.out' }, 0.3);
+      }
+
       for (const section of q(root, '[data-scene], section')) {
+        if (section.id === 'paths') continue;
         const heading = section.querySelector('h2');
         if (heading && section.matches('[data-scene]')) enter([heading], heading);
         const items = q(section, '[data-rise]');

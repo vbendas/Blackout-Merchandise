@@ -96,7 +96,7 @@ function SizeGuideTable({ guide }: { guide: SizeGuide }) {
           ))}
         </tbody>
       </table>
-      <div className="opacity-[.62]" style={{ fontSize: '11px', marginTop: '6px' }}>
+      <div className="opacity-[.62]" style={{ fontSize: '12px', marginTop: '6px' }}>
         {t('modal.measurementsIn', { unit: guide.unit })}
       </div>
     </div>
@@ -229,7 +229,7 @@ function RelatedStrip({
               <div
                 className="opacity-[.62]"
                 style={{
-                  fontSize: '11px',
+                  fontSize: '12px',
                   textTransform: 'uppercase',
                   textAlign: 'center',
                   marginTop: '6px',

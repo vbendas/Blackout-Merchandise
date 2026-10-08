@@ -22,13 +22,12 @@ export const pt: Dictionary = {
   'footer.studio': 'Estúdio',
   'footer.elsewhere': 'Noutros sítios',
   'footer.language': 'Idioma',
-  'footer.tagline': 'Merch para bandas, tatuadores e festivais. Impresso em Barcelona.',
   'footer.copyright': '© {year} MerchFrom — Barcelona, ES',
   'footer.motto': 'Por candidatura · Zero adiantado',
 
   'nav.cloth': 'Tecido',
   'nav.blanks': 'Peças base',
-  'home.header.line': 'Candidaturas abertas — Impresso em Barcelona',
+  'home.header.line': 'Merchandising premium para artistas.',
 
   'catalog.filter.type': 'Tipo',
   'catalog.filter.fit': 'Corte',
@@ -47,7 +46,7 @@ export const pt: Dictionary = {
   'catalog.intro.label': 'Catálogo',
   'catalog.intro.title': 'As peças lisas.',
   'catalog.intro.body':
-    '{n} peças em que imprimimos, e nenhuma que não vestiríamos. Testado OEKO-TEX, algodão orgânico na maior parte da gama, pesos até {gsm} gsm.',
+    '{n} peças em que imprimimos, e nenhuma que não vestiríamos. Testado OEKO-TEX, algodão orgânico na maior parte da gama, pesos até {gsm} gsm. Todas vegan.',
   'catalog.stat.gots': 'Orgânico GOTS',
   'catalog.stat.heavy': 'Pesado 220 gsm+',
   'catalog.stat.methods': 'Métodos de impressão',
@@ -81,7 +80,7 @@ export const pt: Dictionary = {
   'catalog.filter.show.other': 'Ver {n} peças base',
   'catalog.note.kicker': 'MerchFrom · Peças base',
   'catalog.note.title': 'Feito para a mesa do merch.',
-  'catalog.note.foot': 'Pesado · Orgânico · Impresso em Barcelona',
+  'catalog.note.foot': 'Pesado · Orgânico · Vegan',
   'catalog.editorial.cloth.kicker': 'Tecido · Barcelona',
   'catalog.editorial.cloth.title': 'Tecido pesado.\nEtiquetas honestas.',
   'catalog.editorial.studio.kicker': 'Estúdio · Barcelona',
@@ -141,27 +140,29 @@ export const pt: Dictionary = {
   'gallery.count.other': '{n} peças',
 
   'about.headline': 'Sobre',
-  'about.statement': 'Não somos para todos — mas a mãe sempre disse que tu não és como os outros.',
+  'about.statement': 'A prensa é a mesma. Já não precisas de estar na sala.',
   'about.paragraph1':
     'A MerchFrom começou em 2017 como uma tipografia de serigrafia em Barcelona, a imprimir para bandas em digressão e estúdios de tatuagem cansados de merchandise que se desfazia na primeira lavagem.',
   'about.paragraph2':
-    'A prensa é a mesma. O que mudou é que já não precisas de estar na sala. Descreve a peça, aprova a prova e nós imprimimos, dobramos, etiquetamos e enviamos. Tu ficas com a margem.',
+    'Descreve a peça, aprova a prova e nós imprimimos, dobramos, etiquetamos e enviamos. Tu ficas com a margem.',
   'about.est': 'Desde',
   'about.shop': 'Loja',
   'about.press': 'Prensa',
 
   'contact.headline': 'Contacto',
-  'contact.statement': 'Diz olá. Para projetos, encomendas em quantidade e tudo o que envolva impressão: escreve-nos, ou candidata-te a uma vaga através da lista de espera.',
+  'contact.statement': 'Fala com a prensa.',
+  'contact.line':
+    'Projetos, encomendas em quantidade, tudo o que seja impressão — escreve-nos, ou candidata-te a uma vaga.',
   'contact.shop': 'Loja',
   'contact.email': 'Email',
   'contact.elsewhere': 'Nas redes',
 
   'waitlist.headline': 'Candidatar',
+  'apply.index': 'Quem sabe, sabe.',
   'waitlist.statement': 'Por candidatura. Um número limitado de artistas por mês — e zero adiantado no caminho Shop.',
   'waitlist.projectLabel': 'Projeto',
   'waitlist.success': 'Registado — entraremos em contacto.',
   'waitlist.projectAttached': 'Projeto {code} associado.',
-  'waitlist.rolePlaceholder': 'Eu sou…',
   'waitlist.roleLabel': 'Eu sou',
   'waitlist.role.band': 'Banda ou músico',
   'waitlist.role.tattoo': 'Tatuador ou estúdio de tatuagem',
@@ -189,6 +190,7 @@ export const pt: Dictionary = {
   'home.hero.promptLabel': 'Descreve a tua peça',
   'home.hero.placeholder': 'T-shirt preta 280 gsm, estampado nas costas, 50 para a digressão — preciso até maio',
   'home.hero.start': 'Enviar',
+  'home.hero.startBrief': 'Começa o teu briefing ↓',
   'home.hero.fact.printed': 'Impresso em Barcelona',
   'home.hero.fact.zero': 'Sem custo inicial',
   'home.brief.label': 'O teu brief',
@@ -202,11 +204,12 @@ export const pt: Dictionary = {
 
   'home.printedFor': 'Impresso para',
 
-  'home.cover.fact.audience': 'Merch para bandas, tatuadores e festivais',
-  'home.cover.fact.organic': 'Orgânico e pesado',
+  'home.cover.fact.organic': 'Algodão orgânico · Vegan',
   'home.cover.fact.application': 'Por candidatura',
   'home.cover.caption': 'Capa — Serigrafia, duas cores',
-  'home.cover.tagline': 'Tecido pesado, etiquetas honestas.',
+  'home.cover.tagline': 'Serigrafia em Barcelona.',
+  'home.cloth.line': 'Os teus fãs vestem a tua arte. Porquê vesti-los com lixo?',
+  'home.cloth.eco': 'Amigo do ambiente, e conseguimos prová-lo: tecido certificado GOTS e OEKO-TEX, vegan até ao último fio, impresso com tintas à base de água.',
 
   'home.statement.body':
     'Fazemos merch como uma editora faz uma coleção — algodão orgânico pesado, impresso na nossa própria prensa em Barcelona, para bandas, tatuadores e festivais. Tu desenhas e defines o preço. Nós imprimimos quando se vende.',
@@ -215,16 +218,15 @@ export const pt: Dictionary = {
   'home.cloth.stat.heaviestTee': 'A nossa t-shirt mais pesada',
   'home.cloth.stat.gots': 'Peças lisas orgânicas certificadas GOTS',
   'home.cloth.stat.oeko': 'Testado OEKO-TEX',
-
-  'home.plates.caption1': 'Prancha 01 — Serigrafia',
-  'home.plates.caption2': 'Prancha 02 — Em digressão',
+  'home.cloth.cta': 'Ver as {n} peças lisas',
 
   'home.zero.word': 'Zero',
+  'home.zero.headline': 'Portas: grátis. Merch: teu.',
   'home.zero.stock.title': 'Sem stock.',
-  'home.zero.stock.body': 'Imprimimos cada peça quando é vendida. Nada fica parado num armazém à tua custa.',
+  'home.zero.stock.body': 'Imprimimos cada peça quando é vendida. Nada fica parado num armazém à tua custa. Sem excedentes, nada a caminho do aterro.',
   'home.zero.min.title': 'Sem mínimos.',
   'home.zero.min.body': 'Lança um design ou uma coleção completa, e acrescenta novas peças quando quiseres.',
-  'home.zero.margin.title': 'O teu preço, a tua margem.',
+  'home.zero.margin.title': 'Tu fizeste a arte. Tu ficas com a margem.',
   'home.zero.margin.body':
     'Tu defines o preço de venda. Tudo o que ultrapassa o nosso custo base é teu, pago a cada venda.',
   'home.zero.cta': 'Candidatar para lançar',
@@ -239,7 +241,7 @@ export const pt: Dictionary = {
   'home.setlist.step3.title': 'Prova e orçamento',
   'home.setlist.step3.body': 'Nada vai para a prensa até aprovares.',
   'home.setlist.step4.title': 'Na prensa',
-  'home.setlist.step4.body': 'Serigrafia, bordado ou DTG — em Barcelona.',
+  'home.setlist.step4.body': 'Serigrafia, bordado ou DTG, com tintas à base de água — em Barcelona.',
   'home.setlist.step5.title': 'Bis',
   'home.setlist.step5.body': 'Aos teus fãs à medida que vende, ou embalado para ti e para o local.',
 
@@ -258,14 +260,14 @@ export const pt: Dictionary = {
 
   'home.catalog.title': '{n} peças lisas.',
   'home.catalog.body':
-    'Testado OEKO-TEX, todas elas. Algodão orgânico na maior parte da gama, {gots} peças lisas certificadas GOTS — desde t-shirts de {min} gsm a peças pesadas de {max} gsm.',
+    'Testado OEKO-TEX, todas elas. Algodão orgânico na maior parte da gama, {gots} peças lisas certificadas GOTS — desde t-shirts de {min} gsm a peças pesadas de {max} gsm. Todas vegan.',
   'home.catalog.link': 'Ver o catálogo',
 
   'home.agents.label': 'Traz o teu próprio agente',
   'home.agents.soon': 'Brevemente',
-  'home.agents.title': 'Já trabalhas com o Claude, ChatGPT, Gemini ou Grok? Liga-o.',
+  'home.agents.title': 'O teu agente, a nossa prensa.',
   'home.agents.body':
-    'Tudo o que o assistente faz — mockups, orçamentos, encomendas, a tua loja — abre como servidor MCP. O teu agente, a nossa prensa.',
+    'Funciona com Claude, ChatGPT, Gemini e Grok. Tudo o que o assistente faz — mockups, orçamentos, encomendas, a tua loja — abre como servidor MCP.',
   'home.agents.connector': '# Claude · ChatGPT · Gemini · Grok — adiciona como conector MCP',
   'home.agents.clients': 'Claude · ChatGPT · Gemini · Grok',
   'home.agents.endpoint': 'Endpoint',
@@ -275,8 +277,7 @@ export const pt: Dictionary = {
   'home.agents.copy': 'Copiar',
   'home.agents.copied': 'Copiado',
 
-  'home.apply.label': 'Por candidatura',
-  'home.apply.title': 'Um número limitado de artistas por mês.',
+  'home.apply.title': 'Não somos para toda a gente — mas a tua mãe sempre disse que tu não és toda a gente.',
 
   'notFound.headline': 'Fora de registo.',
   'notFound.paragraph': 'Esta página não existe — as chapas não alinharam.',
