@@ -14,8 +14,8 @@
     "verify:preflight": "node scripts/verify/preflight.mjs",
     "verify:stamps": "node scripts/verify/stamps.mjs",
     "verify:budgets": "node scripts/verify/check-budgets.mjs",
-    "verify:tokens": "if [ -f scripts/check-tokens.mjs ]; then node scripts/check-tokens.mjs; else echo 'scripts/check-tokens.mjs lands in WP2b; skipping'; fi",
-    "verify:contrast": "if [ -f scripts/contrast.mjs ]; then node scripts/contrast.mjs; else echo 'scripts/contrast.mjs lands in WP2b; skipping'; fi",
+    "verify:tokens": "node scripts/verify/check-tokens.mjs --all",
+    "verify:contrast": "node scripts/contrast.mjs",
     "verify:i18n": "if [ -f scripts/check-i18n.mjs ]; then node scripts/check-i18n.mjs; else echo 'scripts/check-i18n.mjs lands in WP5; skipping'; fi",
     "verify:prodguard": "node scripts/verify/prod-guard.mjs",
     "measure-face": "if [ -f scripts/measure-face.mjs ]; then node scripts/measure-face.mjs; else echo 'scripts/measure-face.mjs lands in WP4; skipping'; fi"

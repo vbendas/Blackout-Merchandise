@@ -54,7 +54,7 @@ Status key: **locked** (owner, 2026-10-06), **default** (adopted now, owner may 
 | 24 | Provisional face | If G1 is not answered, WP4 may lock provisional Anton + JetBrains Mono so the chain is not blocked; the real pick is then a one-token swap plus a re-shoot. | default |
 | 25 | Gallery title | H1 "Printed work" (replaces "Work"); nav label "Gallery" stays and joins desktop nav. | default |
 | 26 | Non-Latin-1 locales | pl/tr/cs not on the roadmap; replacement faces still load `latin-ext` for artist names. | default |
-| 27 | Deploy of shared tokens | Owner confirms how each app deploys (Vercel Root Directory, "include source files outside root"). If unconfirmed, use the committed sync copy (decision 10). | gate |
+| 27 | Deploy of shared tokens | Import route recorded by WP2b (8 Oct): plain relative `@import "../../design-tokens/index.css"` right after `@import "tailwindcss"`; Tailwind v4 inlines it, so website-v3 needs no `turbopack.root`/`outputFileTracingRoot` (dev + build verified). Platform expected to behave the same (verify in WP11). Still open: owner confirms each app's Vercel Root Directory and "include files outside the root"; if that is off, run `design-tokens/sync.mjs` and commit its output. | gate |
 | 28 | Platform capture | Platform pages need a session. Agents use only (a) routes reachable unauthenticated, (b) a dev-only fixture that already exists in the repo (`AGENT_MOCK=1`, any dev auth bypass `preflight.mjs` finds), or (c) a Playwright `storageState` file the owner places at a named scratchpad path. If none, platform shots are owner-captured and attached to the WP. | default |
 
 ---
