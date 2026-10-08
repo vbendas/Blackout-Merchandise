@@ -1,0 +1,90 @@
+/* MerchFrom design tokens, layer 2: semantic tokens. Owner: WP2b.
+   Round 9 plan, section 3.3 and decisions 11-12.
+
+   Theme model:
+     :root, [data-theme='ink']   ink (the default ground)
+     [data-theme='paper']        the insert (catalog, gallery tiles, modal)
+   Ink comes first and paper second, so when both land on the same element
+   (<html data-theme='paper'>) paper wins. Nested re-scoping
+   (<div data-theme='paper'> inside <html data-theme='ink'>) works because
+   the inner element declares its own values.
+
+   Every theme block declares EVERY semantic token, including the ones that
+   reference other semantic tokens (`--focus: var(--brand)`): custom
+   properties resolve var() where they are declared and inherit the result,
+   so a token declared only on :root would not follow a nested theme.
+
+   Brand names are `--brand`, `--brand-fill`, `--on-brand` (decision 11).
+   No legacy aliases here (they live in website-v3/app/styles/tokens-legacy.css)
+   and never any shadcn name (`--accent`, `--muted`, `--border`, `--ring`,
+   `--primary`, `--input`, `--card`, `--popover`, `--secondary`,
+   `--destructive`); check-tokens enforces both. */
+
+@layer base {
+  :root,
+  [data-theme='ink'] {
+    --bg: var(--p-ink);
+    --bg-raised: var(--p-ink-raised);
+    --bg-surface: var(--p-ink-surface);
+    --well: var(--p-ink-well);
+
+    --fg: var(--p-bone);
+    --fg-soft: var(--p-bone-soft);
+    --fg-muted: var(--p-bone-muted);
+    /* Replaces all opacity dimming; 4.5:1+ on --bg and --bg-raised only. */
+    --dim: var(--p-bone-dim);
+
+    /* Decorative only. */
+    --hairline: var(--p-ink-hairline);
+    /* Structural: controls, tiles, spec rows (3:1+). */
+    --rule: var(--p-ink-rule);
+
+    /* Text-safe on ink. */
+    --brand: var(--p-orange);
+    --brand-fill: var(--p-orange);
+    --on-brand: var(--p-on-orange);
+    --focus: var(--brand);
+
+    --halftone-dot: var(--p-ink-halftone);
+    --halftone-blend: screen;
+    --grain-opacity: 0.06;
+    /* Flat caption bar only, never a gradient. */
+    --scrim: var(--p-ink-scrim);
+
+    --danger: var(--p-danger-ink);
+    --warning: var(--p-warning-ink);
+    --success: var(--p-success-ink);
+  }
+
+  [data-theme='paper'] {
+    --bg: var(--p-paper);
+    --bg-raised: var(--p-paper-raised);
+    --bg-surface: var(--p-paper-surface);
+    --well: var(--p-paper-well);
+
+    --fg: var(--p-paper-ink);
+    --fg-soft: var(--p-paper-soft);
+    --fg-muted: var(--p-paper-muted);
+    --dim: var(--p-paper-muted);
+
+    --hairline: var(--p-paper-hairline);
+    --rule: var(--p-paper-rule);
+
+    /* On paper, brand is LARGE TEXT ONLY (#e63a0c) and the fill is fill only
+       (#ff4a1c, 2.72:1 as text). contrast.mjs fails any registered text use. */
+    --brand: var(--p-orange-large);
+    --brand-fill: var(--p-orange-fill);
+    --on-brand: var(--p-on-orange);
+    /* Brand fails 3:1 on paper, so the ring is ink (2px fg, 2px paper offset). */
+    --focus: var(--p-paper-ink);
+
+    --halftone-dot: var(--p-paper-halftone);
+    --halftone-blend: multiply;
+    --grain-opacity: 0.05;
+    --scrim: var(--p-paper-scrim);
+
+    --danger: var(--p-danger-paper);
+    --warning: var(--p-warning-paper);
+    --success: var(--p-success-paper);
+  }
+}

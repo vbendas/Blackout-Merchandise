@@ -1,0 +1,36 @@
+/* MerchFrom design tokens: Tailwind v4 theme map. Owner: WP2b.
+   Maps semantic tokens to Tailwind namespaces (bg-bg, text-fg, border-rule,
+   bg-brand-fill, text-on-brand, font-display, ...). Ignored by non-Tailwind
+   consumers (`@theme` is a Tailwind at-rule).
+
+   `inline` makes utilities use the value itself, so a utility inside a
+   nested [data-theme] subtree resolves that subtree's token. Tailwind still
+   emits `:root { --font-display: ... }` in its theme layer, which is why the
+   font maps point at `--type-*` (type.css), never at `--font-*` itself: no
+   circular font variable. Never map a shadcn name here; each app's
+   globals.css owns its own shadcn map (platform, plan 3.6). */
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-raised);
+  --color-bg-surface: var(--bg-surface);
+  --color-well: var(--well);
+  --color-fg: var(--fg);
+  --color-fg-soft: var(--fg-soft);
+  --color-fg-muted: var(--fg-muted);
+  --color-dim: var(--dim);
+  --color-hairline: var(--hairline);
+  --color-rule: var(--rule);
+  --color-brand: var(--brand);
+  --color-brand-fill: var(--brand-fill);
+  --color-on-brand: var(--on-brand);
+  --color-focus: var(--focus);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
+
+  --font-display: var(--type-display);
+  --font-mono: var(--type-mono);
+  --font-body: var(--type-body);
+  --font-sans: var(--type-body);
+}

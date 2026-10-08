@@ -1,27 +1,19 @@
-/* Legacy tokens (:root, vintage and ink theme scopes). Owner: WP2b / WP21 deletes.
-   Split verbatim from globals.css (WP2a, Round 9). Selector text unchanged. */
+/* Legacy token aliases for website-v3. Owner: WP2b; WP4 edits the font
+   alias line; WP9 deletes the interim header rule; WP21 deletes this file.
 
+   The real tokens live in /design-tokens (imported first by globals.css):
+   primitives `--p-*`, semantic `--bg*`, `--fg*`, `--dim`, `--hairline`,
+   `--rule`, `--well`, `--scrim`, `--brand*`, `--focus`. Everything here only
+   maps OLD names onto them so un-migrated components keep working. The
+   platform never imports this file, so it never inherits these names.
+   No raw hex here (scripts/verify/no-raw-hex.sh): primitives only. */
+
+/* Layout tokens not yet in design-tokens. Plan 3.4 values (--header-h 64/56,
+   section rhythm) land with the components that use them (WP9/WP13);
+   changing them here would shift layout. */
 :root {
-  /* Soft charcoal, black-dominant ground. No accent colour, no
-     gradients, no light/charcoal mode switching — this is the one dark
-     the whole site shares now. */
-  --paper: #141414; /* page ground */
-  --raised: #1b1b1b; /* alternate sections (assistant/catalog/agents bands, cards) */
-  --surface: #242424; /* image frames, inputs on raised, product tiles */
-  --well: #101010; /* code blocks */
-  --signal: #ede4dd; /* primary text, primary button fill */
-  --muted: #b3aba4; /* secondary text, labels */
-  --soft: #cfc6bf; /* body copy on dark */
-  --hairline: rgba(237, 228, 221, 0.12); /* rules, borders */
   --gutter: 64px; /* page side padding, desktop */
-  --header-h: 80px; /* SiteHeader's height — it overlays the top of each page, which pads under it */
-  /* Fixed bone tone for dark accent blocks inside the vintage catalog/
-     gallery (note tile, editorial photo captions, the zero-upfront
-     band) — those blocks stay dark regardless of theme, so their text
-     can't read --signal (which flips to ink under [data-theme=vintage]). */
-  --bone: #ede4dd;
-  /* Modal backdrop: a light wash over the dark site. */
-  --scrim: color-mix(in srgb, var(--paper) 82%, transparent);
+  --header-h: 80px; /* SiteHeader's height; each page pads under it */
 }
 
 @media (max-width: 768px) {
@@ -31,40 +23,94 @@
   }
 }
 
-/* Vintage-paper theme — scoped to the catalog and gallery page wrappers
-   only (ViewShell). The fixed SiteHeader/SiteFooter sit outside that
-   subtree, so they keep the dark tokens above; only the page content
-   between them repaints to the ecru ground. */
-/* One paper tone for everything on the vintage pages — page, modal,
-   image wells, thumbnails. Near-identical beiges side by side read as
-   mistakes, so separation comes from hairlines and a warm dark scrim
-   behind the modal, never from a second paper colour. */
-[data-theme='vintage'] {
-  --paper: #ece5da;
-  --raised: #ece5da;
-  --surface: #ece5da;
-  --scrim: rgba(26, 23, 20, 0.55);
-  --well: #1a1714;
-  --signal: #1a1714;
-  --muted: #6b6258;
-  --soft: #3a342e;
-  --hairline: rgba(26, 23, 20, 0.14);
+/* Name aliases. Declared on EVERY theme scope, not only :root: a var() is
+   resolved on the element that declares it, so an alias declared only on
+   :root would carry ink values into a paper subtree. */
+:root,
+[data-theme] {
+  --paper: var(--bg); /* page ground */
+  --raised: var(--bg-raised);
+  --surface: var(--bg-surface);
+  --signal: var(--fg); /* primary text, ink button fill */
+  --soft: var(--fg-soft);
+  --muted: var(--fg-muted);
+  /* Straight to the display stack (type.css), not via --font-display,
+     because the vintage scope below pins --font-display for legacy readers.
+     WP4 edits this line only if the alias target changes. */
+  --font-condensed: var(--type-display);
 }
 
-/* Ink bands inside the paper site: the home hero and the zero-upfront
-   band (the footer is the third dark moment). Re-scopes the tokens back
-   to the dark palette so everything inside — outlined words, buttons,
-   hairlines, focus rings — flips with it. Hard edges, like an editorial
-   spread turning from a black page to a white one. */
+/* Fixed bone tone for dark blocks that stay dark on any ground (catalog
+   note tile, band, editorial captions). Does not flip. */
+:root {
+  --bone: var(--p-bone);
+}
+
+/* TODO(WP21): delete with the last data-theme="vintage" wrapper.
+   Vintage is aliased to the PAPER theme (decision 12), so the catalog,
+   gallery and home <main> wrappers show paper until their owners switch
+   them to PaperInsert / ink. `:not(header)`: the SiteHeader also carries
+   data-theme="vintage" on inner routes; see the interim header rule below. */
+[data-theme='vintage']:not(header) {
+  --bg: var(--p-paper);
+  --bg-raised: var(--p-paper-raised);
+  --bg-surface: var(--p-paper-surface);
+  --fg: var(--p-paper-ink);
+  --fg-soft: var(--p-paper-soft);
+  --fg-muted: var(--p-paper-muted);
+  --dim: var(--p-paper-muted);
+  --hairline: var(--p-paper-hairline);
+  --rule: var(--p-paper-rule);
+  --brand: var(--p-orange-large);
+  --brand-fill: var(--p-orange-fill);
+  --on-brand: var(--p-on-orange);
+  --focus: var(--p-paper-ink);
+  --halftone-dot: var(--p-paper-halftone);
+  --halftone-blend: multiply;
+  --grain-opacity: 0.05;
+  --danger: var(--p-danger-paper);
+  --warning: var(--p-warning-paper);
+  --success: var(--p-success-paper);
+  /* Legacy exceptions, TODO(WP10/WP15): on the vintage pages --well is a
+     DARK block under bone text (GridView note tile and band) and --scrim is
+     the dark product-modal backdrop. The paper theme's own --well and
+     --scrim are light, so the vintage scope keeps the old dark meaning. */
+  --well: var(--p-ink);
+  --scrim: color-mix(in srgb, var(--p-ink) 55%, transparent);
+  /* Legacy font pin, TODO(WP10/WP15): GridView, GalleryView, ProductModal
+     and FilterDrawer read `var(--font-display)` inline and have always got
+     Barlow (the old Tailwind map). Pointing them at the display face now
+     would re-wrap catalog copy (page height -31px at 1440). They switch to
+     .t-* classes when their owners rewrite them; delete this line then. */
+  --font-display: var(--type-body);
+}
+
+@media (prefers-contrast: more) {
+  [data-theme='vintage']:not(header) {
+    --hairline: var(--p-paper-hairline-hc);
+    --rule: var(--p-paper-rule-hc);
+  }
+}
+
+/* INTERIM, TODO(WP9): the header and footer are always ink (plan 6.4).
+   - SiteHeader carries data-theme="vintage" on every route except "/". It is
+     excluded from the paper alias above, so it inherits the ink tokens from
+     <html data-theme="ink">, and it gets an ink ground so it stays legible
+     over the paper catalog/gallery tops. `!important` only because the
+     header sets `background: transparent` inline.
+   - .site-footer sits outside every wrapper and inherits ink from <html>;
+     its own colours are still literals in footer.css (WP9). */
+header[data-theme='vintage'] {
+  background: var(--bg) !important;
+  color: var(--fg);
+}
+
+/* Ink bands (Cover, Agents, Paths, ZeroUpfront, mobile menu, and now <html>)
+   paint their own ground. The ink tokens themselves come from
+   design-tokens/semantic.css. */
 [data-theme='ink'] {
-  --paper: #141414;
-  --raised: #1b1b1b;
-  --surface: #242424;
-  --well: #0c0b0a;
-  --signal: #ede4dd;
-  --muted: #b3aba4;
-  --soft: #cfc6bf;
-  --hairline: rgba(237, 228, 221, 0.14);
   background: var(--paper);
   color: var(--signal);
+  /* Undo the vintage font pin for ink bands nested in a vintage wrapper. */
+  --font-display: var(--type-display);
 }

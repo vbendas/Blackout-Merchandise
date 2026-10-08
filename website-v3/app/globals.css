@@ -1,17 +1,23 @@
 /* Entry stylesheet. Order matters (plan section 3.1):
-   1. layer-order statement, 2. tailwindcss, 3. shared tokens (WP2b),
-   4. legacy partials in original cascade order, 5. rules (@theme inline).
+   1. layer-order statement, 2. tailwindcss, 3. shared tokens
+   (/design-tokens, WP2b), 4. legacy partials in original cascade order,
+   5. rules (@theme inline).
+   Theme: ink by default (<html data-theme="ink">), paper as an insert;
+   data-theme="vintage" is a legacy alias of paper (tokens-legacy.css,
+   removed in WP21). Faces: tokens in design-tokens/type.css, next/font
+   variables --ff-display / --ff-mono / --ff-body.
    A2 FALLBACK IN FORCE: the legacy partials are imported UNLAYERED, so the
    `legacy` layer above is declared but empty and legacy rules still beat the
-   components and utilities layers. Do not add layer(legacy) until the
-   ContactCopy.tsx:24 and GalleryView.tsx:146/155 utility conflicts are fixed.
+   components and utilities layers (the shared focus ring therefore uses
+   `!important`). Do not add layer(legacy) until the ContactCopy.tsx:24 and
+   GalleryView.tsx:146/155 utility conflicts are fixed.
    Details: Documentation/Dev/Website-v3-Round9-Pressroom-Terminal-Plan.md, WP2a.
    Every @import precedes every other rule. */
 @layer theme, base, legacy, components, utilities;
 
 @import "tailwindcss";
 
-/* WP2b adds here: @import "../../design-tokens/index.css"; */
+@import "../../design-tokens/index.css";
 
 @import "./styles/tokens-legacy.css";
 @import "./styles/base.css";
@@ -28,17 +34,16 @@
 @import "./styles/product-band.css";
 @import "./styles/contact-waitlist.css";
 
+/* Legacy colour names as Tailwind colours (shared names are mapped in
+   design-tokens/tailwind-theme.css). Removed with tokens-legacy.css in WP21. */
 @theme inline {
   --color-paper: var(--paper);
   --color-raised: var(--raised);
   --color-surface: var(--surface);
-  --color-well: var(--well);
   --color-signal: var(--signal);
   --color-muted: var(--muted);
   --color-soft: var(--soft);
-  /* Barlow everywhere — body/UI and display both read the same family,
-     just different weights. IBM Plex Mono for labels, facts, code. */
-  --font-sans: var(--font-barlow);
-  --font-display: var(--font-barlow);
-  --font-mono: var(--font-ibm-plex-mono);
+  --color-bone: var(--bone);
+  --color-scrim: var(--scrim);
+  --font-condensed: var(--type-display);
 }

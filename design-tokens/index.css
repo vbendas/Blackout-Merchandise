@@ -1,0 +1,38 @@
+/* MerchFrom shared design tokens: entry point. Owner: WP2b. Nobody edits
+   this file after WP2b; later WPs fill the stub files it already imports.
+
+   IMPORT ROUTE (WP2b step 8, decision 10): each app's globals.css imports
+   this file by RELATIVE path right after `@import "tailwindcss";`
+     website-v3/app/globals.css  ->  @import "../../design-tokens/index.css";
+     platform/app/globals.css    ->  @import "../../design-tokens/index.css";  (WP11)
+   Tailwind v4's PostCSS plugin inlines the imports itself, so the files
+   outside the app folder resolve with NO turbopack.root /
+   outputFileTracingRoot change (verified in website-v3 `next dev` and
+   `next build`, Next 16.3.0 Turbopack, 8 Oct 2026). No sync copy is used.
+
+   DEPLOY CHECK (decision 27, gate, NOT confirmed by the owner): the repo's
+   only vercel.json (repo root) holds a cron entry and no per-app settings;
+   Root Directory and "Include files outside the root directory in the
+   Build Step" are Vercel project settings, not in the repo. A build with
+   website-v3/ or platform/ as Root Directory still needs /design-tokens in
+   the build checkout. If the owner reports that setting is OFF (or
+   deploys only the app folder), switch to the committed sync copy:
+   `node design-tokens/sync.mjs` (copies these files into each app, output
+   COMMITTED; `--check` fails on drift) and import the app-local copy.
+
+   LAYERS: no `@layer` order statement here. Each app's globals.css declares
+   `@layer theme, base, legacy, components, utilities;` BEFORE any @import.
+   Tokens and base rules sit in `base`, classes in `components`.
+
+   Order: primitives (layer 1), semantic (layer 2), type, material, base,
+   components (layer 3 stubs filled by WP6a/WP6c/WP8/WP6b), Tailwind map. */
+@import "./primitives.css";
+@import "./semantic.css";
+@import "./type.css";
+@import "./material.css";
+@import "./base.css";
+@import "./components.css";
+@import "./components-controls.css";
+@import "./components-frame.css";
+@import "./stamp.css";
+@import "./tailwind-theme.css";

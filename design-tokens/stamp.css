@@ -1,0 +1,10 @@
+/* MerchFrom design tokens, layer 3: Mornsey stamp.
+   STUB created by WP2b. Owner: WP6b (fills it). Round 9 plan, section 4.5.
+
+   Will hold: .mf-stamp (64-160px, rotated -3 to -6deg, tone brand | fg,
+   no stamp-in animation under reduced motion). The Mornsey face loads only
+   through Stamp.tsx (next/font/local, preload:false). Rules in
+   `@layer components`. */
+
+@layer components {
+}

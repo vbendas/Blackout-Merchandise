@@ -1,15 +1,7 @@
-/* Legacy base rules (focus, reset, body, selection, links). Owner: WP2b.
-   Split verbatim from globals.css (WP2a, Round 9). Selector text unchanged. */
-
-/* Visible keyboard focus in the current theme's ink colour. Elements
-   that intentionally suppress their own outline (the modal's
-   programmatic focus target) set outline:none inline, which — being an
-   inline style — always wins over this rule, so this is safe to apply
-   globally. */
-:focus-visible {
-  outline: 2px solid var(--signal);
-  outline-offset: 2px;
-}
+/* Legacy base rules (reset, body, links). Owner: WP2b; WP21 folds them away.
+   The focus ring, selection colour, sr-only/skip-link and the user-preference
+   overrides moved to design-tokens/base.css (WP2b). Do not re-add them here:
+   unlayered rules in this file would beat the shared `@layer base` ones. */
 
 * {
   box-sizing: border-box;
@@ -29,11 +21,6 @@ body {
   /* Kept from the old light/dark theme switch: harmless now the tokens
      are fixed, and still smooths any future ground-colour change. */
   transition: background-color 800ms ease, color 800ms ease;
-}
-
-::selection {
-  background: var(--signal);
-  color: var(--paper);
 }
 
 a {

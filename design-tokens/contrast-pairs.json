@@ -1,0 +1,254 @@
+{
+  "$comment": "Contrast pairs checked by website-v3/scripts/contrast.mjs (Round 9 plan 3.7). Token NAMES, never hex. Each pair: fg, bg, min ratio, themes it applies to, and use: 'text' (body-size text), 'large' (large text only, 24px+ or 18.66px bold), 'ui' (non-text: rules, focus rings). Append a pair whenever a WP adds a new text/ground combination. 'forbid' entries must FAIL to be registered as text uses: the script fails if any pair registers a forbidden fg/bg/theme combination with use 'text'.",
+  "pairs": [
+    {
+      "fg": "fg",
+      "bg": "bg",
+      "min": 7,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "fg-soft",
+      "bg": "bg",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "fg-muted",
+      "bg": "bg",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "dim",
+      "bg": "bg",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "fg",
+      "bg": "bg-raised",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "fg-soft",
+      "bg": "bg-raised",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "fg-muted",
+      "bg": "bg-raised",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "fg",
+      "bg": "bg-surface",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "fg-soft",
+      "bg": "bg-surface",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "fg-muted",
+      "bg": "bg-surface",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "dim",
+      "bg": "bg-raised",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "dim",
+      "bg": "bg-surface",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text",
+      "note": "Borderline (expect about 4.6 on ink). If it fails: text on surface grounds uses --fg-muted and --dim is restricted to --bg and --bg-raised."
+    },
+    {
+      "fg": "brand",
+      "bg": "bg",
+      "min": 4.5,
+      "themes": [
+        "ink"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "brand",
+      "bg": "bg-raised",
+      "min": 4.5,
+      "themes": [
+        "ink"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "brand",
+      "bg": "bg-surface",
+      "min": 4.5,
+      "themes": [
+        "ink"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "on-brand",
+      "bg": "brand-fill",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "brand",
+      "bg": "bg",
+      "min": 3,
+      "themes": [
+        "paper"
+      ],
+      "use": "large",
+      "note": "#e63a0c on paper: LARGE TEXT ONLY."
+    },
+    {
+      "fg": "rule",
+      "bg": "bg",
+      "min": 3,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "ui"
+    },
+    {
+      "fg": "focus",
+      "bg": "bg",
+      "min": 3,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "ui"
+    },
+    {
+      "fg": "danger",
+      "bg": "bg",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "warning",
+      "bg": "bg",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    },
+    {
+      "fg": "success",
+      "bg": "bg",
+      "min": 4.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "text"
+    }
+  ],
+  "forbid": [
+    {
+      "fg": "brand-fill",
+      "themes": [
+        "paper"
+      ],
+      "use": [
+        "text",
+        "large"
+      ],
+      "reason": "#ff4a1c on paper is FILL ONLY (2.72:1)."
+    },
+    {
+      "fg": "brand",
+      "themes": [
+        "paper"
+      ],
+      "use": [
+        "text"
+      ],
+      "reason": "--brand on paper (#e63a0c) is large text only, never body-size text."
+    }
+  ],
+  "staticChecks": {
+    "$comment": "contrast.mjs also scans CSS (paths relative to the repo root) for brand used as text inside [data-theme='paper'] scopes, and in .t-* classes whose minimum size is below largeTextMinPx.",
+    "scan": [
+      "design-tokens",
+      "website-v3/app/styles"
+    ],
+    "largeTextMinPx": 24
+  }
+}

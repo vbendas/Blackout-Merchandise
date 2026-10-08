@@ -6,22 +6,26 @@ import { SmoothScroll } from "@/components/SmoothScroll";
 import { LanguageProvider } from "@/lib/i18n";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { SOCIALS } from "@/lib/socials";
+import { INK } from "@/lib/theme-colors";
 import "./globals.css";
 
-// UI + display face, everywhere: headlines, body copy and the corner
-// nav all read Barlow now. Non-variable, so the exact weights the site
-// uses (400/500 body, 600 headlines) are requested explicitly.
+// Interim faces (WP2b) until WP4 moves the loaders to lib/fonts.ts after
+// gate G1. The variables are the shared --ff-* names that
+// design-tokens/type.css reads (--font-display/--font-mono/--font-body are
+// the semantic tokens; never set those here).
+// Body/UI face: Barlow. Non-variable, so the exact weights the site uses
+// are requested explicitly (300 goes in WP4).
 const barlow = Barlow({
-  variable: "--font-barlow",
+  variable: "--ff-body",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
   display: "swap",
 });
 
-// Condensed caps display face: masthead, outlined words, set list,
-// wordmarks, ink buttons.
+// Display face (interim metric block in type.css): masthead, outlined
+// words, set list, wordmarks, ink buttons.
 const barlowCondensed = Barlow_Condensed({
-  variable: "--font-condensed",
+  variable: "--ff-display",
   subsets: ["latin"],
   weight: ["500", "600", "700"],
   display: "swap",
@@ -29,7 +33,7 @@ const barlowCondensed = Barlow_Condensed({
 
 // Mono face for labels, facts, timestamps and code — IBM Plex Mono.
 const ibmPlexMono = IBM_Plex_Mono({
-  variable: "--font-ibm-plex-mono",
+  variable: "--ff-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
   display: "swap",
@@ -58,7 +62,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#141414",
+  themeColor: INK,
 };
 
 const organizationJsonLd = {
@@ -73,6 +77,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      data-theme="ink"
       className={`${barlow.variable} ${barlowCondensed.variable} ${ibmPlexMono.variable} antialiased`}
     >
       {/* No height pin on <html>: Lenis watches the root element's box to
@@ -88,10 +93,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {/* Fixed/absolute over the page top on every route — see
               SiteHeader for how it stays legible over the home hero. */}
           <SiteHeader />
-          {/* Round 7: paper on every route. The footer (sibling) stays dark. */}
-          <div data-theme="vintage" style={{ background: "var(--paper)", color: "var(--signal)" }}>
-            {children}
-          </div>
+          {/* Round 9: ink is the default ground (<html data-theme="ink">).
+              Pages that are still paper carry their own data-theme="vintage"
+              wrapper (aliased to paper until WP21). */}
+          {children}
           <SiteFooter />
         </LanguageProvider>
       </body>

@@ -1,0 +1,9 @@
+/* MerchFrom design tokens, layer 3: controls.
+   STUB created by WP2b. Owner: WP6c (fills it). Round 9 plan, section 5.
+
+   Will hold: .mf-toggle, .mf-swatch (selected = ring in --focus), .mf-tab,
+   .mf-dialog (modal | drawer | menu; native <dialog>). 44px hit areas;
+   semantic tokens only; rules in `@layer components`. */
+
+@layer components {
+}

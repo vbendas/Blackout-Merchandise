@@ -1,0 +1,13 @@
+/* MerchFrom design tokens, layer 3: core primitives.
+   STUB created by WP2b. Owner: WP6a (fills it). Round 9 plan, section 5.
+
+   Will hold: .mf-btn (primary | ink | secondary | link; 40/48/56/64),
+   .mf-field (input | textarea | composer), .mf-chip (suggest | filter | role),
+   .mf-card, .mf-spec-row, and their layer-3 tokens (--btn-h-*, --field-h*,
+   --hit). Rules go in `@layer components`. Semantic tokens only (--bg*,
+   --fg*, --dim, --hairline, --rule, --brand*, --on-brand, --focus); never a
+   raw hex and never a shadcn name. Brand-filled controls carry
+   [data-brand-fill] (forced-colors hook in base.css). */
+
+@layer components {
+}

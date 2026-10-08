@@ -1,0 +1,112 @@
+/* MerchFrom design tokens, layer 1: primitives (`--p-*`).
+   Owner: WP2b. Palette "P-A Hazard Press" (Round 9 plan, section 3.2).
+
+   Raw values only. Components NEVER read `--p-*` directly; they read the
+   semantic layer (semantic.css), which re-scopes per `data-theme`. The only
+   readers of this file are semantic.css, type.css, material.css, base.css,
+   tailwind-theme.css and the website's tokens-legacy.css aliases.
+
+   Never define shadcn names here (decision 11; enforced by check-tokens). */
+
+@layer base {
+  :root {
+    /* Ink set (default ground). */
+    --p-ink: #0b0b0c;
+    --p-ink-raised: #141414;
+    --p-ink-surface: #1e1e1e;
+    --p-ink-well: #050505;
+    --p-bone: #f2efe8;
+    --p-bone-soft: #d7d3ca;
+    --p-bone-muted: #a8a49c;
+    --p-bone-dim: #8a867e;
+    --p-ink-hairline: rgba(242, 239, 232, 0.14);
+    --p-ink-rule: rgba(242, 239, 232, 0.42);
+    /* prefers-contrast: more (base.css raises hairline/rule alpha). */
+    --p-ink-hairline-hc: rgba(242, 239, 232, 0.32);
+    --p-ink-rule-hc: rgba(242, 239, 232, 0.64);
+    --p-ink-halftone: rgba(242, 239, 232, 0.16);
+    --p-ink-scrim: rgba(11, 11, 12, 0.78);
+
+    /* Paper set (insert only: catalog, gallery tiles, product modal). */
+    --p-paper: #e9e7e1;
+    --p-paper-raised: #f2f0ea;
+    --p-paper-surface: #dedcd4;
+    --p-paper-well: #d3d1c9;
+    --p-paper-ink: #0b0b0c;
+    --p-paper-soft: #2b2926;
+    --p-paper-muted: #5c5852;
+    --p-paper-hairline: rgba(11, 11, 12, 0.14);
+    --p-paper-rule: rgba(11, 11, 12, 0.55);
+    --p-paper-hairline-hc: rgba(11, 11, 12, 0.32);
+    --p-paper-rule-hc: rgba(11, 11, 12, 0.72);
+    --p-paper-halftone: rgba(11, 11, 12, 0.55);
+    --p-paper-scrim: rgba(233, 231, 225, 0.92);
+
+    /* Brand: hazard orange. On ink #ff5a2c is text-safe (6.32:1). On paper
+       #ff4a1c is FILL ONLY (2.72:1); #e63a0c is the large-text-only tone. */
+    --p-orange: #ff5a2c;
+    --p-orange-fill: #ff4a1c;
+    --p-orange-large: #e63a0c;
+    --p-on-orange: #0b0b0c;
+
+    /* State colours (ink / paper). */
+    --p-danger-ink: #ff7a66;
+    --p-danger-paper: #b3261e;
+    --p-warning-ink: #d9a441;
+    --p-warning-paper: #8a5a00;
+    --p-success-ink: #7fae7a;
+    --p-success-paper: #2f6b2a;
+
+    /* Chart set (platform). */
+    --p-chart-1: #ff5a2c;
+    --p-chart-2: #f2efe8;
+    --p-chart-3: #8a867e;
+    --p-chart-4: #5a5750;
+    --p-chart-5: #ffb199;
+
+    /* Ink glass (material.css). */
+    --p-glass-ink: rgba(20, 20, 20, 0.72);
+    --p-glass-sheen: rgba(242, 239, 232, 0.08);
+
+    /* Space. */
+    --p-s-1: 4px;
+    --p-s-2: 8px;
+    --p-s-3: 12px;
+    --p-s-4: 16px;
+    --p-s-5: 24px;
+    --p-s-6: 32px;
+    --p-s-7: 48px;
+    --p-s-8: 64px;
+    --p-s-9: 96px;
+    --p-s-10: 128px;
+
+    /* Radius. Site 0 by default; chips/fields 4px max; app window, glass,
+       composer 8px max (decision 21). */
+    --p-r-0: 0;
+    --p-r-1: 2px;
+    --p-r-2: 4px;
+    --p-r-3: 8px;
+
+    /* Z scale. */
+    --p-z-base: 0;
+    --p-z-grain: 1;
+    --p-z-content: 2;
+    --p-z-sticky: 20;
+    --p-z-header: 40;
+    --p-z-drawer: 60;
+    --p-z-modal: 80;
+    --p-z-cursor: 90;
+    --p-z-skip: 100;
+    --p-z-toast: 110;
+
+    /* Motion. JS reads these through lib/motion/tokens.ts (WP16). */
+    --p-dur-cut: 160ms;
+    --p-dur-fast: 200ms;
+    --p-dur-base: 240ms;
+    --p-dur-reveal: 480ms;
+    --p-dur-scene: 600ms;
+    --p-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --p-ease-step: steps(8, end);
+    --p-ease-cut: cubic-bezier(0.7, 0, 0.2, 1);
+  }
+}
