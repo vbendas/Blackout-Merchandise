@@ -292,4 +292,67 @@ export const es: Dictionary = {
   'common.related': 'Relacionados',
   'common.clearAll': 'Borrar todo',
   'common.clearAllAriaLabel': 'Borrar todos los filtros',
+
+  // ---- Round 9 slice keys (WP5). Facts arrive as params, never typed here.
+  'nav.home': 'Inicio',
+
+  'home.hero.promise': 'Describe la pieza. La maquetamos, la presupuestamos, la imprimimos y la enviamos.',
+  'home.hero.tagline': 'Impreso para los que tocan fuerte.',
+  'home.hero.run': 'Tirada {run} · {city}',
+  'home.composer.label': 'Tu brief',
+  'home.composer.placeholder.1': 'Camiseta negra 280 gsm, estampado trasero, 50 para la gira',
+  'home.composer.placeholder.2': 'Tote bag de hoja flash, dos colores, 100 para el estudio', // REVIEW-NATIVE
+  'home.composer.placeholder.3': 'Sudaderas de equipo de festival, estampado frontal y manga',
+  'home.composer.placeholder.4': 'Cápsula de sello: 30 camisetas, 30 sudaderas, un logo',
+  'home.composer.chipsLabel': 'Puntos de partida',
+  'home.composer.chip.1': 'Camiseta de gira, 50 uds.',
+  'home.composer.chip.2': 'Lanzamiento flash', // REVIEW-NATIVE
+  'home.composer.chip.3': 'Sudaderas de festival',
+  'home.composer.chip.4': 'Tirada de cápsula', // REVIEW-NATIVE
+  'home.composer.send': 'Empieza tu brief',
+  'home.composer.hint': 'Intro envía. Mayús+Intro añade una línea.',
+
+  'product.index': 'El proceso',
+  'product.title': 'Del brief a la prueba.', // REVIEW-NATIVE
+  'product.frameLabel': 'Ejemplo del proceso, del brief a la prueba',
+  'product.example': 'Ejemplo',
+  'product.breadcrumb': 'Proyecto / {run}',
+  'product.breadcrumb.project': 'Proyecto',
+  'product.you': 'Tú',
+  'product.agent': 'Agente',
+  'product.brief': 'Camiseta de gira para la banda. Estampado trasero en {colours}. {qty} piezas.',
+  'product.agent.reading': 'Leyendo el brief.',
+  'product.agent.mockup': 'Maqueta sobre {name}. Estampado trasero en {colours}.',
+  'product.agent.quote': 'Presupuesto listo. Revisa las líneas y aprueba.',
+  'product.agent.proof': 'Prueba aprobada. Sigue la impresión.',
+  'product.mockup.caption': '{sku} · {name} · {colours}',
+  'product.quote.title': 'Presupuesto',
+  'product.quote.blank': 'Prenda base',
+  'product.quote.print': 'Impresión',
+  'product.quote.qty': 'Cantidad',
+  'product.quote.lead': 'Plazo',
+  'product.quote.total': 'Total',
+  'product.quote.priced': 'Presupuesto calculado',
+  'product.proof.approved': 'Prueba aprobada',
+  'product.agentLive': 'Agente activo',
+  'product.caption': 'Flujo real, mostrado en estático',
+  'product.mcp': 'Trae tu propio agente desde el {date}.',
+
+  'about.index': 'Nosotros',
+  'about.claim.1': 'Tela pesada. Etiquetas honestas.',
+  'about.claim.2': 'Impreso, doblado y etiquetado por nosotros.',
+  'about.facts.method': 'Método de impresión',
+  'about.facts.method.value': 'Serigrafía',
+  'about.facts.cert': 'Certificado del tejido',
+  'about.facts.cert.value': 'GOTS, OEKO-TEX',
+  'about.facts.vegan': 'Vegano',
+  'about.facts.vegan.value': 'Todas las {n} prendas base',
+  'about.plate.credit': 'Foto: {credit}',
+
+  'catalog.header.index': 'Catálogo / Prendas base',
+  'catalog.insert.label': 'Hoja {n} / {name}', // REVIEW-NATIVE
+  'catalog.card.sku': 'MF-{code}',
+  'catalog.card.from': 'Desde {price}',
+  'catalog.card.moq': 'Pedido mín. {n}', // REVIEW-NATIVE
+  'catalog.card.lead': 'Plazo {lead}',
 };
