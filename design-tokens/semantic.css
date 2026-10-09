@@ -39,11 +39,16 @@
     /* Structural: controls, tiles, spec rows (3:1+). */
     --rule: var(--p-ink-rule);
 
-    /* Text-safe on ink. */
-    --brand: var(--p-orange);
-    --brand-fill: var(--p-orange);
-    --on-brand: var(--p-on-orange);
+    /* Accent: interim monochrome (bone on ink). Text-safe on ink. The six
+       lines below are the whole accent; swap the --p-accent* primitives. */
+    --brand: var(--p-accent-ink);
+    --brand-fill: var(--p-accent-ink-fill);
+    --on-brand: var(--p-on-accent-ink);
     --focus: var(--brand);
+    /* The 2px print-offset copy behind outlined / shadowed display type. */
+    --misreg: var(--p-misreg-ink);
+    /* Live-agent state dot (pulses; static under reduced motion). */
+    --live: var(--p-live-ink);
 
     --halftone-dot: var(--p-ink-halftone);
     --halftone-blend: screen;
@@ -70,13 +75,16 @@
     --hairline: var(--p-paper-hairline);
     --rule: var(--p-paper-rule);
 
-    /* On paper, brand is LARGE TEXT ONLY (#e63a0c) and the fill is fill only
-       (#ff4a1c, 2.72:1 as text). contrast.mjs fails any registered text use. */
-    --brand: var(--p-orange-large);
-    --brand-fill: var(--p-orange-fill);
-    --on-brand: var(--p-on-orange);
-    /* Brand fails 3:1 on paper, so the ring is ink (2px fg, 2px paper offset). */
+    /* Accent: interim monochrome (ink on paper). A coloured accent that is
+       fill-only on paper must stay out of --brand (text) and keep
+       contrast.mjs green; see design-tokens/README.md, "Accent". */
+    --brand: var(--p-accent-paper);
+    --brand-fill: var(--p-accent-paper-fill);
+    --on-brand: var(--p-on-accent-paper);
+    /* The ring is always ink on paper (2px ink, offset onto the paper). */
     --focus: var(--p-paper-ink);
+    --misreg: var(--p-misreg-paper);
+    --live: var(--p-live-paper);
 
     --halftone-dot: var(--p-paper-halftone);
     --halftone-blend: multiply;

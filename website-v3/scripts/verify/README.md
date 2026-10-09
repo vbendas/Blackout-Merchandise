@@ -4,14 +4,14 @@ Run from `website-v3/`. The dev server is expected at `http://localhost:3004`.
 
 ## Stamp and accent budgets (WP6b)
 
-The stamp is the Mornsey word in `components/ui/Stamp.tsx` (plan 4.5). Brand
-orange is scarce on purpose. These rules are checked by two scripts.
+The stamp is the Mornsey word in `components/ui/Stamp.tsx` (plan 4.5). The brand
+accent is scarce on purpose. These rules are checked by two scripts.
 
 | Rule | Limit | Checked by |
 |---|---|---|
 | `<Stamp` JSX reachable from one page (its imports, layouts and templates) | at most 2 | `verify:stamps` (static) |
 | `[data-stamp]` elements in one viewport | at most 1 | `verify:budgets` |
-| Brand pixel share per viewport (pixels within +-12 per channel of `#ff5a2c` or `#ff4a1c`) | fail above 6%, warn above 5% | `verify:budgets` |
+| Brand pixel share per viewport (pixels within +-12 per channel of the runtime-resolved `--brand-fill`; skipped with a note while the accent is monochrome) | fail above 6%, warn above 5% | `verify:budgets` |
 | `.mf-btn[data-variant='primary']` in one viewport | at most 1 | `verify:budgets` |
 | Every glyph of every stamp string, all locales | present in `Assets/Fonts/Mornsey-PUA.ttf` cmap | `verify:stamps` |
 
@@ -20,7 +20,7 @@ orange is scarce on purpose. These rules are checked by two scripts.
 at a time (no overlap), and measures the elements intersecting that window and
 the pixels of that screenshot. An element counts if any part of it is inside
 the window. A design that needs two stamps, two primary buttons or a bigger
-orange field in one window has to move one of them below the fold, or drop it.
+accent field in one window has to move one of them below the fold, or drop it.
 
 ### `verify:stamps`
 

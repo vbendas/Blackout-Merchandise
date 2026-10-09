@@ -229,7 +229,7 @@
 
 .sp-outline-brand {
   color: transparent;
-  -webkit-text-stroke: var(--display-stroke) var(--brand);
+  -webkit-text-stroke: var(--display-stroke) var(--misreg);
 }
 
 /* ── (c) set list ────────────────────────────────────────────────────── */
@@ -641,7 +641,7 @@
 }
 
 .sp-dot--live {
-  background: var(--brand-fill);
+  background: var(--live);
 }
 
 /* ── (j) diacritic stress ────────────────────────────────────────────── */
@@ -821,4 +821,155 @@
 
 .sp-mono-grid .sp-composer {
   max-width: none;
+}
+
+/* ── Accent row (WP2c, gate G1b) ─────────────────────────────────────────
+   Real primitives (Button, Field, Chip, Stamp, SpecCard, .mf-live,
+   .mf-misreg-outline) inside a wrapper that overrides ONLY the accent
+   tokens (inline style from Specimen.tsx). Semantic tokens only. */
+.sp-acc-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 12px;
+}
+
+.sp-acc {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+  color: var(--fg);
+}
+
+.sp-acc-head {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.sp-acc-name {
+  font-size: 22px;
+}
+
+.sp-acc-note {
+  color: var(--fg-muted);
+  text-transform: none;
+}
+
+.sp-acc-part {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  align-content: start;
+}
+
+.sp-acc-part .sp-tlabel {
+  margin: 0;
+}
+
+.sp-acc .sp-row {
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+.sp-acc .sp-row + .sp-row {
+  margin-top: 0;
+}
+
+/* The focus state shown statically, same declarations as the real
+   .mf-field__input:focus-visible (components.css), because only one element
+   can hold real focus at a time. */
+.sp-acc-focused .mf-field__input {
+  border-color: var(--fg-soft);
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  box-shadow: inset 0 -2px 0 var(--focus);
+}
+
+.sp-acc .sp-acc-send {
+  width: 48px;
+  padding: 0;
+  flex: none;
+}
+
+.sp-acc-chips {
+  gap: 8px;
+}
+
+.sp-acc-status {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  list-style: none;
+  background: var(--bg-raised);
+  border: 1px solid var(--rule);
+}
+
+.sp-acc-status li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sp-acc-status em {
+  margin-left: auto;
+  font-style: normal;
+  color: var(--fg-muted);
+}
+
+.sp-acc-status .sp-dot {
+  margin-right: 0;
+}
+
+.sp-acc-apply {
+  display: inline-block;
+  justify-self: start;
+  max-width: 100%;
+  font-size: min(var(--t-display-xl), 22cqi);
+  line-height: var(--display-lh);
+  padding: 4px 4px 6px;
+  overflow-wrap: anywhere;
+}
+
+.sp-acc-stampbox {
+  padding-bottom: 14px;
+}
+
+.sp-acc .mf-card {
+  max-width: 280px;
+}
+
+.sp-acc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+
+.sp-acc-table caption {
+  padding: 0 0 6px;
+  text-align: left;
+  color: var(--fg-muted);
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+.sp-acc-table td {
+  padding: 5px 4px;
+  border-top: 1px solid var(--rule);
+  vertical-align: baseline;
+}
+
+.sp-acc-table td:nth-child(2),
+.sp-acc-table td:nth-child(3) {
+  white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sp-acc-table tr[data-ok='false'] td:nth-child(3) {
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

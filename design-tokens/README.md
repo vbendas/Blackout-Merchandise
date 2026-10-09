@@ -40,17 +40,23 @@ Set the theme on `<html data-theme="ink">`. A paper insert is any element with `
 
 ## Layers
 
-1. **Primitives** `--p-*`: ink set, paper set, brand (hazard orange), states, chart, space `--p-s-1..10`, radius `--p-r-0..3`, z `--p-z-*`, motion `--p-dur-*` / `--p-ease-*`.
-2. **Semantic**, re-scoped by `data-theme`: `--bg`, `--bg-raised`, `--bg-surface`, `--well`, `--fg`, `--fg-soft`, `--fg-muted`, `--dim`, `--hairline` (decorative), `--rule` (structural, 3:1+), `--brand`, `--brand-fill`, `--on-brand`, `--focus`, `--halftone-dot`, `--halftone-blend`, `--grain-opacity`, `--scrim`, `--danger`, `--warning`, `--success`.
+1. **Primitives** `--p-*`: ink set, paper set, accent (`--p-accent*`, interim monochrome), misregistration and live-dot tones, states, chart, space `--p-s-1..10`, radius `--p-r-0..3`, z `--p-z-*`, motion `--p-dur-*` / `--p-ease-*`.
+2. **Semantic**, re-scoped by `data-theme`: `--bg`, `--bg-raised`, `--bg-surface`, `--well`, `--fg`, `--fg-soft`, `--fg-muted`, `--dim`, `--hairline` (decorative), `--rule` (structural, 3:1+), `--brand`, `--brand-fill`, `--on-brand`, `--focus`, `--misreg`, `--live`, `--halftone-dot`, `--halftone-blend`, `--grain-opacity`, `--scrim`, `--danger`, `--warning`, `--success`.
 3. **Component** tokens live with their component (`--btn-h-*`, `--field-h`, `--hit`, `--appframe-r`, `--glass-*`, ...).
 
 Rules:
 
 - Brand names are `--brand`, `--brand-fill`, `--on-brand`. Files in this folder never define or read shadcn names (`--accent`, `--muted`, `--border`, `--ring`, `--primary`, `--input`, `--card`, `--popover`, `--secondary`, `--destructive`). The platform maps shadcn names onto these tokens one way, in its own `globals.css`.
 - Legacy website names (`--paper`, `--signal`, `--soft`, `--muted`, `--bone`, `--font-condensed`, `data-theme="vintage"`) live only in `website-v3/app/styles/tokens-legacy.css` until WP21.
-- On paper, brand is fill only (`#ff4a1c`) or large text only (`#e63a0c`); focus is ink. `contrast.mjs` fails a registered text use.
+- Accent colour only flows through `--brand`, `--brand-fill`, `--on-brand`, `--focus`, `--misreg`, `--live` (see "Accent" below). Never hard-code an accent hex or name a colour in a class.
 - Every theme block declares every semantic token. A `var()` is resolved where it is declared, so a token declared only on `:root` would not follow a nested theme.
 - No raw hex outside this folder and `website-v3/lib/theme-colors.ts` (plus the OG/icon files).
+
+## Accent
+
+The accent is **interim monochrome** (owner decision 9 Oct 2026; the first accent was rejected): `--brand` and `--brand-fill` are bone on ink and ink on paper, `--on-brand` is the opposite, `--focus` is bone on ink and ink on paper. The primary Button is therefore the bone-filled one on ink; the "exactly one primary action per viewport" rule still holds. `--misreg` (the 2px print-offset copy behind `.mf-misreg` / `.mf-misreg-outline` and the fg-tone stamp) is a mid grey that shows against both the letterform and the ground. `--live` is the live-agent dot colour (`.mf-live` adds the pulse); in monochrome it is the full-strength foreground, so state is carried by the pulse and a text label, never colour alone.
+
+To set an accent: edit the `--p-accent*` primitives (ink: `--p-accent-ink`, `--p-accent-ink-fill`, `--p-on-accent-ink`; paper: `--p-accent-paper`, `--p-accent-paper-fill`, `--p-on-accent-paper`) and the `--misreg` / `--live` primitives, and, if the accent is fill-only on paper, point paper `--brand` at a text-safe tone and re-add the `forbid` rules in `contrast-pairs.json`. The semantic lines in `semantic.css` (`--brand`, `--brand-fill`, `--on-brand`, `--focus`, per ground) change only if a ground needs a different mapping. Run `npm run verify:contrast` and `npm run verify:budgets` after. Candidates are compared on `/dev/specimen?c=1&only=accent` (`a=none|lime|cobalt|violet|chrome`); "Copy decision" there prints `accent=<id>`.
 
 ## Swap a face (WP4)
 

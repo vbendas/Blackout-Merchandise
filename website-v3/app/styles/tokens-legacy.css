@@ -61,10 +61,12 @@
   --dim: var(--p-paper-muted);
   --hairline: var(--p-paper-hairline);
   --rule: var(--p-paper-rule);
-  --brand: var(--p-orange-large);
-  --brand-fill: var(--p-orange-fill);
-  --on-brand: var(--p-on-orange);
+  --brand: var(--p-accent-paper);
+  --brand-fill: var(--p-accent-paper-fill);
+  --on-brand: var(--p-on-accent-paper);
   --focus: var(--p-paper-ink);
+  --misreg: var(--p-misreg-paper);
+  --live: var(--p-live-paper);
   --halftone-dot: var(--p-paper-halftone);
   --halftone-blend: multiply;
   --grain-opacity: 0.05;

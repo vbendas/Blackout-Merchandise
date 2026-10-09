@@ -7,8 +7,14 @@
 // (specimen.css) built to the plan's section 5 spec, so this judges FACES,
 // not the production primitives.
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { FittedWord } from '@/components/editorial/FittedWord';
+import { Button } from '@/components/ui/Button';
+import { Chip } from '@/components/ui/Chip';
+import { Field } from '@/components/ui/Field';
+import { SpecCard } from '@/components/ui/SpecCard';
+import { Stamp } from '@/components/ui/Stamp';
 import { CATALOG_STATS } from '@/lib/catalog-stats';
 import { useLang, useT, type Key, type TFunction } from '@/lib/i18n';
 import { PRODUCT_DETAILS } from '@/lib/product-details';
@@ -174,6 +180,8 @@ interface Ctx {
   mono: MonoFace;
   weight: number;
   ground: 'ink' | 'paper';
+  /** Accent candidate (URL param a=); `none` is the real interim tokens. */
+  accent: AccentId;
 }
 
 interface Treatment {
@@ -460,6 +468,11 @@ const TREATMENTS: Treatment[] = [
     ),
   },
   {
+    id: 'accent',
+    title: 'l / accent (WP2c, gate G1b): only --brand, --brand-fill, --on-brand, --focus, --misreg, --live change',
+    render: (c) => <AccentCell id={c.accent} ground={c.ground} c={c} />,
+  },
+  {
     id: 'diacritics',
     title: 'j / diacritic stress, display at up to 120px and mono label at 12.5px',
     render: (c) => <Diacritics c={c} />,
@@ -518,6 +531,8 @@ export function Specimen({ initial }: { initial: SpecimenState }) {
   const { lang, setLang } = useLang();
   const t = useT();
   const [s, setS] = useState<SpecimenState>(initial);
+  const searchParams = useSearchParams();
+  const [accent, setAccentState] = useState<AccentId>(() => parseAccent(searchParams.get('a')));
   const [metrics, setMetrics] = useState<MetricsResult | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -530,11 +545,21 @@ export function Specimen({ initial }: { initial: SpecimenState }) {
     const next = { ...s, ...patch };
     setS(next);
     try {
-      window.history.replaceState(null, '', `?${stateToQuery(next)}`);
+      window.history.replaceState(null, '', `?${stateToQuery(next)}&a=${accent}`);
     } catch {
       // URL state is a convenience only
     }
   };
+
+  const setAccent = (id: AccentId) => {
+    setAccentState(id);
+    try {
+      window.history.replaceState(null, '', `?${stateToQuery(s)}&a=${id}`);
+    } catch {
+      // URL state is a convenience only
+    }
+  };
+  const accentCompare = s.c && s.only.includes('accent');
 
   const activeLang = (s.l ?? lang) as LangCode;
   const samples = SAMPLES[lang as LangCode] ?? SAMPLES.en;
@@ -579,6 +604,7 @@ export function Specimen({ initial }: { initial: SpecimenState }) {
     mono: MONO_FACES[s.m],
     weight: displayWeight(id, bsWeight),
     ground,
+    accent,
   });
 
   const selMetrics = metrics?.display[s.d];
@@ -589,6 +615,7 @@ export function Specimen({ initial }: { initial: SpecimenState }) {
     fit: selMetrics ? Math.round(selMetrics.fit * 1000) / 1000 : DISPLAY_FACES[s.d].fit,
     lh: DISPLAY_FACES[s.d].lh,
     tracking: DISPLAY_FACES[s.d].tracking,
+    accent,
     ...(DISPLAY_FACES[s.d].licence === 'UNCONFIRMED' ? { licence: 'GC Grind licence unconfirmed' } : {}),
   };
 
@@ -649,6 +676,17 @@ export function Specimen({ initial }: { initial: SpecimenState }) {
           }}
           options={LANG_CODES.map((code) => ({ value: code, label: code }))}
         />
+        <Seg
+          legend="Accent"
+          name="sp-accent"
+          value={accent}
+          onChange={(v) => setAccent(v as AccentId)}
+          options={ACCENT_IDS.map((id) => ({
+            value: id,
+            label: ACCENTS[id].label,
+            note: id === 'none' ? 'interim' : undefined,
+          }))}
+        />
         {s.d === 'bigshoulders' || s.c ? (
           <Seg
             legend="Big Shoulders weight"
@@ -665,10 +703,40 @@ export function Specimen({ initial }: { initial: SpecimenState }) {
           <input type="checkbox" checked={s.c} onChange={(e) => update({ c: e.target.checked })} />
           Compare all
         </label>
+        <label className="sp-check">
+          <input
+            type="checkbox"
+            checked={accentCompare}
+            onChange={(e) => update(e.target.checked ? { c: true, only: ['accent'] } : { c: false, only: [] })}
+          />
+          Compare accents
+        </label>
       </div>
 
       <main className="sp-main">
-        {s.c
+        {accentCompare
+          ? grounds.map((g) => (
+              <section className="sp-compare" data-theme={g} key={g} aria-label={`Compare accents, ${g}`}>
+                <h2 className="t-label sp-compare-title">
+                  Compare accents / {g} / {DISPLAY_FACES[s.d].label} + {MONO_FACES[s.m].label} / {activeLang}
+                </h2>
+                <div className="sp-trow">
+                  <div className="sp-trow-grid sp-acc-grid">
+                    {ACCENT_IDS.map((id) => (
+                      <div
+                        className="sp-board sp-cell"
+                        data-theme={g}
+                        style={boardVars(s.d, s.m, bsWeight)}
+                        key={id}
+                      >
+                        <AccentCell id={id} ground={g} c={faceCtx(s.d, g)} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            ))
+          : s.c
           ? grounds.map((g) => (
               <section className="sp-compare" data-theme={g} key={g} aria-label={`Compare, ${g}`}>
                 <h2 className="t-label sp-compare-title">
@@ -722,6 +790,21 @@ export function Specimen({ initial }: { initial: SpecimenState }) {
               </section>
             ))}
 
+        {accentCompare ? (
+          <div className="sp-sections">
+            <section className="sp-section sp-decision" aria-label="Accent decision">
+              <h2 className="t-label">Decision (accent)</h2>
+              <pre className="t-mono">{JSON.stringify(decision, null, 2)}</pre>
+              <button type="button" className="sp-copy t-ui-caps" onClick={copyDecision}>
+                Copy decision
+              </button>
+              <p className="sp-note t-label" role="status">
+                {copied ? `copied. Reply with accent=${accent} (none = keep monochrome), plus display=<face> mono=<face>.` : ''}
+              </p>
+            </section>
+          </div>
+        ) : null}
+
         {sheetMode && !s.only.includes('mono') ? null : (
           <div className="sp-sections">
             <section className="sp-section" aria-label="Mono candidates">
@@ -773,7 +856,7 @@ export function Specimen({ initial }: { initial: SpecimenState }) {
                 Copy decision
               </button>
               <p className="sp-note t-label" role="status">
-                {copied ? 'copied. Reply with display=<face> mono=<face>, and the GC Grind licence if chosen.' : ''}
+                {copied ? `copied. Reply with display=<face> mono=<face> accent=${accent}, and the GC Grind licence if chosen.` : ''}
               </p>
             </section>
           </div>
@@ -954,5 +1037,279 @@ function MetricsPanel({
         </div>
       </div>
     </>
+  );
+}
+
+// ── Accent candidates (WP2c, gate G1b) ───────────────────────────────────
+//
+// A candidate sets ONLY --brand, --brand-fill, --on-brand, --focus, --misreg
+// and --live on a wrapper inside the ground, so every real primitive below
+// (Button, Field, Chip, Stamp, SpecCard, .mf-live, .mf-misreg-outline) shows
+// what the site would look like if the accent were adopted by editing the
+// `--p-accent*` primitives. `none` sets nothing: it is the real interim
+// monochrome tokens. Hex lives here because app/dev/** is exempt from the
+// raw-hex rule; the ground and monochrome values mirror primitives.css.
+
+export type AccentId = 'none' | 'lime' | 'cobalt' | 'violet' | 'chrome';
+const ACCENT_IDS: AccentId[] = ['none', 'lime', 'cobalt', 'violet', 'chrome'];
+
+function parseAccent(v: string | null | undefined): AccentId {
+  return v && (ACCENT_IDS as string[]).includes(v) ? (v as AccentId) : 'none';
+}
+
+const INK = '#0b0b0c'; // --p-ink, --p-paper-ink
+const BONE = '#f2efe8'; // --p-bone
+const GROUND = { ink: INK, paper: '#e9e7e1' } as const; // --p-ink, --p-paper
+const GREY = { ink: '#8a867e', paper: '#77736b' } as const; // --p-misreg-*
+
+interface AccentTokens {
+  brand: string;
+  fill: string;
+  on: string;
+  focus: string;
+  misreg: string;
+  live: string;
+}
+
+function lum(hex: string): number {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+
+function ratio(a: string, b: string): number {
+  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/**
+ * Derive a full token set from the two values that are a design choice: the
+ * text-safe `brand` and the `fill`. The rest follows fixed rules so every
+ * candidate is judged the same way: on-brand is whichever of ink/bone reads
+ * better on the fill; the focus ring is the brand when it clears 3:1 on the
+ * ground, else the ground's foreground; misreg and live use the fill when it
+ * clears 3:1 on the ground (and differs from the foreground), else the
+ * monochrome fallbacks.
+ */
+function derive(ground: 'ink' | 'paper', brand: string, fill: string): AccentTokens {
+  const fg = ground === 'ink' ? BONE : INK;
+  const g = GROUND[ground];
+  const loud = fill.toLowerCase() !== fg && ratio(fill, g) >= 3;
+  return {
+    brand,
+    fill,
+    on: ratio(INK, fill) >= ratio(BONE, fill) ? INK : BONE,
+    focus: ratio(brand, g) >= 3 ? brand : fg,
+    misreg: loud ? fill : GREY[ground],
+    live: loud ? fill : fg,
+  };
+}
+
+interface AccentDef {
+  id: AccentId;
+  label: string;
+  note: string;
+  ink: AccentTokens;
+  paper: AccentTokens;
+}
+
+const ACCENTS: Record<AccentId, AccentDef> = {
+  none: {
+    id: 'none',
+    label: 'None',
+    note: 'monochrome (interim): bone on ink, ink on paper',
+    ink: derive('ink', BONE, BONE),
+    paper: derive('paper', INK, INK),
+  },
+  lime: {
+    id: 'lime',
+    label: 'Lime',
+    note: 'fill only on paper: ink text on a lime fill',
+    ink: derive('ink', '#c6ff2e', '#c6ff2e'),
+    paper: derive('paper', INK, '#c6ff2e'),
+  },
+  cobalt: {
+    id: 'cobalt',
+    label: 'Cobalt',
+    note: '#5b74ff on ink, #1f3cff on paper',
+    ink: derive('ink', '#5b74ff', '#5b74ff'),
+    paper: derive('paper', '#1f3cff', '#1f3cff'),
+  },
+  violet: {
+    id: 'violet',
+    label: 'Violet (UV)',
+    note: '#a88bff on ink, #5b2bff on paper',
+    ink: derive('ink', '#a88bff', '#a88bff'),
+    paper: derive('paper', '#5b2bff', '#5b2bff'),
+  },
+  chrome: {
+    id: 'chrome',
+    label: 'Chrome',
+    note: '#c9ccd1 on ink, #4a4d52 on paper',
+    ink: derive('ink', '#c9ccd1', '#c9ccd1'),
+    paper: derive('paper', '#4a4d52', '#4a4d52'),
+  },
+};
+
+function accentVars(id: AccentId, ground: 'ink' | 'paper'): CSSProperties | undefined {
+  if (id === 'none') return undefined;
+  const t = ACCENTS[id][ground];
+  return {
+    '--brand': t.brand,
+    '--brand-fill': t.fill,
+    '--on-brand': t.on,
+    '--focus': t.focus,
+    '--misreg': t.misreg,
+    '--live': t.live,
+  } as CSSProperties;
+}
+
+interface ReadoutRow {
+  label: string;
+  a: string;
+  b: string;
+  min: number;
+  note?: string;
+}
+
+function readout(id: AccentId, ground: 'ink' | 'paper'): ReadoutRow[] {
+  const t = ACCENTS[id][ground];
+  const g = GROUND[ground];
+  const fg = ground === 'ink' ? BONE : INK;
+  return [
+    { label: '--brand text on ground', a: t.brand, b: g, min: 4.5 },
+    { label: '--brand-fill edge on ground', a: t.fill, b: g, min: 3, note: 'fill edge needs a --fg border if it fails' },
+    { label: '--on-brand on fill (button text)', a: t.on, b: t.fill, min: 4.5 },
+    { label: '--focus ring on ground', a: t.focus, b: g, min: 3 },
+    { label: '--misreg on ground', a: t.misreg, b: g, min: 3 },
+    { label: '--misreg vs --fg letterform', a: t.misreg, b: fg, min: 2.5 },
+    { label: '--live dot on ground', a: t.live, b: g, min: 3 },
+  ];
+}
+
+function AccentReadout({ id, ground }: { id: AccentId; ground: 'ink' | 'paper' }) {
+  const t = ACCENTS[id][ground];
+  return (
+    <table className="sp-acc-table t-mono" aria-label={`Contrast readout, ${ACCENTS[id].label} on ${ground}`}>
+      <caption className="t-label">
+        brand {t.brand} / fill {t.fill} / on {t.on} / focus {t.focus} / misreg {t.misreg} / live {t.live} on{' '}
+        {GROUND[ground]}
+      </caption>
+      <tbody>
+        {readout(id, ground).map((r) => {
+          const v = ratio(r.a, r.b);
+          const ok = v + 1e-9 >= r.min;
+          return (
+            <tr key={r.label} data-ok={ok}>
+              <td>{r.label}</td>
+              <td>{v.toFixed(2)}</td>
+              <td>
+                {r.min}:1 {ok ? 'ok' : 'FAIL'}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+function AccentCell({ id, ground, c }: { id: AccentId; ground: 'ink' | 'paper'; c: Ctx }) {
+  const def = ACCENTS[id];
+  const word = c.t('nav.apply').toLocaleUpperCase(c.lang);
+  const live = c.s.tools.find((r) => r.state === 'live') ?? c.s.tools[0];
+  const idle = c.s.tools[0];
+  const d = PRODUCT_DETAILS[TEE.code];
+
+  return (
+    <div className="sp-acc" style={accentVars(id, ground)} data-accent={id}>
+      <div className="sp-acc-head">
+        <span className="t-ui-caps sp-acc-name">{def.label}</span>
+        <span className="t-label sp-acc-note">{def.note}</span>
+      </div>
+
+      <div className="sp-acc-part">
+        <p className="t-label sp-tlabel">buttons: primary / secondary / link</p>
+        <div className="sp-row">
+          <Button variant="primary" size={48}>
+            {c.s.btnPrimary}
+          </Button>
+          <Button variant="secondary" size={48}>
+            {c.t('nav.apply')}
+          </Button>
+          <Button variant="link">{c.s.btnInk}</Button>
+        </div>
+      </div>
+
+      <div className="sp-acc-part sp-acc-focused">
+        <p className="t-label sp-tlabel">field, focused</p>
+        <Field label={c.t('home.hero.promptLabel')} placeholder={c.t('home.hero.placeholder')} defaultValue={c.s.chips[0]} />
+      </div>
+
+      <div className="sp-acc-part">
+        <p className="t-label sp-tlabel">composer: selected chip, square send</p>
+        <Field
+          kind="composer"
+          hideLabel
+          label={c.t('home.hero.promptLabel')}
+          placeholder={c.t('home.hero.placeholder')}
+          actions={
+            <Button variant="primary" size={48} className="sp-acc-send" aria-label={c.t('home.hero.start')} iconStart={<SendIcon />} />
+          }
+        />
+        <div className="sp-row sp-acc-chips">
+          <Chip variant="filter" selected index={1}>
+            {c.s.chips[0]}
+          </Chip>
+          <Chip variant="filter" index={2}>
+            {c.s.chips[1]}
+          </Chip>
+        </div>
+      </div>
+
+      <div className="sp-acc-part">
+        <p className="t-label sp-tlabel">live-agent status row</p>
+        <ul className="sp-acc-status t-mono">
+          <li>
+            <span className="sp-dot" aria-hidden="true" />
+            {idle.name} <em>{idle.state}</em>
+          </li>
+          <li>
+            <span className="mf-live" aria-hidden="true" />
+            {live.name} <em>{live.state}</em>
+          </li>
+        </ul>
+      </div>
+
+      <div className="sp-acc-part">
+        <p className="t-label sp-tlabel">outlined APPLY, 2px misregistration</p>
+        <span className="t-display-xl mf-misreg-outline sp-acc-apply" data-text={word} aria-label={word}>
+          {word}
+        </span>
+      </div>
+
+      <div className="sp-acc-part sp-acc-stampbox">
+        <p className="t-label sp-tlabel">stamp, tone brand</p>
+        <Stamp word="approved" size={64} tone="brand" />
+      </div>
+
+      <div className="sp-acc-part">
+        <p className="t-label sp-tlabel">spec card</p>
+        <SpecCard
+          title={d?.name ?? TEE.name}
+          code={TEE.code}
+          media={<Image src={TEE.src} alt="" fill sizes="280px" />}
+          priceFrom={{ label: c.s.cardFrom, value: '18.00 EUR' }}
+        />
+      </div>
+
+      <div className="sp-acc-part">
+        <p className="t-label sp-tlabel">contrast, computed</p>
+        <AccentReadout id={id} ground={ground} />
+      </div>
+    </div>
   );
 }

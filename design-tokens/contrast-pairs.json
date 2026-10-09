@@ -1,5 +1,5 @@
 {
-  "$comment": "Contrast pairs checked by website-v3/scripts/contrast.mjs (Round 9 plan 3.7). Token NAMES, never hex. Each pair: fg, bg, min ratio, themes it applies to, and use: 'text' (body-size text), 'large' (large text only, 24px+ or 18.66px bold), 'ui' (non-text: rules, focus rings). Append a pair whenever a WP adds a new text/ground combination. 'forbid' entries must FAIL to be registered as text uses: the script fails if any pair registers a forbidden fg/bg/theme combination with use 'text'.",
+  "$comment": "Contrast pairs checked by website-v3/scripts/contrast.mjs (Round 9 plan 3.7). Token NAMES, never hex. Each pair: fg, bg, min ratio, themes it applies to, and use: 'text' (body-size text), 'large' (large text only, 24px+ or 18.66px bold), 'ui' (non-text: rules, focus rings). Append a pair whenever a WP adds a new text/ground combination. 'forbid' entries must FAIL to be registered as text uses: the script fails if any pair registers a forbidden fg/bg/theme combination with use 'text'. The interim accent is monochrome (text-safe on both grounds), so 'forbid' is empty; when a coloured accent whose paper tone is fill-only or large-only is chosen, add {fg:'brand-fill'|'brand', themes:['paper'], use:['text'], reason} back.",
   "pairs": [
     {
       "fg": "fg",
@@ -127,7 +127,8 @@
       "bg": "bg",
       "min": 4.5,
       "themes": [
-        "ink"
+        "ink",
+        "paper"
       ],
       "use": "text"
     },
@@ -136,7 +137,8 @@
       "bg": "bg-raised",
       "min": 4.5,
       "themes": [
-        "ink"
+        "ink",
+        "paper"
       ],
       "use": "text"
     },
@@ -145,7 +147,8 @@
       "bg": "bg-surface",
       "min": 4.5,
       "themes": [
-        "ink"
+        "ink",
+        "paper"
       ],
       "use": "text"
     },
@@ -158,16 +161,6 @@
         "paper"
       ],
       "use": "text"
-    },
-    {
-      "fg": "brand",
-      "bg": "bg",
-      "min": 3,
-      "themes": [
-        "paper"
-      ],
-      "use": "large",
-      "note": "#e63a0c on paper: LARGE TEXT ONLY."
     },
     {
       "fg": "rule",
@@ -268,10 +261,11 @@
       "bg": "well",
       "min": 3,
       "themes": [
-        "ink"
+        "ink",
+        "paper"
       ],
       "use": "ui",
-      "note": "WP6a: invalid bottom rule on ink (paper uses --fg)."
+      "note": "WP6a: invalid bottom rule on --well."
     },
     {
       "fg": "fg",
@@ -327,31 +321,97 @@
       ],
       "use": "ui",
       "note": "WP6c: selected Swatch ring and focus ring inside a Dialog panel"
-    }
-  ],
-  "forbid": [
-    {
-      "fg": "brand-fill",
-      "themes": [
-        "paper"
-      ],
-      "use": [
-        "text",
-        "large"
-      ],
-      "reason": "#ff4a1c on paper is FILL ONLY (2.72:1)."
     },
     {
-      "fg": "brand",
+      "fg": "brand-fill",
+      "bg": "bg",
+      "min": 3,
       "themes": [
+        "ink",
         "paper"
       ],
-      "use": [
-        "text"
+      "use": "ui",
+      "note": "WP2c: brand-filled control (primary Button, send) against the ground; edge of the fill."
+    },
+    {
+      "fg": "brand-fill",
+      "bg": "bg-raised",
+      "min": 3,
+      "themes": [
+        "ink",
+        "paper"
       ],
-      "reason": "--brand on paper (#e63a0c) is large text only, never body-size text."
+      "use": "ui",
+      "note": "WP2c: brand fill on a raised ground (composer send)."
+    },
+    {
+      "fg": "misreg",
+      "bg": "bg",
+      "min": 3,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "ui",
+      "note": "WP2c: the 2px misregistration copy must show against the ground."
+    },
+    {
+      "fg": "misreg",
+      "bg": "fg",
+      "min": 2.5,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "ui",
+      "note": "WP2c: ...and against the letterform it sits behind (monochrome: mid grey between bone/ink and the ground)."
+    },
+    {
+      "fg": "live",
+      "bg": "bg",
+      "min": 3,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "ui",
+      "note": "WP2c: live-agent dot against the ground."
+    },
+    {
+      "fg": "live",
+      "bg": "bg-raised",
+      "min": 3,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "ui",
+      "note": "WP2c: live-agent dot inside a raised panel / tool table."
+    },
+    {
+      "fg": "live",
+      "bg": "bg-surface",
+      "min": 3,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "ui",
+      "note": "WP2c: live-agent dot on a surface ground."
+    },
+    {
+      "fg": "focus",
+      "bg": "bg-surface",
+      "min": 3,
+      "themes": [
+        "ink",
+        "paper"
+      ],
+      "use": "ui",
+      "note": "WP2c: focus ring on a surface ground."
     }
   ],
+  "forbid": [],
   "staticChecks": {
     "$comment": "contrast.mjs also scans CSS (paths relative to the repo root) for brand used as text inside [data-theme='paper'] scopes, and in .t-* classes whose minimum size is below largeTextMinPx.",
     "scan": [

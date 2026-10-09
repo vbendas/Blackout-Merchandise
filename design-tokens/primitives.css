@@ -1,5 +1,6 @@
 /* MerchFrom design tokens, layer 1: primitives (`--p-*`).
-   Owner: WP2b. Palette "P-A Hazard Press" (Round 9 plan, section 3.2).
+   Owner: WP2b (accent block: WP2c). Palette "Pressroom Terminal" (Round 9
+   plan, section 3.2).
 
    Raw values only. Components NEVER read `--p-*` directly; they read the
    semantic layer (semantic.css), which re-scopes per `data-theme`. The only
@@ -42,12 +43,24 @@
     --p-paper-halftone: rgba(11, 11, 12, 0.55);
     --p-paper-scrim: rgba(233, 231, 225, 0.92);
 
-    /* Brand: hazard orange. On ink #ff5a2c is text-safe (6.32:1). On paper
-       #ff4a1c is FILL ONLY (2.72:1); #e63a0c is the large-text-only tone. */
-    --p-orange: #ff5a2c;
-    --p-orange-fill: #ff4a1c;
-    --p-orange-large: #e63a0c;
-    --p-on-orange: #0b0b0c;
+    /* Accent: INTERIM MONOCHROME (owner decision 9 Oct 2026: the first
+       accent was rejected). Bone on ink, ink on paper; nothing here is a hue.
+       To set an accent, edit these `--p-accent*` primitives (and nothing
+       else; see design-tokens/README.md, "Accent"). Ink side first. */
+    --p-accent-ink: #f2efe8;
+    --p-accent-ink-fill: #f2efe8;
+    --p-on-accent-ink: #0b0b0c;
+    /* Paper side: the accent is ink, so it is text-safe and fill-safe. */
+    --p-accent-paper: #0b0b0c;
+    --p-accent-paper-fill: #0b0b0c;
+    --p-on-accent-paper: #f2efe8;
+    /* Misregistration copy (the 2px print offset): a mid grey that shows
+       against both the letterform (--fg) and the ground, on each ground. */
+    --p-misreg-ink: #8a867e;
+    --p-misreg-paper: #77736b;
+    /* Live-agent state dot: the full-strength foreground, plus a pulse. */
+    --p-live-ink: #f2efe8;
+    --p-live-paper: #0b0b0c;
 
     /* State colours (ink / paper). */
     --p-danger-ink: #ff7a66;
@@ -57,12 +70,12 @@
     --p-success-ink: #7fae7a;
     --p-success-paper: #2f6b2a;
 
-    /* Chart set (platform). */
-    --p-chart-1: #ff5a2c;
-    --p-chart-2: #f2efe8;
-    --p-chart-3: #8a867e;
+    /* Chart set (platform). Neutral steps until the accent is chosen. */
+    --p-chart-1: #f2efe8;
+    --p-chart-2: #8a867e;
+    --p-chart-3: #d7d3ca;
     --p-chart-4: #5a5750;
-    --p-chart-5: #ffb199;
+    --p-chart-5: #a8a49c;
 
     /* Ink glass (material.css). */
     --p-glass-ink: rgba(20, 20, 20, 0.72);
