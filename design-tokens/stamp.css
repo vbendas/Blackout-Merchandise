@@ -1,10 +1,72 @@
 /* MerchFrom design tokens, layer 3: Mornsey stamp.
-   STUB created by WP2b. Owner: WP6b (fills it). Round 9 plan, section 4.5.
+   Owner: WP6b. Round 9 plan, section 4.5.
 
-   Will hold: .mf-stamp (64-160px, rotated -3 to -6deg, tone brand | fg,
-   no stamp-in animation under reduced motion). The Mornsey face loads only
-   through Stamp.tsx (next/font/local, preload:false). Rules in
-   `@layer components`. */
+   .mf-stamp: a rotated, boxed Mornsey word (nominal height 64-160px, tilt -3
+   to -6deg, tone brand | fg). The face is --ff-stamp, defined only by the
+   class that Stamp.tsx adds from next/font/local (preload:false), so the file
+   is requested only on routes that render a Stamp. The React component sets
+   --stamp-size (unitless px, clamped) and --stamp-tilt (deg).
+
+   Tone brand: brand ink. Tone fg: --fg ink with the 2px brand misregistration
+   (the only place the stamp carries brand next to fg). The 160ms hard
+   stamp-in runs only under prefers-reduced-motion: no-preference; under
+   reduce the stamp is simply there. Only transform/opacity animate.
+   Semantic tokens only. */
 
 @layer components {
+  .mf-stamp {
+    --stamp-ink: var(--brand);
+    display: inline-block;
+    max-inline-size: 100%;
+    box-sizing: border-box;
+    padding: 0.1em 0.28em 0.06em;
+    border: 0.07em solid var(--stamp-ink);
+    border-radius: 0.06em;
+    color: var(--stamp-ink);
+    /* Nominal height is --stamp-size; the type is smaller so long locale
+       words (GOEDGEKEURD) stay inside a phone viewport. */
+    font-family: var(--ff-stamp), var(--font-display), Impact, sans-serif;
+    font-size: min(calc(var(--stamp-size, 96) * 0.5px), 11vw);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: rotate(var(--stamp-tilt, -4deg));
+    transform-origin: 50% 60%;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .mf-stamp[data-tone='fg'] {
+    --stamp-ink: var(--fg);
+    text-shadow: var(--misreg-offset, 2px) var(--misreg-offset, 2px) 0 var(--brand);
+    box-shadow: var(--misreg-offset, 2px) var(--misreg-offset, 2px) 0 0 var(--brand);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .mf-stamp {
+      animation: mf-stamp-in var(--p-dur-cut, 160ms) var(--p-ease-cut, cubic-bezier(0.7, 0, 0.2, 1)) both;
+    }
+
+    @keyframes mf-stamp-in {
+      from {
+        opacity: 0;
+        transform: rotate(var(--stamp-tilt, -4deg)) scale(1.35);
+      }
+      to {
+        opacity: 1;
+        transform: rotate(var(--stamp-tilt, -4deg)) scale(1);
+      }
+    }
+  }
+
+  @media (forced-colors: active) {
+    .mf-stamp {
+      --stamp-ink: CanvasText;
+      text-shadow: none;
+      box-shadow: none;
+    }
+  }
 }
