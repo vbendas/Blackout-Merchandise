@@ -1,43 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow, Barlow_Condensed, IBM_Plex_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SmoothScroll } from "@/components/SmoothScroll";
+import { body, display, mono } from "@/lib/fonts";
 import { LanguageProvider } from "@/lib/i18n";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { SOCIALS } from "@/lib/socials";
 import { INK } from "@/lib/theme-colors";
 import "./globals.css";
-
-// Interim faces (WP2b) until WP4 moves the loaders to lib/fonts.ts after
-// gate G1. The variables are the shared --ff-* names that
-// design-tokens/type.css reads (--font-display/--font-mono/--font-body are
-// the semantic tokens; never set those here).
-// Body/UI face: Barlow. Non-variable, so the exact weights the site uses
-// are requested explicitly (300 goes in WP4).
-const barlow = Barlow({
-  variable: "--ff-body",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  display: "swap",
-});
-
-// Display face (interim metric block in type.css): masthead, outlined
-// words, set list, wordmarks, ink buttons.
-const barlowCondensed = Barlow_Condensed({
-  variable: "--ff-display",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  display: "swap",
-});
-
-// Mono face for labels, facts, timestamps and code — IBM Plex Mono.
-const ibmPlexMono = IBM_Plex_Mono({
-  variable: "--ff-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -78,7 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       data-theme="ink"
-      className={`${barlow.variable} ${barlowCondensed.variable} ${ibmPlexMono.variable} antialiased`}
+      className={`${display.variable} ${mono.variable} ${body.variable} antialiased`}
     >
       {/* No height pin on <html>: Lenis watches the root element's box to
           recompute its scroll limit, and height:100% would freeze it at
