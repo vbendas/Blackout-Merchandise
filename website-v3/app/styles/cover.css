@@ -64,15 +64,20 @@
    sets its resting, fully-clipped state. */
 .home-outline-word {
   display: grid;
-  margin: 0;
+  /* The layers carry vertical padding so tall display caps (Anton) sit
+     inside their border box: clip-path insets are measured from that box,
+     so without it the top of every letter stayed unfilled. The negative
+     margin cancels the padding so the word takes the same space. */
+  margin: -0.2em 0;
 }
 
 .home-outline-word > * {
   grid-area: 1 / 1;
   font-family: var(--font-condensed), var(--font-sans), sans-serif;
-  font-weight: 700;
+  font-weight: var(--display-weight, 400);
   text-transform: uppercase;
   line-height: 0.82;
+  padding-block: 0.2em;
   letter-spacing: -0.02em;
   font-size: clamp(64px, 19vw, 330px);
 }
