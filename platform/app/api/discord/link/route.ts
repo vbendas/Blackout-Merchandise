@@ -15,7 +15,7 @@ export async function GET() {
 
   if (isDiscordMockMode()) {
     const result = await completeLink(encodeState(user.id), 'mock-code');
-    const url = new URL(appUrl('/chat'));
+    const url = new URL(appUrl('/studio'));
     url.searchParams.set('discord', result.ok ? 'linked' : 'error');
     return NextResponse.redirect(url);
   }

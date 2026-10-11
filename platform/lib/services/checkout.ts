@@ -230,8 +230,8 @@ export async function buildBulkCheckout(storeId: string, bulkOrderId: string): P
   lineItems.push({ name: 'Shipping', unitAmountCents: detail.shippingCents, quantity: 1 });
 
   const base = appBaseUrl();
-  const successUrl = `${base}/chat?bulk=${bulkOrderId}&paid=1`;
-  const cancelUrl = `${base}/chat?bulk=${bulkOrderId}`;
+  const successUrl = `${base}/studio?bulk=${bulkOrderId}&paid=1`;
+  const cancelUrl = `${base}/studio?bulk=${bulkOrderId}`;
 
   const gateway = getStripeGateway();
   let session: { id: string; url: string };

@@ -12,7 +12,7 @@ export function payoutPaidEmail(payload: PayoutPaidPayload) {
     heading: 'Payout sent',
     paragraphs: [`Stripe sent ${amount} to your connected account${payload.arrivalDate ? `, arriving ${payload.arrivalDate}` : ''}.`],
     buttonLabel: 'Open MerchFrom',
-    buttonUrl: appUrl('/chat'),
+    buttonUrl: appUrl('/studio'),
   });
   return { subject: `Payout sent: ${amount}`, html, text };
 }

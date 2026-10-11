@@ -11,7 +11,7 @@ export function domainActiveEmail(payload: DomainActivePayload) {
     heading: `${hostname} is live`,
     paragraphs: ['DNS verified and the certificate is issued. Your shop is now reachable on your own domain.'],
     buttonLabel: 'Visit your shop',
-    buttonUrl: payload.storeUrl ?? appUrl('/chat'),
+    buttonUrl: payload.storeUrl ?? appUrl('/studio'),
   });
   return { subject: `${hostname} is live`, html, text };
 }

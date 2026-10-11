@@ -3,9 +3,9 @@ import { auth } from '@clerk/nextjs/server';
 import { DEV_BYPASS } from '@/lib/auth';
 
 export default async function Home() {
-  if (DEV_BYPASS) redirect('/chat');
+  if (DEV_BYPASS) redirect('/studio');
   const { userId } = await auth();
 
-  if (userId) redirect('/chat');
+  if (userId) redirect('/studio');
   redirect('/sign-in');
 }

@@ -13,7 +13,7 @@ export function bulkQuoteReadyEmail(payload: BulkQuoteReadyPayload) {
     paragraphs: ['Review the pricing and confirm to move to proof and payment.'],
     rows,
     buttonLabel: 'Review quote',
-    buttonUrl: payload.quoteUrl ?? appUrl('/chat'),
+    buttonUrl: payload.quoteUrl ?? appUrl('/studio'),
   });
   return { subject: 'Your bulk quote is ready', html, text };
 }

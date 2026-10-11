@@ -24,7 +24,7 @@ export function saleNewEmail(payload: SaleNewPayload) {
     paragraphs: [`${productName} just sold${payload.orderReference ? ` — order ${payload.orderReference}` : ''}.`],
     rows,
     buttonLabel: 'View order',
-    buttonUrl: payload.orderUrl ?? appUrl('/chat'),
+    buttonUrl: payload.orderUrl ?? appUrl('/studio'),
   });
   return { subject: `New sale: ${productName} × ${qty}`, html, text };
 }

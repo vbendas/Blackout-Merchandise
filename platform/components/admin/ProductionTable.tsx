@@ -148,7 +148,7 @@ export function ProductionTable({ rows }: { rows: ProductionRow[] }) {
                         {pendingId === row.orderId ? '…' : NEXT_LABEL[row.productionStatus]}
                       </button>
                     )}
-                    <a className="mf-pill mf-pill-sm" href={`/chat?prompt=${encodeURIComponent(`Open order ${row.orderId}`)}`}>
+                    <a className="mf-pill mf-pill-sm" href={`/studio?prompt=${encodeURIComponent(`Open order ${row.orderId}`)}`}>
                       Open in chat
                     </a>
                   </div>

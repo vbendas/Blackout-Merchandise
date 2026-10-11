@@ -64,5 +64,5 @@ export async function submitRegistration(
     await markRegisteredByEmail(session.user.email, session.user.id);
   }
 
-  redirect('/chat');
+  redirect('/studio');
 }

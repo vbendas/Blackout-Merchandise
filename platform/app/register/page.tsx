@@ -14,7 +14,7 @@ export default async function RegisterPage() {
   const session = await requireUser();
 
   if (session.role === 'admin' || session.store) {
-    redirect('/chat');
+    redirect('/studio');
   }
 
   // Platform-Plan §7: registration is invite-only. See

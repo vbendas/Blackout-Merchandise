@@ -14,7 +14,7 @@ export function stripeActionRequiredEmail(payload: StripeActionRequiredPayload) 
       requirements.length > 0 ? `Outstanding: ${requirements.join(', ')}.` : 'Open the onboarding link to see what is missing.',
     ],
     buttonLabel: 'Finish Stripe setup',
-    buttonUrl: payload.onboardingUrl ?? appUrl('/chat'),
+    buttonUrl: payload.onboardingUrl ?? appUrl('/studio'),
   });
   return { subject: 'Action needed to receive payouts', html, text };
 }

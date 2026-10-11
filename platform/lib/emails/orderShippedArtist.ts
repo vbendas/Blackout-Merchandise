@@ -12,7 +12,7 @@ export function orderShippedArtistEmail(payload: OrderShippedArtistPayload) {
     heading: `Order ${reference} shipped`,
     paragraphs: [`${reference} is on its way${payload.carrier ? ` with ${payload.carrier}` : ''}.`],
     buttonLabel: 'Track shipment',
-    buttonUrl: payload.trackingUrl ?? appUrl('/chat'),
+    buttonUrl: payload.trackingUrl ?? appUrl('/studio'),
   });
   return { subject: `Order ${reference} shipped`, html, text };
 }

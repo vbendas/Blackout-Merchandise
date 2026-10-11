@@ -9,15 +9,15 @@ import '@/components/chat/tokens.css';
 // the same check — role !== 'admin' bounces straight back to chat.
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const session = await requireUser();
-  if (session.role !== 'admin') redirect('/chat');
+  if (session.role !== 'admin') redirect('/studio');
 
   return (
     <div style={{ minHeight: '100dvh' }}>
       <header className="mf-hairline-b flex items-center justify-between px-6 py-4">
-        <div className="mf-label mf-display">MerchFrom · Admin</div>
+        <div className="mf-label">MerchFrom · Admin</div>
         <nav className="flex items-center gap-5 text-[13px]">
-          <Link href="/chat" className="mf-dimmed hover:opacity-100">
-            Chat
+          <Link href="/studio" className="mf-dimmed hover:opacity-100">
+            Studio
           </Link>
           <Link href="/admin/production" className="mf-dimmed hover:opacity-100">
             Production

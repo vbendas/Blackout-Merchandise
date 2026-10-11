@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   const state = params.get('state');
   const oauthError = params.get('error');
 
-  const url = new URL(appUrl('/chat'));
+  const url = new URL(appUrl('/studio'));
   if (oauthError || !code || !state) {
     url.searchParams.set('discord', 'error');
     return NextResponse.redirect(url);

@@ -27,7 +27,7 @@ export async function POST() {
 
 export async function GET(req: NextRequest) {
   const { store } = await requireUser();
-  const chatUrl = new URL('/chat', appBaseUrl());
+  const chatUrl = new URL('/studio', appBaseUrl());
   if (!store) return NextResponse.redirect(chatUrl);
 
   const params = new URL(req.url).searchParams;

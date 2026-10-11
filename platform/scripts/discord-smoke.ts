@@ -132,7 +132,7 @@ async function main() {
   const deliveries = mockDiscordDeliveries();
   const saleDelivery = deliveries.find((d) => d.content.includes('Cruiser 2.0 sold x2'));
   check('mock gateway recorded the sale DM', !!saleDelivery, saleDelivery?.content);
-  check('DM content includes the chat deep link', !!saleDelivery?.content.includes('/chat'));
+  check('DM content includes the chat deep link', !!saleDelivery?.content.includes('/studio'));
   check('DM content includes the reply-with-prompt hint', !!saleDelivery?.content.includes('Reply in MerchFrom: "Show order ORD-1001"'));
 
   // -- 4. unlink, then prove drainPending fails closed -----------------------

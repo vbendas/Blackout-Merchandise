@@ -11,7 +11,7 @@ export function stripeReadyEmail(payload: StripeReadyPayload) {
       `${payload.storeName ?? 'Your store'} can now receive sale payouts. You can publish products whenever you are ready.`,
     ],
     buttonLabel: 'Open MerchFrom',
-    buttonUrl: appUrl('/chat'),
+    buttonUrl: appUrl('/studio'),
   });
   return { subject: 'Payouts connected', html, text };
 }

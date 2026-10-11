@@ -13,7 +13,7 @@ export function supportReplyEmail(payload: SupportReplyPayload) {
       `There's a new reply on "${subject}"${payload.preview ? `: "${payload.preview}"` : '.'}`,
     ],
     buttonLabel: 'Open ticket',
-    buttonUrl: appUrl('/chat'),
+    buttonUrl: appUrl('/studio'),
   });
   return { subject: `Re: ${subject}`, html, text };
 }

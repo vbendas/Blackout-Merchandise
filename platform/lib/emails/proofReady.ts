@@ -13,7 +13,7 @@ export function proofReadyEmail(payload: ProofReadyPayload) {
       `Proof v${payload.version ?? 1}${payload.productName ? ` for ${payload.productName}` : ''} is ready to review.`,
     ],
     buttonLabel: 'Review proof',
-    buttonUrl: payload.proofUrl ?? appUrl('/chat'),
+    buttonUrl: payload.proofUrl ?? appUrl('/studio'),
   });
   return { subject: 'Your proof is ready', html, text };
 }
