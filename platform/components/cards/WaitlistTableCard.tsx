@@ -1,3 +1,4 @@
+import { humanStatus } from '@/lib/format/status';
 import type { Card } from '@/lib/ui-cards/schemas';
 import { CardActions } from '@/components/cards/CardActions';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
@@ -10,10 +11,6 @@ function statusTone(status: string): StatusTone {
   if (['invited', 'converted', 'registered'].includes(value)) return 'positive';
   if (['rejected', 'expired'].includes(value)) return 'danger';
   return 'neutral';
-}
-
-function statusLabel(status: string): string {
-  return status.replace(/_/g, ' ').replace(/^./, (ch) => ch.toUpperCase());
 }
 
 function formatDate(iso: string): string {
@@ -43,7 +40,7 @@ export function WaitlistTableCard({ card, ctx }: { card: WaitlistTableCardType; 
                   <span className="block truncate text-[13px]">{row.email}</span>
                   {meta ? <span className="mf-dimmed block truncate text-[11px]">{meta}</span> : null}
                 </span>
-                <StatusPill label={statusLabel(row.status)} tone={statusTone(row.status)} />
+                <StatusPill label={humanStatus(row.status)} tone={statusTone(row.status)} />
               </button>
             </li>
           );

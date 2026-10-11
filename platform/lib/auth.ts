@@ -18,11 +18,14 @@ export interface SessionInfo {
 // before real Clerk keys exist. The proxy skips Clerk under the same flag.
 export const DEV_BYPASS = process.env.AUTH_DEV_BYPASS === '1' && process.env.NODE_ENV !== 'production';
 
+/** Name shown for the dev-bypass user: an artist-style name, never "Dev". */
+export const DEV_DISPLAY_NAME = process.env.AUTH_DEV_NAME ?? 'Nova Halo';
+
 async function devUser(): Promise<SessionUser> {
   return getOrCreateUserFromClerk({
     clerkId: 'dev-bypass',
     email: process.env.AUTH_DEV_EMAIL ?? 'dev@merchfrom.test',
-    displayName: 'Dev Artist',
+    displayName: DEV_DISPLAY_NAME,
     imageUrl: null,
     publicMetadataRole: process.env.AUTH_DEV_ROLE ?? null,
   });

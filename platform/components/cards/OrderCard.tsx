@@ -1,3 +1,4 @@
+import { humanStatus } from '@/lib/format/status';
 import type { Card } from '@/lib/ui-cards/schemas';
 import { CardActions } from '@/components/cards/CardActions';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
@@ -11,10 +12,6 @@ function statusTone(status: string): StatusTone {
   if (['cancelled', 'refunded', 'error'].includes(value)) return 'danger';
   if (['processing', 'printing', 'packed', 'queued', 'proof_pending'].includes(value)) return 'dim';
   return 'neutral';
-}
-
-function statusLabel(status: string): string {
-  return status.replace(/_/g, ' ').replace(/^./, (ch) => ch.toUpperCase());
 }
 
 function formatCents(cents: number): string {
@@ -36,10 +33,10 @@ export function OrderCard({ card, ctx }: { card: OrderCardType; ctx: CardActionC
           <div className="mf-display truncate text-[16px]">{card.reference}</div>
           <div className="mf-dimmed text-[12px]">
             {formatDate(card.placedAt)}
-            {card.productionStatus ? ` · ${statusLabel(card.productionStatus)}` : ''}
+            {card.productionStatus ? ` · ${humanStatus(card.productionStatus)}` : ''}
           </div>
         </div>
-        <StatusPill label={statusLabel(card.status)} tone={statusTone(card.status)} />
+        <StatusPill label={humanStatus(card.status)} tone={statusTone(card.status)} />
       </div>
 
       {card.lines.length > 0 ? (

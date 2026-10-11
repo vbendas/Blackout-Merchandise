@@ -1,4 +1,5 @@
 import type { Card } from '@/lib/ui-cards/schemas';
+import { humanStatus } from '@/lib/format/status';
 import { CardActions } from '@/components/cards/CardActions';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
 import type { CardActionContext } from '@/components/cards/actions';
@@ -21,7 +22,7 @@ export function SupplierOrderCard({ card, ctx }: { card: SupplierOrderCardType; 
             {card.supplier} · {card.totalUnits} unit{card.totalUnits === 1 ? '' : 's'}
           </div>
         </div>
-        <StatusPill label={card.status} tone={statusTone(card.status)} />
+        <StatusPill label={humanStatus(card.status)}tone={statusTone(card.status)} />
       </div>
 
       {card.lines.length > 0 ? (

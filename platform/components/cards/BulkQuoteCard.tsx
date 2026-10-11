@@ -1,3 +1,4 @@
+import { humanStatus } from '@/lib/format/status';
 import type { Card } from '@/lib/ui-cards/schemas';
 import { CardActions } from '@/components/cards/CardActions';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
@@ -22,10 +23,6 @@ const statusTone: Record<BulkQuoteCardType['status'], StatusTone> = {
   cancelled: 'danger',
 };
 
-function statusLabel(status: string): string {
-  return status.replace(/_/g, ' ').replace(/^./, (ch) => ch.toUpperCase());
-}
-
 function formatCents(cents: number): string {
   return (cents / 100).toLocaleString(undefined, { style: 'currency', currency: 'EUR' });
 }
@@ -35,7 +32,7 @@ export function BulkQuoteCard({ card, ctx }: { card: BulkQuoteCardType; ctx: Car
     <div className="mf-card p-4">
       <div className="flex items-center justify-between gap-2">
         <div className="mf-display text-[18px]">Bulk order</div>
-        <StatusPill label={statusLabel(card.status)} tone={statusTone[card.status]} />
+        <StatusPill label={humanStatus(card.status)} tone={statusTone[card.status]} />
       </div>
 
       <div className="mf-hairline-t mt-3 overflow-x-auto pt-2">

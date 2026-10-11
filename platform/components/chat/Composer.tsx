@@ -57,7 +57,7 @@ function AttachmentChip({ attachment, onRemove }: { attachment: UploadAttachment
 function ProgressPill({ attachment, onRemove }: { attachment: UploadAttachment; onRemove: () => void }) {
   const failed = attachment.status === 'error';
   return (
-    <div className="mf-hairline mf-fade-in flex w-fit max-w-full items-center gap-2 rounded-full px-3 py-1.5 text-[12px]">
+    <div className="mf-hairline mf-fade-in flex w-fit max-w-full items-center gap-2 rounded-[2px] px-3 py-1.5 text-[12px]">
       <span className="mf-dimmed max-w-[160px] truncate">{attachment.name}</span>
       {failed ? (
         <span className="text-[11px]" style={{ color: 'var(--danger)' }}>
@@ -281,7 +281,7 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
 
   const hasContent = text.trim().length > 0 || uploaded.some((attachment) => attachment.url);
   const micPlaceholder =
-    micState === 'recording' ? 'Listening…' : micState === 'transcribing' ? 'Transcribing…' : 'Message MerchFrom…';
+    micState === 'recording' ? 'Listening…' : micState === 'transcribing' ? 'Transcribing…' : 'Describe a piece, a drop or a run';
   const micAriaLabel =
     micState === 'recording' ? 'Recording — release or tap to stop' : micState === 'transcribing' ? 'Transcribing' : 'Hold to talk';
 

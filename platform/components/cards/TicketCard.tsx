@@ -1,3 +1,4 @@
+import { humanStatus } from '@/lib/format/status';
 import type { Card } from '@/lib/ui-cards/schemas';
 import { CardActions } from '@/components/cards/CardActions';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
@@ -12,10 +13,6 @@ function statusTone(status: string): StatusTone {
   if (['open', 'new'].includes(value)) return 'warning';
   if (['pending', 'waiting'].includes(value)) return 'dim';
   return 'neutral';
-}
-
-function statusLabel(status: string): string {
-  return status.replace(/_/g, ' ').replace(/^./, (ch) => ch.toUpperCase());
 }
 
 function formatTime(iso: string): string {
@@ -36,7 +33,7 @@ export function TicketCard({ card, ctx }: { card: TicketCardType; ctx: CardActio
     <div className="mf-card p-4">
       <div className="flex items-center justify-between gap-2">
         <div className="mf-display truncate text-[18px]">{card.subject}</div>
-        <StatusPill label={statusLabel(card.status)} tone={statusTone(card.status)} />
+        <StatusPill label={humanStatus(card.status)} tone={statusTone(card.status)} />
       </div>
       {card.from ? <div className="mf-dimmed mt-1 text-[12px]">{card.from}</div> : null}
 

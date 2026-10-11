@@ -1,3 +1,4 @@
+import { humanStatus } from '@/lib/format/status';
 import { Chip } from '@/components/ui/Chip';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
 import type { CardActionContext } from '@/components/cards/actions';
@@ -14,10 +15,6 @@ function statusTone(status: string): StatusTone {
   if (value === 'cancelled') return 'danger';
   if (['proof_pending', 'in_production', 'awaiting_payment'].includes(value)) return 'dim';
   return 'neutral';
-}
-
-function statusLabel(status: string): string {
-  return status.replace(/_/g, ' ').replace(/^./, (ch) => ch.toUpperCase());
 }
 
 export function BulkOrderProjectView({ state, ctx }: { state: BulkOrderProjectState; ctx: CardActionContext }) {
@@ -57,7 +54,7 @@ export function BulkOrderProjectView({ state, ctx }: { state: BulkOrderProjectSt
 
       {state.status ? (
         <div>
-          <StatusPill label={statusLabel(state.status)} tone={statusTone(state.status)} />
+          <StatusPill label={humanStatus(state.status)} tone={statusTone(state.status)} />
         </div>
       ) : null}
 

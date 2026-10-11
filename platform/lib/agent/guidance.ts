@@ -5,6 +5,7 @@ import type { ChecklistStep } from '@/lib/agent/protocol';
 import type { Chip } from '@/lib/ui-cards/schemas';
 import { getProjectCard } from '@/lib/services/conversations';
 import { storeSummary } from '@/lib/services/stores';
+import { humanStatus } from '@/lib/format/status';
 
 // Drives the guided-chat empty state: a headline + status line, state-keyed
 // quick-action chips, the onboarding checklist, and the top-bar project
@@ -195,7 +196,7 @@ function statusLabel(raw: unknown, fallback: 'Draft' | 'Proof' | 'Live'): string
   if (s.includes('live')) return 'Live';
   if (s.includes('proof')) return 'Proof';
   if (s.includes('draft')) return 'Draft';
-  return str(raw) ?? fallback;
+  return humanStatus(str(raw)) || fallback;
 }
 
 export async function projectPillFor(conversationId: string): Promise<{ label: string; status: string; colourHex?: string } | null> {

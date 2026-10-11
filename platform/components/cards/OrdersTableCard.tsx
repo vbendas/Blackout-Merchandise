@@ -1,3 +1,4 @@
+import { humanStatus } from '@/lib/format/status';
 import type { Card } from '@/lib/ui-cards/schemas';
 import { CardActions } from '@/components/cards/CardActions';
 import type { CardActionContext } from '@/components/cards/actions';
@@ -15,10 +16,6 @@ function formatCents(cents: number): string {
 function formatDate(iso: string): string {
   const date = new Date(iso);
   return Number.isNaN(date.getTime()) ? iso : date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-}
-
-function statusLabel(status: string): string {
-  return status.replace(/_/g, ' ').replace(/^./, (ch) => ch.toUpperCase());
 }
 
 export function OrdersTableCard({ card, ctx }: { card: OrdersTableCardType; ctx: CardActionContext }) {
@@ -46,7 +43,7 @@ export function OrdersTableCard({ card, ctx }: { card: OrdersTableCardType; ctx:
             >
               <span className="truncate">{row.reference}</span>
               <span className="mf-dimmed truncate whitespace-nowrap">{formatDate(row.placedAt)}</span>
-              <span className="mf-dimmed truncate">{statusLabel(row.status)}</span>
+              <span className="mf-dimmed truncate">{humanStatus(row.status)}</span>
               <span className="truncate text-right whitespace-nowrap">{formatCents(row.grossCents)}</span>
               <span
                 className="truncate text-right whitespace-nowrap"

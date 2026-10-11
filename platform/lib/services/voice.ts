@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { db, schema } from '@/lib/db';
-import { DEV_BYPASS } from '@/lib/auth';
+import { DEV_BYPASS, DEV_DISPLAY_NAME } from '@/lib/auth';
 import { getOrCreateUserFromClerk } from '@/lib/services/users';
 import type { Role } from '@/lib/tools/types';
 
@@ -126,7 +126,7 @@ export async function resolveVoiceCaller(userIdHint?: string | null): Promise<Vo
     const user = await getOrCreateUserFromClerk({
       clerkId: 'dev-bypass',
       email: process.env.AUTH_DEV_EMAIL ?? 'dev@merchfrom.test',
-      displayName: 'Dev Artist',
+      displayName: DEV_DISPLAY_NAME,
       imageUrl: null,
       publicMetadataRole: process.env.AUTH_DEV_ROLE ?? null,
     });

@@ -106,7 +106,9 @@ export async function getOrCreateUserFromClerk(input: ClerkUserInput) {
     .update(schema.users)
     .set({
       email,
-      displayName: input.displayName ?? existing.displayName,
+      // Clerk seeds the name once; after that the artist owns it (Studio
+      // Settings), so a sync never overwrites an edited name.
+      displayName: existing.displayName ?? input.displayName,
       imageUrl: input.imageUrl ?? existing.imageUrl,
       role,
     })
