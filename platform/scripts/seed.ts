@@ -3,10 +3,10 @@
  *
  * Seeds the blank catalog (blanks, colours, sizes, size guides, print
  * services, base costs) and shipping zones from the plain-TS data modules
- * in `website-v3/lib/*` — the same data the public catalog site renders
- * from. Image URLs are kept as the site-relative paths those modules
- * already use (e.g. '/packshots/PFM0_STTU169_C002.png'); `platform/public/
- * packshots` is symlinked to the same files.
+ * in `platform/lib/catalog/*` (moved here from the retired website-v3).
+ * Image URLs are kept as the site-relative paths those modules use
+ * (e.g. '/packshots/PFM0_STTU169_C002.png'), served from
+ * `platform/public/packshots`.
  *
  * Idempotent: every insert upserts on its natural key, so re-running this
  * script is always safe.
@@ -22,8 +22,8 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { sql as rawSql } from 'drizzle-orm';
 import * as schema from '../../src/db/schema';
 
-import { PRODUCTS } from '../../website-v3/lib/products';
-import { PRODUCT_DETAILS, printTechniquesFor } from '../../website-v3/lib/product-details';
+import { PRODUCTS } from '../lib/catalog/products';
+import { PRODUCT_DETAILS, printTechniquesFor } from '../lib/catalog/product-details';
 import {
     BASE_COLOUR,
     BASE_SWATCH,
@@ -34,11 +34,11 @@ import {
     variantSrc,
     variantBackSrc,
     isLightColour,
-} from '../../website-v3/lib/variants';
-import { colourName } from '../../website-v3/lib/colour-names';
-import { SIZE_GUIDES } from '../../website-v3/lib/size-guides';
-import { typeFor, fitFor } from '../../website-v3/lib/catalog-filters';
-import { PRODUCT_VIDEOS } from '../../website-v3/lib/product-videos';
+} from '../lib/catalog/variants';
+import { colourName } from '../lib/catalog/colour-names';
+import { SIZE_GUIDES } from '../lib/catalog/size-guides';
+import { typeFor, fitFor } from '../lib/catalog/catalog-filters';
+import { PRODUCT_VIDEOS } from '../lib/catalog/product-videos';
 
 if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not defined (expected in platform/.env.local)');
@@ -66,7 +66,7 @@ function chunk<T>(items: T[], size: number): T[][] {
     return out;
 }
 
-// Print technique (website-v3 wording) -> the print_services this platform
+// Print technique (catalog wording) -> the print_services this platform
 // actually offers. 'Heat transfer' has no matching print service in the
 // seeded catalog (only screen print / DTG / embroidery), so it is dropped —
 // noted in the handoff report, not an omission by accident.
@@ -416,7 +416,7 @@ async function seedShippingZones(): Promise<void> {
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
-    console.log('Seeding platform catalog from website-v3/lib...\n');
+    console.log('Seeding platform catalog from lib/catalog...\n');
 
     await seedColours();
     console.log('colours seeded');

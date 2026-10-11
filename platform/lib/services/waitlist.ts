@@ -1,7 +1,7 @@
 // Waitlist approval -> invite -> registration (Platform-Plan §7). This is
-// the only writer for `waitlist_signups`; website-v3's public form inserts
-// into the same table directly (its own DATABASE_URL, no service layer) but
-// never touches the approval columns owned here.
+// the only writer for `waitlist_signups`; the retired website-v3 public form
+// inserted into the same table directly (its own DATABASE_URL, no service
+// layer) and never touched the approval columns owned here.
 import { and, desc, eq, ilike, inArray, isNull } from 'drizzle-orm';
 import { customAlphabet } from 'nanoid';
 import { db, schema } from '@/lib/db';

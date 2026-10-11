@@ -120,7 +120,7 @@ export const shopCustomizations = pgTable('shop_customizations', {
 }));
 
 // ============================================================================
-// BLANK CATALOG (garments we can print on — seeded from website-v3/lib)
+// BLANK CATALOG (garments we can print on — seeded from platform/lib/catalog)
 // ============================================================================
 
 // Print Services Table (screen print, DTG, embroidery, ...)
@@ -149,8 +149,8 @@ export const blanks = pgTable('blanks', {
     name: text('name').notNull(), // catalog name e.g. 'T-shirt'
     supplierName: text('supplier_name'), // 'Creator 2.0'
     description: text('description'),
-    type: text('type').notNull(), // canonical English category (website-v3 typeFor)
-    fit: text('fit'), // website-v3 fitFor
+    type: text('type').notNull(), // canonical English category (catalog typeFor)
+    fit: text('fit'), // catalog fitFor
     composition: text('composition'),
     weightGsm: integer('weight_gsm'),
     certifications: jsonb('certifications').default([]), // string[]
@@ -551,12 +551,12 @@ export const dataBreachLogs = pgTable('data_breach_logs', {
 
 // Waitlist Signups Table
 //
-// Superset of the table website-v3's public waitlist form creates for
+// Superset of the table the retired website-v3 waitlist form created for
 // itself: `id serial primary key, email text not null, product text,
 // colour text, created_at timestamptz default now(), role text,
 // favourites text`. Column names/types/nullability for those six match
-// exactly so website-v3's plain INSERT (which never mentions the approval
-// columns below) keeps working once its DATABASE_URL points here.
+// exactly so a plain INSERT of those columns (which never mentions the
+// approval columns below) keeps working against this table.
 export const waitlistSignups = pgTable('waitlist_signups', {
     id: serial('id').primaryKey(),
     email: text('email').notNull(),

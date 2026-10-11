@@ -37,10 +37,10 @@ async function main() {
   const stamp = Date.now();
   const artistEmail = `smoke-artist-${stamp}@merchfrom.test`;
 
-  // -- website-v3's own INSERT shape: email/product/colour/role/favourites
+  // -- the public-form INSERT shape (retired website-v3): email/product/colour/role/favourites
   // only, no approval columns. This is the compatibility contract §7 asked
   // for — a superset table their plain INSERT keeps working against.
-  console.log('=== insert signup (as website-v3 would) ===');
+  console.log('=== insert signup (as a public form would) ===');
   const [signup] = await db
     .insert(schema.waitlistSignups)
     .values({ email: artistEmail, product: 'Hoodie', colour: 'Black', role: 'artist', favourites: 'STSU177' })

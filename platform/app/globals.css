@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Warm charcoal ground, matching website-v3's dark state. This app is
+  /* Warm charcoal ground. This app is
      dark only — no light-mode block; shadcn/AI Elements variables below map
      straight onto the same MerchFrom tokens instead of a separate palette. */
   --paper: #141414;

@@ -1,8 +1,7 @@
 import { Barlow, IBM_Plex_Mono } from 'next/font/google';
 
-// Type system used across the platform app, mirroring
-// website-v3/app/layout.tsx so the artist-facing chrome matches the
-// public site's type system.
+// Type system used across the platform app: Barlow body, IBM Plex Mono
+// labels.
 export const barlow = Barlow({
   variable: '--font-barlow',
   subsets: ['latin'],

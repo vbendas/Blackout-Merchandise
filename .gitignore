@@ -39,4 +39,3 @@ services/color-separation/print_pipeline_v2_spot/halftone/print_ready.psd
 .playwright-mcp/
 .mcp.json.lock
 graphify-out/cache/
-website-v3/.verify/

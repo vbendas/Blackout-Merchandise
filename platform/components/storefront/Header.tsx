@@ -4,7 +4,7 @@ import { CartButton } from '@/components/storefront/CartButton';
 import { Hairline } from '@/components/ui/Hairline';
 
 // Plain <img>, not next/image: mockups and store assets come from a mix of
-// Cloudinary, fal and website-v3 packshot hosts with no remotePatterns
+// Cloudinary, fal and local /packshots paths with no remotePatterns
 // configured (next.config.ts is owned by another agent) — the rest of the
 // codebase (components/cards/*) follows the same convention.
 export function Header({ store, collections }: { store: PublicStore; collections: PublicCollection[] }) {
