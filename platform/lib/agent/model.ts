@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { RunModelTurnParams, RunModelTurnResult } from '@/lib/agent/model-types';
 import { mockRunModelTurn } from '@/lib/agent/mock';
 
-export const AGENT_MODEL = process.env.AGENT_MODEL ?? 'claude-sonnet-5';
+export { AGENT_MODEL, AGENT_LIGHT_MODEL } from '@/lib/agent/model-router';
 export const AGENT_MAX_TOKENS = 8000;
 export const MAX_LOOP_ITERATIONS = 8;
 

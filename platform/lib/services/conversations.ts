@@ -13,6 +13,8 @@ export type MessageRole = 'user' | 'assistant' | 'tool';
 export interface StoredMessageContent {
   blocks: Anthropic.ContentBlockParam[];
   ui: ToolUi | null;
+  /** model that wrote an assistant message (for cost and quality review) */
+  model?: string;
 }
 
 export async function getConversation(conversationId: string): Promise<Conversation | null> {

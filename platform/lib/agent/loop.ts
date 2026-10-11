@@ -3,6 +3,7 @@ import type { AgentEvent } from '@/lib/agent/protocol';
 import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
 import type { ToolContext } from '@/lib/tools/types';
 import { AGENT_MAX_TOKENS, AGENT_MODEL, MAX_LOOP_ITERATIONS, runModelTurn } from '@/lib/agent/model';
+import { routeTurn } from '@/lib/agent/model-router';
 import { buildSystemBlocks } from '@/lib/agent/system-prompt';
 import { buildApiMessages } from '@/lib/agent/history';
 import { toolsForRole } from '@/lib/tools/registry';
@@ -182,8 +183,15 @@ async function currentSystemBlocks(base: BaseAgentContext): Promise<Anthropic.Te
   });
 }
 
-/** The core model<->tools loop, shared by a fresh turn and a confirm-resume. */
-async function runIterations(base: BaseAgentContext, initialMessages: Anthropic.MessageParam[], emit: Emit): Promise<void> {
+/** The core model<->tools loop, shared by a fresh turn and a confirm-resume.
+ * One model serves the whole turn so its prompt cache stays warm across
+ * iterations. */
+async function runIterations(
+  base: BaseAgentContext,
+  initialMessages: Anthropic.MessageParam[],
+  emit: Emit,
+  model: string,
+): Promise<void> {
   let messages = initialMessages;
   const tools = toolsForRole(base.role);
   const anthropicTools = toAnthropicTools(tools);
@@ -195,7 +203,7 @@ async function runIterations(base: BaseAgentContext, initialMessages: Anthropic.
     const system = await currentSystemBlocks(base);
 
     const turn = await runModelTurn({
-      model: AGENT_MODEL,
+      model,
       system,
       messages,
       tools: anthropicTools,
@@ -214,7 +222,7 @@ async function runIterations(base: BaseAgentContext, initialMessages: Anthropic.
     const tokens = { in: turn.usage.inputTokens, out: turn.usage.outputTokens };
 
     if (turn.stopReason === 'refusal') {
-      const assistantRow = await appendMessage(base.conversationId, 'assistant', { blocks, ui: null }, tokens);
+      const assistantRow = await appendMessage(base.conversationId, 'assistant', { blocks, ui: null, model }, tokens);
       emit({ type: 'cards', cards: [{ id: `refusal_${assistantRow.id}`, kind: 'notice', tone: 'error', text: "I can't help with that request." }] });
       emit({ type: 'message_end', messageId: assistantRow.id, stopReason: 'refusal' });
       return;
@@ -223,7 +231,7 @@ async function runIterations(base: BaseAgentContext, initialMessages: Anthropic.
     const toolUseBlocks = turn.content.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use');
 
     if (toolUseBlocks.length === 0) {
-      const assistantRow = await appendMessage(base.conversationId, 'assistant', { blocks, ui: null }, tokens);
+      const assistantRow = await appendMessage(base.conversationId, 'assistant', { blocks, ui: null, model }, tokens);
       if (turn.stopReason === 'max_tokens') {
         emit({
           type: 'cards',
@@ -235,7 +243,7 @@ async function runIterations(base: BaseAgentContext, initialMessages: Anthropic.
     }
 
     // Persist the assistant turn first so tool_invocations can reference its id.
-    const assistantRow = await appendMessage(base.conversationId, 'assistant', { blocks, ui: null }, tokens);
+    const assistantRow = await appendMessage(base.conversationId, 'assistant', { blocks, ui: null, model }, tokens);
 
     const readOnlyBlocks = toolUseBlocks.filter((b) => getTool(b.name)?.readOnly);
     const otherBlocks = toolUseBlocks.filter((b) => !getTool(b.name)?.readOnly);
@@ -307,8 +315,15 @@ export async function startAgentTurn(params: StartAgentTurnParams): Promise<void
   const userMessage = await appendMessage(base.conversationId, 'user', { blocks, ui: null });
   emit({ type: 'message_start', messageId: userMessage.id, conversationId: base.conversationId });
 
+  const projectCard = await getProjectCard(base.conversationId);
+  const route = routeTurn({
+    userText: params.userText,
+    hasAttachments: (params.attachments?.length ?? 0) > 0,
+    projectKind: projectCard?.kind ?? null,
+  });
+
   const messages = await buildApiMessages(base.conversationId);
-  await runIterations(base, messages, emit);
+  await runIterations(base, messages, emit, route.model);
 }
 
 export interface ResumeAgentTurnParams {
@@ -404,6 +419,7 @@ export async function resumeAgentTurn(params: ResumeAgentTurnParams): Promise<vo
   const orderedResults = toolUseIdsInOrder.map((id) => resultsById.get(id)).filter((r): r is Anthropic.ToolResultBlockParam => !!r);
   await appendMessage(base.conversationId, 'tool', { blocks: orderedResults, ui: toToolUi(mergedUi) });
 
+  // A confirmed action continues a consequential flow: always the main model.
   const messages = await buildApiMessages(base.conversationId);
-  await runIterations(base, messages, emit);
+  await runIterations(base, messages, emit, AGENT_MODEL);
 }
