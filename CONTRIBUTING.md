@@ -1,6 +1,6 @@
 # Contributing to MerchFrom
 
-> **Last Updated:** January 30, 2026
+> **Last Updated:** October 11, 2026
 
 Thank you for your interest in contributing to MerchFrom! This guide will help you get started.
 
@@ -10,9 +10,10 @@ Thank you for your interest in contributing to MerchFrom! This guide will help y
 
 ### Prerequisites
 
-- [Bun](https://bun.sh) installed (v1.0.0+)
+- [Bun](https://bun.sh) installed (v1.0.0+) for the root and `app/`
 - Git configured
-- Node.js 20+ (for some tools)
+- Node.js 20+ with npm for `platform/` (npm also runs the website's `dev` script)
+- Python 3 for the website's local server (started with `npm run dev`, or directly with `python3 -m http.server 3000 --bind 127.0.0.1` from `mainpage/`)
 
 ### Setup
 
@@ -21,26 +22,35 @@ Thank you for your interest in contributing to MerchFrom! This guide will help y
 git clone <repo-url>
 cd Merch-From
 
-# Install dependencies for all projects
-bun install
-bun run install:all
+# Install dependencies (mainpage needs no install)
+bun install                          # Root (drizzle-kit, shared src/db)
+cd app && bun install && cd ..       # Main application
+cd platform && npm install && cd ..  # Platform
 
-# Set up environment
-cp app/.env.example app/.env.local
-cp mainpage/.env.example mainpage/.env.local
-# Edit both .env.local files with your values
+# Set up environment (mainpage needs no env file)
+cp .env.example .env.local
+# Edit .env.local with your values (the root drizzle config reads ./.env.local)
+cp .env.local app/.env.local         # app/ reads its own .env.local
+# platform/ also needs its own platform/.env.local. There is no example file for it
+# and it reads variables the root .env.example does not list. To see them:
+#   grep -rhoE "process\.env\.[A-Z_0-9]+" platform/app platform/lib platform/scripts | sort -u
 
-# Run database migrations
+# Run database migrations (root drizzle-kit, app/ database)
 bun run db:migrate
 
-# Seed the database (optional, for development)
-bun run db:seed
+# Platform has its own database and migration history (platform/drizzle):
+# migrate it and seed the blank catalog
+cd platform && npm run db:migrate && npm run seed && cd ..
 
-# Start development
-bun run dev:mainpage  # Marketing site
+# Start development (all three use port 3000: run one at a time)
+cd mainpage && npm run dev   # Website (static, python3 http.server on 127.0.0.1:3000)
 # OR
-bun run dev:app       # Main application
+cd app && bun dev            # Main application
+# OR
+cd platform && npm run dev   # Platform
 ```
+
+The website can also be started from the `mainpage` config in `.claude/launch.json` (same server, port 3000). To run platform next to another project, move it: `cd platform && npm run dev -- -p 3001`.
 
 ---
 
@@ -49,10 +59,10 @@ bun run dev:app       # Main application
 ```
 Merch-From/
 ├── app/           # Main application (Next.js + AI)
-├── mainpage/      # Marketing site (Next.js)
+├── platform/      # Agent-first platform app (Next.js 16, npm)
+├── mainpage/      # Public website: static HTML/CSS/JS, no framework, no build step
 ├── src/db/        # Shared database schema & operations
-├── Documentation/ # Project docs
-└── .vscode/       # VS Code settings (recommended extensions)
+└── Documentation/ # Project docs
 ```
 
 ---
@@ -69,13 +79,14 @@ git checkout -b feature/your-feature-name
 
 - Follow existing code patterns
 - Use TypeScript strictly
-- Run formatting: `bun run format`
+- Run formatting (app): `cd app && bun run format`
+- Website (`mainpage/`): edit the HTML and reload; there is nothing to format, lint or build
 
 ### 3. Verify Before Commit
 
 ```bash
-# This runs automatically on pre-commit
-bun run verify
+# Run before committing (checks app/ only)
+./verify.sh
 ```
 
 ### 4. Commit
@@ -114,7 +125,7 @@ git commit -m "feat: Add waitlist form validation"
 
 ### Styling
 
-- Tailwind CSS v4
+- Tailwind CSS v4 (app and platform)
 - Dark mode only (no light mode support)
 - Use `cn()` utility for class merging
 
@@ -129,11 +140,13 @@ git commit -m "feat: Add waitlist form validation"
 ## Testing
 
 ```bash
-# Run all tests
-bun run test
+cd app
 
-# Run tests in watch mode
-bun run test:watch
+# Unit tests (Vitest)
+bun run test:unit
+
+# End-to-end tests (Playwright)
+bun run test:e2e
 
 # Type checking
 bun run typecheck
@@ -145,10 +158,10 @@ bun run typecheck
 
 1. **Before submitting:**
    - [ ] All tests pass
-   - [ ] Linting passes (`bun run lint`)
-   - [ ] TypeScript checks pass (`bun run typecheck`)
-   - [ ] Build succeeds (`bun run build:all`)
-   - [ ] No secrets in code (`bun run secrets:check`)
+   - [ ] Linting passes (`cd app && bun run lint`, `cd platform && npm run lint`)
+   - [ ] TypeScript checks pass (`cd app && bun run typecheck`)
+   - [ ] Build succeeds (`cd app && bun run build && cd ../platform && npm run build`)
+   - [ ] No secrets in code (`cd app && bun run secrets`)
 
 2. **PR Description should include:**
    - What changed
@@ -168,13 +181,13 @@ bun run typecheck
 Never commit secrets! Check with:
 
 ```bash
-bun run secrets:check
+cd app && bun run secrets
 ```
 
 If you need to add a new environment variable:
 
-1. Add to `.env.example` with description
-2. Add to `.env.local` (your local copy)
+1. Add to the root `.env.example` with description
+2. Add to your local `.env.local` (root, `app/` or `platform/`, whichever reads it)
 3. Document in PR description
 4. Add to Vercel (maintainers will do this)
 
@@ -187,17 +200,21 @@ If you need to add a new environment variable:
 1. Edit `src/db/schema.ts`
 2. Generate migration:
    ```bash
-   bun run db:generate
+   bunx drizzle-kit generate
    ```
 3. Apply migration locally:
    ```bash
    bun run db:migrate
    ```
-4. Commit both schema changes and migration files
+4. Platform builds from the same `src/db/schema.ts` but keeps its own migrations in `platform/drizzle`, so generate and apply them there too:
+   ```bash
+   cd platform && npm run db:generate && npm run db:migrate
+   ```
+5. Commit the schema change and the migration files in both `drizzle/` and `platform/drizzle/`
 
 ### Seeding Data
 
-Add to `src/db/seed.ts` if it's useful for all developers.
+The blank catalog lives in `platform/lib/catalog` and is seeded by `platform/scripts/seed.ts` (`cd platform && npm run seed`). Add catalog data there.
 
 ---
 

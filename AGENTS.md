@@ -4,7 +4,7 @@
 
 > **Project State**: P0 Demo Hardening (Crowdfunding Sprint) - Day 1-2 Complete, May 9-10, 2026
 > **Working Directory**: `/Users/victorbendas/Documents/GitHub/Merch-From`
-> **Last Updated**: May 10, 2026
+> **Last Updated**: October 11, 2026
 
 ---
 
@@ -48,7 +48,7 @@
 
 ### 💻 Development Context
 **PWA Context**: [Documentation/01-PWA/Claude-Context.md](./Documentation/01-PWA/Claude-Context.md) - Merchandise Studio app work
-**Website Context**: [Documentation/02-Website/Claude-Context.md](./Documentation/02-Website/Claude-Context.md) - Marketing website work
+**Website Context**: [Website Organization (mainpage)](#website-organization-mainpage) in this file and the root [CLAUDE.md](./CLAUDE.md) - Static members-only website work
 
 ---
 
@@ -176,6 +176,8 @@ After the plan is drafted:
 
 ### Plan Example (Condensed)
 
+Illustrative only: the waitlist page and `WaitlistForm` already exist in `app/`, so do not recreate them from this example.
+
 ```
 ## Implementation Plan: Waitlist Landing Page
 
@@ -187,11 +189,11 @@ After the plan is drafted:
 ### Tasks
 
 T1 [SUBAGENT] [Group A] (S)
-  Create page route at /mainpage/src/app/waitlist/page.tsx
+  Create page route at /app/src/app/waitlist/page.tsx
   - T1.1: Scaffold basic page component with metadata
   - T1.2: Add responsive container layout
-  [ARCH] Follow existing mainpage routing pattern (see /mainpage/src/app/page.tsx)
-  Files: mainpage/src/app/waitlist/page.tsx
+  [ARCH] Follow existing app routing pattern (see /app/src/app/page.tsx)
+  Files: app/src/app/waitlist/page.tsx
 
 T2 [SUBAGENT] [Group A] (M)
   Build WaitlistForm component
@@ -199,14 +201,14 @@ T2 [SUBAGENT] [Group A] (M)
   - T2.2: Add client-side validation (Zod schema)
   - T2.3: Add loading/success/error states
   [GOTCHA] Must use 'use client' directive -- form needs useState
-  [DEP] Requires: zod, react-hook-form (already in package.json)
-  Files: mainpage/src/components/sections/waitlist/WaitlistForm.tsx
+  [DEP] Requires: zod (already in app/package.json)
+  Files: app/src/components/WaitlistForm.tsx
 
 T3 [MAIN] [Group B] (S) (depends on T1, T2)
   Wire form into page and verify build
   - T3.1: Import WaitlistForm into page
-  - T3.2: Run npm run build to verify
-  [VERIFY] npm run build passes with zero errors
+  - T3.2: Run bun run build (in app/) to verify
+  [VERIFY] bun run build passes with zero errors
 
 ### Parallelization Map
 Group A (parallel): T1, T2
@@ -260,14 +262,17 @@ T3: Main session (needs build verification)
 │   ├── convex/             # LEGACY - Being replaced by Drizzle
 │   └── public/             # Static assets
 │
-├── /mainpage               # Marketing landing page (merchfrom.com)
-│   ├── src/
-│   │   ├── app/            # Next.js App Router routes
-│   │   ├── components/     # React components
-│   │   ├── hooks/          # useIsMobile, etc.
-│   │   ├── providers/      # HeroUI provider
-│   │   └── lib/            # utils.ts (tailwind-merge)
-│   └── public/             # Static assets (logo/, gallery/, avatars/)
+├── /mainpage               # Public website: static HTML/CSS/JS, no framework, no build step
+│   ├── index.html          # Members-only door (email, then key), Apply flow with merch preview, press board, Ask panel (scripted, keyword-matched answers from faq/faq.json), footer
+│   ├── faq/                # FAQ page (index.html, entries inline) + faq.json (feeds the Ask panel on index.html only)
+│   ├── agents/             # For agents / MCP page
+│   ├── watch/              # Film page (index.html + media/)
+│   ├── studio/             # Merch Studio app-home mock
+│   ├── img/                # Shared images (members/, merch/, press/)
+│   ├── fonts/              # Self-hosted Mornsey.woff2
+│   ├── LICENCES.md         # Font licence records
+│   └── package.json        # Only a "dev" script (python3 http.server, port 3000)
+│                           # Member accounts, keys, press rows and apply results are front-end sample data, not a backend
 │
 ├── /src                    # Shared backend (PRIMARY DATABASE LAYER)
 │   └── db/
@@ -289,7 +294,6 @@ T3: Main session (needs build verification)
 │   │
 │   ├── 01-PWA/            # Merchandise Studio context
 │   ├── 02-Roadmap/         # Roadmap + Agent Assignments
-│   ├── 02-Website/         # Marketing website context
 │   ├── 03-Evaluations/    # All evaluation documents
 │   ├── 03-Waitlist-Landing/ # Waitlist page specs
 │   ├── 04-Crowdfunding-Landing/ # Campaign overview
@@ -308,50 +312,8 @@ T3: Main session (needs build verification)
 ├── /drizzle                # Database migrations
 └── docs/                  # Strategy documents
 ```
-/Merch-From (Git root)
-├── /app                    # Main application (Cat-Suite, AI chat, PWA features)
-│   ├── src/
-│   │   ├── app/            # Next.js App Router routes
-│   │   ├── components/     # React components
-│   │   ├── hooks/           # Custom React hooks
-│   │   ├── lib/            # Utilities (ai/, demo/)
-│   │   └── types/          # TypeScript definitions
-│   ├── convex/             # LEGACY - Being replaced by Drizzle
-│   └── public/            # Static assets
-│   ├── convex/             # LEGACY - Being replaced by Drizzle
-│   └── public/            # Static assets
-│
-├── /mainpage               # Marketing landing page (merchfrom.com)
-│   ├── src/
-│   │   ├── app/            # Next.js App Router routes
-│   │   ├── components/     # React components
-│   │   ├── hooks/          # useIsMobile, etc.
-│   │   ├── providers/       # HeroUI provider
-│   │   └── lib/            # utils.ts (tailwind-merge)
-│   └── public/             # Static assets (logo/, gallery/, avatars/)
-│
-├── /src                    # Shared backend (PRIMARY DATABASE LAYER)
-│   └── db/
-│       ├── schema.ts         # Drizzle PostgreSQL schema (SOURCE OF TRUTH)
-│       ├── index.ts          # Neon serverless connection
-│       ├── users.ts          # User operations
-│       ├── products.ts       # Product operations
-│       ├── orders.ts         # Order operations
-│       └── stripe.ts         # Stripe webhook operations (backup)
-│
-├── /Documentation           # Project documentation (this folder)
-│   ├── 00-Index/          # Navigation hub, README, Quick-Links
-│   ├── 00-PRD-Roadmap/    # Product requirements, roadmap
-│   ├── 00-Evaluations/     # Architecture, features, tools decisions
-│   ├── 01-PWA/            # Merchandise Studio context
-│   ├── 02-Website/         # Marketing website context
-│   ├── 03-Waitlist-Landing/  # Email signup page specs
-│   ├── 04-Crowdfunding-Landing/ # Campaign overview
-│   ├── 07-Archive/            # Organized archives (redundant PRDs, brainstorms, pitches)
-│   │
-│   ├── /drizzle                # Database migrations
-│   └── docs/                  # Strategy documents
-```
+
+Retired site versions (website-v2, website-v3, the old Next.js mainpage) live outside the repo in `~/Documents/GitHub/_archive/merch-from-2026-10-11/` (website-v3 is also in git history).
 
 ---
 
@@ -359,8 +321,8 @@ T3: Main session (needs build verification)
 
 | Project | Manager | Commands |
 |---------|-----------|----------|
-| **/app** | Bun | `bun install`, `bun dev`, `bun build`, `bun lint` |
-| **/mainpage** | npm | `npm install`, `npm run dev`, `npm run build`, `npm run lint` |
+| **/app** | Bun | `bun install`, `bun dev`, `bun run build`, `bun lint` |
+| **/mainpage** | none (static) | `npm run dev` (python3 http.server, port 3000); no install, build or lint |
 
 ---
 
@@ -397,9 +359,8 @@ T3: Main session (needs build verification)
 
 ### UI & Styling
 - **Tailwind CSS v4**: Utility-first styling
-- **HeroUI**: React component library (premium aesthetics)
-- **Catalyst UI**: Headless components (Tailwind Labs)
 - **shadcn/ui**: Copy-paste components (configured in /app)
+- **Website (/mainpage)**: Plain HTML/CSS/JS with inline styles and scripts; no framework, no Tailwind
 
 ### Animation
 - **Framer Motion**: React-integrated animations
@@ -415,18 +376,16 @@ T3: Main session (needs build verification)
 cd app
 bun install          # Install dependencies
 bun dev              # Development server (port 3000)
-bun build            # Production build
+bun run build        # Production build
 bun lint             # ESLint check
 ```
 
-### Marketing Page (/mainpage)
+### Website (/mainpage)
 ```bash
 cd mainpage
-npm install          # Install dependencies
-npm run dev          # Development server (port 3000)
-npm run build        # Production build
-npm run lint         # ESLint check
+npm run dev          # Static server: python3 http.server on 127.0.0.1:3000
 ```
+Or start the `mainpage` config in `.claude/launch.json` (same server, port 3000). There is nothing to install, build or lint.
 
 ### Database Operations (from root)
 ```bash
@@ -442,22 +401,19 @@ bunx drizzle-kit studio     # Open Drizzle Studio GUI
 > **Branch**: `feat/crowdfunding-demo`
 > **Full plan**: [Roadmap-Crowdfunding-v1.0.md](./Documentation/05-Roadmap/Roadmap-Crowdfunding-v1.0.md)
 
-### 3.1 Main Marketing Website (/) ✅ COMPLETE
-**Status**: Production-ready for Desktop and Mobile. Tablet adjustment in progress.
+### 3.1 Main Website (/)
+**Status**: Replaced by the static members-only site in `/mainpage` (see Monorepo Structure).
 
-**Completed:**
-- Hero Section with Leopoldo avatar
-- Trio Section (three agents)
-- Glassmorphism effects
-- Feature marquees
-- Horizontal scroll section
-- Production quality specs
-- Waitlist CTA section (links to /waitlist page)
-- Footer (5-column layout)
-- Floating socials sidebar
+**Current pages:**
+- `/` - Members-only door (email, then key), Apply flow with merch preview on real blanks, "On the press now" board, Ask panel (scripted answers from `faq/faq.json`), footer
+- `/faq/` - FAQ
+- `/agents/` - For agents / MCP page
+- `/watch/` - Film
+- `/studio/` - Merch Studio app-home mock
 
-**In Progress:**
-- Tablet view adjustment (optimizing for iPad/Android tablets)
+Member accounts, keys, press rows and apply results are front-end sample data, not a backend.
+
+**Archived:** The earlier Next.js site (Leopoldo hero, agent trio, marquees, horizontal scroll, quality specs, waitlist CTA, 5-column footer, floating socials) is retired and archived outside the repo.
 
 ### 3.2 App AI Chat Interface (/app) 🚧 IN PROGRESS (P0 Sprint)
 **Goal**: Working AI chat with real LLM responses, voice, and agent routing
@@ -478,7 +434,7 @@ bunx drizzle-kit studio     # Open Drizzle Studio GUI
 - ✅ Hook extraction: useVoiceConversation, useAudioRecording
 - ✅ Error boundary, centralized CHAT_CONFIG
 - ✅ 23 GitHub issues closed (#1-#23)
-- ✅ Both /app and /mainpage build successfully
+- ✅ /app and the then-Next.js /mainpage built successfully (mainpage is now static, with no build)
 
 **Next (Day 3+, May 11+):**
 - ⏳ Real LLM streaming responses with typewriter effect
@@ -487,11 +443,11 @@ bunx drizzle-kit studio     # Open Drizzle Studio GUI
 - ⏳ FLUX 2 design generation integration
 - ⏳ Demo mode with scripted responses for video
 
-### 3.3 App UI Integration to Main Website ✅ DONE (widget)
-**Status**: CatChat widget embedded on mainpage with shared components
+### 3.3 App UI Integration to Main Website
+**Status**: The CatChat widget lived on the old Next.js mainpage and was retired with it. The static site has no CatChat; its Ask panel gives scripted, keyword-matched answers from `faq/faq.json`.
 
-### 3.4 Waitlist Landing Page (/waitlist) ✅ UI COMPLETE
-**Status**: 5-step form flow complete, API integration pending
+### 3.4 Waitlist Page (app /waitlist) ✅ UI COMPLETE
+**Status**: 5-step form flow complete in `app/src/app/waitlist` (steps in `app/src/components/waitlist/`), API integration pending. The old Next.js mainpage's own waitlist API routes were retired with it; the static site has no /waitlist, and applicants use the Apply flow on the door page.
 
 ### 3.5 Crowdfunding Landing Page (/invest) ⏳ PENDING
 **Goal**: Build crowdfunding campaign page (P3 phase, June 9-22)
@@ -591,24 +547,18 @@ Three dedicated team members with distinct roles:
 ## Code Conventions
 
 ### Component Naming
-- **PascalCase.tsx** for React components (`AvatarTrio.tsx`, `MasonryGrid.tsx`)
-- **kebab-case.tsx** for utilities/providers (`floating-socials.tsx`, `smooth-scrolling.tsx`)
+- **PascalCase.tsx** for React components (`ProductCard.tsx`, `WaitlistForm.tsx` in `app/src/components/`)
+- **kebab-case.tsx** for utilities/providers (`accessibility-widget.tsx`)
 - **camelCase** for functions/variables
 
-### Component Organization (mainpage)
-```
-components/
-├── sections/          # Full-page sections
-│   ├── cta/           # Call-to-action (WaitlistCTA.tsx)
-│   ├── quality/       # Quality specs (ProductionQuality.tsx)
-│   └── features/      # Feature showcase
-├── ui/                # Atomic components (morphing-text.tsx)
-├── layout/            # Layout shells (navbar.tsx, footer.tsx)
-├── [standalone].tsx   # Top-level components (AvatarTrio.tsx)
-└── catalyst/          # Headless components (Tailwind Labs)
-```
+### Website Organization (mainpage)
+- One self-contained `index.html` per page (`/`, `faq/`, `agents/`, `watch/`, `studio/`) with inline CSS and JS
+- Shared assets in `img/` and `fonts/`; page-specific media next to the page (`watch/media/`)
+- `faq/faq.json` feeds only the Ask panel on the door page (`index.html` fetches it, with a built-in `FALLBACK_FAQ`). The FAQ page (`faq/index.html`) has its entries inline and does not read `faq.json`: keep the two in sync by hand
+- No framework, no bundler, no build step: edit the HTML and reload
 
 ### Hook Pattern
+Illustrative sketch; the real example is `app/src/hooks/useViewportSize.ts` (returns `isMobile` plus `hasMounted`).
 ```typescript
 // Return hasMounted flag to prevent hydration mismatches
 export function useIsMobile(): { isMobile: boolean; hasMounted: boolean } {
@@ -660,17 +610,16 @@ const store = await db
 ```bash
 cd app
 bun dev              # Start development server
-bun build            # Production build (check for errors)
+bun run build        # Production build (check for errors)
 bun lint             # ESLint check
 ```
 
-### Marketing Page (/mainpage)
+### Website (/mainpage)
 ```bash
 cd mainpage
-npm run dev          # Start development server
-npm run build        # Production build (check for errors)
-npm run lint         # ESLint check
+npm run dev          # Static server on 127.0.0.1:3000; check pages in the browser
 ```
+mainpage is static: there is no build or lint, and `verify.sh` checks `app/` only.
 
 ---
 
@@ -680,20 +629,15 @@ npm run lint         # ESLint check
 | Element | Value | Usage |
 |---------|-------|-------|
 | **Base** | `zinc-950` | Backgrounds, cards |
-| **Base (Landing)** | `#000000` | Landing page only |
+| **Base (Website)** | `#000000` | mainpage ground (`--bg`) |
 | **Primary Text** | `#FFFFFF` | Maximum contrast |
 | **Accent (App)** | `#E11D48` (Recording Red) | Action buttons, active states |
-| **Accent (Landing)** | Gold Sheen Gradient | CTAs, highlights |
+| **Grey Text (Website)** | White at 80/50/40% (`--a8`, `--a5`, `--a4`) | Secondary type; rules at 16% (`--rule`) |
+| **Accent (Website)** | None | Monochrome only (orange and red were rejected) |
 
 ### Typography
-- **Headings**: Space Grotesk (quirky, tech-inspired)
-- **Body**: Inter (clean, invisible)
-
-### Gold Sheen Effect (Landing Page)
-```css
-background: linear-gradient(135deg, #D4AF37 0%, #F5E6A3 50%, #D4AF37 100%);
-box-shadow: 0 0 60px rgba(212, 175, 55, 0.15);
-```
+- **Website (mainpage)**: Inter 400/600 for text, IBM Plex Mono for labels (`--mono`), both from Google Fonts. Mornsey (self-hosted `fonts/Mornsey.woff2`, copy in `watch/media/`) is used only for the sample artist marks printed on merch previews in `index.html` and on the `watch/` film page. The `studio/` mock uses Barlow 400/500 + IBM Plex Mono 400.
+- **App (/app)**: Space Grotesk headings, Inter body
 
 ---
 
@@ -753,13 +697,13 @@ box-shadow: 0 0 60px rgba(212, 175, 55, 0.15);
 
 ## Related External Context Files
 
-Future context files will be created in specific project folders (e.g., `/mainpage/OpenCode-Context.md` for website work, `/app/OpenCode-Context.md` for PWA work). Use this master file as project overview and navigation hub.
+Future context files will be created in specific project folders (e.g., `/app/OpenCode-Context.md` for PWA work). Website context lives in [Website Organization (mainpage)](#website-organization-mainpage) and the root [CLAUDE.md](./CLAUDE.md): do not put context files inside `/mainpage`, because Vercel serves that folder as the public site root. Use this master file as project overview and navigation hub.
 
 ---
 
-**Last Updated**: January 17, 2026
+**Last Updated**: October 11, 2026
 **Maintained by**: Victor Bendas
-**Status**: Active (Phase 3 in progress, Week 2 starting Jan 19)
+**Status**: Active
 
 ## graphify
 

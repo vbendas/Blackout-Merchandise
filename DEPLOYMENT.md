@@ -1,6 +1,6 @@
 # Deployment Guide
 
-> **Last Updated:** January 30, 2026
+> **Last Updated:** October 11, 2026
 
 This guide covers deploying the MerchFrom applications to Vercel.
 
@@ -10,7 +10,7 @@ This guide covers deploying the MerchFrom applications to Vercel.
 
 - [Vercel CLI](https://vercel.com/docs/cli) installed: `bun i -g vercel`
 - Access to the MerchFrom Vercel team
-- Environment variables ready (see `.env.example` in each project)
+- Environment variables ready for `/app` (see [Environment Variables](#environment-variables)); the website needs none
 
 ---
 
@@ -20,28 +20,41 @@ We deploy two separate projects from this monorepo:
 
 | Project | Directory | Vercel Project | Domain |
 |---------|-----------|----------------|--------|
-| Marketing Site | `/mainpage` | `merch-from-mainpage` | `merchfrom.com` |
+| Website (static) | `/mainpage` | `merch-from-mainpage` | `merchfrom.com` |
 | Main App | `/app` | `merch-from-app` | `app.merchfrom.com` |
+
+`/platform` (the agent-first Next.js 16 app, npm) is not covered by this guide yet: no Vercel project for it is documented. `Documentation/Dev/Platform-Plan.md` plans it on Vercel region `fra1` and puts fan storefronts at `merchfrom.com/[slug]` (or an artist's custom domain). That would clash with the website on `merchfrom.com` above; the domain split between the website and the platform is not decided yet.
+
+The root `vercel.json` (a daily cron, `0 2 * * *`, on `/cron/retention`) belongs to neither project above, and no route in `app/`, `platform/` or `mainpage/` serves `/cron/retention`. Git-integration builds read `vercel.json` from the project's Root Directory (`mainpage` for the website), and the app's CLI deploy (see [Main App](#main-app-appmerchfromcom)) runs inside `app/` and uploads only that folder, so neither picks the root file up. A CLI deploy of the website run from the repo root does: when `mainpage/` has no `vercel.json` of its own, the CLI prints a warning that the file should be inside the root directory and then applies the repo-root `vercel.json`, cron included. This is one reason the website deploys through the Git integration only (see below).
 
 ---
 
 ## Quick Deploy
 
-### Marketing Site (merchfrom.com)
+### Website (merchfrom.com)
 
-```bash
-# From project root
-cd mainpage
+`/mainpage` is plain HTML, CSS and JS: no framework, nothing to install or build, no environment variables. Set the `merch-from-mainpage` project once in **Project Settings → Build and Deployment**:
 
-# Login to Vercel (first time only)
-vercel login
+| Setting | Value |
+|---------|-------|
+| Framework Preset | `Other` |
+| Root Directory | `mainpage` |
+| Build Command | Override on, field left empty (skips the build step) |
+| Output Directory | Default. With `Other`, Vercel serves `public/` if it exists, otherwise the Root Directory itself. `mainpage` has no `public/`, so `index.html`, `faq/`, `agents/`, `watch/` and `studio/` are served as they are |
+| Install Command | Default. `mainpage/package.json` has no dependencies and no `build` script, only `dev` |
+| Environment Variables | None |
 
-# Link to existing project (first time only)
-vercel link
+Do not add a `public/` folder to `mainpage`: with `Other`, Vercel would then serve only that folder.
 
-# Deploy to production
-vercel --prod
-```
+Deploy through the Git integration: connect the `merch-from-mainpage` project to the GitHub repo, and a push to the production branch deploys to production. The Git integration builds from the committed files only.
+
+Do not deploy the website with the CLI from this repo. Because the project's Root Directory is `mainpage`, the CLI joins it to the folder it runs in: run inside `mainpage/`, it looks for `mainpage/mainpage` and stops, so it has to run from the repo root, and from there:
+
+- The CLI uploads everything in the repo root except `.vercelignore` entries and Vercel's default ignore list (`.git`, `node_modules`, `.next`, `.vercel`, `.env.local`, ...). It does not read `.gitignore`. This repo has no `.vercelignore`, so git-ignored local files (for example `.claude/settings.local.json`, `.crush/`) and the untracked `Assets/` folder (about 5 GB) would be uploaded.
+- The repo-root `vercel.json` and its cron would be applied to the website deployment (see [Project Structure](#project-structure)).
+- The repo has no `.vercel` link folder, and the project lives in the MerchFrom Vercel team, so a bare `--project` would be looked up in whatever scope is currently active unless `--scope` is passed.
+
+> **Sample data:** the members area, keys, the "On the press now" board and apply results run on front-end sample data inside `index.html`, not a backend. Until a backend exists, a public deploy shows the three sample members (their emails are in the page source) and sample press rows, not real orders.
 
 ### Main App (app.merchfrom.com)
 
@@ -57,20 +70,9 @@ vercel --prod
 
 ## Environment Variables
 
-### Marketing Site (`/mainpage`)
+### Website (`/mainpage`)
 
-Set these in Vercel dashboard or via CLI:
-
-```bash
-vercel env add DATABASE_URL
-```
-
-Required variables:
-- `DATABASE_URL` - Neon PostgreSQL connection string
-
-Optional:
-- `NEXT_PUBLIC_GA_ID` - Google Analytics
-- `NEXT_PUBLIC_META_PIXEL_ID` - Meta Pixel
+None. The site is static and reads no environment variables; it has no database connection and no analytics scripts.
 
 ### Main App (`/app`)
 
@@ -105,6 +107,8 @@ Before each production deploy:
 - [ ] Database migrations applied (if needed): `bun run db:migrate`
 - [ ] No secrets in code (run: `bun run secrets:check`)
 
+The website has nothing to test, lint or build. Before deploying it, run it locally (`cd mainpage && npm run dev`, then open `http://127.0.0.1:3000`) and click through the pages.
+
 ---
 
 ## Database Migrations
@@ -123,10 +127,13 @@ bun run db:migrate
 
 ## Preview Deployments
 
-Every push to a branch creates a preview deployment:
+With the Git integration, every push to a branch creates a preview deployment for each connected project. That is the only way to preview the website: do not run the `vercel` CLI for it (see [Website](#website-merchfromcom)).
+
+For `/app`, a CLI preview runs inside `app/`, as in [Main App](#main-app-appmerchfromcom):
 
 ```bash
-# Deploy preview (non-production)
+# Deploy preview (non-production), /app only
+cd app
 vercel
 
 # The CLI will output a preview URL
@@ -157,7 +164,7 @@ If something goes wrong:
 
 | Domain | Project | Use |
 |--------|---------|-----|
-| `merchfrom.com` | mainpage | Marketing site |
+| `merchfrom.com` | mainpage | Website (static) |
 | `www.merchfrom.com` | mainpage | Redirect to non-www |
 | `app.merchfrom.com` | app | Application |
 
@@ -187,6 +194,8 @@ If something goes wrong:
 bun run clean:cache
 bun run build
 ```
+
+The website has no build. If a website deploy runs a build step or serves the wrong files, check its project settings: Framework Preset `Other`, Root Directory `mainpage`, Build Command override on and empty, no `public/` folder in `mainpage`.
 
 ### Environment Issues
 
