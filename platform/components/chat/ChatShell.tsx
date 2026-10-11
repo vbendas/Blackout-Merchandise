@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useRef, useState, type DragEvent } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState, type DragEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'motion/react';
 import type { CardActionContext } from '@/components/cards/actions';
 import { useConversation } from '@/components/chat/useConversation';
@@ -9,14 +10,40 @@ import { TopBar } from '@/components/chat/TopBar';
 import { Thread } from '@/components/chat/Thread';
 import { Composer } from '@/components/chat/Composer';
 import { VoiceOverlay } from '@/components/chat/VoiceOverlay';
-import { EmptyGreeting, QuickActionsRow } from '@/components/chat/EmptyState';
+import { EmptyGreeting, QuickActionsRow, ResumeLine } from '@/components/chat/EmptyState';
 import { ChecklistRow } from '@/components/chat/ChecklistRow';
-import { Spinner } from '@/components/ui/spinner';
+import { NoticeLine } from '@/components/studio/NoticeLine';
+import { ThreadSkeleton } from '@/components/studio/ThreadSkeleton';
+import { useOptionalStudioSidebar } from '@/components/studio/StudioSidebarProvider';
 
 const SETTLE = { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const };
 
-export function ChatShell({ showUser = true, role }: { showUser?: boolean; role?: 'artist' | 'admin' }) {
+/** One Studio session: header, thread (or the home screen) and composer.
+ * Without `sessionId` it starts a fresh session on the home screen and, once
+ * the first message is answered, moves the URL to /studio/s/<id> in place. */
+export function ChatShell({ sessionId }: { sessionId?: string }) {
+  const router = useRouter();
+  const sidebar = useOptionalStudioSidebar();
+  const refreshSidebar = sidebar?.refresh;
+  // A fresh session keeps /studio until its first reply starts.
+  const urlSettled = useRef(Boolean(sessionId));
+
+  const onMessageStart = useCallback(
+    (id: string) => {
+      if (urlSettled.current || !id) return;
+      urlSettled.current = true;
+      // Native history API: syncs with usePathname without a navigation, so
+      // this shell (and its stream) stays mounted.
+      window.history.replaceState(null, '', `/studio/s/${encodeURIComponent(id)}`);
+      void refreshSidebar?.();
+    },
+    [refreshSidebar],
+  );
+  // Titles are set server-side from the first user message; pick them up.
+  const onTurnEnd = useCallback(() => void refreshSidebar?.(), [refreshSidebar]);
+
   const {
+    conversationId,
     messages,
     chips,
     project,
@@ -24,14 +51,27 @@ export function ChatShell({ showUser = true, role }: { showUser?: boolean; role?
     quickActions,
     checklist,
     projectPill,
+    resume,
     workingLabel,
     sending,
     loadingHistory,
+    historyError,
+    retryHistory,
     confirmResolutions,
     onAssistantDone,
     sendText,
     resolveConfirm,
-  } = useConversation();
+  } = useConversation({ initialConversationId: sessionId, onMessageStart, onTurnEnd });
+
+  // /studio/s/<id> with an id that is not the user's: the history endpoint
+  // falls back to another conversation, so make the URL match what is shown.
+  useEffect(() => {
+    if (sessionId && conversationId && conversationId !== sessionId) {
+      window.history.replaceState(null, '', `/studio/s/${encodeURIComponent(conversationId)}`);
+    }
+  }, [sessionId, conversationId]);
+
+  const openSession = useCallback((id: string) => router.push(`/studio/s/${encodeURIComponent(id)}`), [router]);
 
   const upload = useUpload();
   const [isDragging, setIsDragging] = useState(false);
@@ -71,21 +111,23 @@ export function ChatShell({ showUser = true, role }: { showUser?: boolean; role?
     onUploadClick: upload.openPicker,
   };
   const isEmpty = messages.length === 0;
+  const title = (conversationId && sidebar?.titleFor(conversationId)) || 'New session';
 
   return (
     <div
-      className="mf-app flex h-dvh flex-col"
+      className="flex min-h-0 flex-1 flex-col"
       onDragEnter={onDragEnter}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      <TopBar showUser={showUser} role={role} projectPill={projectPill} project={project} ctx={ctx} />
+      <TopBar title={title} showMenu={Boolean(sidebar)} projectPill={projectPill} project={project} ctx={ctx} />
+      <Suspense fallback={null}>
+        <NoticeLine />
+      </Suspense>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {loadingHistory ? (
-          <div className="flex flex-1 items-center justify-center">
-            <Spinner />
-          </div>
+          <ThreadSkeleton variant={sessionId ? 'thread' : 'home'} />
         ) : (
           <div
             className={
@@ -94,8 +136,18 @@ export function ChatShell({ showUser = true, role }: { showUser?: boolean; role?
                 : 'flex min-h-0 flex-1 flex-col items-center'
             }
           >
+            {historyError && isEmpty ? (
+              <p role="alert" className="flex w-full items-baseline gap-3 px-6 text-[15px] md:justify-center md:px-0">
+                <span className="mf-dimmed">
+                  {sessionId ? 'This session could not be opened.' : 'The Studio could not load just now.'}
+                </span>
+                <button type="button" onClick={() => void retryHistory()} className="mf-ulink">
+                  Retry
+                </button>
+              </p>
+            ) : null}
             <AnimatePresence mode="popLayout">
-              {isEmpty ? (
+              {isEmpty && !historyError ? (
                 <motion.div
                   key="empty-intro"
                   layout
@@ -124,8 +176,8 @@ export function ChatShell({ showUser = true, role }: { showUser?: boolean; role?
               transition={SETTLE}
               className={
                 isEmpty
-                  ? 'flex w-full shrink-0 justify-center px-4 pb-5 md:px-0 md:pb-0'
-                  : 'flex w-full shrink-0 justify-center px-5 pb-7 md:px-10 md:pb-8'
+                  ? 'flex w-full shrink-0 justify-center px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:px-0 md:pb-0'
+                  : 'flex w-full shrink-0 justify-center px-5 pb-[max(1.75rem,env(safe-area-inset-bottom))] md:px-10 md:pb-8'
               }
             >
               <Composer
@@ -137,6 +189,7 @@ export function ChatShell({ showUser = true, role }: { showUser?: boolean; role?
                 onOpenVoice={() => setVoiceOpen(true)}
               />
             </motion.div>
+            {isEmpty && resume ? <ResumeLine resume={resume} onOpen={openSession} /> : null}
             {isEmpty && checklist ? <ChecklistRow steps={checklist} onPrompt={sendText} /> : null}
           </div>
         )}

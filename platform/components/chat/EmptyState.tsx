@@ -1,8 +1,9 @@
 import type { ComponentType } from 'react';
 import { LayoutGrid, Package, Sparkles, Upload } from 'lucide-react';
 import type { Chip as ChipType } from '@/lib/ui-cards/schemas';
-import type { Greeting } from '@/components/chat/useConversation';
+import type { Greeting, ResumeTarget } from '@/components/chat/useConversation';
 import { StorefrontIcon, TShirtIcon } from '@/components/chat/icons';
+import { humanStatus } from '@/lib/format/status';
 
 function iconFor(label: string): ComponentType<{ className?: string }> {
   const text = label.toLowerCase();
@@ -16,9 +17,12 @@ function iconFor(label: string): ComponentType<{ className?: string }> {
 
 export function EmptyGreeting({ greeting }: { greeting: Greeting }) {
   return (
-    <div className="mf-rise mf-rise-d1 flex w-full min-w-0 flex-col items-start gap-2 px-6 text-left md:items-center md:gap-2.5 md:px-0 md:text-center">
-      <h1 className="mf-display w-full text-[38px] leading-[1.05] md:text-[44px] md:leading-none">{greeting.headline}</h1>
-      {greeting.line ? <p className="mf-dimmed text-[14px]">{greeting.line}</p> : null}
+    <div className="mf-rise mf-rise-d1 flex w-full min-w-0 flex-col items-start gap-3 px-6 text-left md:items-center md:px-0 md:text-center">
+      <h1 className="mf-display w-full text-[40px] leading-[1.06] md:text-[56px]">{greeting.headline}</h1>
+      {greeting.line ? (
+        <p className="mf-dimmed max-w-[30em] text-[18px] leading-[1.35] tracking-[-0.015em] md:text-[22px]">{greeting.line}</p>
+      ) : null}
+      <p className="mf-mono-note mt-1">Your merch, by application.</p>
     </div>
   );
 }
@@ -56,6 +60,21 @@ export function QuickActionsRow({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/** Under the composer on the Studio home: one line back into the previous
+ * conversation (opens /studio/s/<id>), styled like the website's underlined
+ * text links. */
+export function ResumeLine({ resume, onOpen }: { resume: ResumeTarget; onOpen: (conversationId: string) => void }) {
+  return (
+    <div className="mf-rise mf-rise-d6 flex w-full min-w-0 items-baseline gap-3 px-6 md:justify-center md:px-0">
+      <span className="mf-label mf-dimmed shrink-0">Continue</span>
+      <button type="button" onClick={() => onOpen(resume.conversationId)} className="mf-ulink min-w-0 truncate">
+        {resume.label}
+        {resume.status ? <span className="mf-dimmed"> · {humanStatus(resume.status)}</span> : null}
+      </button>
     </div>
   );
 }

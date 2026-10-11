@@ -1,12 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { AgentEvent, AgentRequest, ChecklistStep } from '@/lib/agent/protocol';
+import type { AgentEvent, AgentRequest, ChecklistStep, HistoryResponse } from '@/lib/agent/protocol';
 import type { Card, Chip, ProductProjectState, ToolUi } from '@/lib/ui-cards/schemas';
 import type { BulkOrderProjectState } from '@/components/cards/project/types';
 import {
   fetchAgentHistory,
-  loadStoredConversationId,
   sendAgentConfirm,
   sendAgentMessage,
   storeConversationId,
@@ -38,7 +37,19 @@ function makeId(prefix: string): string {
 
 const DEFAULT_GREETING: Greeting = { headline: 'What are we making?', line: '' };
 
-export function useConversation() {
+export type ResumeTarget = NonNullable<HistoryResponse['resume']>;
+
+export interface UseConversationOptions {
+  /** open this conversation instead of a fresh home session (/studio/s/<id>);
+   * an id that is not the user's falls back server-side */
+  initialConversationId?: string;
+  /** the server has started replying in this conversation */
+  onMessageStart?: (conversationId: string) => void;
+  /** a turn finished (message_end, error or a confirm pause) */
+  onTurnEnd?: (conversationId: string) => void;
+}
+
+export function useConversation({ initialConversationId, onMessageStart, onTurnEnd }: UseConversationOptions = {}) {
   const [conversationId, setConversationId] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chips, setChips] = useState<Chip[]>([]);
@@ -47,9 +58,11 @@ export function useConversation() {
   const [quickActions, setQuickActions] = useState<Chip[]>([]);
   const [checklist, setChecklist] = useState<ChecklistStep[] | null>(null);
   const [projectPill, setProjectPill] = useState<ProjectPill | null>(null);
+  const [resume, setResume] = useState<ResumeTarget | null>(null);
   const [workingLabel, setWorkingLabel] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [historyError, setHistoryError] = useState(false);
   const [confirmResolutions, setConfirmResolutions] = useState<Record<string, 'approved' | 'rejected'>>({});
   const [lastAssistantText, setLastAssistantText] = useState('');
 
@@ -60,9 +73,20 @@ export function useConversation() {
   // without waiting on a render to land in `messages`.
   const currentTextRef = useRef('');
   const assistantDoneListeners = useRef<Set<(text: string) => void>>(new Set());
+  // Latest callbacks and conversation id, read from the stream handler
+  // without re-creating it on every render.
+  const callbacksRef = useRef({ onMessageStart, onTurnEnd });
+  const conversationIdRef = useRef('');
+  useEffect(() => {
+    callbacksRef.current = { onMessageStart, onTurnEnd };
+  }, [onMessageStart, onTurnEnd]);
+  useEffect(() => {
+    conversationIdRef.current = conversationId;
+  }, [conversationId]);
 
   const notifyAssistantDone = useCallback((text: string) => {
     setLastAssistantText(text);
+    callbacksRef.current.onTurnEnd?.(conversationIdRef.current);
     for (const listener of assistantDoneListeners.current) listener(text);
   }, []);
 
@@ -76,37 +100,64 @@ export function useConversation() {
     };
   }, []);
 
+  const applyHistory = useCallback((history: HistoryResponse) => {
+    setConversationId(history.conversationId);
+    conversationIdRef.current = history.conversationId;
+    storeConversationId(history.conversationId);
+    setMessages(
+      history.messages.map((message) => ({
+        id: message.id,
+        role: message.role,
+        text: message.text,
+        cards: message.cards ?? [],
+      })),
+    );
+    setChips(history.chips);
+    setProject(history.project);
+    setGreeting(history.greeting);
+    setQuickActions(history.quickActions);
+    setChecklist(history.checklist);
+    setProjectPill(history.projectPill);
+    setResume(history.resume ?? null);
+    setConfirmResolutions({});
+  }, []);
+
+  // /studio opens on its home screen: a blank session, with the previous
+  // conversation offered as `resume` rather than reopened. /studio/s/<id>
+  // loads that conversation instead.
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      const storedId = loadStoredConversationId();
-      const history = await fetchAgentHistory(storedId);
+    fetchAgentHistory(initialConversationId ?? '', { fresh: !initialConversationId }).then((history) => {
       if (cancelled) return;
-      if (history) {
-        setConversationId(history.conversationId);
-        storeConversationId(history.conversationId);
-        setMessages(
-          history.messages.map((message) => ({
-            id: message.id,
-            role: message.role,
-            text: message.text,
-            cards: message.cards ?? [],
-          })),
-        );
-        setChips(history.chips);
-        setProject(history.project);
-        setGreeting(history.greeting);
-        setQuickActions(history.quickActions);
-        setChecklist(history.checklist);
-        setProjectPill(history.projectPill);
-      }
+      if (history) applyHistory(history);
+      setHistoryError(!history);
       setLoadingHistory(false);
-    }
-    load();
+    });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [applyHistory, initialConversationId]);
+
+  const loadSession = useCallback(
+    async (target: { fresh: true } | { conversationId: string }) => {
+      setLoadingHistory(true);
+      const history = await fetchAgentHistory('conversationId' in target ? target.conversationId : '', {
+        fresh: 'fresh' in target,
+      });
+      if (history) applyHistory(history);
+      setHistoryError(!history);
+      setLoadingHistory(false);
+    },
+    [applyHistory],
+  );
+
+  const startNewSession = useCallback(() => loadSession({ fresh: true }), [loadSession]);
+  const openConversation = useCallback((id: string) => loadSession({ conversationId: id }), [loadSession]);
+  /** after a failed load: try the same session (or a fresh home) again */
+  const retryHistory = useCallback(
+    () => loadSession(initialConversationId ? { conversationId: initialConversationId } : { fresh: true }),
+    [initialConversationId, loadSession],
+  );
 
   const updateMessage = useCallback((id: string, updater: (message: ChatMessage) => ChatMessage) => {
     setMessages((prev) => prev.map((message) => (message.id === id ? updater(message) : message)));
@@ -139,6 +190,8 @@ export function useConversation() {
             setConversationId(event.conversationId);
             storeConversationId(event.conversationId);
           }
+          conversationIdRef.current = event.conversationId || conversationId;
+          callbacksRef.current.onMessageStart?.(conversationIdRef.current);
           currentMessageId.current = event.messageId;
           currentTextRef.current = '';
           setMessages((prev) => [
@@ -286,9 +339,14 @@ export function useConversation() {
     quickActions,
     checklist,
     projectPill,
+    resume,
+    startNewSession,
+    openConversation,
     workingLabel,
     sending,
     loadingHistory,
+    historyError,
+    retryHistory,
     confirmResolutions,
     lastAssistantText,
     onAssistantDone,

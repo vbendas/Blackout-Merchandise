@@ -1,9 +1,9 @@
 :root {
-  --paper: #221f1c;
-  --signal: #ede4dd;
-  --font-ui: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --hairline: 1px solid color-mix(in srgb, var(--signal) 22%, transparent);
+  /* --paper, --signal and --font-ui come from app/globals.css (black ground,
+     white ink, Inter), the website's identity. Hairlines are white at 16%. */
+  --hairline: 1px solid color-mix(in srgb, var(--signal) 16%, transparent);
   --hairline-strong: 1px solid color-mix(in srgb, var(--signal) 50%, transparent);
+  --sidebar-w: 272px;
   --tint-4: color-mix(in srgb, var(--signal) 4%, transparent);
   --tint-8: color-mix(in srgb, var(--signal) 8%, transparent);
   --tint-14: color-mix(in srgb, var(--signal) 14%, transparent);
@@ -15,18 +15,32 @@
 
 .mf-label {
   font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
+/* Large Inter headlines, sentence case, tight tracking (the website's .head). */
 .mf-display {
   font-family: var(--font-display, var(--font-ui));
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+/* Small mono tag line under headlines. */
+.mf-mono-note {
+  font-family: var(--font-plex-mono), ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  color: color-mix(in srgb, var(--signal) 50%, transparent);
 }
 
 .mf-dimmed {
-  opacity: 0.62;
+  opacity: 0.5;
 }
 
 .mf-hairline {
@@ -59,8 +73,26 @@
   stroke-linejoin: round;
 }
 
-/* Pill button — the sole action-button shape in the redesign: quick actions,
-   chips, suggestion chips, card + confirm actions. */
+/* Underlined uppercase text link (the website's .ulink). */
+.mf-ulink {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  padding: 4px 0;
+  color: var(--signal);
+}
+
+.mf-ulink:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Action button: quick actions, chips, suggestion chips, card + confirm
+   actions. Square hairline box with the website's uppercase label type. */
 .mf-pill {
   display: inline-flex;
   align-items: center;
@@ -68,9 +100,12 @@
   gap: 8px;
   height: 40px;
   padding: 0 16px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: var(--hairline);
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   line-height: 1;
   color: var(--signal);
   background: transparent;
@@ -90,9 +125,9 @@
 }
 
 .mf-pill-sm {
-  height: 36px;
-  font-size: 13px;
-  padding: 0 14px;
+  height: 34px;
+  font-size: 11px;
+  padding: 0 12px;
 }
 
 .mf-pill-primary {
@@ -131,7 +166,7 @@
   color: var(--warning);
 }
 
-/* 8px checker behind transparent-PNG previews, in two close charcoal tones. */
+/* 8px checker behind transparent-PNG previews, in two close near-black tones. */
 .mf-checker {
   background-color: var(--paper);
   background-image:
@@ -141,6 +176,14 @@
     linear-gradient(-45deg, transparent 75%, color-mix(in srgb, var(--signal) 10%, var(--paper)) 75%);
   background-size: 16px 16px;
   background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
+
+/* Packshot well: garments sit on the website catalog's ecru paper, so dark
+   blanks read against the black ground. */
+.mf-plate {
+  display: block;
+  border-radius: 2px;
+  background: #ece5da;
 }
 
 /* Hover-lift used by mockup grid items. */
@@ -154,7 +197,7 @@
 
 /* Dashed drop-zone highlight while dragging a file over the composer. */
 .mf-drop-highlight {
-  border-radius: 32px;
+  border-radius: 2px;
   outline: 1px dashed color-mix(in srgb, var(--signal) 55%, transparent);
   outline-offset: 4px;
 }
@@ -164,7 +207,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: 2px;
   background: transparent;
   border: none;
   color: var(--signal);
@@ -200,19 +243,19 @@
 /* Cards: generative-UI content blocks. */
 .mf-card {
   border: var(--hairline);
-  border-radius: 16px;
-  background: var(--tint-4);
+  border-radius: 2px;
+  background: transparent;
 }
 
 /* Suggestion / list rows nested inside cards. */
 .mf-row {
-  border-radius: 12px;
+  border-radius: 2px;
 }
 
 /* Dropdowns / popovers (suggestions, modals-within-composer). */
 .mf-dropdown {
   border: var(--hairline);
-  border-radius: 20px;
+  border-radius: 2px;
   background: var(--paper);
 }
 
@@ -259,10 +302,10 @@
 @keyframes mf-breathe {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(237, 228, 221, 0.18);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.18);
   }
   50% {
-    box-shadow: 0 0 0 10px rgba(237, 228, 221, 0);
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
   }
 }
 
@@ -351,40 +394,246 @@
   }
 }
 
-/* Composer chrome: override the AI Elements InputGroup base styles so the
-   pill-shaped 32px-radius container matches the design mock exactly, while
-   still relying on InputGroup's flex layout and has-[>textarea] auto-height. */
+/* Composer chrome: override the AI Elements InputGroup base styles with a
+   flat, square hairline box (the website's email field, boxed), while still
+   relying on InputGroup's flex layout and has-[>textarea] auto-height. */
 .mf-composer [data-slot='input-group'] {
-  height: 64px;
+  min-height: 64px;
   padding: 0 12px 0 14px;
   gap: 10px;
-  border-radius: 32px;
-  border-color: color-mix(in srgb, var(--signal) 22%, transparent);
-  background: var(--tint-4);
+  border-radius: 2px;
+  border-color: color-mix(in srgb, var(--signal) 16%, transparent);
+  background: transparent;
   box-shadow: none;
 }
 
 .mf-composer [data-slot='input-group']:has([data-slot='input-group-control']:focus-visible) {
-  border-color: color-mix(in srgb, var(--signal) 40%, transparent);
+  border-color: color-mix(in srgb, var(--signal) 50%, transparent);
   box-shadow: none;
 }
 
 .mf-composer textarea[data-slot='input-group-control'] {
-  padding: 0 4px;
+  /* centres one 22px line in the 62px inner height; grows from there */
+  min-height: 62px;
+  padding: 20px 4px;
   font-size: 16px;
   line-height: 1.4;
 }
 
 .mf-composer textarea[data-slot='input-group-control']::placeholder {
-  opacity: 0.5;
+  opacity: 0.4;
   color: var(--signal);
 }
 
 @media (max-width: 767px) {
   .mf-composer [data-slot='input-group'] {
-    height: 60px;
+    min-height: 60px;
     padding: 0 10px 0 12px;
     gap: 8px;
+  }
+
+  .mf-composer textarea[data-slot='input-group-control'] {
+    min-height: 58px;
+    padding: 18px 4px;
+  }
+}
+
+/* Merch Studio shell: a fixed session sidebar on the left (an off-canvas
+   drawer below 768px), the page content to the right. */
+.mf-shell {
+  min-height: 100dvh;
+}
+
+.mf-shell-main {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .mf-shell-main {
+    padding-inline-start: var(--sidebar-w);
+  }
+}
+
+.mf-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 40;
+  width: var(--sidebar-w);
+  max-width: 86vw;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border-right: var(--hairline);
+}
+
+@media (max-width: 767px) {
+  .mf-sidebar {
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 280ms var(--ease-settle), visibility 0s linear 280ms;
+  }
+
+  .mf-sidebar[data-open='true'] {
+    transform: none;
+    visibility: visible;
+    transition: transform 280ms var(--ease-settle), visibility 0s;
+  }
+}
+
+.mf-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* One sidebar row: session, collection, plain link. */
+.mf-side-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  border-radius: 2px;
+  color: color-mix(in srgb, var(--signal) 70%, transparent);
+  transition: background-color 200ms var(--ease-settle), color 200ms var(--ease-settle);
+}
+
+.mf-side-row:hover,
+.mf-side-row:focus-within {
+  background: var(--tint-4);
+  color: var(--signal);
+}
+
+.mf-side-row[data-active='true'] {
+  background: var(--tint-8);
+  color: var(--signal);
+}
+
+.mf-side-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  padding: 9px 10px;
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.mf-side-link:focus-visible {
+  outline-offset: -1px;
+}
+
+/* The row's "..." trigger stays hidden until the row is hovered or focused
+   (always visible on touch screens and while its menu is open). */
+.mf-side-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-right: 4px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  color: color-mix(in srgb, var(--signal) 70%, transparent);
+  opacity: 0;
+}
+
+.mf-side-row:hover .mf-side-more,
+.mf-side-row:focus-within .mf-side-more,
+.mf-side-more[aria-expanded='true'] {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .mf-side-more {
+    opacity: 1;
+  }
+}
+
+.mf-side-more:hover {
+  background: var(--tint-8);
+  color: var(--signal);
+}
+
+.mf-side-input {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: var(--hairline-strong);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--signal);
+  font-size: 14px;
+  outline: none;
+}
+
+/* Small popover menu (row menus, account drop-up). */
+.mf-menu {
+  position: absolute;
+  z-index: 60;
+  min-width: 200px;
+  padding: 4px;
+  border: var(--hairline);
+  border-radius: 2px;
+  background: var(--paper);
+}
+
+.mf-menu-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 2px;
+  font-size: 13px;
+  line-height: 18px;
+  text-align: left;
+  color: var(--signal);
+  white-space: nowrap;
+}
+
+.mf-menu-item:hover,
+.mf-menu-item:focus-visible {
+  background: var(--tint-8);
+  outline: none;
+}
+
+.mf-menu-item[aria-checked='true']::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--signal);
+}
+
+.mf-menu-sep {
+  height: 1px;
+  margin: 4px 0;
+  background: color-mix(in srgb, var(--signal) 16%, transparent);
+}
+
+/* Quiet loading skeleton for the thread area. */
+.mf-skel {
+  border-radius: 2px;
+  background: var(--tint-8);
+  animation: mf-skel 1600ms ease-in-out infinite;
+}
+
+@keyframes mf-skel {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
   }
 }
 
