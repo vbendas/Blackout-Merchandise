@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex">
+<title>For agents · MerchFrom</title>
+<meta name="description" content="How to connect your own AI agent to MerchFrom over MCP, and what it can do. Members only.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="data:,">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+:root{
+  --bg:#000;--fg:#fff;
+  --a8:rgba(255,255,255,.8);--a5:rgba(255,255,255,.5);--a4:rgba(255,255,255,.4);--a22:rgba(255,255,255,.22);
+  --rule:rgba(255,255,255,.16);--rule2:rgba(255,255,255,.08);--tile:rgba(255,255,255,.085);
+  --g:32px;--h:56px;--sub:22px;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  color-scheme:dark;
+}
+@media (max-width:899.98px){:root{--g:24px}}
+@media (max-width:700px){:root{--g:16px;--h:40px;--sub:18px}}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{background:#000;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{
+  position:relative;background:#000;color:var(--fg);
+  font-family:Inter,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  font-size:16px;line-height:1.4;font-weight:400;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;min-height:100vh;min-height:100dvh;
+}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;border-radius:0;letter-spacing:inherit;cursor:pointer;text-align:inherit}
+::selection{background:#fff;color:#000}
+:focus{outline:none}
+:focus-visible{outline:1px solid #fff;outline-offset:5px}
+[hidden]{display:none!important}
+.sr{position:absolute!important;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:var(--g);top:-60px;z-index:50;padding:8px 0}
+.skip:focus{top:16px}
+
+.label{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;line-height:1.35}
+@media (min-width:900px){.label{font-size:13px}}
+.head{font-size:var(--h);line-height:1.06;font-weight:600;letter-spacing:-.03em;text-wrap:balance}
+.sub{font-size:var(--sub);line-height:1.35;color:var(--a5);letter-spacing:-.015em;max-width:30em;text-wrap:pretty}
+.dim{color:var(--a5)}
+.d4{color:var(--a4)}
+.ulink{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;line-height:1.35;
+  text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px;color:#fff;padding:6px 0}
+@media (min-width:900px){.ulink{font-size:13px}}
+.ulink:hover{text-decoration-thickness:2px}
+
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#fff;flex:none}
+.dot.hollow{background:transparent;outline:1px solid rgba(255,255,255,.7);outline-offset:-1px}
+
+.js .r{opacity:0;transform:translateY(12px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.js .r.in{opacity:1;transform:none}
+
+.top{position:absolute;z-index:30;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px var(--g) 0}
+.top .wm{padding:4px 0}
+.clk{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;white-space:nowrap}
+.clk .s{color:var(--a4)}
+.top .clk .where{color:var(--a5);margin-right:.6em}
+@media (max-width:420px){.top .clk .where{display:none}}
+
+.view{min-height:100vh;min-height:100dvh;padding:76px var(--g) 20px;display:flex;flex-direction:column}
+.view>main{flex:1 0 auto}
+.intro{padding-top:clamp(24px,7vh,72px);max-width:1040px}
+.intro .kick{display:flex;align-items:center;gap:10px;color:var(--a8);margin-bottom:14px}
+.intro .sub{margin-top:18px;max-width:34em}
+@media (min-width:900px){.intro .sub{font-size:24px}}
+
+/* ---------- spec sheet ---------- */
+.spec{margin-top:clamp(40px,8vh,80px)}
+.sec{display:grid;grid-template-columns:240px minmax(0,1fr);column-gap:32px;border-top:1px solid var(--rule);padding:22px 0 56px}
+.sec>.k{display:flex;gap:14px;align-items:baseline;color:var(--a5)}
+.sec>.k .no{font-family:var(--mono);font-weight:500;letter-spacing:.06em;color:var(--a4);font-size:12px}
+.sec>.k h2{font-size:inherit;font-weight:inherit;letter-spacing:inherit;text-transform:inherit;color:#fff}
+.sec>.c{min-width:0}
+@media (max-width:899.98px){
+  .sec{grid-template-columns:1fr;row-gap:20px;padding:18px 0 44px}
+}
+.mono{font-family:var(--mono);font-weight:400;letter-spacing:0}
+.note{margin-top:12px;color:var(--a5);font-size:14px;line-height:1.5;max-width:40em}
+
+/* copy button */
+.cp{display:inline-block;flex:none;padding:6px 0;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;line-height:1.35;color:#fff;
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:5px;min-width:6.5em;text-align:right}
+@media (min-width:900px){.cp{font-size:13px}}
+.cp:hover{text-decoration-thickness:2px}
+.cp.done{text-decoration:none;color:var(--a8)}
+
+/* endpoint */
+.ep{display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding-bottom:14px;border-bottom:1px solid var(--a4)}
+.ep code{font-family:var(--mono);font-weight:500;font-size:clamp(17px,3.1vw,36px);letter-spacing:-.01em;line-height:1.2;overflow-wrap:anywhere;min-width:0}
+.kv{margin-top:6px}
+.kv>div{display:grid;grid-template-columns:140px minmax(0,1fr);gap:16px;padding:12px 0;border-bottom:1px solid var(--rule);align-items:baseline}
+.kv dt{color:var(--a5);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;line-height:1.35}
+@media (min-width:900px){.kv dt{font-size:13px}}
+.kv dd{font-family:var(--mono);font-size:14px;color:var(--a8)}
+
+/* connect blocks */
+.blk{border-bottom:1px solid var(--rule);padding:14px 0 18px}
+.blk:first-child{padding-top:0}
+.blk-h{display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+.blk-h .label{color:#fff}
+pre.code{margin-top:10px;font-family:var(--mono);font-weight:400;font-size:14px;line-height:1.65;color:var(--a8);white-space:pre-wrap;overflow-wrap:anywhere;tab-size:2}
+pre.code .p{color:var(--a4);user-select:none;-webkit-user-select:none}
+pre.code .k{color:var(--a5)}
+@media (max-width:700px){pre.code{font-size:13px}}
+
+/* capabilities */
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;color:var(--a5);font-size:14px;margin-bottom:30px}
+.tag{flex:none;display:inline-block;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.06em;line-height:1;padding:4px 5px 3px;outline:1px solid rgba(255,255,255,.75);outline-offset:-1px;color:#fff;white-space:nowrap;text-transform:uppercase}
+.grp+.grp{margin-top:38px}
+.grp-h{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding-bottom:10px;border-bottom:1px solid var(--a4)}
+.grp-h .n{color:var(--a4);font-family:var(--mono);font-weight:500;letter-spacing:.06em}
+.caps{list-style:none}
+.caps li{display:grid;grid-template-columns:minmax(0,270px) minmax(0,1fr) 112px;column-gap:24px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--rule)}
+.caps .nm{font-family:var(--mono);font-size:14px;font-weight:500;color:#fff;overflow-wrap:anywhere}
+.caps .d{font-size:15px;line-height:1.45;color:var(--a8)}
+.caps .t{justify-self:end}
+@media (max-width:700px){
+  .caps li{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"nm t" "d d";row-gap:3px;padding:11px 0}
+  .caps .nm{grid-area:nm;font-size:13px}.caps .d{grid-area:d;font-size:14px;color:var(--a5)}.caps .t{grid-area:t}
+}
+
+/* example */
+.ex-h{display:flex;justify-content:space-between;gap:16px;align-items:baseline;padding-bottom:10px;border-bottom:1px solid var(--a4)}
+.ex{list-style:none;font-family:var(--mono);font-size:14px;line-height:1.6}
+.ex li{display:grid;grid-template-columns:76px minmax(0,1fr);column-gap:16px;padding:11px 0;border-bottom:1px solid var(--rule2)}
+.ex .w{color:var(--a4);text-transform:uppercase;letter-spacing:.06em;font-size:12px;padding-top:2px}
+.ex .x{color:var(--a5);overflow-wrap:break-word;min-width:0}
+.ex .call .x{overflow-wrap:normal}
+.ex .nb{white-space:nowrap}
+.ex .you .x{color:#fff;font-family:Inter,system-ui,sans-serif;font-size:17px;line-height:1.4;letter-spacing:-.01em;font-weight:600}
+.ex .you .w{color:#fff}
+.ex .agent .x{color:var(--a8);font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:1.4}
+.ex .call .x b{color:#fff;font-weight:500}
+@media (max-width:700px){.ex{font-size:12.5px}.ex li{grid-template-columns:52px minmax(0,1fr);column-gap:10px}.ex .you .x{font-size:16px}}
+
+/* status */
+.stat{display:flex;align-items:center;gap:14px;font-size:clamp(28px,4vw,48px);line-height:1.1;font-weight:600;letter-spacing:-.03em}
+.stat .dot{width:8px;height:8px}
+.stat+.row2{margin-top:18px}
+.row2{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 28px;color:var(--a5)}
+.llms{display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:12px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin-top:6px}
+.llms code{font-family:var(--mono);font-size:15px;color:#fff;overflow-wrap:anywhere}
+
+/* ---------- footer: same single ruled row as the door ---------- */
+.cfoot{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 36px;border-top:1px solid var(--rule);padding:18px 0 0;margin-top:44px}
+.fi{display:inline-flex;align-items:baseline;gap:10px;white-space:nowrap;min-width:0}
+.fi .label{color:var(--a5)}
+.flink{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;line-height:1.35;
+  color:#fff;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:5px;cursor:pointer;display:inline-block}
+@media (min-width:900px){.flink{font-size:13px}}
+.flink.lc{text-transform:none;letter-spacing:.02em}
+.flink:hover{text-decoration-thickness:2px}
+.flink[aria-current="page"]{text-decoration-thickness:2px}
+.fcopy{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;line-height:1.35;color:var(--a4);cursor:pointer;
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:rgba(255,255,255,.22)}
+.fcopy:hover{color:#fff;text-decoration-color:currentColor}
+.fi .fnote{color:var(--a4)}
+.fi .fnote:empty{display:none}
+.fi.place{margin-left:auto;color:#fff}
+@media (max-width:899.98px){.cfoot{gap:12px 28px}}
+@media (max-width:700px){
+  .cfoot{gap:14px 22px;margin-top:40px;padding-top:16px}
+  .fi.f-ask{order:1}.fi.faq{order:2}.fi.disc{order:3}.fi.place{order:4}
+  .fi.write{order:5;flex-basis:100%}.fi.agents{order:6;flex-basis:100%}
+  .fi .fnote{display:none}
+}
+@media (max-width:700px){.view{padding-top:68px}.intro{padding-top:20px}}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+  .js .r{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<a class="skip label" href="#spec">Skip to the spec</a>
+<header class="top">
+  <a href="../" class="label wm">MerchFrom</a>
+  <span class="label clk" id="top-clock" aria-hidden="true"><span class="where">Barcelona</span><span class="v">--:--</span></span>
+</header>
+<div id="live" class="sr" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<div class="view">
+<main aria-labelledby="h">
+  <div class="intro">
+    <p class="label kick r"><i class="dot hollow" aria-hidden="true"></i>MCP &middot; Opening to members soon</p>
+    <h1 id="h" class="head r">For agents.</h1>
+    <p class="sub r">Merch Studio's agent, opened up over MCP so the agent you already use can work with it. Members only: access is by application, and uses your member email and key.</p>
+  </div>
+
+  <div class="spec" id="spec">
+
+    <section class="sec r" aria-labelledby="s1">
+      <div class="label k"><span class="no" aria-hidden="true">01</span><h2 id="s1">Endpoint</h2></div>
+      <div class="c">
+        <div class="ep"><code id="ep">https://mcp.merchfrom.com</code><button type="button" class="cp" data-copy="https://mcp.merchfrom.com" aria-label="Copy the endpoint URL">Copy</button></div>
+        <dl class="kv">
+          <div><dt>Protocol</dt><dd>MCP</dd></div>
+          <div><dt>Transport</dt><dd>HTTP</dd></div>
+          <div><dt>Access</dt><dd>Members only</dd></div>
+          <div><dt>Sign-in</dt><dd>Member email and key</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="sec r" aria-labelledby="s2">
+      <div class="label k"><span class="no" aria-hidden="true">02</span><h2 id="s2">Connect</h2></div>
+      <div class="c">
+        <div class="blk">
+          <div class="blk-h"><span class="label">Claude Code</span><button type="button" class="cp" data-copy="claude mcp add --transport http merchfrom https://mcp.merchfrom.com" aria-label="Copy the Claude Code command">Copy</button></div>
+          <pre class="code"><span class="p">$ </span>claude mcp add --transport http merchfrom https://mcp.merchfrom.com</pre>
+          <p class="note">Then run /mcp inside Claude Code to check the connection.</p>
+        </div>
+        <div class="blk">
+          <div class="blk-h"><span class="label">Claude desktop and claude.ai</span><button type="button" class="cp" data-copy="https://mcp.merchfrom.com" aria-label="Copy the connector URL for Claude">Copy URL</button></div>
+          <pre class="code"><span class="k">Settings &rsaquo; Connectors &rsaquo; Add custom connector</span>
+Name  MerchFrom
+URL   https://mcp.merchfrom.com</pre>
+        </div>
+        <div class="blk">
+          <div class="blk-h"><span class="label">ChatGPT</span><button type="button" class="cp" data-copy="https://mcp.merchfrom.com" aria-label="Copy the connector URL for ChatGPT">Copy URL</button></div>
+          <pre class="code"><span class="k">Settings &rsaquo; Connectors &rsaquo; Developer mode &rsaquo; Add connector</span>
+Name  MerchFrom
+URL   https://mcp.merchfrom.com</pre>
+          <p class="note">Developer mode is needed, where your plan offers it.</p>
+        </div>
+        <div class="blk">
+          <div class="blk-h"><span class="label">Cursor</span><button type="button" class="cp" data-copy="{&quot;mcpServers&quot;:{&quot;merchfrom&quot;:{&quot;url&quot;:&quot;https://mcp.merchfrom.com&quot;}}}" aria-label="Copy the Cursor mcp.json snippet">Copy</button></div>
+          <pre class="code"><span class="k">~/.cursor/mcp.json</span>
+{
+  "mcpServers": {
+    "merchfrom": { "url": "https://mcp.merchfrom.com" }
+  }
+}</pre>
+          <p class="note">Or .cursor/mcp.json inside a single project.</p>
+        </div>
+        <div class="blk">
+          <div class="blk-h"><span class="label">Any MCP client</span><button type="button" class="cp" data-copy="{&quot;name&quot;:&quot;merchfrom&quot;,&quot;url&quot;:&quot;https://mcp.merchfrom.com&quot;,&quot;transport&quot;:&quot;http&quot;}" aria-label="Copy the generic client JSON">Copy</button></div>
+          <pre class="code">{
+  "name": "merchfrom",
+  "url": "https://mcp.merchfrom.com",
+  "transport": "http"
+}</pre>
+          <p class="note">On first use, sign in with your member email and key.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec r" aria-labelledby="s3">
+      <div class="label k"><span class="no" aria-hidden="true">03</span><h2 id="s3">What your agent can do</h2></div>
+      <div class="c">
+        <p class="legend"><span class="tag">Asks you first</span><span>Waits for your confirmation before it runs. These are the tools Merch Studio's agent uses today.</span></p>
+        <div class="grp">
+          <div class="grp-h"><h3 class="label">Catalog and blanks</h3><span class="label n" aria-hidden="true">02</span></div>
+          <ul class="caps">
+            <li><span class="nm">list_blanks</span><span class="d">Browse and search the blank catalogue by type, fit, colour or text.</span><span class="t"></span></li>
+            <li><span class="nm">get_blank</span><span class="d">Full specs for one blank: colours, sizes, size guide and print services.</span><span class="t"></span></li>
+          </ul>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3 class="label">Briefs and design</h3><span class="label n" aria-hidden="true">06</span></div>
+          <ul class="caps">
+            <li><span class="nm">analyze_design</span><span class="d">Checks print readiness: resolution at a 28 cm print width, transparency and background.</span><span class="t"></span></li>
+            <li><span class="nm">clean_design</span><span class="d">Removes a background, upscales or trims. Your original stays untouched.</span><span class="t"></span></li>
+            <li><span class="nm">edit_design</span><span class="d">Changes artwork from an instruction, as a new version beside the original.</span><span class="t"></span></li>
+            <li><span class="nm">compose_design</span><span class="d">Builds a design around your logo. The logo is never altered.</span><span class="t"></span></li>
+            <li><span class="nm">generate_design</span><span class="d">Makes new artwork from a text brief and returns two variants.</span><span class="t"></span></li>
+            <li><span class="nm">list_style_capsules</span><span class="d">Lists the style presets you can use for new artwork.</span><span class="t"></span></li>
+          </ul>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3 class="label">Mockups and products</h3><span class="label n" aria-hidden="true">08</span></div>
+          <ul class="caps">
+            <li><span class="nm">preview_on_blank</span><span class="d">Tries a design on a blank, in one or more colours, before a product exists.</span><span class="t"></span></li>
+            <li><span class="nm">render_mockups</span><span class="d">Puts your design on the blank for every enabled colour.</span><span class="t"></span></li>
+            <li><span class="nm">create_product</span><span class="d">Creates a draft: a design on a blank, with print service, placement, colours and sizes.</span><span class="t"></span></li>
+            <li><span class="nm">update_product</span><span class="d">Changes a product’s name, description, placement, colours, sizes or collection.</span><span class="t"></span></li>
+            <li><span class="nm">list_products</span><span class="d">Lists your products, optionally by status.</span><span class="t"></span></li>
+            <li><span class="nm">get_product</span><span class="d">Full details for one product: colours, sizes, price, margin and status.</span><span class="t"></span></li>
+            <li><span class="nm">create_collection</span><span class="d">Creates a named collection to group products.</span><span class="t"></span></li>
+            <li><span class="nm">assign_to_collection</span><span class="d">Moves a product into a collection, or out of one.</span><span class="t"></span></li>
+          </ul>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3 class="label">Quotes and proofs</h3><span class="label n" aria-hidden="true">11</span></div>
+          <ul class="caps">
+            <li><span class="nm">get_quote</span><span class="d">Prices a run of a blank and print service at a quantity. Totals only.</span><span class="t"></span></li>
+            <li><span class="nm">set_price</span><span class="d">Sets your retail price and shows your margin.</span><span class="t"></span></li>
+            <li><span class="nm">submit_proof</span><span class="d">Sends the current mockups and spec for approval.</span><span class="t"></span></li>
+            <li><span class="nm">request_proof_changes</span><span class="d">Sends a proof back with notes.</span><span class="t"></span></li>
+            <li><span class="nm">approve_proof</span><span class="d">Approves a pending proof so the product is ready to publish.</span><span class="t"><span class="tag">Asks you first</span></span></li>
+            <li><span class="nm">create_bulk_quote</span><span class="d">Quotes a bulk run that ships to you, line by line, with colour and sizes.</span><span class="t"></span></li>
+            <li><span class="nm">submit_bulk_proof</span><span class="d">Sends the bulk quote for approval.</span><span class="t"></span></li>
+            <li><span class="nm">request_bulk_changes</span><span class="d">Sends a bulk proof back with notes.</span><span class="t"></span></li>
+            <li><span class="nm">approve_bulk_proof</span><span class="d">Approves the bulk proof so the order can be paid.</span><span class="t"><span class="tag">Asks you first</span></span></li>
+            <li><span class="nm">pay_bulk_order</span><span class="d">Starts checkout and returns a Stripe payment link. You pay there.</span><span class="t"></span></li>
+            <li><span class="nm">cancel_bulk_order</span><span class="d">Cancels a bulk order that has not been paid yet.</span><span class="t"><span class="tag">Asks you first</span></span></li>
+          </ul>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3 class="label">Orders and production status</h3><span class="label n" aria-hidden="true">05</span></div>
+          <ul class="caps">
+            <li><span class="nm">list_orders</span><span class="d">Lists your store’s orders, newest first, by status or date.</span><span class="t"></span></li>
+            <li><span class="nm">get_order</span><span class="d">One order: lines, totals, status and tracking.</span><span class="t"></span></li>
+            <li><span class="nm">get_sales_summary</span><span class="d">Order count, gross, top products and a daily series for a period.</span><span class="t"></span></li>
+            <li><span class="nm">list_bulk_orders</span><span class="d">Lists your bulk orders with status and totals.</span><span class="t"></span></li>
+            <li><span class="nm">get_bulk_order</span><span class="d">One bulk order: lines, pricing, status and ship-to address.</span><span class="t"></span></li>
+          </ul>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3 class="label">Store</h3><span class="label n" aria-hidden="true">12</span></div>
+          <ul class="caps">
+            <li><span class="nm">get_my_store</span><span class="d">Your store’s name, slug, status, payout readiness and live products.</span><span class="t"></span></li>
+            <li><span class="nm">update_store</span><span class="d">Changes the display name, slug, accent colour, about text or socials.</span><span class="t"></span></li>
+            <li><span class="nm">start_stripe_onboarding</span><span class="d">Starts or resumes Stripe Connect setup and returns the link.</span><span class="t"></span></li>
+            <li><span class="nm">get_payout_status</span><span class="d">Whether payouts are ready, and what is still missing.</span><span class="t"></span></li>
+            <li><span class="nm">publish_product</span><span class="d">Puts a product in the live store. Needs an approved proof.</span><span class="t"><span class="tag">Asks you first</span></span></li>
+            <li><span class="nm">archive_product</span><span class="d">Removes a product from the live store, or drops a draft.</span><span class="t"><span class="tag">Asks you first</span></span></li>
+            <li><span class="nm">publish_store</span><span class="d">Opens the store to fans. Needs Stripe payouts and one live product.</span><span class="t"><span class="tag">Asks you first</span></span></li>
+            <li><span class="nm">unpublish_store</span><span class="d">Takes the store offline.</span><span class="t"><span class="tag">Asks you first</span></span></li>
+            <li><span class="nm">add_custom_domain</span><span class="d">Connects your own domain and returns the DNS records to add.</span><span class="t"></span></li>
+            <li><span class="nm">check_domain</span><span class="d">Re-checks a connected domain’s DNS and verification.</span><span class="t"></span></li>
+            <li><span class="nm">list_domains</span><span class="d">Lists your connected domains and whether each one is verified.</span><span class="t"></span></li>
+            <li><span class="nm">remove_domain</span><span class="d">Disconnects a custom domain.</span><span class="t"><span class="tag">Asks you first</span></span></li>
+          </ul>
+        </div>
+        <div class="grp">
+          <div class="grp-h"><h3 class="label">Support and inbox</h3><span class="label n" aria-hidden="true">08</span></div>
+          <ul class="caps">
+            <li><span class="nm">contact_support</span><span class="d">Opens a support ticket with your message.</span><span class="t"></span></li>
+            <li><span class="nm">get_ticket</span><span class="d">Opens one ticket with its full thread.</span><span class="t"></span></li>
+            <li><span class="nm">reply_ticket</span><span class="d">Adds a reply to one of your tickets.</span><span class="t"></span></li>
+            <li><span class="nm">get_inbox</span><span class="d">Your notifications: sales, proofs and system messages.</span><span class="t"></span></li>
+            <li><span class="nm">mark_inbox_read</span><span class="d">Marks notifications as read.</span><span class="t"></span></li>
+            <li><span class="nm">update_notification_prefs</span><span class="d">Turns Discord and email notifications on or off.</span><span class="t"></span></li>
+            <li><span class="nm">connect_discord</span><span class="d">Shows whether Discord is linked, and how to link it.</span><span class="t"></span></li>
+            <li><span class="nm">disconnect_discord</span><span class="d">Unlinks Discord and stops Discord messages.</span><span class="t"><span class="tag">Asks you first</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec r" aria-labelledby="s4">
+      <div class="label k"><span class="no" aria-hidden="true">04</span><h2 id="s4">Example</h2></div>
+      <div class="c">
+        <div class="ex-h label"><span>Illustrative</span><span class="d4">Not a live session</span></div>
+        <ol class="ex" aria-label="Example: a member asks their agent to start a run">
+          <li class="you"><span class="w">You</span><span class="x">Start a run: 60 black heavyweight tees, our logo on the back, for the tour.</span></li>
+          <li class="agent"><span class="w">Agent</span><span class="x">Finding a heavyweight tee in black.</span></li>
+          <li class="call"><span class="w">Call</span><span class="x"><b>list_blanks</b> {"type":"<span class="nb">T-Shirts</span>",<wbr>"q":"heavyweight",<wbr>"colour":"C002"}</span></li>
+          <li class="call"><span class="w">Call</span><span class="x"><b>get_blank</b> {"code":"STTU788"}</span></li>
+          <li class="call"><span class="w">Call</span><span class="x"><b>analyze_design</b> {"designId":"3f9c&hellip;"}</span></li>
+          <li class="call"><span class="w">Call</span><span class="x"><b>create_bulk_quote</b> {"lines":[{"designId":"3f9c&hellip;",<wbr>"blankCode":"STTU788",<wbr>"printServiceCode":"screen_1c",<wbr>"placement":{"position":"back",<wbr>"widthCm":28},<wbr>"colourCode":"C002",<wbr>"sizes":{"S":10,<wbr>"M":20,<wbr>"L":20,<wbr>"XL":10}}],<wbr>"shipTo":{&hellip;}}</span></li>
+          <li class="call"><span class="w">Call</span><span class="x"><b>submit_bulk_proof</b> {}</span></li>
+          <li class="agent"><span class="w">Agent</span><span class="x">The quote and proof are ready. Check the placement, then approve.</span></li>
+          <li class="call"><span class="w">Call</span><span class="x"><b>approve_bulk_proof</b> <span class="tag">Asks you first</span></span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="sec r" aria-labelledby="s5">
+      <div class="label k"><span class="no" aria-hidden="true">05</span><h2 id="s5">Status</h2></div>
+      <div class="c">
+        <p class="stat"><i class="dot hollow" aria-hidden="true"></i><span>Opening to members soon.</span></p>
+        <p class="row2"><span>Not a member yet?</span><a class="ulink" href="../#apply">Apply</a><a class="ulink" href="../faq/#mcp">Read the FAQ</a></p>
+      </div>
+    </section>
+
+    <section class="sec r" aria-labelledby="s6">
+      <div class="label k"><span class="no" aria-hidden="true">06</span><h2 id="s6">For crawlers</h2></div>
+      <div class="c">
+        <div class="llms"><code id="llms">merchfrom.com/llms.txt</code><button type="button" class="cp" data-copy="merchfrom.com/llms.txt" aria-label="Copy the llms.txt address">Copy</button></div>
+        <p class="note">A plain-text primer on MerchFrom for LLM agents and crawlers.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="cfoot" aria-label="Contact">
+  <span class="fi f-ask"><a class="flink" href="../#ask">Ask</a></span>
+  <span class="fi faq"><a class="flink" href="../faq/">FAQ</a></span>
+  <span class="fi write"><span class="label">Write</span><a class="flink lc" href="mailto:hello@merchfrom.com">hello@merchfrom.com</a></span>
+  <span class="fi disc"><button type="button" class="flink" data-note="Opens Discord.">Discord</button><span class="label fnote" aria-hidden="true"></span></span>
+  <span class="fi agents"><span class="label">For agents</span><a class="flink lc" href="./" aria-current="page">mcp.merchfrom.com</a><button type="button" class="fcopy" data-copy="mcp.merchfrom.com" aria-label="Copy mcp.merchfrom.com to the clipboard">Copy</button></span>
+  <span class="fi place label">Barcelona, ES</span>
+</footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var RM=false; try{ RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+  var $=function(s,c){return (c||document).querySelector(s)};
+  var $$=function(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s))};
+
+  var fmt=null;
+  try{ fmt=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Madrid',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}); }catch(e){}
+  function clock(){
+    var d=new Date(),t; try{ t=fmt?fmt.format(d):d.toTimeString().slice(0,8); }catch(e){ t=d.toTimeString().slice(0,8); }
+    var m=t.match(/(\d\d):(\d\d):(\d\d)/); if(!m) return;
+    $('#top-clock .v').innerHTML=m[1]+':'+m[2]+'<span class="s">:'+m[3]+'</span>';
+  }
+  clock(); setInterval(clock,1000);
+
+  /* copy buttons: quiet "Copied." */
+  var live=$('#live');
+  function legacyCopy(text){
+    var ok=false;
+    try{ var ta=document.createElement('textarea'); ta.value=text; ta.setAttribute('readonly',''); ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+      document.body.appendChild(ta); ta.select(); ok=document.execCommand('copy'); ta.remove(); }catch(_){}
+    return ok;
+  }
+  $$('.cp').forEach(function(b){
+    var def=b.textContent;
+    b.addEventListener('click',function(){
+      var text=b.getAttribute('data-copy');
+      var done=function(ok){
+        b.textContent=ok?'Copied.':'Select it.'; b.classList.toggle('done',ok);
+        live.textContent=''; setTimeout(function(){ live.textContent=ok?'Copied.':'Could not copy. Select the text and copy it.'; },30);
+        clearTimeout(b._t); b._t=setTimeout(function(){ b.textContent=def; b.classList.remove('done'); },2200);
+      };
+      var fb=function(){ done(legacyCopy(text)); };
+      try{ navigator.clipboard.writeText(text).then(function(){done(true)},fb); }catch(_){ fb(); }
+    });
+  });
+
+  /* whole-line rise-in */
+  var rs=$$('.r'), io=null;
+  function show(el,i){
+    if(RM){ el.classList.add('in'); return; }
+    el.style.transitionDelay=(Math.min(i||0,3)*80)+'ms'; el.classList.add('in');
+    setTimeout(function(){ el.style.transitionDelay=''; },1400);
+  }
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    if(RM||!('IntersectionObserver' in window)){ rs.forEach(function(e,i){show(e,i)}); return; }
+    var k=0;
+    io=new IntersectionObserver(function(es){
+      es.forEach(function(en){ if(en.isIntersecting){ show(en.target,k++%3); io.unobserve(en.target); } });
+    },{rootMargin:'0px 0px -6% 0px',threshold:0.01});
+    rs.forEach(function(e){ io.observe(e); });
+  }); });
+
+  /* footer: quiet notes and copy, same behaviour as the door */
+  var fsay=function(t){ var l=$('#live'); if(!l) return; l.textContent=''; setTimeout(function(){ l.textContent=t; },30); };
+  function flash(el,text){
+    if(!el) return;
+    if(el._def==null) el._def=el.textContent;
+    el.textContent=text; clearTimeout(el._t);
+    el._t=setTimeout(function(){ el.textContent=el._def; },2600);
+  }
+  document.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('.cfoot [data-note],.cfoot [data-copy]');
+    if(!b) return;
+    if(b.dataset.note){ e.preventDefault(); flash(b.parentNode.querySelector('.fnote'),b.dataset.note); fsay(b.dataset.note); return; }
+    if(b.dataset.copy){
+      e.preventDefault();
+      var text=b.dataset.copy, done=function(ok){ flash(b, ok?'Copied':'Select it'); fsay(ok?'Copied '+text+'.':'Select and copy '+text+'.'); };
+      var fallback=function(){
+        var ok=false;
+        try{ var ta=document.createElement('textarea'); ta.value=text; ta.setAttribute('readonly',''); ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+          document.body.appendChild(ta); ta.select(); ok=document.execCommand('copy'); ta.remove(); }catch(_){}
+        done(ok);
+      };
+      try{ navigator.clipboard.writeText(text).then(function(){done(true)},fallback); }catch(_){ fallback(); }
+    }
+  });
+})();
+</script>
+</body>
+</html>

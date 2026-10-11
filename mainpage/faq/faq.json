@@ -1,0 +1,252 @@
+[
+  {
+    "id": "what",
+    "q": "What is MerchFrom?",
+    "a": "A merch production house in Barcelona. We help artists, brands and creators to design, source and sell premium merchandise. An assistant works with you from the first brief to the press, and we print, fold, tag and ship.",
+    "keywords": [
+      "merchfrom",
+      "what",
+      "about",
+      "merch",
+      "production",
+      "company",
+      "barcelona",
+      "premium"
+    ]
+  },
+  {
+    "id": "who",
+    "q": "Who is it for?",
+    "a": "Bands and musicians, tattoo artists and studios, illustrators, labels and collectives, festivals and promoters, brands and companies. If you make something people want to wear, apply.",
+    "keywords": [
+      "who",
+      "for",
+      "bands",
+      "musicians",
+      "tattoo",
+      "festival",
+      "label",
+      "brand",
+      "creator",
+      "illustrator"
+    ]
+  },
+  {
+    "id": "by-application",
+    "q": "Why is it by application?",
+    "a": "We take a limited number of artists each month. We are not an open storefront, and we read every application, one by one.",
+    "keywords": [
+      "why",
+      "application",
+      "invite",
+      "limited",
+      "exclusive",
+      "members",
+      "open",
+      "access",
+      "waitlist"
+    ]
+  },
+  {
+    "id": "apply",
+    "q": "How do I apply, and what happens next?",
+    "a": "Choose Apply on the door. Tell us who you are, what the run is for and where to reach you. We read every application, one by one. You get an invite, with your brief already waiting. Then come mockups on real blanks, a proof to approve, and the press.",
+    "keywords": [
+      "apply",
+      "application",
+      "how",
+      "next",
+      "invite",
+      "join",
+      "brief",
+      "start",
+      "waitlist"
+    ],
+    "link": {
+      "label": "Apply",
+      "href": "../#apply"
+    }
+  },
+  {
+    "id": "sign-in",
+    "q": "How do members sign in?",
+    "a": "Type your email on the door. If it belongs to a member, we send a key to that inbox. Enter the key and you are in. Attempts are limited.",
+    "keywords": [
+      "sign",
+      "login",
+      "key",
+      "email",
+      "member",
+      "code",
+      "password",
+      "access",
+      "door"
+    ],
+    "link": {
+      "label": "Go to the door",
+      "href": "../"
+    }
+  },
+  {
+    "id": "merch-studio",
+    "q": "What is Merch Studio?",
+    "a": "The app where the agent works with you. You describe the piece, bring artwork or have some made, see it on real blanks, price it, approve the proof and run your store. Members only.",
+    "keywords": [
+      "merch",
+      "studio",
+      "app",
+      "workspace",
+      "members",
+      "agent",
+      "platform",
+      "dashboard",
+      "tool"
+    ]
+  },
+  {
+    "id": "agent",
+    "q": "What does the agent do?",
+    "a": "It browses the blanks, checks your artwork is ready to print, cleans or edits it, builds designs around your logo or from a brief, renders mockups, prices a run, sends proofs, quotes bulk orders and runs your store, orders and support tickets. It only states what the catalogue and your account tell it. Approving a proof, publishing your store and cancelling an order wait for your confirmation.",
+    "keywords": [
+      "agent",
+      "assistant",
+      "ai",
+      "does",
+      "tools",
+      "mockups",
+      "proof",
+      "quote",
+      "design",
+      "capabilities"
+    ]
+  },
+  {
+    "id": "two-ways",
+    "q": "Store or bulk run: how do I sell?",
+    "a": "Shop is your own store at merchfrom.com/you or your own domain. Each piece is printed as it sells: no stock, no minimums, no upfront cost. You set the retail price and keep everything above our base cost, paid with each sale. Zero upfront applies to Shop only.\n\nRun is a bulk order for a tour, festival or studio, screen printed or embroidered, folded, tagged and shipped to you or the venue. A run is paid before it goes to press, once you have approved the proof.",
+    "keywords": [
+      "shop",
+      "store",
+      "run",
+      "bulk",
+      "sell",
+      "upfront",
+      "stock",
+      "minimum",
+      "margin",
+      "domain"
+    ]
+  },
+  {
+    "id": "blanks",
+    "q": "What are the blanks?",
+    "a": "The garments we print on: 122 blanks, from t-shirts and hoodies to tote bags. All 122 are OEKO-TEX tested, 74 are GOTS-certified, and organic cotton runs across most of the range. Weights go up to 450 gsm, and 73 blanks are 220 gsm or heavier.",
+    "keywords": [
+      "blanks",
+      "garments",
+      "catalog",
+      "cotton",
+      "organic",
+      "gots",
+      "oeko",
+      "gsm",
+      "heavyweight",
+      "certified"
+    ]
+  },
+  {
+    "id": "printing",
+    "q": "How is it printed, and what artwork can I send?",
+    "a": "Screen print, DTG, embroidery and heat transfer, depending on the garment. Everything is printed, folded and tagged in Barcelona, and nothing goes to press until you approve the proof.\n\nSend PNG, JPEG, WebP or SVG up to 25 MB. The agent checks resolution at a 28 cm print width and says plainly if a file will not hold up. It keeps your original and saves every change as a new version.",
+    "keywords": [
+      "print",
+      "printing",
+      "screen",
+      "dtg",
+      "embroidery",
+      "artwork",
+      "file",
+      "png",
+      "resolution",
+      "proof"
+    ]
+  },
+  {
+    "id": "where",
+    "q": "Where are you?",
+    "a": "Barcelona, Spain. Pieces are printed, folded and tagged there.",
+    "keywords": [
+      "where",
+      "location",
+      "barcelona",
+      "spain",
+      "based",
+      "city",
+      "address",
+      "studio",
+      "country"
+    ]
+  },
+  {
+    "id": "press-board",
+    "q": "What is the press board?",
+    "a": "A live board of runs in production in Barcelona: who it is for, the piece, the quantity, the ink and the status. Clients are private unless they opt in, so many rows read private. Open it from the door with On the press now.",
+    "keywords": [
+      "press",
+      "board",
+      "live",
+      "production",
+      "runs",
+      "status",
+      "private",
+      "clients",
+      "queue"
+    ],
+    "link": {
+      "label": "On the press now",
+      "href": "../#press"
+    }
+  },
+  {
+    "id": "mcp",
+    "q": "Can I use my own AI agent?",
+    "a": "That is the plan. The tools behind Merch Studio open up as an MCP server, so Claude, ChatGPT, Cursor and other MCP clients can work with them. Members only, with your member email and key. It is not open yet. The agents page has the endpoint, the setup steps and the full list of tools.",
+    "keywords": [
+      "mcp",
+      "agents",
+      "claude",
+      "chatgpt",
+      "cursor",
+      "connect",
+      "connector",
+      "own",
+      "server",
+      "integration"
+    ],
+    "link": {
+      "label": "For agents",
+      "href": "../agents/"
+    }
+  },
+  {
+    "id": "contact",
+    "q": "How do I contact you?",
+    "a": "Write to hello@merchfrom.com. The community is on Discord. Members can also ask in Merch Studio, where the agent can open a support ticket for you.",
+    "keywords": [
+      "contact",
+      "email",
+      "write",
+      "support",
+      "discord",
+      "community",
+      "ticket",
+      "talk",
+      "reach",
+      "hello"
+    ],
+    "link": {
+      "label": "Write to us",
+      "href": "mailto:hello@merchfrom.com"
+    }
+  }
+]

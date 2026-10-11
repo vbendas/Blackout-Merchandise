@@ -77,10 +77,7 @@ verify_project "app" "bunx" "App Project"
 app_errors=$?
 total_errors=$((total_errors + app_errors))
 
-# Verify mainpage project
-verify_project "mainpage" "npx" "Mainpage Project"
-mainpage_errors=$?
-total_errors=$((total_errors + mainpage_errors))
+# mainpage is a static site (HTML/CSS/JS, no src/), so it has no TS toolchain to verify
 
 # Final summary
 echo -e "\n${BLUE}📊 Verification Summary${NC}"

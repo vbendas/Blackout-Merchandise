@@ -2,15 +2,29 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "website-v3",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "website-v3", "run", "dev"],
-      "port": 3004
+      "name": "mainpage",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "3000",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "mainpage"
+      ],
+      "port": 3000
     },
     {
       "name": "aurora-dashboard",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8099", "--directory", "aurora-dashboard"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8099",
+        "--directory",
+        "aurora-dashboard"
+      ],
       "port": 8099
     }
   ]
