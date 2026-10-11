@@ -1,9 +1,0 @@
-/* MerchFrom design tokens, layer 3: app frame.
-   STUB created by WP2b. Owner: WP8 (fills it). Round 9 plan, section 5.
-
-   Will hold: .mf-appframe (titlebar, rail, chat column, mockup on a paper
-   insert, quote rows, proof state) and --appframe-r (8px max). Semantic
-   tokens only; rules in `@layer components`. */
-
-@layer components {
-}
