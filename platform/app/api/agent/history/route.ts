@@ -1,6 +1,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { requireUser } from '@/lib/auth';
-import { getConversation, getOrCreateConversation, getProjectCard, loadHistory } from '@/lib/services/conversations';
+import {
+  getConversation,
+  getOrCreateConversation,
+  getProjectCard,
+  latestConversationWithMessages,
+  loadHistory,
+  startFreshConversation,
+} from '@/lib/services/conversations';
 import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
 import type { HistoryResponse } from '@/lib/agent/protocol';
 import { checklistFor, greetingFor, guidanceStateFor, loadGuidanceCounts, projectPillFor, quickActionsFor } from '@/lib/agent/guidance';
@@ -33,10 +40,17 @@ export async function GET(req: NextRequest): Promise<NextResponse<HistoryRespons
   const session = await requireUser();
   const { user } = session;
   const conversationId = req.nextUrl.searchParams.get('conversationId');
+  // ?fresh=1: the Studio opens on its home screen, so start a blank session
+  // and point back at the previous one instead of reopening it.
+  const fresh = req.nextUrl.searchParams.get('fresh') === '1';
 
-  const existing = conversationId ? await getConversation(conversationId) : null;
+  const existing = !fresh && conversationId ? await getConversation(conversationId) : null;
   const owned = existing && existing.userId === user.id;
-  const conversation = owned ? existing! : await getOrCreateConversation(user.id, user.role);
+  const conversation = fresh
+    ? await startFreshConversation(user.id, user.role)
+    : owned
+      ? existing!
+      : await getOrCreateConversation(user.id, user.role);
 
   const [rows, projectCard] = await Promise.all([loadHistory(conversation.id, 40), getProjectCard(conversation.id)]);
 
@@ -70,11 +84,20 @@ export async function GET(req: NextRequest): Promise<NextResponse<HistoryRespons
 
   const counts = await loadGuidanceCounts(session);
   const state = guidanceStateFor(session, counts);
-  const [greeting, checklist, projectPill] = await Promise.all([
+  const [greeting, checklist, projectPill, previous] = await Promise.all([
     greetingFor(session, state, counts),
     checklistFor(session),
     projectPillFor(conversation.id),
+    fresh ? latestConversationWithMessages(user.id, conversation.id) : Promise.resolve(null),
   ]);
+  const previousPill = previous ? await projectPillFor(previous.id) : null;
+  const resume = previous
+    ? {
+        conversationId: previous.id,
+        label: previousPill?.label ?? previous.title ?? 'Last conversation',
+        status: previousPill?.status,
+      }
+    : null;
 
   return NextResponse.json({
     conversationId: conversation.id,
@@ -87,5 +110,6 @@ export async function GET(req: NextRequest): Promise<NextResponse<HistoryRespons
     quickActions: quickActionsFor(state),
     checklist,
     projectPill,
+    resume,
   });
 }

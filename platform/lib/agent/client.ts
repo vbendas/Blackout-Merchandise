@@ -93,9 +93,13 @@ export function sendAgentConfirm(request: ConfirmRequest, handlers: StreamHandle
   return postForEvents(`${AGENT_ENDPOINT}/confirm`, request, handlers);
 }
 
-export async function fetchAgentHistory(conversationId: string): Promise<HistoryResponse | null> {
+export async function fetchAgentHistory(
+  conversationId: string,
+  { fresh = false }: { fresh?: boolean } = {},
+): Promise<HistoryResponse | null> {
   try {
-    const response = await fetch(`${AGENT_ENDPOINT}/history?conversationId=${encodeURIComponent(conversationId)}`);
+    const query = fresh ? 'fresh=1' : `conversationId=${encodeURIComponent(conversationId)}`;
+    const response = await fetch(`${AGENT_ENDPOINT}/history?${query}`);
     if (!response.ok) return null;
     const data = (await response.json()) as Partial<HistoryResponse> &
       Pick<HistoryResponse, 'conversationId' | 'messages' | 'chips' | 'project'>;
@@ -108,6 +112,7 @@ export async function fetchAgentHistory(conversationId: string): Promise<History
       quickActions: data.quickActions ?? [],
       checklist: data.checklist ?? null,
       projectPill: data.projectPill ?? null,
+      resume: data.resume ?? null,
     };
   } catch {
     return null;

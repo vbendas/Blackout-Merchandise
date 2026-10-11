@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, isNull, ne } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import type Anthropic from '@anthropic-ai/sdk';
 import type { ToolUi } from '@/lib/ui-cards/schemas';
@@ -23,6 +23,49 @@ export async function getConversation(conversationId: string): Promise<Conversat
 export async function getMessageById(messageId: string): Promise<MessageRow | null> {
   const rows = await db.select().from(schema.messages).where(eq(schema.messages.id, messageId)).limit(1);
   return rows[0] ?? null;
+}
+
+async function hasMessages(conversationId: string): Promise<boolean> {
+  const rows = await db
+    .select({ id: schema.messages.id })
+    .from(schema.messages)
+    .where(eq(schema.messages.conversationId, conversationId))
+    .limit(1);
+  return rows.length > 0;
+}
+
+/** A blank conversation for a new Studio session. Reuses the user's latest
+ * conversation when nothing was ever said in it, so reloading the Studio
+ * doesn't pile up empty rows. */
+export async function startFreshConversation(userId: string, role: 'artist' | 'admin'): Promise<Conversation> {
+  const rows = await db
+    .select()
+    .from(schema.conversations)
+    .where(eq(schema.conversations.userId, userId))
+    .orderBy(desc(schema.conversations.createdAt))
+    .limit(1);
+  if (rows[0] && !(await hasMessages(rows[0].id))) return rows[0];
+
+  const [created] = await db
+    .insert(schema.conversations)
+    .values({ userId, roleAtTime: role, title: null, summary: null })
+    .returning();
+  return created;
+}
+
+/** The user's most recent conversation that has messages, other than
+ * `excludeId` — what the Studio home offers to continue. */
+export async function latestConversationWithMessages(userId: string, excludeId: string): Promise<Conversation | null> {
+  const rows = await db
+    .select()
+    .from(schema.conversations)
+    .where(and(eq(schema.conversations.userId, userId), ne(schema.conversations.id, excludeId)))
+    .orderBy(desc(schema.conversations.createdAt))
+    .limit(5);
+  for (const row of rows) {
+    if (await hasMessages(row.id)) return row;
+  }
+  return null;
 }
 
 /** The user's most recent conversation, or a freshly created one. */
@@ -64,7 +107,37 @@ export async function appendMessage(
     .set({ lastMessageAt: new Date() })
     .where(eq(schema.conversations.id, conversationId));
 
+  if (role === 'user') {
+    const title = titleFromContent(content);
+    if (title) {
+      await db
+        .update(schema.conversations)
+        .set({ title })
+        .where(and(eq(schema.conversations.id, conversationId), isNull(schema.conversations.title)));
+    }
+  }
+
   return row;
+}
+
+/** First 60 characters of the first text block, cut at a word boundary,
+ * without trailing punctuation. Null when there is no usable text. */
+export function titleFromContent(content: StoredMessageContent): string | null {
+  const text = (content.blocks ?? [])
+    .map((b) => (b.type === 'text' ? b.text : ''))
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text) return null;
+  let out = text;
+  if (out.length > 60) {
+    const cut = out.slice(0, 60);
+    const space = cut.lastIndexOf(' ');
+    // Mid-word cut only when the text is a single long token.
+    out = out[60] === ' ' ? cut : space > 0 ? cut.slice(0, space) : cut;
+  }
+  out = out.replace(/[\s.,;:!?\-–—…'"]+$/u, '').trim();
+  return out || null;
 }
 
 /** Most recent `limit` messages for this conversation, oldest first. */

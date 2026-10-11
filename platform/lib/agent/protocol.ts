@@ -65,6 +65,9 @@ export interface HistoryResponse {
   checklist: ChecklistStep[] | null;
   /** compact summary for the top-bar project pill (null when nothing active) */
   projectPill: { label: string; status: string; colourHex?: string } | null;
+  /** fresh sessions only: the previous conversation the Studio home offers
+   * to continue, labelled by its project when it has one */
+  resume?: { conversationId: string; label: string; status?: string } | null;
 }
 
 // --- Storefront ↔ Stripe checkout contract (wave 2) ---

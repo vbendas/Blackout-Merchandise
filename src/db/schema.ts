@@ -423,10 +423,13 @@ export const conversations = pgTable('conversations', {
     roleAtTime: userRoleEnum('role_at_time'),
     title: text('title'),
     summary: text('summary'),
+    // Studio sidebar grouping: a session can sit inside one store collection.
+    collectionId: uuid('collection_id').references(() => collections.id, { onDelete: 'set null' }),
     lastMessageAt: timestamp('last_message_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
     userIdIdx: index('conversations_user_id_idx').on(table.userId),
+    collectionIdIdx: index('conversations_collection_id_idx').on(table.collectionId),
 }));
 
 export const messages = pgTable('messages', {
@@ -960,6 +963,10 @@ export const conversationsRelations = relations(conversations, ({ one, many }) =
     user: one(users, {
         fields: [conversations.userId],
         references: [users.id],
+    }),
+    collection: one(collections, {
+        fields: [conversations.collectionId],
+        references: [collections.id],
     }),
     messages: many(messages),
     projectCards: many(projectCards),
