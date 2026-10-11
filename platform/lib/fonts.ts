@@ -1,9 +1,9 @@
-import { Barlow, IBM_Plex_Mono } from 'next/font/google';
+import { IBM_Plex_Mono, Inter } from 'next/font/google';
 
-// Type system used across the platform app: Barlow body, IBM Plex Mono
-// labels.
-export const barlow = Barlow({
-  variable: '--font-barlow',
+// Type system shared with the website (mainpage/): Inter for display and
+// body, IBM Plex Mono for tags, timers and key-style tiles.
+export const inter = Inter({
+  variable: '--font-inter',
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   display: 'swap',

@@ -15,7 +15,7 @@ export function MessageBubble({
   if (message.role === 'user') {
     return (
       <Message from="user" className="mf-fade-in max-w-[70%]">
-        <MessageContent className="flex flex-col gap-2 rounded-[22px] bg-[var(--tint-8)] px-[18px] py-3 text-[15px] text-[var(--signal)]">
+        <MessageContent className="flex flex-col gap-2 mf-hairline rounded-[2px] bg-transparent px-[18px] py-3 text-[15px] text-[var(--signal)]">
           {message.attachments && message.attachments.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {message.attachments.map((attachment, index) => (

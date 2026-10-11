@@ -23,7 +23,7 @@ export function BlankGridCard({ card, ctx }: { card: BlankGridCardType; ctx: Car
               onClick={() => ctx.onPrompt(`Show me ${item.code}`)}
               className="mf-tint-hover mf-hairline flex min-h-10 flex-col gap-2 rounded-xl p-2 text-left"
             >
-              <span className="mf-hairline aspect-square w-full rounded-2xl p-[9%]">
+              <span className="mf-plate aspect-square w-full p-[9%]">
                 <img src={item.imageUrl} alt={item.name} className="h-full w-full object-contain" loading="lazy" />
               </span>
               <span className="text-[12px] leading-tight">{item.name}</span>

@@ -5,13 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Warm charcoal ground. This app is
-     dark only — no light-mode block; shadcn/AI Elements variables below map
-     straight onto the same MerchFrom tokens instead of a separate palette. */
-  --paper: #141414;
-  --signal: #ede4dd;
+  /* Black ground and white ink, shared with the website (mainpage/). This
+     app is dark only — no light-mode block; shadcn/AI Elements variables
+     below map straight onto the same MerchFrom tokens instead of a separate
+     palette. Greys are white at reduced alpha, never a separate grey. */
+  --paper: #000000;
+  --signal: #ffffff;
   --gutter: 40px;
-  --font-ui: var(--font-barlow), 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-ui: var(--font-inter), system-ui, -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   --background: var(--paper);
   --foreground: var(--signal);
@@ -24,26 +25,26 @@
   --secondary: color-mix(in srgb, var(--signal) 8%, transparent);
   --secondary-foreground: var(--signal);
   --muted: color-mix(in srgb, var(--signal) 6%, transparent);
-  --muted-foreground: color-mix(in srgb, var(--signal) 62%, transparent);
+  --muted-foreground: color-mix(in srgb, var(--signal) 50%, transparent);
   --accent: color-mix(in srgb, var(--signal) 8%, transparent);
   --accent-foreground: var(--signal);
   --destructive: #e2564f;
-  --border: color-mix(in srgb, var(--signal) 22%, transparent);
-  --input: color-mix(in srgb, var(--signal) 22%, transparent);
+  --border: color-mix(in srgb, var(--signal) 16%, transparent);
+  --input: color-mix(in srgb, var(--signal) 16%, transparent);
   --ring: color-mix(in srgb, var(--signal) 40%, transparent);
   --chart-1: var(--signal);
   --chart-2: var(--signal);
   --chart-3: var(--signal);
   --chart-4: var(--signal);
   --chart-5: var(--signal);
-  --radius: 1rem;
+  --radius: 2px;
   --sidebar: var(--paper);
   --sidebar-foreground: var(--signal);
   --sidebar-primary: var(--signal);
   --sidebar-primary-foreground: var(--paper);
   --sidebar-accent: color-mix(in srgb, var(--signal) 8%, transparent);
   --sidebar-accent-foreground: var(--signal);
-  --sidebar-border: color-mix(in srgb, var(--signal) 22%, transparent);
+  --sidebar-border: color-mix(in srgb, var(--signal) 16%, transparent);
   --sidebar-ring: color-mix(in srgb, var(--signal) 40%, transparent);
 }
 
@@ -115,6 +116,12 @@ body {
   color: var(--signal);
   font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:focus-visible {
+  outline: 1px solid var(--signal);
+  outline-offset: 4px;
 }
 
 ::selection {
@@ -128,15 +135,16 @@ a {
 }
 
 .hairline {
-  border: 1px solid color-mix(in srgb, var(--signal) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--signal) 16%, transparent);
 }
 
 .mf-dim {
-  opacity: 0.62;
+  opacity: 0.5;
 }
 
 .label {
   font-size: 12px;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }

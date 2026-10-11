@@ -14,7 +14,7 @@ export function BlankCard({ card, ctx }: { card: BlankCardType; ctx: CardActionC
   return (
     <div className="mf-card p-4">
       <div className="flex gap-4">
-        <div className="mf-hairline aspect-square w-28 shrink-0 rounded-2xl p-[9%]">
+        <div className="mf-plate aspect-square w-28 shrink-0 p-[9%]">
           <img src={card.imageUrl} alt={card.name} className="h-full w-full object-contain" loading="lazy" />
         </div>
         <div className="min-w-0 flex-1">
