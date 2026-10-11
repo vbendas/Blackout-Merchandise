@@ -1,6 +1,6 @@
 # CLAUDE.md - MerchFrom Development Guide
 
-> **Last Updated:** January 14, 2026
+> **Last Updated:** October 11, 2026
 > **Project Score:** 8.4/10 (Pre-MVP, Phase 3)
 
 ## Project Overview
@@ -29,18 +29,26 @@
 │   ├── convex/             # LEGACY - Being replaced by Drizzle
 │   └── public/             # Static assets
 │
-├── /mainpage               # Marketing landing page
-│   ├── src/
-│   │   ├── app/            # Next.js App Router
-│   │   ├── components/     # Feature-organized components
-│   │   │   ├── sections/   # Page sections (cta/, quality/, features/)
-│   │   │   ├── ui/         # Atomic UI components
-│   │   │   ├── layout/     # Navbar, Footer
-│   │   │   ├── catalyst/   # Headless components (Tailwind Labs)
-│   │   │   └── heroui-pro/ # HeroUI Pro components
-│   │   ├── hooks/          # useIsMobile, etc.
-│   │   └── providers/      # HeroUI provider
-│   └── public/             # Static assets (logo/, gallery/, avatars/)
+├── /mainpage               # Public website: static HTML/CSS/JS, no framework, no build step
+│   ├── index.html          # Members-only door (email, then key), Apply flow with merch preview, press board, Ask panel (scripted, keyword-matched answers from faq/faq.json), footer
+│   ├── faq/                # FAQ page (index.html, entries inline) + faq.json (feeds the Ask panel on index.html only)
+│   ├── agents/             # For agents / MCP page
+│   ├── watch/              # Film page (media/show.mp4 and its own media/)
+│   ├── studio/             # Merch Studio app-home mock (forked from aurora-dashboard/index.html)
+│   ├── img/                # Shared images (members/, merch/, press/)
+│   ├── fonts/              # Self-hosted Mornsey.woff2
+│   ├── LICENCES.md         # Font licence records
+│   └── package.json        # Only a "dev" script (python3 http.server, port 3000)
+│                           # Member accounts, keys, press rows and apply results are front-end sample data, not a backend
+│
+├── /platform               # Agent-first platform app (Next.js 16, React 19, npm; see Documentation/Dev/Platform-Plan.md)
+│   ├── app/                # App Router routes and api/
+│   ├── lib/                # agent/, tools/, catalog/, mockups/, storefront/, etc.
+│   │   └── catalog/        # Blank-catalog source of truth (products, details, variants, colours, size guides, filters, videos)
+│   ├── scripts/            # seed.ts (seeds the catalog into Neon), *-smoke.ts checks
+│   └── public/             # packshots/, gallery/
+│
+├── /aurora-dashboard       # Untracked UI template (single index.html) for app pages
 │
 ├── /src                    # Shared backend (PRIMARY DATABASE LAYER)
 │   └── db/
@@ -67,6 +75,8 @@
 └── drizzle.config.ts       # Drizzle configuration
 ```
 
+Retired site versions (website-v2, website-v3, the old Next.js mainpage) live outside the repo in `~/Documents/GitHub/_archive/merch-from-2026-10-11/` (website-v3 is also in git history).
+
 ---
 
 ## Technology Stack
@@ -82,8 +92,9 @@
 ### Package Managers
 | Project | Manager | Commands |
 |---------|---------|----------|
-| `/app` | **Bun** | `bun install`, `bun dev`, `bun build` |
-| `/mainpage` | **npm** | `npm install`, `npm run dev`, `npm run build` |
+| `/app` | **Bun** | `bun install`, `bun dev`, `bun run build` |
+| `/platform` | **npm** | `npm install`, `npm run dev`, `npm run build` |
+| `/mainpage` | none (static) | `npm run dev` (python3 http.server, port 3000); no install, build or lint |
 
 ### Database (PRIMARY)
 | Tech | Purpose |
@@ -104,9 +115,7 @@
 | Tech | Purpose |
 |------|---------|
 | **Tailwind CSS v4** | Utility-first styling |
-| **HeroUI** | React component library (premium aesthetics) |
-| **Catalyst UI** | Headless components (Tailwind Labs) |
-| **shadcn/ui** | Copy-paste components (configured in /app) |
+| **shadcn/ui** | Copy-paste components (configured in /app and /platform) |
 
 ### Animation
 | Tech | Purpose |
@@ -135,18 +144,27 @@
 cd app
 bun install          # Install dependencies
 bun dev              # Development server (port 3000)
-bun build            # Production build
+bun run build        # Production build (plain `bun build` is Bun's bundler, not the script)
 bun lint             # ESLint check
 ```
 
-### Marketing Page (`/mainpage`)
+### Platform (`/platform`)
 ```bash
-cd mainpage
+cd platform
 npm install          # Install dependencies
-npm run dev          # Development server (port 3000)
+npm run dev          # Development server (next dev)
 npm run build        # Production build
 npm run lint         # ESLint check
+npm run seed         # Seed the blank catalog (tsx scripts/seed.ts)
+npm run db:generate  # drizzle-kit generate (also db:migrate, db:studio)
 ```
+
+### Website (`/mainpage`)
+```bash
+cd mainpage
+npm run dev          # Static server: python3 http.server on 127.0.0.1:3000
+```
+Or start the `mainpage` config in `.claude/launch.json` (same server, port 3000). There is nothing to install, build or lint.
 
 ### Database Operations
 ```bash
@@ -161,22 +179,17 @@ bunx drizzle-kit studio     # Open Drizzle Studio GUI
 ## Code Conventions
 
 ### Component Naming
-- **PascalCase.tsx** for React components (`AvatarTrio.tsx`, `MasonryGrid.tsx`)
-- **kebab-case.tsx** for utilities/providers (`floating-socials.tsx`, `smooth-scrolling.tsx`)
+- **PascalCase.tsx** for React components (`ProductCard.tsx`, `WaitlistForm.tsx` in `app/src/components/`)
+- **kebab-case.tsx** for utilities/providers (`accessibility-widget.tsx`)
 
-### Component Organization (mainpage)
-```
-components/
-├── sections/          # Full-page sections
-│   ├── cta/           # Call-to-action (WaitlistCTA.tsx)
-│   ├── quality/       # Quality specs (ProductionQuality.tsx)
-│   └── features/      # Feature showcase
-├── ui/                # Atomic components (morphing-text.tsx)
-├── layout/            # Layout shells (navbar.tsx, footer.tsx)
-└── [standalone].tsx   # Top-level components
-```
+### Website Organization (mainpage)
+- One self-contained `index.html` per page (`/`, `faq/`, `agents/`, `watch/`, `studio/`) with inline CSS and JS
+- Shared assets in `img/` and `fonts/`; page-specific media next to the page (`watch/media/`)
+- `faq/faq.json` feeds only the Ask panel on the door page (`index.html` fetches it, with a built-in `FALLBACK_FAQ`). The FAQ page (`faq/index.html`) has its entries inline and does not read `faq.json`: keep the two in sync by hand
+- No framework, no bundler, no build step: edit the HTML and reload
 
 ### Hook Pattern
+Illustrative sketch; the real example is `app/src/hooks/useViewportSize.ts` (returns `isMobile` plus `hasMounted`).
 ```typescript
 // Return hasMounted flag to prevent hydration mismatches
 export function useIsMobile(): { isMobile: boolean; hasMounted: boolean } {
@@ -228,20 +241,16 @@ const store = await db
 | Element | Value | Usage |
 |---------|-------|-------|
 | **Base** | `zinc-950` | Backgrounds, cards |
-| **Base (Landing)** | `#000000` | Landing page only |
+| **Base (Website)** | `#000000` | mainpage ground (`--bg`) |
 | **Primary Text** | `#FFFFFF` | Maximum contrast |
 | **Accent (App)** | `#E11D48` (Recording Red) | Action buttons, active states |
-| **Accent (Landing)** | Gold Sheen Gradient | CTAs, highlights |
-
-### Gold Sheen Effect (Landing Page)
-```css
-background: linear-gradient(135deg, #D4AF37 0%, #F5E6A3 50%, #D4AF37 100%);
-box-shadow: 0 0 60px rgba(212, 175, 55, 0.15);
-```
+| **Grey Text (Website)** | White at 80/50/40% (`--a8`, `--a5`, `--a4`) | Secondary type; rules at 16% (`--rule`) |
+| **Accent (Website)** | None | Monochrome only (orange and red were rejected) |
 
 ### Typography
-- **Headings:** Space Grotesk (quirky, tech-inspired)
-- **Body:** Inter (clean, invisible)
+- **Website (mainpage):** Inter 400/600 for text, IBM Plex Mono for labels (`--mono`), both from Google Fonts. Mornsey (self-hosted `fonts/Mornsey.woff2`, copy in `watch/media/`) is used only for the sample artist marks printed on merch previews in `index.html` and on the `watch/` film page. The `studio/` mock uses Barlow 400/500 + IBM Plex Mono 400.
+- **App (`/app`):** Space Grotesk headings, Inter body
+- **Platform (`/platform`):** Barlow body, IBM Plex Mono labels (`lib/fonts.ts`)
 
 ### Tailwind Class Merging
 ```typescript
@@ -322,9 +331,6 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
 ## Known Issues / Technical Debt
 
-### /mainpage - Viewport Metadata Warning
-Next.js warns about viewport in metadata export. Should be moved to `generateViewport()` export per Next.js 14+ recommendations.
-
 ### /app - Convex Legacy Code
 The `/app/convex/` folder contains legacy code being migrated to Drizzle. Some Convex functions are stubbed out with TODO comments.
 
@@ -343,6 +349,8 @@ The `/app/convex/` folder contains legacy code being migrated to Drizzle. Some C
 - [x] Production quality specs
 - [x] Waitlist CTA section
 - [x] Footer (5-column layout)
+
+The items above were built in the old Next.js mainpage, now archived (see Repository Structure).
 
 ### In Progress
 - [ ] Waitlist landing page (`/waitlist`)
@@ -394,7 +402,7 @@ UPSTASH_REDIS_REST_TOKEN=...
 
 ### Immediate Tasks
 1. Complete waitlist landing page (`/waitlist`)
-2. Polish existing mainpage components
+2. Polish the static website pages (`mainpage/`)
 3. Connect AI chat to frontend (when ready)
 4. Discord community server setup
 
@@ -410,7 +418,7 @@ UPSTASH_REDIS_REST_TOKEN=...
 ## Best Practices
 
 ### Do
-- Always run `bun build` or `npm run build` after changes to verify
+- Always run `bun run build` (app) or `npm run build` (platform) after changes to verify; mainpage is static and has no build
 - Use Drizzle for new database features (not Convex)
 - Follow existing component patterns in the codebase
 - Update relevant documentation when making changes
@@ -443,13 +451,14 @@ All code changes must pass **formatting, linting, type checking, and secret scan
 ### Verification Commands
 
 ```bash
-# Verify all projects
+# Verify (checks app/ only); run from the repo root
 ./verify.sh
 
 # Verify specific project
 cd app && bun run verify      # App project
-cd mainpage && npm run verify  # Mainpage project
 ```
+
+`verify.sh` runs Biome, oxlint, tsc and secretlint on `app/` only. mainpage is a static site with no TS toolchain, so nothing verifies it.
 
 ### Pre-commit Hook
 Pre-commit hook runs verification automatically. **Failed verification BLOCKS commit**.
@@ -550,9 +559,13 @@ For complex features, use read-only plan mode to avoid wasting tokens on wrong-d
 # Main app
 cd app && bun dev
 
-# Marketing page
+# Website (static, port 3000)
 cd mainpage && npm run dev
+
+# Platform
+cd platform && npm run dev
 ```
+app (`next dev`), platform (`next dev`) and mainpage (python http.server) all use port 3000, so run one at a time or move one, e.g. `cd platform && npm run dev -- -p 3001`. The mainpage port is fixed in its `dev` script and in `.claude/launch.json`.
 
 ### Check Database Schema
 ```bash
@@ -564,9 +577,9 @@ cat src/db/schema.ts
 bunx drizzle-kit studio
 ```
 
-### Build Both Projects
+### Build App and Platform
 ```bash
-cd app && bun build && cd ../mainpage && npm run build
+cd app && bun run build && cd ../platform && npm run build
 ```
 
 ## graphify
