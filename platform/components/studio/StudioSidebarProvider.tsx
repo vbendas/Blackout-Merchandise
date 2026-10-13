@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { ChatPick } from '@/lib/agent/pick';
 import type { StudioCollection, StudioSession, StudioSidebarData } from '@/lib/studio/types';
 import type { StudioHomeData } from '@/lib/services/studio-home';
@@ -40,6 +40,14 @@ interface StudioSidebarContextValue {
   takePendingPrompt: (sessionId?: string) => PendingPrompt | null;
   renameSession: (id: string, title: string) => Promise<Result<StudioSession>>;
   moveSession: (id: string, collectionId: string | null) => Promise<Result<StudioSession>>;
+  /** removes the session from the list at once and deletes it; if the server
+   * refuses, the session comes back and `deleteFailure` says so */
+  deleteSession: (id: string) => Promise<Result<true>>;
+  /** the last delete that failed: its session is back in the list, with this
+   * message under its row */
+  deleteFailure: { sessionId: string; message: string } | null;
+  /** hides `deleteFailure` if it is for this session; its row calls it when its menu opens */
+  clearDeleteFailure: (sessionId: string) => void;
   createCollection: (name: string) => Promise<Result<StudioCollection>>;
   renameCollection: (id: string, name: string) => Promise<Result<StudioCollection>>;
   deleteCollection: (id: string) => Promise<Result<true>>;
@@ -69,6 +77,7 @@ export interface PendingPrompt {
 const StudioSidebarContext = createContext<StudioSidebarContextValue | null>(null);
 
 const FALLBACK_ERROR = 'That did not go through. Please try again.';
+const DELETE_FAILED = "That session couldn't be deleted. Try again.";
 
 /** How long a prompt handed to askStudio waits for its session to load. */
 const PENDING_PROMPT_MS = 30_000;
@@ -95,12 +104,14 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<Result<T
 
 export function StudioSidebarProvider({ account, children }: { account: StudioAccount; children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [data, setData] = useState<StudioSidebarData | null>(null);
   const [home, setHome] = useState<StudioHomeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [homeNonce, setHomeNonce] = useState(0);
+  const [deleteFailure, setDeleteFailure] = useState<{ sessionId: string; message: string } | null>(null);
   // Latest data, for rolling back optimistic edits without stale closures.
   const dataRef = useRef<StudioSidebarData | null>(null);
   useEffect(() => {
@@ -187,6 +198,41 @@ export function StudioSidebarProvider({ account, children }: { account: StudioAc
   const moveSession = useCallback(
     (id: string, collectionId: string | null) => patchSession(id, { collectionId }),
     [patchSession],
+  );
+
+  // The row leaves the list at once. The snapshot puts it back if the server
+  // refuses, and the row shows the failure from `deleteFailure`.
+  const deleteSession = useCallback(
+    async (id: string): Promise<Result<true>> => {
+      const openNow = pathname === `/studio/s/${id}`;
+      setDeleteFailure(null);
+      const result = await optimistic<true>(
+        (current) => ({ ...current, sessions: current.sessions.filter((s) => s.id !== id) }),
+        async () => {
+          // A 404 means the session is already gone (deleted in another tab, say), which is what was asked.
+          const response = await fetch(`/api/studio/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => null);
+          return response && (response.ok || response.status === 404)
+            ? { ok: true, value: true }
+            : { ok: false, error: DELETE_FAILED };
+        },
+        (current) => current,
+      );
+      if (!result.ok) {
+        setDeleteFailure({ sessionId: id, message: DELETE_FAILED });
+        return { ok: false, error: DELETE_FAILED };
+      }
+      // The page of a deleted session would be a dead end, so /studio replaces it in history.
+      if (openNow) {
+        setDrawerOpen(false);
+        router.replace('/studio');
+      }
+      return { ok: true, value: true };
+    },
+    [optimistic, pathname, router],
+  );
+  const clearDeleteFailure = useCallback(
+    (sessionId: string) => setDeleteFailure((current) => (current?.sessionId === sessionId ? null : current)),
+    [],
   );
 
   const createCollection = useCallback(
@@ -303,6 +349,9 @@ export function StudioSidebarProvider({ account, children }: { account: StudioAc
     takePendingPrompt,
     renameSession,
     moveSession,
+    deleteSession,
+    deleteFailure,
+    clearDeleteFailure,
     createCollection,
     renameCollection,
     deleteCollection,

@@ -152,6 +152,15 @@ export async function setSessionCollection(
   return { ok: true, value: toSession(row) };
 }
 
+/** Deletes the session; its messages, tool calls and project card go with it (ON DELETE CASCADE). */
+export async function deleteSession(userId: string, sessionId: string): Promise<ServiceResult<null>> {
+  if (!(await ownedSession(userId, sessionId))) return { ok: false, error: 'Session not found.' };
+  await db
+    .delete(schema.conversations)
+    .where(and(eq(schema.conversations.id, sessionId), eq(schema.conversations.userId, userId)));
+  return { ok: true, value: null };
+}
+
 export async function renameCollection(storeId: string, collectionId: string, name: string): Promise<ServiceResult<StudioCollection>> {
   const trimmed = name.trim();
   if (trimmed.length < 1 || trimmed.length > COLLECTION_NAME_MAX) {

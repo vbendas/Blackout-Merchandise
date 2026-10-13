@@ -1,16 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { StudioCollection, StudioSession } from '@/lib/studio/types';
 import { RowMenu, type MenuEntry } from '@/components/studio/RowMenu';
 import { InlineInput } from '@/components/studio/InlineInput';
 import { useStudioSidebar } from '@/components/studio/StudioSidebarProvider';
 
-type Mode = 'idle' | 'rename' | 'new-collection';
+type Mode = 'idle' | 'rename' | 'new-collection' | 'delete';
 
 /** One session in the sidebar: a link to /studio/s/<id>, with a "..." menu
- * for Rename and Move to project. F2 on the focused link renames. */
+ * for Rename, Move to project and Delete. F2 on the focused link renames.
+ * Delete asks first, right under the row. */
 export function SessionRow({
   session,
   active,
@@ -23,9 +24,26 @@ export function SessionRow({
   collections: StudioCollection[] | null;
   indent?: boolean;
 }) {
-  const { renameSession, moveSession, createCollection, setDrawerOpen } = useStudioSidebar();
+  const {
+    renameSession,
+    moveSession,
+    createCollection,
+    deleteSession,
+    deleteFailure,
+    clearDeleteFailure,
+    setDrawerOpen,
+  } = useStudioSidebar();
   const [mode, setMode] = useState<Mode>('idle');
   const [error, setError] = useState<string | null>(null);
+  const itemRef = useRef<HTMLLIElement>(null);
+  const keepRef = useRef<HTMLButtonElement>(null);
+  // A failed delete brings the row back as a fresh mount, so its notice comes from the provider.
+  const shownError = error ?? (deleteFailure?.sessionId === session.id ? deleteFailure.message : null);
+
+  // The safe answer gets the focus when the question appears.
+  useEffect(() => {
+    if (mode === 'delete') keepRef.current?.focus();
+  }, [mode]);
 
   async function saveTitle(value: string) {
     setMode('idle');
@@ -53,6 +71,19 @@ export function SessionRow({
     await move(created.value.id);
   }
 
+  function keep() {
+    setMode('idle');
+    // The row's menu button is where the question came from.
+    queueMicrotask(() => itemRef.current?.querySelector<HTMLElement>('.mf-side-more')?.focus());
+  }
+
+  function remove() {
+    // The row leaves the list now, so focus moves to a neighbouring session first.
+    const neighbour = itemRef.current?.nextElementSibling ?? itemRef.current?.previousElementSibling;
+    neighbour?.querySelector<HTMLElement>('a')?.focus();
+    void deleteSession(session.id);
+  }
+
   const items: MenuEntry[] = [{ label: 'Rename', onSelect: () => setMode('rename') }];
   if (collections) {
     items.push({
@@ -69,8 +100,9 @@ export function SessionRow({
       ],
     });
   }
+  items.push('separator', { label: 'Delete', onSelect: () => setMode('delete') });
 
-  if (mode !== 'idle') {
+  if (mode === 'rename' || mode === 'new-collection') {
     return (
       <li className={indent ? 'pl-3' : undefined}>
         <InlineInput
@@ -86,7 +118,7 @@ export function SessionRow({
   }
 
   return (
-    <li className={indent ? 'pl-3' : undefined}>
+    <li ref={itemRef} className={indent ? 'pl-3' : undefined}>
       <div className="mf-side-row" data-active={active}>
         <Link
           href={`/studio/s/${session.id}`}
@@ -103,11 +135,41 @@ export function SessionRow({
         >
           <span className="min-w-0 truncate">{session.title}</span>
         </Link>
-        <RowMenu label={`Options for ${session.title}`} items={items} triggerClassName="mf-side-more" />
+        <RowMenu
+          label={`Options for ${session.title}`}
+          items={items}
+          triggerClassName="mf-side-more"
+          onOpenChange={(open) => {
+            if (open) clearDeleteFailure(session.id);
+          }}
+        />
       </div>
-      {error ? (
+      {mode === 'delete' ? (
+        <div
+          role="group"
+          aria-label={`Delete ${session.title}`}
+          className="mf-confirm"
+          onKeyDown={(event) => {
+            if (event.key !== 'Escape') return;
+            event.preventDefault();
+            event.stopPropagation();
+            keep();
+          }}
+        >
+          <p>Delete this session? This can&rsquo;t be undone.</p>
+          <div className="mf-confirm-actions">
+            <button type="button" ref={keepRef} onClick={keep} className="mf-ulink">
+              Keep
+            </button>
+            <button type="button" onClick={remove} className="mf-ulink">
+              Delete
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {shownError ? (
         <p role="alert" className="px-2.5 pt-1 pb-2 text-[12px] leading-[16px] text-[color:var(--danger)]">
-          {error}
+          {shownError}
         </p>
       ) : null}
     </li>
