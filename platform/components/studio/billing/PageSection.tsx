@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
 
-export function PageSection({ label, children }: { label: string; children: ReactNode }) {
+/** A titled block of the Billing page. `id` doubles as the anchor
+ * (billing#runs) and names the section for screen readers. */
+export function PageSection({ id, label, children }: { id: string; label: string; children: ReactNode }) {
   return (
-    <section className="mf-hairline-t" style={{ padding: '28px 0' }}>
-      <h2 className="mf-label mf-dimmed" style={{ margin: '0 0 18px' }}>
+    <section id={id} aria-labelledby={`${id}-label`} className="bl-sec">
+      <h2 id={`${id}-label`} className="mf-label mf-dimmed">
         {label}
       </h2>
       {children}

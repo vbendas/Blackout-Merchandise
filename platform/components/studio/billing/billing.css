@@ -1,0 +1,340 @@
+/* Billing page layout. Identity classes (.mf-label, .mf-pill, .mf-ulink,
+   hairlines) come from components/chat/tokens.css; this file only places
+   things. It sits in @layer components, so a Tailwind utility on the same
+   element still wins. The layer order is declared again so it holds whichever
+   stylesheet loads first. */
+@layer properties, theme, base, components, utilities, overrides;
+
+@layer components {
+  /* The sidebar takes 272px from the screen, so the page answers to the width
+     of its own column (@container bl), not to the viewport. Narrow: every
+     list row is a small stack, labels beside values. Wide: a table. */
+  .bl {
+    container: bl / inline-size;
+    --bl-dim: color-mix(in srgb, var(--signal) 50%, transparent);
+    /* date or run, then two amounts, then status, then the action */
+    --bl-cols: minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 0.9fr) minmax(0, 1.7fr) 108px;
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px var(--gutter) 80px;
+  }
+
+  /* Zero specificity, so the margins set on the classes below still apply. */
+  :where(.bl) :where(dl, dd, p, ul) {
+    margin: 0;
+  }
+
+  .bl-title {
+    margin: 0 0 32px;
+    font-size: clamp(30px, 5vw, 44px);
+    line-height: 1.05;
+  }
+
+  /* Payouts not set up yet: one line and the button, between hairlines. */
+  .bl-setup {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin: 0 0 32px;
+    padding: 16px 0;
+    border-top: var(--hairline);
+    border-bottom: var(--hairline);
+    font-size: 14px;
+  }
+
+  .bl-setup p {
+    flex: 1 1 280px;
+    min-width: 0;
+  }
+
+  /* The three figures */
+  .bl-figs {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0 0 40px;
+    border-top: var(--hairline);
+    border-bottom: var(--hairline);
+  }
+
+  .bl-fig {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 16px 0 18px;
+  }
+
+  .bl-fig + .bl-fig {
+    border-top: var(--hairline);
+  }
+
+  .bl-lab {
+    color: var(--bl-dim);
+  }
+
+  .bl-big {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  .bl-d {
+    color: var(--bl-dim);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .bl-linkbtn {
+    cursor: pointer;
+  }
+
+  .bl-linkbtn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* Payouts and runs */
+  .bl-sec + .bl-sec {
+    margin-top: 40px;
+  }
+
+  .bl-sec > h2 {
+    margin: 0 0 14px;
+  }
+
+  .bl-empty {
+    font-size: 14px;
+  }
+
+  .bl-list {
+    padding: 0;
+    list-style: none;
+  }
+
+  .bl-row {
+    border-top: var(--hairline);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bl-head {
+    display: none;
+  }
+
+  /* A row: the main cell and the action share the first line, every other
+     cell takes a line of its own. On the payouts list this is the <summary>
+     (the whole row opens the split); on the runs list it is the <li>. */
+  .bl-cells {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 6px;
+    padding: 14px 0;
+  }
+
+  summary.bl-cells {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  summary.bl-cells::-webkit-details-marker {
+    display: none;
+  }
+
+  .bl-c {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .bl-c-main {
+    grid-column: 1;
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .bl-k {
+    flex: none;
+    color: var(--bl-dim);
+  }
+
+  .bl-v {
+    min-width: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .bl-c-main .bl-v {
+    text-align: left;
+  }
+
+  /* The main cell's label is never drawn; screen readers still get it. */
+  .bl-c-main .bl-k {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* The action: top right of a stacked row, last column of a table row. */
+  .bl-slot {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .bl-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 8px;
+    margin-inline-end: -8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bl-dim);
+    transition: color 200ms var(--ease-settle);
+  }
+
+  .bl-link:hover,
+  summary:hover .bl-link {
+    color: var(--signal);
+  }
+
+  .bl-if-open {
+    display: none;
+  }
+
+  details[open] .bl-if-closed {
+    display: none;
+  }
+
+  details[open] .bl-if-open {
+    display: inline;
+  }
+
+  /* Why the sale paid what it paid */
+  .bl-split {
+    display: grid;
+    gap: 6px;
+    padding: 0 0 16px;
+    color: var(--bl-dim);
+    font-size: 13px;
+  }
+
+  .bl-split > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .bl-split dd {
+    color: var(--signal);
+    font-weight: 600;
+    text-align: right;
+  }
+
+  /* A failed payment start, under its button and across the whole row. */
+  .bl-err {
+    grid-column: 1 / -1;
+    margin-top: 4px;
+    color: var(--danger);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  @container bl (min-width: 640px) {
+    .bl-big {
+      font-size: clamp(28px, 4.2cqi, 36px);
+    }
+
+    .bl-figs {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .bl-fig {
+      padding: 18px 24px 20px 0;
+    }
+
+    .bl-fig + .bl-fig {
+      padding-left: 24px;
+      border-top: 0;
+      border-left: var(--hairline);
+    }
+
+    .bl-head {
+      display: grid;
+      grid-template-columns: var(--bl-cols);
+      column-gap: 16px;
+      padding: 0 0 8px;
+      color: var(--bl-dim);
+      font-size: 11px;
+    }
+
+    .bl-cells {
+      grid-template-columns: var(--bl-cols);
+      column-gap: 16px;
+      row-gap: 0;
+      padding: 12px 0;
+    }
+
+    .bl-c,
+    .bl-c-main {
+      grid-column: auto;
+      display: block;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .bl-v {
+      text-align: left;
+    }
+
+    /* The header row names the columns; cells keep their labels for screen readers only. */
+    .bl-k {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .bl-slot {
+      grid-column: auto;
+      grid-row: auto;
+    }
+
+    .bl-split {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 28px;
+    }
+
+    .bl-split > div {
+      display: block;
+    }
+
+    .bl-split dt,
+    .bl-split dd {
+      display: inline;
+    }
+
+    .bl-split dd {
+      margin-inline-start: 8px;
+    }
+  }
+}
