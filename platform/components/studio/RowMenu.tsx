@@ -2,15 +2,18 @@
 
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { ExternalArrow } from '@/components/studio/ExternalArrow';
 
 export interface MenuAction {
   label: string;
   onSelect?: () => void;
   /** opens a nested list in place of the current one, with a Back item */
   submenu?: MenuEntry[];
-  /** radio-style mark, e.g. the session's current collection */
+  /** radio-style mark, e.g. the session's current project */
   checked?: boolean;
   href?: string;
+  /** with href: opens in a new tab, and the menu hands focus back on select */
+  external?: boolean;
 }
 
 export type MenuEntry = MenuAction | 'separator';
@@ -159,7 +162,7 @@ export function RowMenu({
       setStack((s) => [...s, { title: entry.label, entries: entry.submenu! }]);
       return;
     }
-    close(!entry.href);
+    close(!entry.href || Boolean(entry.external));
     entry.onSelect?.();
   }
 
@@ -194,6 +197,8 @@ export function RowMenu({
           <a
             key={entry.label}
             href={entry.href}
+            target={entry.external ? '_blank' : undefined}
+            rel={entry.external ? 'noopener noreferrer' : undefined}
             role="menuitem"
             tabIndex={-1}
             className="mf-menu-item"
@@ -203,7 +208,15 @@ export function RowMenu({
               select(entry);
             }}
           >
-            {entry.label}
+            {entry.external ? (
+              <>
+                <span>{entry.label}</span>
+                <ExternalArrow className="mf-dimmed" />
+                <span className="sr-only">(opens in a new tab)</span>
+              </>
+            ) : (
+              entry.label
+            )}
           </a>
         ) : (
           <button

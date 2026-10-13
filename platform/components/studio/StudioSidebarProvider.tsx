@@ -1,12 +1,16 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import type { StudioCollection, StudioSession, StudioSidebarData } from '@/lib/studio/types';
+import type { StudioHomeData } from '@/lib/services/studio-home';
 
 export interface StudioAccount {
   displayName: string;
   imageUrl: string | null;
   shopName: string | null;
+  /** the shop's address segment, for its public link; null without a shop */
+  shopSlug: string | null;
   role: 'artist' | 'admin';
   /** false under the dev auth bypass: no Clerk component or hook may render */
   showClerk: boolean;
@@ -20,6 +24,16 @@ interface StudioSidebarContextValue {
   loading: boolean;
   loadError: boolean;
   refresh: () => Promise<void>;
+  /** the shop, this month's sales, what needs the artist and the live run;
+   * null until the first load (and if it never arrives) */
+  home: StudioHomeData | null;
+  refreshHome: () => Promise<void>;
+  /** opens a fresh session on the home screen and sends `prompt` there once
+   * it has loaded (Settings and the Shop block use this; the home reads
+   * /studio?prompt=, see PromptParam) */
+  askStudio: (prompt: string) => void;
+  /** the prompt an in-app button asked the fresh session to send; read once */
+  takePendingPrompt: () => string | null;
   renameSession: (id: string, title: string) => Promise<Result<StudioSession>>;
   moveSession: (id: string, collectionId: string | null) => Promise<Result<StudioSession>>;
   createCollection: (name: string) => Promise<Result<StudioCollection>>;
@@ -62,7 +76,9 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<Result<T
 }
 
 export function StudioSidebarProvider({ account, children }: { account: StudioAccount; children: ReactNode }) {
+  const router = useRouter();
   const [data, setData] = useState<StudioSidebarData | null>(null);
+  const [home, setHome] = useState<StudioHomeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -90,6 +106,20 @@ export function StudioSidebarProvider({ account, children }: { account: StudioAc
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
   }, [refresh]);
+
+  // The shop's state is a nicety: when it does not load the home screen and
+  // the Shop block simply show less, and the last good copy stays on screen.
+  const refreshHome = useCallback(async () => {
+    const result = await requestJson<StudioHomeData>('/api/studio/home', { cache: 'no-store' });
+    if (result.ok) setHome(result.value);
+  }, []);
+
+  // Loaded on mount and again on every New session, so the home screen is
+  // current after something changed in the session before it.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void refreshHome();
+  }, [refreshHome, homeNonce]);
 
   /** Applies `apply` now, runs `request`, then reconciles with the server's
    * row or restores the snapshot on failure. */
@@ -206,6 +236,27 @@ export function StudioSidebarProvider({ account, children }: { account: StudioAc
     setDrawerOpen(false);
   }, []);
 
+  // Starts over on the home screen (the nonce remounts it even when the URL
+  // is already /studio) with the message in the URL for PromptParam to send.
+  // In-app buttons (the artist's own click) hand their prompt over in memory,
+  // so the fresh session sends it. A ?prompt= in the URL can come from any
+  // link, so it only fills the composer (components/studio/PromptParam.tsx).
+  const pendingPrompt = useRef<string | null>(null);
+  const askStudio = useCallback(
+    (prompt: string) => {
+      pendingPrompt.current = prompt;
+      setHomeNonce((n) => n + 1);
+      setDrawerOpen(false);
+      router.push('/studio');
+    },
+    [router],
+  );
+  const takePendingPrompt = useCallback(() => {
+    const prompt = pendingPrompt.current;
+    pendingPrompt.current = null;
+    return prompt;
+  }, []);
+
   // The provider only re-renders on its own state changes (children come
   // from the server layout), so a fresh object here is not wasteful.
   const value: StudioSidebarContextValue = {
@@ -214,6 +265,10 @@ export function StudioSidebarProvider({ account, children }: { account: StudioAc
     loading,
     loadError,
     refresh,
+    home,
+    refreshHome,
+    askStudio,
+    takePendingPrompt,
     renameSession,
     moveSession,
     createCollection,

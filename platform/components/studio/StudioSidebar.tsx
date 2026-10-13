@@ -7,7 +7,11 @@ import { AccountMenu } from '@/components/studio/AccountMenu';
 import { CollectionGroup } from '@/components/studio/CollectionGroup';
 import { InlineInput } from '@/components/studio/InlineInput';
 import { SessionRow } from '@/components/studio/SessionRow';
+import { ShopBlock } from '@/components/studio/ShopBlock';
 import { useStudioSidebar } from '@/components/studio/StudioSidebarProvider';
+import './studio.css';
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])';
 
 const ADMIN_LINKS = [
   { label: 'Production', href: '/admin/production' },
@@ -63,9 +67,9 @@ function SkeletonRows() {
   );
 }
 
-/** The Studio's left column: New session, Collections (each holding its
- * sessions), ungrouped Sessions, admin links and the account footer. Fixed at
- * 272px on desktop; an off-canvas drawer below 768px. */
+/** The Studio's left column: New session, the Shop block, Projects (each
+ * holding its sessions), ungrouped Sessions, admin links and the account
+ * footer. Fixed at 272px on desktop; an off-canvas drawer below 768px. */
 export function StudioSidebar() {
   const pathname = usePathname();
   const { account, data, loading, loadError, refresh, createCollection, drawerOpen, setDrawerOpen, newSession } =
@@ -76,17 +80,55 @@ export function StudioSidebar() {
   const activeId = activeSessionId(pathname);
   const showCollections = account.role !== 'admin' && Boolean(account.shopName);
 
-  // Drawer: focus moves in on open, Escape closes, focus returns on close.
+  // Drawer (phones): focus moves in on open and stays inside while it is open,
+  // the page behind goes inert (no focus, no taps, hidden from screen
+  // readers), Escape closes, and focus returns to the opener on close. Past
+  // the phone width the sidebar is a fixed column again, so the drawer closes.
   useEffect(() => {
     if (!drawerOpen) return;
+    const aside = asideRef.current;
+    const shell = aside?.parentElement;
+    if (!aside || !shell) return;
+    const drawer: HTMLElement = aside;
+
     const opener = document.activeElement as HTMLElement | null;
-    asideRef.current?.querySelector<HTMLElement>('a[href], button:not([disabled])')?.focus();
+    const inerted: HTMLElement[] = [];
+    for (const child of Array.from(shell.children)) {
+      if (child === aside || child.classList.contains('mf-scrim') || !(child instanceof HTMLElement)) continue;
+      child.inert = true;
+      inerted.push(child);
+    }
+    drawer.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && !event.defaultPrevented) setDrawerOpen(false);
+      if (event.key === 'Escape' && !event.defaultPrevented) {
+        setDrawerOpen(false);
+        return;
+      }
+      // A row menu open over the drawer (portalled to <body>) handles its own Tab.
+      if (event.key !== 'Tab' || !drawer.contains(document.activeElement)) return;
+      const items = Array.from(drawer.querySelectorAll<HTMLElement>(FOCUSABLE));
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    const phone = window.matchMedia('(max-width: 767px)');
+    function onWidthChange() {
+      if (!phone.matches) setDrawerOpen(false);
     }
     document.addEventListener('keydown', onKeyDown);
+    phone.addEventListener('change', onWidthChange);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
+      phone.removeEventListener('change', onWidthChange);
+      for (const element of inerted) element.inert = false;
       if (opener?.isConnected) opener.focus();
     };
   }, [drawerOpen, setDrawerOpen]);
@@ -112,6 +154,8 @@ export function StudioSidebar() {
         ref={asideRef}
         className="mf-sidebar"
         data-open={drawerOpen}
+        role={drawerOpen ? 'dialog' : undefined}
+        aria-modal={drawerOpen ? true : undefined}
         aria-label="Studio"
       >
         <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-5 pb-4">
@@ -136,7 +180,7 @@ export function StudioSidebar() {
           <Link
             href="/studio"
             onClick={newSession}
-            className="mf-pill w-full justify-start gap-2.5"
+            className="mf-pill w-full"
             aria-current={pathname === '/studio' && !activeId ? 'page' : undefined}
           >
             <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -146,90 +190,94 @@ export function StudioSidebar() {
           </Link>
         </div>
 
-        <nav aria-label="Sessions" className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-3 pb-4">
-          {showCollections ? (
-            <section aria-labelledby="studio-collections-label" className="flex flex-col gap-1.5">
-              <div className="flex h-7 items-center justify-between pr-1">
-                <SectionLabel id="studio-collections-label">Projects</SectionLabel>
-                <button
-                  type="button"
-                  aria-label="New project"
-                  onClick={() => {
-                    setCreateError(null);
-                    setCreating(true);
-                  }}
-                  className="mf-icon-btn mf-icon-btn-ghost size-7"
-                >
-                  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M8 2.5v11M2.5 8h11" />
-                  </svg>
-                </button>
+        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-3 pb-4">
+          <ShopBlock />
+          <nav aria-label="Sessions" className="flex flex-col gap-6">
+            {showCollections ? (
+              <section aria-labelledby="studio-collections-label" className="flex flex-col gap-1.5">
+                <div className="flex h-7 items-center justify-between pr-1">
+                  <SectionLabel id="studio-collections-label">Projects</SectionLabel>
+                  <button
+                    type="button"
+                    id="studio-new-project"
+                    aria-label="New project"
+                    onClick={() => {
+                      setCreateError(null);
+                      setCreating(true);
+                    }}
+                    className="mf-icon-btn mf-icon-btn-ghost size-7"
+                  >
+                    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M8 2.5v11M2.5 8h11" />
+                    </svg>
+                  </button>
+                </div>
+                {creating ? (
+                  <InlineInput
+                    label="New project name"
+                    placeholder="Project name"
+                    maxLength={60}
+                    onSubmit={create}
+                    onCancel={() => setCreating(false)}
+                  />
+                ) : null}
+                {createError ? (
+                  <p role="alert" className="px-2.5 text-[12px] leading-[16px] text-[color:var(--danger)]">
+                    {createError}
+                  </p>
+                ) : null}
+                {loading ? (
+                  <SkeletonRows />
+                ) : loadError && !data ? null : collections.length === 0 && !creating ? (
+                  <p className="mf-dimmed px-2.5 text-[13px] leading-[18px]">Group sessions by drop.</p>
+                ) : (
+                  <ul aria-labelledby="studio-collections-label" className="flex flex-col gap-px">
+                    {collections.map((c) => (
+                      <CollectionGroup
+                        key={c.id}
+                        collection={c}
+                        sessions={sessions.filter((s) => s.collectionId === c.id)}
+                        collections={collections}
+                        activeId={activeId}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </section>
+            ) : null}
+
+            <section aria-labelledby="studio-sessions-label" className="flex flex-col gap-1.5">
+              <div className="flex h-7 items-center">
+                <SectionLabel id="studio-sessions-label">Sessions</SectionLabel>
               </div>
-              {creating ? (
-                <InlineInput
-                  label="New project name"
-                  placeholder="Project name"
-                  maxLength={60}
-                  onSubmit={create}
-                  onCancel={() => setCreating(false)}
-                />
-              ) : null}
-              {createError ? (
-                <p role="alert" className="px-2.5 text-[12px] leading-[16px] text-[color:var(--danger)]">
-                  {createError}
-                </p>
-              ) : null}
               {loading ? (
                 <SkeletonRows />
-              ) : loadError && !data ? null : collections.length === 0 && !creating ? (
-                <p className="mf-dimmed px-2.5 text-[13px] leading-[18px]">Group sessions and products by drop.</p>
+              ) : loadError && !data ? (
+                <p className="px-2.5 text-[13px] leading-[18px]">
+                  <span className="mf-dimmed">Couldn&rsquo;t load your sessions. </span>
+                  <button type="button" onClick={() => void refresh()} className="mf-ulink text-[11px]">
+                    Retry
+                  </button>
+                </p>
+              ) : ungrouped.length === 0 ? (
+                <p className="mf-dimmed px-2.5 text-[13px] leading-[18px]">
+                  {sessions.length === 0 ? 'Your sessions will appear here.' : 'Every session is in a project.'}
+                </p>
               ) : (
-                <ul aria-labelledby="studio-collections-label" className="flex flex-col gap-px">
-                  {collections.map((c) => (
-                    <CollectionGroup
-                      key={c.id}
-                      collection={c}
-                      sessions={sessions.filter((s) => s.collectionId === c.id)}
-                      collections={collections}
-                      activeId={activeId}
+                <ul aria-labelledby="studio-sessions-label" className="flex flex-col gap-px">
+                  {ungrouped.map((s) => (
+                    <SessionRow
+                      key={s.id}
+                      session={s}
+                      active={s.id === activeId}
+                      collections={showCollections ? collections : null}
                     />
                   ))}
                 </ul>
               )}
             </section>
-          ) : null}
-
-          <section aria-labelledby="studio-sessions-label" className="flex flex-col gap-1.5">
-            <div className="flex h-7 items-center">
-              <SectionLabel id="studio-sessions-label">Sessions</SectionLabel>
-            </div>
-            {loading ? (
-              <SkeletonRows />
-            ) : loadError && !data ? (
-              <p className="px-2.5 text-[13px] leading-[18px]">
-                <span className="mf-dimmed">Couldn&rsquo;t load your sessions. </span>
-                <button type="button" onClick={() => void refresh()} className="mf-ulink text-[11px]">
-                  Retry
-                </button>
-              </p>
-            ) : ungrouped.length === 0 ? (
-              <p className="mf-dimmed px-2.5 text-[13px] leading-[18px]">
-                {sessions.length === 0 ? 'Your sessions will appear here.' : 'Every session is in a project.'}
-              </p>
-            ) : (
-              <ul aria-labelledby="studio-sessions-label" className="flex flex-col gap-px">
-                {ungrouped.map((s) => (
-                  <SessionRow
-                    key={s.id}
-                    session={s}
-                    active={s.id === activeId}
-                    collections={showCollections ? collections : null}
-                  />
-                ))}
-              </ul>
-            )}
-          </section>
-        </nav>
+          </nav>
+        </div>
 
         {account.role === 'admin' ? (
           <div className="mf-hairline-t flex shrink-0 gap-5 px-5 py-3">

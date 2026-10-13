@@ -10,7 +10,7 @@ import { useStudioSidebar } from '@/components/studio/StudioSidebarProvider';
 type Mode = 'idle' | 'rename' | 'new-collection';
 
 /** One session in the sidebar: a link to /studio/s/<id>, with a "..." menu
- * for Rename and Move to collection. F2 on the focused link renames. */
+ * for Rename and Move to project. F2 on the focused link renames. */
 export function SessionRow({
   session,
   active,
@@ -19,7 +19,7 @@ export function SessionRow({
 }: {
   session: StudioSession;
   active: boolean;
-  /** null: no store (admins), so no Move to collection */
+  /** null: no store (admins), so no Move to project */
   collections: StudioCollection[] | null;
   indent?: boolean;
 }) {
@@ -63,7 +63,7 @@ export function SessionRow({
           checked: session.collectionId === c.id,
           onSelect: () => void move(c.id),
         })),
-        { label: 'No collection', checked: session.collectionId === null, onSelect: () => void move(null) },
+        { label: 'No project', checked: session.collectionId === null, onSelect: () => void move(null) },
         'separator' as const,
         { label: 'New project...', onSelect: () => setMode('new-collection') },
       ],

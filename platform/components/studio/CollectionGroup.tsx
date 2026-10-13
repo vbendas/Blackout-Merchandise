@@ -1,14 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { StudioCollection, StudioSession } from '@/lib/studio/types';
 import { RowMenu } from '@/components/studio/RowMenu';
 import { InlineInput } from '@/components/studio/InlineInput';
 import { SessionRow } from '@/components/studio/SessionRow';
 import { useStudioSidebar } from '@/components/studio/StudioSidebarProvider';
 
-/** A collection in the sidebar: an expandable row listing its sessions, with
- * a "..." menu for Rename and Delete. */
+/** A project in the sidebar: an expandable row listing its sessions, with a
+ * "..." menu for Rename and Delete. Delete asks first, right under the row. */
 export function CollectionGroup({
   collection,
   sessions,
@@ -24,9 +24,32 @@ export function CollectionGroup({
   const holdsActive = sessions.some((s) => s.id === activeId);
   const [expanded, setExpanded] = useState(holdsActive);
   const [renaming, setRenaming] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const itemRef = useRef<HTMLLIElement>(null);
+  const keepRef = useRef<HTMLButtonElement>(null);
   const listId = `collection-${collection.id}`;
-  const open = expanded || holdsActive;
+  const open = expanded;
+
+  // Opening a session in this project unfolds it once; after that the
+  // project can still be folded up while its session stays open.
+  const [wasHoldingActive, setWasHoldingActive] = useState(holdsActive);
+  if (holdsActive !== wasHoldingActive) {
+    setWasHoldingActive(holdsActive);
+    if (holdsActive) setExpanded(true);
+  }
+
+  // The safe answer gets the focus when the question appears.
+  useEffect(() => {
+    if (confirming) keepRef.current?.focus();
+  }, [confirming]);
+
+  function keep() {
+    setConfirming(false);
+    // The row's menu button is where the question came from.
+    queueMicrotask(() => itemRef.current?.querySelector<HTMLElement>('.mf-side-more')?.focus());
+  }
 
   async function save(value: string) {
     setRenaming(false);
@@ -37,15 +60,23 @@ export function CollectionGroup({
   }
 
   async function remove() {
+    setDeleting(true);
     const result = await deleteCollection(collection.id);
+    setDeleting(false);
     setError(result.ok ? null : result.error);
+    if (result.ok) {
+      // The row is gone with the project; park focus on the list's New project button.
+      document.getElementById('studio-new-project')?.focus();
+    } else {
+      keep();
+    }
   }
 
   return (
-    <li>
+    <li ref={itemRef}>
       {renaming ? (
         <InlineInput
-          label="Collection name"
+          label="Project name"
           initialValue={collection.name}
           maxLength={60}
           onSubmit={save}
@@ -89,11 +120,34 @@ export function CollectionGroup({
             triggerClassName="mf-side-more"
             items={[
               { label: 'Rename', onSelect: () => setRenaming(true) },
-              { label: 'Delete', onSelect: () => void remove() },
+              { label: 'Delete', onSelect: () => setConfirming(true) },
             ]}
           />
         </div>
       )}
+      {confirming ? (
+        <div
+          role="group"
+          aria-label={`Delete ${collection.name}`}
+          className="mf-confirm"
+          onKeyDown={(event) => {
+            if (event.key !== 'Escape') return;
+            event.preventDefault();
+            event.stopPropagation();
+            keep();
+          }}
+        >
+          <p>Delete this project? Its sessions stay.</p>
+          <div className="mf-confirm-actions">
+            <button type="button" ref={keepRef} onClick={keep} disabled={deleting} className="mf-ulink disabled:opacity-40">
+              Keep
+            </button>
+            <button type="button" onClick={() => void remove()} disabled={deleting} className="mf-ulink disabled:opacity-40">
+              Delete
+            </button>
+          </div>
+        </div>
+      ) : null}
       {error ? (
         <p role="alert" className="px-2.5 pt-1 pb-2 text-[12px] leading-[16px] text-[color:var(--danger)]">
           {error}

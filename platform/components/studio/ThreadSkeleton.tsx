@@ -1,16 +1,15 @@
 /** Quiet placeholder for the content area while a session loads: the shell
- * (sidebar, header) is already on screen, so only this part shimmers. */
+ * (sidebar, header) is already on screen, so only this part shimmers. The
+ * home variant follows the home's column: headline, line, composer. */
 export function ThreadSkeleton({ variant = 'thread' }: { variant?: 'thread' | 'home' }) {
   if (variant === 'home') {
     return (
-      <div
-        aria-busy="true"
-        aria-label="Loading"
-        className="flex min-h-0 flex-1 flex-col items-start justify-center gap-5 px-6 pb-6 md:items-center md:px-10 md:pb-[60px]"
-      >
-        <div className="mf-skel h-12 w-[78%] max-w-[520px] md:h-14" />
-        <div className="mf-skel h-4 w-[56%] max-w-[360px]" />
-        <div className="mf-skel mt-4 h-16 w-full max-w-[760px]" />
+      <div aria-busy="true" aria-label="Loading" className="flex min-h-0 flex-1 flex-col items-center px-4 pt-10 md:justify-center md:px-10 md:pt-0 md:pb-16">
+        <div className="flex w-full max-w-[720px] flex-col gap-3">
+          <div className="mf-skel h-10 w-[78%] md:h-14 md:w-[74%]" />
+          <div className="mf-skel h-4 w-[56%] md:h-5" />
+          <div className="mf-skel mt-6 h-14 w-full md:mt-6 md:h-16" />
+        </div>
       </div>
     );
   }

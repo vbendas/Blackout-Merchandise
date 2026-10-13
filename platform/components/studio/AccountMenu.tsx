@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useClerk } from '@clerk/nextjs';
 import { RowMenu, type MenuEntry } from '@/components/studio/RowMenu';
 import { useStudioSidebar, type StudioAccount } from '@/components/studio/StudioSidebarProvider';
+import { shopUrl } from '@/lib/format/shop-url';
 
 export function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -34,10 +35,12 @@ function AccountMenuInner({ signOut }: { signOut?: () => void }) {
     router.push(href);
   };
 
-  const items: MenuEntry[] = [
+  const items: MenuEntry[] = [];
+  if (account.shopSlug) items.push({ label: 'View shop', href: shopUrl(account.shopSlug), external: true });
+  items.push(
     { label: 'Settings', href: '/studio/settings', onSelect: go('/studio/settings') },
     { label: 'Billing', href: '/studio/billing', onSelect: go('/studio/billing') },
-  ];
+  );
   if (signOut) items.push('separator', { label: 'Sign out', onSelect: signOut });
 
   return (
@@ -69,8 +72,8 @@ function ClerkAccountMenu() {
   return <AccountMenuInner signOut={() => void signOut({ redirectUrl: '/' })} />;
 }
 
-/** Sidebar footer: avatar, name and shop, opening a drop-up with Settings,
- * Billing and (with Clerk) Sign out. */
+/** Sidebar footer: avatar, name and shop, opening a drop-up with View shop,
+ * Settings, Billing and (with Clerk) Sign out. */
 export function AccountMenu() {
   const { account } = useStudioSidebar();
   return account.showClerk ? <ClerkAccountMenu /> : <AccountMenuInner />;

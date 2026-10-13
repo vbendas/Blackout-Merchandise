@@ -1,11 +1,13 @@
-import { and, eq, gte, isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import type { SessionInfo } from '@/lib/auth';
 import type { ChecklistStep } from '@/lib/agent/protocol';
 import type { Chip } from '@/lib/ui-cards/schemas';
 import { getProjectCard } from '@/lib/services/conversations';
+import { getSalesThisMonth } from '@/lib/services/studio-home';
 import { storeSummary } from '@/lib/services/stores';
 import { humanStatus } from '@/lib/format/status';
+import { runLabel } from '@/lib/format/runs';
 
 // Drives the guided-chat empty state: a headline + status line, state-keyed
 // quick-action chips, the onboarding checklist, and the top-bar project
@@ -32,21 +34,6 @@ async function countUnreadInbox(userId: string): Promise<number> {
   return rows.length;
 }
 
-function startOfMonthUtc(): Date {
-  const start = new Date();
-  start.setUTCDate(1);
-  start.setUTCHours(0, 0, 0, 0);
-  return start;
-}
-
-async function countSalesThisMonth(storeId: string): Promise<number> {
-  const rows = await db
-    .select({ id: schema.orders.id })
-    .from(schema.orders)
-    .where(and(eq(schema.orders.storeId, storeId), gte(schema.orders.createdAt, startOfMonthUtc())));
-  return rows.length;
-}
-
 async function countAdminWaiting(): Promise<number> {
   const [waitlistRows, ticketRows] = await Promise.all([
     db.select({ id: schema.waitlistSignups.id }).from(schema.waitlistSignups).where(eq(schema.waitlistSignups.status, 'pending')),
@@ -61,7 +48,7 @@ export async function loadGuidanceCounts(session: SessionInfo): Promise<Guidance
   const [summary, unreadInbox, salesThisMonth, adminWaiting] = await Promise.all([
     storeId ? storeSummary(storeId) : Promise.resolve(null),
     countUnreadInbox(session.user.id),
-    storeId ? countSalesThisMonth(storeId) : Promise.resolve(0),
+    storeId ? getSalesThisMonth(storeId).then((sales) => sales.count) : Promise.resolve(0),
     session.role === 'admin' ? countAdminWaiting() : Promise.resolve(0),
   ]);
 
@@ -89,10 +76,12 @@ export async function resolveGuidance(session: SessionInfo): Promise<{ state: Gu
   return { state: guidanceStateFor(session, counts), counts };
 }
 
-function firstNameFor(session: SessionInfo): string {
-  const source = session.user.displayName?.trim() || session.store?.name?.trim() || '';
-  const first = source.split(/\s+/)[0];
-  return first || 'today';
+/** The artist's first name, or null when the account has no usable name
+ * (the greeting then drops it instead of calling them something else). */
+function firstNameFor(session: SessionInfo): string | null {
+  const name = session.user.displayName?.trim() ?? '';
+  if (!name || name.includes('@')) return null;
+  return name.split(/\s+/)[0] || null;
 }
 
 function plural(n: number, word: string): string {
@@ -112,10 +101,19 @@ async function lineFor(session: SessionInfo, state: GuidanceState, counts: Guida
       return `${plural(counts.draftProducts, 'draft')} waiting for a proof.`;
     case 'live': {
       const shopName = session.store?.name?.trim() || 'Your shop';
-      return `${shopName} is live. ${plural(counts.salesThisMonth, 'sale')} this month.`;
+      // Products can be live before the shop is published.
+      if (!session.store?.isPublished) {
+        const n = counts.liveProducts;
+        return `${plural(n, 'product')} ${n === 1 ? 'is' : 'are'} live. ${shopName} is not published yet.`;
+      }
+      const sales =
+        counts.salesThisMonth === 0
+          ? 'No sales yet this month. Share your shop link.'
+          : `${plural(counts.salesThisMonth, 'sale')} this month.`;
+      return `${shopName} is live. ${sales}`;
     }
     case 'admin':
-      return `${plural(counts.adminWaiting, 'thing')} waiting on you.`;
+      return counts.adminWaiting === 0 ? 'Nothing is waiting on you.' : `${plural(counts.adminWaiting, 'thing')} waiting on you.`;
   }
 }
 
@@ -125,8 +123,9 @@ export async function greetingFor(
   counts?: GuidanceCounts,
 ): Promise<{ headline: string; line: string }> {
   const resolvedCounts = counts ?? (await loadGuidanceCounts(session));
+  const firstName = firstNameFor(session);
   return {
-    headline: `What are we making, ${firstNameFor(session)}?`,
+    headline: firstName ? `What are we making, ${firstName}?` : 'What are we making?',
     line: await lineFor(session, state, resolvedCounts),
   };
 }
@@ -157,6 +156,8 @@ export function quickActionsFor(state: GuidanceState): Chip[] {
     case 'live':
       return [
         { label: 'Add a product', prompt: 'Add a new product', primary: true },
+        { label: 'Orders', prompt: 'Show my orders' },
+        { label: 'Payouts', prompt: 'Payout status' },
         { label: 'Sales this month', prompt: 'Show my sales this month' },
         { label: 'Bulk order', prompt: 'Start a bulk order' },
         { label: 'Inbox', prompt: 'Check my inbox' },
@@ -181,8 +182,8 @@ export async function checklistFor(session: SessionInfo): Promise<ChecklistStep[
   return [
     { key: 'name', label: 'Name your shop', done: nameSet, prompt: 'Help me name my shop' },
     { key: 'product', label: 'First product', done: summary?.hasAnyProduct ?? false, prompt: 'Show me blanks' },
-    { key: 'stripe', label: 'Stripe payouts', done: summary?.stripeReady ?? false, prompt: 'Connect Stripe payouts' },
-    { key: 'publish', label: 'Publish', done: session.store?.isPublished ?? false, prompt: 'Publish my store' },
+    { key: 'stripe', label: 'Payouts', done: summary?.stripeReady ?? false, prompt: 'Set up payouts' },
+    { key: 'publish', label: 'Publish my shop', done: session.store?.isPublished ?? false, prompt: 'Publish my shop' },
   ];
 }
 
@@ -223,8 +224,11 @@ export async function projectPillFor(conversationId: string): Promise<{ label: s
     const linesQty = lines?.reduce((sum, l) => sum + (typeof l.qty === 'number' ? l.qty : 0), 0) ?? 0;
     const qty = typeof state.qty === 'number' ? state.qty : linesQty || undefined;
     const blank = str(state.blank) ?? str(state.blankName);
+    const runNumber = typeof state.runNumber === 'number' ? state.runNumber : null;
+    const pieces = qty !== undefined && blank ? `${qty} × ${blank}` : blank;
+    const run = runNumber !== null ? runLabel(runNumber) : 'Run';
     return {
-      label: qty !== undefined && blank ? `${qty} × ${blank}` : (blank ?? 'Bulk order'),
+      label: pieces ? `${run} · ${pieces}` : run,
       status: statusLabel(state.status, 'Draft'),
     };
   }

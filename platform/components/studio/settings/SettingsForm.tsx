@@ -1,11 +1,15 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { SettingsSection } from './SettingsSection';
 import { SUPPORTED_LOCALES } from './locales';
 import { ManageAccountButton } from './ManageAccountButton';
 import { initials as initialsFor } from '@/components/studio/AccountMenu';
+import { ExternalArrow } from '@/components/studio/ExternalArrow';
+import { useStudioSidebar } from '@/components/studio/StudioSidebarProvider';
+import { shopUrl, shopUrlLabel } from '@/lib/format/shop-url';
+import '@/components/studio/studio.css';
 
 interface Props {
   displayName: string;
@@ -17,17 +21,11 @@ interface Props {
   clerkAvailable: boolean;
 }
 
-const input: React.CSSProperties = {
-  height: 40,
-  padding: '0 12px',
-  borderRadius: 2,
-  border: 'var(--hairline)',
-  background: 'transparent',
-  color: 'var(--signal)',
-  font: 'inherit',
-  fontSize: 14,
-  minWidth: 0,
-};
+type NoteKey = 'name' | 'language' | 'discordDm' | 'email';
+interface Note {
+  tone: 'ok' | 'error';
+  text: string;
+}
 
 async function patch(body: Record<string, unknown>): Promise<string | null> {
   try {
@@ -40,42 +38,114 @@ async function patch(body: Record<string, unknown>): Promise<string | null> {
   }
 }
 
-function Toggle({ label, hint, checked, disabled, onChange }: { label: string; hint?: string; checked: boolean; disabled?: boolean; onChange: (v: boolean) => void }) {
+/** Save feedback, one slot per control, so the answer shows next to what was
+ * changed. "Saved" fades after a few seconds; an error stays until the next try. */
+function useNotes() {
+  const [notes, setNotes] = useState<Partial<Record<NoteKey, Note>>>({});
+  const timers = useRef<Partial<Record<NoteKey, number>>>({});
+
+  useEffect(() => {
+    const pending = timers.current;
+    return () => {
+      for (const timer of Object.values(pending)) window.clearTimeout(timer);
+    };
+  }, []);
+
+  const show = useCallback((key: NoteKey, note: Note | null) => {
+    window.clearTimeout(timers.current[key]);
+    setNotes((prev) => ({ ...prev, [key]: note ?? undefined }));
+    if (note?.tone === 'ok') {
+      timers.current[key] = window.setTimeout(() => setNotes((prev) => ({ ...prev, [key]: undefined })), 4000);
+    }
+  }, []);
+
+  return [notes, show] as const;
+}
+
+/** The answer to a save, beside the control. Always in the page (empty until
+ * there is something to say) so screen readers announce it when it fills. */
+function SaveNote({ note }: { note?: Note }) {
   return (
-    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '10px 0', cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.4 : 1 }}>
-      <span>
-        <span style={{ display: 'block', fontSize: 14 }}>{label}</span>
-        {hint ? <span className="mf-dimmed" style={{ display: 'block', fontSize: 13 }}>{hint}</span> : null}
-      </span>
-      <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} style={{ width: 18, height: 18, accentColor: '#fff', flex: 'none' }} />
-    </label>
+    <span
+      role="status"
+      aria-live="polite"
+      className="text-[13px] leading-[18px]"
+      style={{ color: note?.tone === 'error' ? 'var(--danger)' : 'color-mix(in srgb, var(--signal) 80%, transparent)' }}
+    >
+      {note?.text}
+    </span>
+  );
+}
+
+function Toggle({
+  id,
+  label,
+  hint,
+  checked,
+  disabled,
+  note,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  hint?: string;
+  checked: boolean;
+  disabled?: boolean;
+  note?: Note;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-2.5">
+      <div className="min-w-0 flex-1">
+        <label htmlFor={id} className={`block text-[14px] ${disabled ? '' : 'cursor-pointer'}`}>
+          {label}
+        </label>
+        {hint ? (
+          <p id={`${id}-hint`} className="mf-dimmed m-0 text-[13px] leading-[18px]">
+            {hint}
+          </p>
+        ) : null}
+      </div>
+      <SaveNote note={note} />
+      <input
+        id={id}
+        type="checkbox"
+        role="switch"
+        className="mf-switch"
+        checked={checked}
+        disabled={disabled}
+        aria-describedby={hint ? `${id}-hint` : undefined}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+    </div>
   );
 }
 
 export function SettingsForm({ displayName, email, imageUrl, locale, discord, shop, clerkAvailable }: Props) {
   const router = useRouter();
+  const { askStudio } = useStudioSidebar();
   const [, startTransition] = useTransition();
   const [name, setName] = useState(displayName);
   const [savedName, setSavedName] = useState(displayName);
   const [lang, setLang] = useState(locale);
   const [prefs, setPrefsState] = useState({ discordDm: discord.discordDm, email: discord.email });
-  const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+  const [notes, showNote] = useNotes();
   const [busy, setBusy] = useState(false);
 
   const trimmed = name.trim();
   const nameValid = trimmed.length >= 1 && trimmed.length <= 60;
   const nameDirty = trimmed !== savedName;
 
-  async function save(body: Record<string, unknown>, okText: string): Promise<boolean> {
+  async function save(key: NoteKey, body: Record<string, unknown>, okText: string): Promise<boolean> {
     setBusy(true);
-    setMessage(null);
+    showNote(key, null);
     const err = await patch(body);
     setBusy(false);
     if (err) {
-      setMessage({ tone: 'error', text: err });
+      showNote(key, { tone: 'error', text: err });
       return false;
     }
-    setMessage({ tone: 'ok', text: okText });
+    showNote(key, { tone: 'ok', text: okText });
     startTransition(() => router.refresh());
     return true;
   }
@@ -106,14 +176,15 @@ export function SettingsForm({ displayName, email, imageUrl, locale, discord, sh
           onSubmit={async (e) => {
             e.preventDefault();
             if (!nameValid || !nameDirty) return;
-            if (await save({ displayName: trimmed }, 'Name saved.')) setSavedName(trimmed);
+            if (await save('name', { displayName: trimmed }, 'Name saved.')) setSavedName(trimmed);
           }}
-          style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}
+          className="flex flex-wrap items-center gap-2"
         >
-          <input id="display-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} style={{ ...input, flex: '1 1 220px' }} />
+          <input id="display-name" className="mf-field min-w-[220px] flex-[1_1_220px]" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
           <button type="submit" className="mf-pill mf-pill-primary" disabled={busy || !nameValid || !nameDirty}>
             Save name
           </button>
+          <SaveNote note={notes.name} />
         </form>
         {clerkAvailable ? (
           <div style={{ marginTop: 16 }}>
@@ -123,24 +194,27 @@ export function SettingsForm({ displayName, email, imageUrl, locale, discord, sh
       </SettingsSection>
 
       <SettingsSection label="Language">
-        <select
-          aria-label="Language"
-          value={lang}
-          disabled={busy}
-          onChange={async (e) => {
-            const next = e.target.value;
-            const prev = lang;
-            setLang(next);
-            if (!(await save({ locale: next }, 'Language saved.'))) setLang(prev);
-          }}
-          style={{ ...input, width: '100%', maxWidth: 280, colorScheme: 'dark' }}
-        >
-          {SUPPORTED_LOCALES.map((l) => (
-            <option key={l.code} value={l.code}>
-              {l.label}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            aria-label="Language"
+            className="mf-field mf-select w-full max-w-[280px]"
+            value={lang}
+            disabled={busy}
+            onChange={async (e) => {
+              const next = e.target.value;
+              const prev = lang;
+              setLang(next);
+              if (!(await save('language', { locale: next }, 'Language saved.'))) setLang(prev);
+            }}
+          >
+            {SUPPORTED_LOCALES.map((l) => (
+              <option key={l.code} value={l.code}>
+                {l.label}
+              </option>
+            ))}
+          </select>
+          <SaveNote note={notes.language} />
+        </div>
         <p className="mf-dimmed" style={{ fontSize: 13, margin: '10px 0 0' }}>The Studio assistant and your emails will use this language.</p>
       </SettingsSection>
 
@@ -159,25 +233,33 @@ export function SettingsForm({ displayName, email, imageUrl, locale, discord, sh
           </a>
         </div>
         <Toggle
+          id="notify-discord"
           label="Discord messages"
-          hint="Proofs, sales and shipping updates sent to you on Discord."
+          hint={
+            discord.linked
+              ? 'Proofs, sales and shipping updates sent to you on Discord.'
+              : 'Proofs, sales and shipping updates on Discord. Connect Discord above to turn this on.'
+          }
           checked={prefs.discordDm}
           disabled={!discord.linked || busy}
+          note={notes.discordDm}
           onChange={async (v) => {
             const prev = prefs;
             setPrefsState({ ...prefs, discordDm: v });
-            if (!(await save({ discordDm: v }, 'Notification settings saved.'))) setPrefsState(prev);
+            if (!(await save('discordDm', { discordDm: v }, 'Saved.'))) setPrefsState(prev);
           }}
         />
         <Toggle
+          id="notify-email"
           label="Email"
           hint="The same updates in your inbox."
           checked={prefs.email}
           disabled={busy}
+          note={notes.email}
           onChange={async (v) => {
             const prev = prefs;
             setPrefsState({ ...prefs, email: v });
-            if (!(await save({ email: v }, 'Notification settings saved.'))) setPrefsState(prev);
+            if (!(await save('email', { email: v }, 'Saved.'))) setPrefsState(prev);
           }}
         />
       </SettingsSection>
@@ -188,15 +270,27 @@ export function SettingsForm({ displayName, email, imageUrl, locale, discord, sh
             <dt className="mf-dimmed">Name</dt>
             <dd style={{ margin: 0, overflowWrap: 'anywhere' }}>{shop.name}</dd>
             <dt className="mf-dimmed">Address</dt>
-            <dd style={{ margin: 0, overflowWrap: 'anywhere' }}>{shop.slug}</dd>
+            <dd style={{ margin: 0, overflowWrap: 'anywhere' }}>
+              {shopUrlLabel(shop.slug)}
+              <a
+                href={shopUrl(shop.slug)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mf-ulink ml-3 inline-flex items-center gap-1"
+              >
+                View shop
+                <ExternalArrow />
+                <span className="sr-only">(opens in a new tab)</span>
+              </a>
+            </dd>
           </dl>
-          <p className="mf-dimmed" style={{ fontSize: 13, margin: '14px 0 0' }}>Change these by asking in the Studio.</p>
+          <div style={{ marginTop: 18 }}>
+            <button type="button" className="mf-pill" onClick={() => askStudio('I want to change my shop name or address')}>
+              Change name or address
+            </button>
+          </div>
         </SettingsSection>
       ) : null}
-
-      <div role="status" aria-live="polite" style={{ minHeight: 24, fontSize: 13, color: message?.tone === 'error' ? 'var(--danger)' : 'var(--success)' }}>
-        {message?.text}
-      </div>
     </div>
   );
 }

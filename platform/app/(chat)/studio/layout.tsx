@@ -11,6 +11,7 @@ export default async function StudioLayout({ children }: { children: ReactNode }
     displayName: user.displayName?.trim() || store?.name || user.email,
     imageUrl: user.imageUrl ?? null,
     shopName: store?.name ?? null,
+    shopSlug: store?.slug ?? null,
     role,
     showClerk: !DEV_BYPASS,
   };
