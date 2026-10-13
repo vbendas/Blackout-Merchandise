@@ -2,7 +2,7 @@
   "name": "mainpage",
   "version": "0.2.0",
   "private": true,
-  "description": "MerchFrom website: static members door, apply flow, press board, FAQ, agents page, film and Merch Studio preview",
+  "description": "MerchFrom website: static members door (hands off to Merch Studio sign-in), apply flow, press board, FAQ, agents page and film",
   "scripts": {
     "dev": "python3 -m http.server 3000 --bind 127.0.0.1"
   }
