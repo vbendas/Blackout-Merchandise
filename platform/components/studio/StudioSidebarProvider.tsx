@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import type { ChatPick } from '@/lib/agent/pick';
 import type { StudioCollection, StudioSession, StudioSidebarData } from '@/lib/studio/types';
 import type { StudioHomeData } from '@/lib/services/studio-home';
 
@@ -28,12 +29,15 @@ interface StudioSidebarContextValue {
    * null until the first load (and if it never arrives) */
   home: StudioHomeData | null;
   refreshHome: () => Promise<void>;
-  /** opens a fresh session on the home screen and sends `prompt` there once
-   * it has loaded (Settings and the Shop block use this; the home reads
-   * /studio?prompt=, see PromptParam) */
-  askStudio: (prompt: string) => void;
-  /** the prompt an in-app button asked the fresh session to send; read once */
-  takePendingPrompt: () => string | null;
+  /** sends `prompt` once the session has loaded: in the session `sessionId`
+   * (opened at /studio/s/<id>), or, without one, in a fresh session on the
+   * home screen. A catalogue pick (lib/agent/pick.ts) goes with it as the
+   * message's attachment. Settings, the Shop block and the catalogue use this;
+   * the home reads /studio?prompt=, see PromptParam */
+  askStudio: (prompt: string, sessionId?: string, options?: AskOptions) => void;
+  /** what an in-app button asked a session to send, if it was asked of the
+   * session passing its id here (a fresh session passes none); read once */
+  takePendingPrompt: (sessionId?: string) => PendingPrompt | null;
   renameSession: (id: string, title: string) => Promise<Result<StudioSession>>;
   moveSession: (id: string, collectionId: string | null) => Promise<Result<StudioSession>>;
   createCollection: (name: string) => Promise<Result<StudioCollection>>;
@@ -51,9 +55,23 @@ interface StudioSidebarContextValue {
   newSession: () => void;
 }
 
+/** Extras an in-app button can send with its prompt. */
+export interface AskOptions {
+  pick?: ChatPick;
+}
+
+/** A prompt handed to a session by askStudio, with what went with it. */
+export interface PendingPrompt {
+  text: string;
+  pick?: ChatPick;
+}
+
 const StudioSidebarContext = createContext<StudioSidebarContextValue | null>(null);
 
 const FALLBACK_ERROR = 'That did not go through. Please try again.';
+
+/** How long a prompt handed to askStudio waits for its session to load. */
+const PENDING_PROMPT_MS = 30_000;
 
 /** API errors are either a sentence for people or a short code; only the
  * sentence is shown. */
@@ -236,25 +254,39 @@ export function StudioSidebarProvider({ account, children }: { account: StudioAc
     setDrawerOpen(false);
   }, []);
 
-  // Starts over on the home screen (the nonce remounts it even when the URL
-  // is already /studio) with the message in the URL for PromptParam to send.
-  // In-app buttons (the artist's own click) hand their prompt over in memory,
-  // so the fresh session sends it. A ?prompt= in the URL can come from any
-  // link, so it only fills the composer (components/studio/PromptParam.tsx).
-  const pendingPrompt = useRef<string | null>(null);
+  // In-app buttons (the artist's own click) hand their prompt over in memory;
+  // the session it was asked of sends it once it has loaded. Without a session
+  // id that is a fresh one: the home screen starts over (the nonce remounts it
+  // even when the URL is already /studio). With one, the page moves to that
+  // session, which takes the prompt when its history is in. A ?prompt= in the
+  // URL can come from any link, so it only fills the composer
+  // (components/studio/PromptParam.tsx).
+  const pendingPrompt = useRef<(PendingPrompt & { sessionId: string | null; at: number }) | null>(null);
   const askStudio = useCallback(
-    (prompt: string) => {
-      pendingPrompt.current = prompt;
-      setHomeNonce((n) => n + 1);
+    (prompt: string, sessionId?: string, options?: AskOptions) => {
+      pendingPrompt.current = { text: prompt, pick: options?.pick, sessionId: sessionId ?? null, at: Date.now() };
       setDrawerOpen(false);
+      if (sessionId) {
+        router.push(`/studio/s/${encodeURIComponent(sessionId)}`);
+        return;
+      }
+      setHomeNonce((n) => n + 1);
       router.push('/studio');
     },
     [router],
   );
-  const takePendingPrompt = useCallback(() => {
-    const prompt = pendingPrompt.current;
+  const takePendingPrompt = useCallback((sessionId?: string) => {
+    const pending = pendingPrompt.current;
+    if (!pending) return null;
+    // A prompt nobody picked up (the artist went elsewhere first) must not
+    // surface in some session minutes later.
+    if (Date.now() - pending.at > PENDING_PROMPT_MS) {
+      pendingPrompt.current = null;
+      return null;
+    }
+    if (pending.sessionId !== (sessionId ?? null)) return null;
     pendingPrompt.current = null;
-    return prompt;
+    return { text: pending.text, pick: pending.pick };
   }, []);
 
   // The provider only re-renders on its own state changes (children come

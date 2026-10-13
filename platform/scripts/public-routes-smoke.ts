@@ -63,6 +63,8 @@ const PROTECTED_PATHS = [
   '/studio/s/x',
   '/studio/settings',
   '/studio/billing',
+  '/studio/catalogue',
+  '/studio/catalogue?category=Jackets',
   '/chat',
   '/register',
   // admin
@@ -83,6 +85,8 @@ const PROTECTED_PATHS = [
   '/api/studio/collections/x',
   '/api/studio/profile',
   '/api/studio/home',
+  '/api/catalogue',
+  '/api/catalogue/STSU177',
   '/api/studio/runs/x/pay',
   '/api/uploads',
   '/api/stripe/connect',

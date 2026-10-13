@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState, type DragEvent } fr
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'motion/react';
 import type { CardActionContext } from '@/components/cards/actions';
+import { useAskedPrompt } from '@/components/chat/useAskedPrompt';
 import { useConversation } from '@/components/chat/useConversation';
 import { useUpload } from '@/components/chat/useUpload';
 import { TopBar } from '@/components/chat/TopBar';
@@ -16,7 +17,7 @@ import { NeedsYou } from '@/components/studio/NeedsYou';
 import { NoticeLine } from '@/components/studio/NoticeLine';
 import { PromptParam } from '@/components/studio/PromptParam';
 import { ThreadSkeleton } from '@/components/studio/ThreadSkeleton';
-import { useRegisterCatalogueSend } from '@/components/catalogue/useRegisterCatalogueSend';
+import { useOptionalCatalogue } from '@/components/catalogue/CatalogueProvider';
 import { useOptionalStudioSidebar } from '@/components/studio/StudioSidebarProvider';
 import { useMediaQuery } from '@/components/studio/useMediaQuery';
 import '@/components/studio/studio.css';
@@ -80,20 +81,20 @@ export function ChatShell({ sessionId }: { sessionId?: string }) {
     earlier,
   } = useConversation({ initialConversationId: sessionId, onMessageStart, onTurnEnd });
 
-  // The catalogue's "Use this blank" and "Quote a run" send into this session.
-  useRegisterCatalogueSend(sendText, sending);
-
   // A prompt from a link only fills the composer; one from an in-app button
-  // (askStudio: the artist's own click) is sent once the fresh session is ready.
+  // (askStudio) is sent once this session has loaded (useAskedPrompt.ts). A
+  // catalogue pick leaves the artist's pick once its message has gone.
   const [promptDraft, setPromptDraftState] = useState<{ id: number; text: string } | null>(null);
   const setPromptDraft = useCallback((text: string) => setPromptDraftState({ id: Date.now(), text }), []);
-  const takePendingPrompt = sidebar?.takePendingPrompt;
-  const freshReady = !sessionId && !loadingHistory && !historyError;
-  useEffect(() => {
-    if (!freshReady || !takePendingPrompt) return;
-    const prompt = takePendingPrompt();
-    if (prompt) void sendText(prompt);
-  }, [freshReady, takePendingPrompt, sendText]);
+  const clearPick = useOptionalCatalogue()?.clearPick;
+  useAskedPrompt({
+    sessionId,
+    ready: !loadingHistory && !historyError,
+    sending,
+    sendText,
+    takePendingPrompt: sidebar?.takePendingPrompt,
+    onPickSent: clearPick,
+  });
 
   // The home screen waits a moment for the shop's state, so Needs you is there
   // on the first paint instead of pushing the composer up when it arrives.

@@ -23,11 +23,6 @@ export function activeSessionId(pathname: string): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-/** Chat routes render their own header (TopBar) with the drawer button. */
-export function isChatRoute(pathname: string): boolean {
-  return pathname === '/studio' || pathname.startsWith('/studio/s/');
-}
-
 export function MenuButton({ className }: { className?: string }) {
   const { drawerOpen, setDrawerOpen } = useStudioSidebar();
   // The wrapper carries md:hidden: .mf-icon-btn sets its own display.
@@ -294,18 +289,5 @@ export function StudioSidebar() {
         </div>
       </aside>
     </>
-  );
-}
-
-/** Mobile header for Studio pages that are not chat (Settings, Billing):
- * just the drawer button and the wordmark. */
-export function StudioPageBar() {
-  const pathname = usePathname();
-  if (isChatRoute(pathname)) return null;
-  return (
-    <div className="flex h-14 shrink-0 items-center gap-2 px-3 md:hidden">
-      <MenuButton />
-      <span className="mf-label">Merch Studio</span>
-    </div>
   );
 }

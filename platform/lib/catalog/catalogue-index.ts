@@ -216,6 +216,13 @@ export function buildCatalogueIndex(prices: CataloguePrices = {}): CatalogueInde
   return { categories, items };
 }
 
+/** How many blanks there are and how many in each category, without prices:
+ * the catalogue page's header and tabs on their first paint. */
+export function catalogueCounts(): { total: number; categories: CatalogueCategoryCount[] } {
+  const { items, categories } = buildCatalogueIndex();
+  return { total: items.length, categories };
+}
+
 // ---------------------------------------------------------------------------
 // Detail
 

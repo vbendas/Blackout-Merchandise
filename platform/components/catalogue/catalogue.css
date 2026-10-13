@@ -1,90 +1,43 @@
-/* The catalogue: a panel over the Studio listing every blank (components/
-   catalogue/). Black ground, white type, white at 80/50/46% for the greys,
-   16% hairlines, 2px corners, garments on the ecru plate; the garment colours
-   are the only colour. Identity classes (.mf-pill, .mf-chip, .mf-plate,
-   .mf-skel) come from components/chat/tokens.css; everything here is
-   prefixed cat-. Focus rules are unlayered, at the end, like the other area
-   stylesheets. */
+/* The catalogue, a page of the Studio (components/catalogue/), across the whole
+   main area, top to bottom: the Studio's top bar (components/studio/PageTopBar.tsx),
+   a row of category tabs, a row of filter dropdowns with the sort, the blanks in
+   a grid that fills the width, the pick tray at the bottom, and a drawer for one
+   blank over the page area (not the sidebar). Black ground,
+   white type, white at 80/50/46% for the greys, 16% hairlines, 2px corners,
+   garments on the ecru plate; the garment colours are the only colour.
+   Identity classes (.mf-pill, .mf-chip, .mf-plate, .mf-skel) come from
+   components/chat/tokens.css; everything here is prefixed cat-. Focus rules
+   are unlayered, at the end, like the other area stylesheets. */
 
 @layer components {
-  .cat-root {
+  /* The page and the two floating parts (the drawer and the note) are
+     siblings: a container (the page) would stop being fixed positioning's
+     reference, the screen, for anything inside it. */
+  .cat-page,
+  .cat-drawer,
+  .cat-toast {
     --cat-a8: color-mix(in srgb, var(--signal) 80%, transparent);
     --cat-a5: color-mix(in srgb, var(--signal) 50%, transparent);
     --cat-a46: color-mix(in srgb, var(--signal) 46%, transparent);
     --cat-rule: color-mix(in srgb, var(--signal) 16%, transparent);
     --cat-rule-strong: color-mix(in srgb, var(--signal) 32%, transparent);
     --cat-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-
-    position: fixed;
-    inset: 0;
-    z-index: 60;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* The scrim: the whole Studio behind, sidebar included, dimmed. */
-    background: rgba(0, 0, 0, 0.72);
-    color: var(--signal);
-    color-scheme: dark;
-    font-size: 15px;
-    line-height: 1.5;
-    /* Closed: gone, but kept in the page so the next open is instant. It fades
-       out; the fade in is the animation below. */
-    opacity: 0;
-    visibility: hidden;
-    transition:
-      opacity 200ms ease,
-      visibility 0s linear 200ms;
+    /* the space beside the page the sidebar takes, and the height of the top bar above it */
+    --cat-side: 0px;
+    --cat-bar: 56px;
+    /* the page's side padding: the top bar's */
+    --cat-pad: 20px;
   }
 
-  .cat-root[data-open='true'] {
-    opacity: 1;
-    visibility: visible;
-    transition: none;
-    animation: cat-fade 220ms ease both;
-  }
-
-  @keyframes cat-fade {
-    from {
-      opacity: 0;
+  /* From 768px the sidebar is a 272px column and the top bar is 64px. */
+  @media (min-width: 768px) {
+    .cat-page,
+    .cat-drawer,
+    .cat-toast {
+      --cat-side: var(--sidebar-w);
+      --cat-bar: 64px;
+      --cat-pad: 32px;
     }
-  }
-
-  @keyframes cat-rise {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-  }
-
-  /* The window: 85% of the viewport (1440px wide at most), so the dimmed
-     Studio shows on every side. The frame fills it and, over the frame, sit
-     its own dim layer and the detail panel. Phones and short screens take the
-     whole screen instead (below). */
-  .cat-stage {
-    /* the frame's border width: the dim layer and the detail panel sit inside it */
-    --cat-bw: 1px;
-    position: relative;
-    width: min(85vw, 1440px);
-    height: 85vh;
-    height: 85dvh;
-    /* The detail panel slides in from beyond the window's edge: clip it there. */
-    overflow: hidden;
-    border-radius: 2px;
-  }
-
-  .cat-root[data-open='true'] .cat-stage {
-    animation: cat-rise 320ms var(--ease-settle) both;
-  }
-
-  .cat-frame {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--paper);
-    border: var(--cat-bw) solid var(--cat-rule-strong);
-    border-radius: 2px;
   }
 
   .cat-label {
@@ -100,37 +53,69 @@
   }
 
   /* .mf-icon (tokens.css) is 18px; these sit in 40px controls beside 14px type. */
-  .cat-root .cat-ic {
+  .cat-page .cat-ic,
+  .cat-drawer .cat-ic {
     width: 16px;
     height: 16px;
     flex: none;
   }
 
-  /* ---------- header ---------- */
+  /* ---------- the page ---------- */
 
-  .cat-top {
-    flex: none;
+  /* The page answers to the width of its own column (the sidebar takes 272px
+     of the screen), not to the viewport: the search moves out of the top bar
+     into a row of its own by the @container query below. */
+  .cat-page {
+    container: catpage / inline-size;
     display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    width: 100%;
+    color: var(--signal);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* The top bar's "Back to the chat", before the title. */
+  .cat-backlink {
+    display: inline-flex;
     align-items: center;
-    gap: 16px;
-    padding: 16px 20px;
-    border-bottom: var(--hairline);
-  }
-
-  .cat-title {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    min-width: 0;
-    margin-right: auto;
-  }
-
-  .cat-title h2 {
-    margin: 0;
-    font-size: 26px;
+    flex: none;
+    gap: 4px;
+    margin-right: 12px;
+    padding: 2px 14px 2px 4px;
+    border-right: var(--hairline);
+    font-size: 11px;
     font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -0.025em;
+    line-height: 1.35;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--cat-a5);
+    transition: color 200ms var(--ease-settle);
+  }
+
+  .cat-backlink:hover {
+    color: var(--signal);
+  }
+
+  /* "Picking garments for <design>": the page was opened from a design card.
+     It sits directly under the top bar, across the page. */
+  .cat-dbanner {
+    padding: 12px var(--cat-pad);
+    border-bottom: var(--hairline);
+    background: var(--tint-4);
+  }
+
+  .cat-dbanner p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--cat-a8);
+  }
+
+  .cat-dbanner b {
+    font-weight: 600;
+    color: var(--signal);
   }
 
   .cat-search {
@@ -157,6 +142,7 @@
     border: 0;
     background: transparent;
     color: var(--signal);
+    color-scheme: dark;
     font: inherit;
     font-size: 14px;
   }
@@ -165,77 +151,22 @@
     color: var(--cat-a46);
   }
 
-  .cat-x {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border: var(--hairline);
-    border-radius: 2px;
-    background: transparent;
-    color: var(--signal);
-    cursor: pointer;
-    transition:
-      background-color 300ms var(--ease-settle),
-      border-color 300ms var(--ease-settle);
-  }
-
-  .cat-x:hover {
-    background: var(--tint-8);
-    border-color: var(--cat-a5);
-  }
-
-  .cat-root .cat-fbtn {
+  /* Under 768px of page the top bar has no room for the search, so a row under
+     it holds it (the @container query below shows the row). */
+  .cat-phonerow {
     display: none;
+    padding: 12px var(--cat-pad);
+    border-bottom: var(--hairline);
   }
 
-  /* ---------- rail ---------- */
-
-  .cat-body {
-    flex: 1;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: 236px minmax(0, 1fr);
+  .cat-phonerow .cat-search {
+    width: auto;
+    height: 44px;
   }
 
-  .cat-rail {
-    display: grid;
-    align-content: start;
-    gap: 2px;
-    padding: 12px 10px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    border-right: var(--hairline);
-  }
-
-  .cat-rail button {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 10px;
-    width: 100%;
-    padding: 9px 10px;
-    border: 0;
-    border-radius: 2px;
-    background: transparent;
-    color: var(--cat-a8);
-    font-size: 14px;
-    text-align: left;
-    cursor: pointer;
-    transition:
-      background-color 200ms var(--ease-settle),
-      color 200ms var(--ease-settle);
-  }
-
-  .cat-rail button:hover {
-    color: var(--signal);
-  }
-
-  .cat-rail button[aria-pressed='true'] {
-    background: var(--tint-8);
-    color: var(--signal);
+  .cat-phonerow .cat-search input {
+    /* 16px keeps iOS from zooming the page when the field takes focus. */
+    font-size: 16px;
   }
 
   .cat-n {
@@ -245,57 +176,245 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .cat-sep {
-    height: 1px;
-    margin: 8px 10px;
-    background: var(--cat-rule);
+  /* ---------- category tabs ---------- */
+
+  /* One row across the page under the top bar, with a hairline under it. The
+     tablist inside scrolls sideways when the tabs do not fit, and a fade marks
+     each edge that has more (data-start / data-end, from useScrollEdges.ts). */
+  .cat-tabsrow {
+    border-bottom: var(--hairline);
   }
 
-  .cat-rail-end {
+  .cat-tabs,
+  .cat-filters {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .cat-tabs::-webkit-scrollbar,
+  .cat-filters::-webkit-scrollbar {
     display: none;
+  }
+
+  .cat-tabs[data-end='true'],
+  .cat-filters[data-end='true'] {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent);
+  }
+
+  .cat-tabs[data-start='true'],
+  .cat-filters[data-start='true'] {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 56px);
+    mask-image: linear-gradient(90deg, transparent, #000 56px);
+  }
+
+  .cat-tabs[data-start='true'][data-end='true'],
+  .cat-filters[data-start='true'][data-end='true'] {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 56px, #000 calc(100% - 56px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 56px, #000 calc(100% - 56px), transparent);
+  }
+
+  /* Each tab has 8px of room either side of its label, so the focus ring does
+     not touch the type and is not cut off by the row; the row's own padding and
+     the gap take that back, so the first label lines up with the page's 32px. */
+  .cat-tabs {
+    gap: 12px;
+    padding: 0 calc(var(--cat-pad) - 8px);
+  }
+
+  /* 48px tall: the label and its mono count on one baseline, the active tab's
+     2px white bar along the bottom (above the row's hairline). */
+  .cat-tab {
+    position: relative;
+    display: inline-flex;
+    align-items: baseline;
+    flex: none;
+    gap: 7px;
+    padding: 14px 8px;
+    border: 0;
+    background: transparent;
+    color: var(--cat-a8);
+    font-size: 14px;
+    line-height: 20px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 200ms var(--ease-settle);
+  }
+
+  .cat-tab::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    bottom: 0;
+    left: 8px;
+    height: 2px;
+    background: var(--signal);
+    opacity: 0;
+    transition: opacity 200ms var(--ease-settle);
+  }
+
+  .cat-tab:hover,
+  .cat-tab[aria-selected='true'] {
+    color: var(--signal);
+  }
+
+  .cat-tab[aria-selected='true']::after {
+    opacity: 1;
+  }
+
+  .cat-tab[aria-selected='true'] .cat-n {
+    color: var(--cat-a8);
+  }
+
+  /* The tab panel: the filters and the blanks. It grows so the pick tray sits
+     at the foot of the page even when there are few results. */
+  .cat-panel {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    min-width: 0;
   }
 
   /* ---------- filters ---------- */
 
-  .cat-main {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    min-height: 0;
-  }
-
-  .cat-filters {
-    flex: none;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 18px;
-    padding: 12px 20px;
+  /* The wrapper holds the open list next to the row that scrolls: the list is a
+     sibling of the row, placed against this box (CatalogueFilterRow.tsx), so the
+     row's overflow does not clip it. */
+  .cat-filterbar {
+    position: relative;
     border-bottom: var(--hairline);
   }
 
-  .cat-fgroup {
-    display: flex;
-    flex-wrap: wrap;
+  .cat-filters {
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    padding: 12px var(--cat-pad);
   }
 
-  .cat-fgroup > .cat-label {
-    margin-right: 2px;
+  /* Before the index has loaded: the row's height, with nothing in it. */
+  .cat-filterbar[data-wait] {
+    height: 59px;
   }
 
-  .cat-filters .mf-chip {
-    height: 30px;
-    padding: 0 10px;
+  .cat-ddbtn {
+    flex: none;
   }
 
-  /* Chosen: white fill, black type, like the website's pills. Hover keeps it. */
-  .cat-root .mf-chip[aria-pressed='true'],
-  .cat-root .mf-chip[aria-pressed='true']:hover:not(:disabled) {
+  .cat-page .cat-ddbtn .cat-ic {
+    width: 14px;
+    height: 14px;
+    color: var(--cat-a5);
+    transition: transform 200ms var(--ease-settle);
+  }
+
+  .cat-ddbtn[aria-expanded='true'] {
+    background: var(--tint-8);
+    border-color: var(--cat-a5);
+  }
+
+  .cat-ddbtn[aria-expanded='true'] .cat-ic {
+    transform: rotate(180deg);
+  }
+
+  /* A filter that is set: white fill, black type, like the website's pills. Hover keeps it. */
+  .cat-page .cat-ddbtn[data-active='true'],
+  .cat-page .cat-ddbtn[data-active='true']:hover:not(:disabled) {
     background: var(--signal);
     border-color: var(--signal);
     color: var(--paper);
+  }
+
+  .cat-page .cat-ddbtn[data-active='true'] .cat-ic {
+    color: var(--paper);
+  }
+
+  .cat-clear {
+    flex: none;
+    margin-left: 10px;
+    white-space: nowrap;
+  }
+
+  /* Sort sits at the right of the row; in a row that scrolls it follows the others. */
+  .cat-sort {
+    margin-left: auto;
+  }
+
+  /* The open list: one small box under its button. */
+  .cat-pop {
+    position: absolute;
+    z-index: 12;
+    width: 224px;
+    max-height: min(360px, 70dvh);
+    padding: 6px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--paper);
+    border: 1px solid var(--cat-rule-strong);
+    border-radius: 2px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+    animation: cat-pop-in 140ms var(--ease-settle) both;
+  }
+
+  @keyframes cat-pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+
+  .cat-opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 36px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 2px;
+    background: transparent;
+    color: var(--cat-a8);
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      background-color 150ms var(--ease-settle),
+      color 150ms var(--ease-settle);
+  }
+
+  .cat-opt:hover:not([aria-disabled='true']),
+  .cat-opt:focus-visible {
+    background: var(--tint-8);
+    color: var(--signal);
+  }
+
+  .cat-opt[aria-selected='true'] {
+    color: var(--signal);
+  }
+
+  /* A colour no blank of this category comes in. */
+  .cat-opt[aria-disabled='true'] {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .cat-opttext {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cat-optdot {
+    display: block;
+    flex: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--c);
+    border: 1px solid var(--cat-rule-strong);
   }
 
   .cat-chip-range {
@@ -307,14 +426,11 @@
     color: var(--cat-a5);
   }
 
-  .mf-chip[aria-pressed='true'] .cat-chip-range {
-    color: color-mix(in srgb, var(--paper) 60%, transparent);
-  }
-
   /* A colour swatch: the button is the hit area, the dot is drawn inside it. */
   .cat-sw {
     --hit: 26px;
     --dot: 22px;
+    position: relative;
     display: grid;
     place-items: center;
     flex: none;
@@ -341,46 +457,29 @@
     outline-offset: 2px;
   }
 
+  /* A colour in the pick wears a small white dot. */
+  .cat-sw[data-inpick='true']::after {
+    content: '';
+    position: absolute;
+    right: calc((var(--hit) - var(--dot)) / 2 - 3px);
+    bottom: calc((var(--hit) - var(--dot)) / 2 - 3px);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--signal);
+    border: 2px solid var(--paper);
+  }
+
   .cat-sw:disabled {
     opacity: 0.3;
     cursor: default;
   }
 
-  .cat-sort {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-left: auto;
-  }
-
-  .cat-sort select {
-    height: 30px;
-    padding: 0 28px 0 8px;
-    border: var(--hairline);
-    border-radius: 2px;
-    background-color: var(--paper);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='white' stroke-opacity='.7' stroke-width='1.3'%3E%3Cpath d='M1.5 3.5 5 7l3.5-3.5'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 9px center;
-    background-size: 10px 10px;
-    color: var(--signal);
-    font: inherit;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    appearance: none;
-    cursor: pointer;
-  }
-
   /* ---------- results ---------- */
 
   .cat-results {
-    flex: 1;
-    min-height: 0;
-    padding: 16px 20px 24px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    flex: 1 0 auto;
+    padding: 24px var(--cat-pad) 48px;
   }
 
   .cat-rhead {
@@ -388,27 +487,21 @@
     justify-content: space-between;
     align-items: baseline;
     gap: 12px;
-    padding-bottom: 14px;
+    padding-bottom: 16px;
   }
 
-  .cat-rhead h3 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    line-height: 1.25;
-    letter-spacing: -0.02em;
-  }
-
+  /* As many columns as fit: about 4 at 1440px with the sidebar open, 6 at 1920px. */
   .cat-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 18px 16px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 24px 16px;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .cat-cell {
+    position: relative;
     min-width: 0;
     list-style: none;
   }
@@ -453,6 +546,44 @@
   .cat-tile[data-back='ready']:hover .cat-front,
   .cat-tile[data-back='ready']:focus-visible .cat-front {
     opacity: 0;
+  }
+
+  /* The pick toggle sits in the plate's corner, over the garment's ecru. */
+  .cat-pickbtn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid rgba(17, 17, 17, 0.45);
+    border-radius: 2px;
+    background: rgba(236, 229, 218, 0.92);
+    color: #111;
+    font: 600 12px var(--cat-mono);
+    cursor: pointer;
+    transition:
+      background-color 200ms var(--ease-settle),
+      color 200ms var(--ease-settle);
+  }
+
+  .cat-pickbtn:hover {
+    background: #ece5da;
+  }
+
+  .cat-pickbtn[aria-pressed='true'] {
+    border-color: #111;
+    background: #111;
+    color: #ece5da;
+  }
+
+  /* A picked tile has an outline round its plate. */
+  .cat-cell[data-picked='true'] .cat-tplate {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
   }
 
   .cat-tinfo {
@@ -522,14 +653,14 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    padding-top: 28px;
+    padding-top: 32px;
   }
 
   .cat-empty {
     display: grid;
     justify-items: start;
     gap: 12px;
-    padding: 48px 0;
+    padding: 32px 0;
     color: var(--cat-a8);
   }
 
@@ -543,46 +674,254 @@
     gap: 8px;
   }
 
-  /* ---------- detail panel ---------- */
+  /* ---------- narrow: the search takes a row of its own ---------- */
 
-  .cat-scrim {
+  /* Under 768px of page (a phone, or a tablet with the sidebar open) the top
+     bar keeps the title and the count, and the search moves to a row under it.
+     The tabs and the filters already scroll sideways when they do not fit. */
+  @container catpage (max-width: 767.98px) {
+    .cat-barsearch {
+      display: none;
+    }
+
+    .cat-phonerow {
+      display: block;
+    }
+  }
+
+  /* ---------- the pick tray ---------- */
+
+  /* The foot of the page: as wide as the results, and it stays at the bottom
+     of the screen while the grid scrolls under it. */
+  .cat-tray {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    margin-top: auto;
+    padding: 12px var(--cat-pad) max(12px, env(safe-area-inset-bottom));
+    background: var(--paper);
+    border-top: 1px solid var(--cat-rule-strong);
+    animation: cat-tray-in 250ms var(--ease-settle) both;
+  }
+
+  @keyframes cat-tray-in {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+  }
+
+  .cat-tray-count {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .cat-tray-text {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .cat-tray-text b {
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .cat-tray-expand {
+    display: none;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--signal);
+    cursor: pointer;
+  }
+
+  .cat-tray[data-expanded='true'] .cat-tray-expand .cat-ic {
+    transform: rotate(180deg);
+  }
+
+  .cat-tray-strip {
+    display: flex;
+    gap: 10px;
+    min-width: 0;
+    margin: 0;
+    padding: 8px 6px 4px;
+    overflow-x: auto;
+    list-style: none;
+  }
+
+  .cat-mpick {
+    position: relative;
+    display: grid;
+    flex: none;
+    gap: 4px;
+    width: 52px;
+  }
+
+  .cat-mplate {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+  }
+
+  .cat-mplate img {
+    padding: 6%;
+    object-fit: contain;
+  }
+
+  .cat-mdots {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .cat-mdots i {
+    display: block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--c);
+    border: 1px solid var(--cat-rule);
+  }
+
+  .cat-mx {
     position: absolute;
-    inset: var(--cat-bw);
-    background: rgba(0, 0, 0, 0.72);
+    top: -6px;
+    right: -6px;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid var(--cat-rule-strong);
+    border-radius: 50%;
+    background: var(--paper);
+    color: var(--signal);
+    cursor: pointer;
+  }
+
+  .cat-tray .cat-ic {
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+
+  .cat-mx .cat-ic {
+    width: 10px;
+    height: 10px;
+  }
+
+  .cat-tray-acts {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cat-tray .cat-tray-clear {
+    padding: 0 8px;
+    border-color: transparent;
+    color: var(--cat-a5);
+  }
+
+  .cat-tray-use {
+    max-width: 300px;
+  }
+
+  .cat-tray-usetext {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ---------- the note under the page ---------- */
+
+  .cat-toast {
+    position: fixed;
+    right: 16px;
+    bottom: 24px;
+    left: calc(var(--cat-side) + 16px);
+    z-index: 35;
+    width: fit-content;
+    max-width: calc(100% - var(--cat-side) - 32px);
+    margin-inline: auto;
+    padding: 10px 14px;
+    border-radius: 2px;
+    background: var(--signal);
+    color: var(--paper);
+    font-size: 13px;
     opacity: 0;
     pointer-events: none;
     transition: opacity 200ms ease;
   }
 
-  .cat-scrim[data-on='true'] {
+  .cat-toast[data-on='true'] {
     opacity: 1;
-    pointer-events: auto;
+  }
+
+  .cat-toast[data-tray='true'] {
+    bottom: 96px;
+  }
+
+  /* ---------- the drawer: one blank, over the page area ---------- */
+
+  .cat-drawer {
+    position: fixed;
+    inset: 0 0 0 var(--cat-side);
+    z-index: 30;
+    visibility: hidden;
+    transition: visibility 0s linear 280ms;
+  }
+
+  .cat-drawer[data-open='true'] {
+    visibility: visible;
+    transition: visibility 0s;
+  }
+
+  /* its own dim layer: a click on it closes the drawer */
+  .cat-veil {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    opacity: 0;
+    touch-action: none;
+    transition: opacity 200ms ease;
+  }
+
+  .cat-drawer[data-open='true'] .cat-veil {
+    opacity: 1;
   }
 
   .cat-detail {
     position: absolute;
-    top: var(--cat-bw);
-    right: var(--cat-bw);
-    bottom: var(--cat-bw);
+    top: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     flex-direction: column;
     width: min(560px, 100%);
     background: var(--paper);
     border-left: 1px solid var(--cat-rule-strong);
-    /* Closed: off to the right and out of the page for focus and screen readers. */
+    color: var(--signal);
+    font-size: 15px;
+    line-height: 1.5;
     transform: translateX(100%);
-    visibility: hidden;
-    transition:
-      transform 280ms var(--ease-settle),
-      visibility 0s linear 280ms;
+    transition: transform 280ms var(--ease-settle);
   }
 
-  .cat-detail[data-open='true'] {
+  .cat-drawer[data-open='true'] .cat-detail {
     transform: none;
-    visibility: visible;
-    transition:
-      transform 280ms var(--ease-settle),
-      visibility 0s;
   }
 
   .cat-dtop {
@@ -679,6 +1018,11 @@
   .cat-colours .cat-sw {
     --hit: 32px;
     --dot: 28px;
+  }
+
+  .cat-inpick {
+    font-size: 13px;
+    color: var(--cat-a8);
   }
 
   .cat-more-colours {
@@ -809,137 +1153,61 @@
     border-top: var(--hairline);
   }
 
+  /* "Add French Navy to your pick" is long: let it take a second line. */
   .cat-dacts .mf-pill {
     flex: 1;
+    height: auto;
+    min-height: 40px;
+    padding-block: 8px;
+    line-height: 1.25;
+    text-align: center;
+    white-space: normal;
   }
 
-  /* ---------- narrower windows: a slimmer rail, fewer columns ---------- */
+  /* ---------- phones: two columns, 44px targets, the drawer takes the screen ---------- */
 
-  @media (max-width: 1199.98px) {
-    .cat-body {
-      grid-template-columns: 200px minmax(0, 1fr);
-    }
-
-    .cat-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 899.98px) {
+  @media (max-width: 767.98px) {
     .cat-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  /* ---------- phones, and screens too short for a window: the whole screen ---------- */
-
-  @media (max-width: 759.98px), (max-height: 480px) {
-    .cat-root {
-      height: 100dvh;
-      background: var(--paper);
+      gap: 20px 10px;
     }
 
-    .cat-stage {
-      --cat-bw: 0px;
-      width: 100%;
-      height: 100%;
-      border-radius: 0;
+    .cat-results {
+      padding-top: 16px;
     }
 
-    .cat-frame {
-      border-radius: 0;
+    .cat-backlink {
+      margin-right: 8px;
+      padding-right: 10px;
     }
-  }
 
-  /* ---------- phones: two columns, filters behind a button, 44px targets ---------- */
+    .cat-page .mf-chip,
+    .cat-page .mf-pill,
+    .cat-drawer .mf-chip,
+    .cat-drawer .mf-pill {
+      min-height: 44px;
+    }
 
-  @media (max-width: 759.98px) {
-    .cat-top {
-      flex-wrap: wrap;
+    .cat-tabs {
       gap: 8px;
-      padding: 12px;
     }
 
-    .cat-title h2 {
-      font-size: 22px;
+    .cat-tab {
+      padding: 16px 8px;
     }
 
-    .cat-search {
-      order: 3;
-      width: 100%;
-      height: 44px;
+    .cat-opt {
+      min-height: 44px;
     }
 
-    .cat-search input {
-      /* 16px keeps iOS from zooming the page when the field takes focus. */
-      font-size: 16px;
+    .cat-filterbar[data-wait] {
+      height: 69px;
     }
 
-    .cat-x {
-      width: 44px;
-      height: 44px;
-    }
-
-    .cat-root .cat-fbtn {
+    .cat-clear {
       display: inline-flex;
-    }
-
-    .cat-root .mf-chip,
-    .cat-root .mf-pill {
-      min-height: 44px;
-    }
-
-    .cat-body {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: auto minmax(0, 1fr);
-    }
-
-    .cat-rail {
-      display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 12px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      border-right: 0;
-      border-bottom: var(--hairline);
-      -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
-      mask-image: linear-gradient(90deg, #000 88%, transparent);
-    }
-
-    .cat-rail button {
-      flex: none;
-      align-items: center;
-      width: auto;
       min-height: 44px;
-      padding: 7px 12px;
-      border: var(--hairline);
-      font-size: 13px;
-    }
-
-    .cat-sep {
-      display: none;
-    }
-
-    /* Room at the end of the strip, so the last category scrolls clear of the fade. */
-    .cat-rail-end {
-      display: block;
-      flex: none;
-      width: 36px;
-      height: 1px;
-    }
-
-    .cat-filters {
-      display: none;
-      padding: 12px;
-    }
-
-    .cat-root[data-filters='open'] .cat-filters {
-      display: flex;
-    }
-
-    .cat-filters .mf-chip {
-      height: 44px;
     }
 
     .cat-sw {
@@ -952,21 +1220,16 @@
       --dot: 28px;
     }
 
-    .cat-sort {
-      margin-left: 0;
+    /* the corner toggle: 36px to look at, 44px to tap */
+    .cat-pickbtn {
+      width: 36px;
+      height: 36px;
     }
 
-    .cat-sort select {
-      height: 44px;
-    }
-
-    .cat-results {
-      padding: 12px 12px 20px;
-    }
-
-    .cat-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px 10px;
+    .cat-pickbtn::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
     }
 
     .cat-detail {
@@ -1003,26 +1266,92 @@
     .cat-dacts {
       padding: 12px 16px max(12px, env(safe-area-inset-bottom));
     }
+
+    /* The tray is a bar: the count and the primary action. The chevron opens
+       it out to the garments, Clear and Quote a run. */
+    .cat-tray {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px 12px;
+      padding: 8px var(--cat-pad) max(8px, env(safe-area-inset-bottom));
+    }
+
+    .cat-tray .mf-pill {
+      min-height: 44px;
+    }
+
+    .cat-tray-expand {
+      display: grid;
+    }
+
+    .cat-tray-strip,
+    .cat-tray .cat-tray-clear,
+    .cat-tray-run {
+      display: none;
+    }
+
+    .cat-tray-use {
+      max-width: 200px;
+    }
+
+    .cat-tray[data-expanded='true'] {
+      max-height: 72dvh;
+      overflow-y: auto;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cat-tray[data-expanded='true'] .cat-tray-strip {
+      display: flex;
+    }
+
+    .cat-tray[data-expanded='true'] .cat-tray-acts {
+      flex-wrap: wrap;
+    }
+
+    .cat-tray[data-expanded='true'] .cat-tray-use {
+      order: -1;
+      flex: 1 1 100%;
+      max-width: none;
+    }
+
+    .cat-tray[data-expanded='true'] .cat-tray-clear,
+    .cat-tray[data-expanded='true'] .cat-tray-run {
+      display: inline-flex;
+      flex: 1 1 0;
+    }
+
+    /* the cross: 20px to look at, 44px to tap */
+    .cat-mx::after {
+      content: '';
+      position: absolute;
+      inset: -12px;
+    }
+
+    .cat-toast[data-tray='true'] {
+      bottom: 88px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .cat-root,
+    .cat-drawer,
+    .cat-veil,
     .cat-detail,
-    .cat-scrim,
+    .cat-toast,
     .cat-tplate img {
       transition: none;
     }
 
-    .cat-root[data-open='true'],
-    .cat-root[data-open='true'] .cat-stage {
+    .cat-tray,
+    .cat-pop {
       animation: none;
     }
   }
 }
 
 /* Focus stays unlayered so it always shows (app/globals.css draws the ring).
-   The panels take focus themselves, and the search shows it on its box. */
-.cat-frame:focus-visible,
+   The page takes focus itself when a drawer closes with nothing to return to,
+   the search shows it on its box, and the controls that sit on the ecru plate
+   get a dark ring: white would vanish. */
+.cat-page:focus-visible,
 .cat-detail:focus-visible {
   outline: none;
 }
@@ -1031,6 +1360,22 @@
   outline: none;
 }
 
-.cat-rail button:focus-visible {
+/* Inside the box: the tab row and the list scroll, and would cut a ring that
+   sits outside it. */
+.cat-tab:focus-visible {
   outline-offset: -1px;
+}
+
+.cat-opt:focus-visible {
+  outline-offset: -2px;
+}
+
+.cat-pickbtn:focus-visible,
+.cat-views button:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 1px;
+}
+
+.cat-mx:focus-visible {
+  outline-offset: 1px;
 }

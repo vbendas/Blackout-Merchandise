@@ -2,30 +2,39 @@
 
 import { useRef, useState, type CSSProperties, type FocusEvent, type PointerEvent } from 'react';
 import Image from 'next/image';
+import { Check, Plus } from 'lucide-react';
+import type { PickColour } from '@/lib/agent/pick';
 import type { CatalogueItem } from '@/lib/catalog/catalogue-index';
 import { formatMoney } from '@/components/cards/CardKit';
 import { loadCatalogueDetail } from './catalogue-client';
 
 // The packshots are 1200 x 1500 PNGs of 0.4 to 1 MB. next/image serves them
-// as WebP at the width the tile needs. The catalogue is 85vw wide (1440px at
-// most) with a rail of 236px (200px below 1200px) and 20px of grid padding,
-// 16px between tiles: four columns from 1200px, three from 900px, two from
-// 760px, and on phones two across the whole screen.
-const TILE_SIZES = [
-  '(max-width: 759px) 46vw',
-  '(max-width: 899px) calc((85vw - 256px) / 2)',
-  '(max-width: 1199px) calc((85vw - 272px) / 3)',
-  'calc((min(85vw, 1440px) - 324px) / 4)',
-].join(', ');
+// as WebP at the width the tile needs. The grid fills the page with columns of
+// at least 208px (a tile is never wider than ~265px up to six columns), and
+// phones have two across the screen.
+const TILE_SIZES = '(max-width: 767px) 46vw, 265px';
 
 /** A mouse resting on a tile this long is likely to open it: fetch its detail then. */
 const PREFETCH_DELAY_MS = 180;
 
 const dotColour = (hex: string) => ({ '--c': hex }) as CSSProperties;
 
+export interface CatalogueTileProps {
+  item: CatalogueItem;
+  onOpen: (code: string) => void;
+  /** the colours of this blank in the artist's pick; empty when it is not in it */
+  picked: readonly PickColour[];
+  /** the corner toggle: puts the blank in the pick, or takes it out whole */
+  onTogglePick: (item: CatalogueItem) => void;
+}
+
 /** One blank in the grid: the ecru plate with its front, then name, facts,
- * up to five colour dots with the colour count, and the base price. */
-export function CatalogueTile({ item, onOpen }: { item: CatalogueItem; onOpen: (code: string) => void }) {
+ * up to five colour dots with the colour count, and the base price. A toggle
+ * in the plate's corner (a sibling of the tile button, not inside it) puts
+ * the blank in the artist's pick: + when it is not, a tick when it is, the
+ * number of colours when it is in more than one; a picked tile has an outline. */
+export function CatalogueTile({ item, onOpen, picked, onTogglePick }: CatalogueTileProps) {
+  const isPicked = picked.length > 0;
   // The back view is not requested until the tile is hovered (or focused with
   // the keyboard), and only shows once it has loaded.
   const [back, setBack] = useState<'idle' | 'loading' | 'ready'>('idle');
@@ -47,7 +56,7 @@ export function CatalogueTile({ item, onOpen }: { item: CatalogueItem; onOpen: (
   }
 
   return (
-    <li className="cat-cell">
+    <li className="cat-cell" data-picked={isPicked}>
       <button
         type="button"
         className="cat-tile"
@@ -80,6 +89,16 @@ export function CatalogueTile({ item, onOpen }: { item: CatalogueItem; onOpen: (
             {item.fromPriceCents !== null ? <span className="cat-price">from {formatMoney(item.fromPriceCents)}</span> : null}
           </span>
         </span>
+      </button>
+      <button
+        type="button"
+        className="cat-pickbtn"
+        aria-pressed={isPicked}
+        aria-label={`Add ${item.name} to your pick`}
+        title={isPicked ? `In your pick: ${picked.map((colour) => colour.name).join(', ')}` : 'Add to your pick'}
+        onClick={() => onTogglePick(item)}
+      >
+        {isPicked ? picked.length > 1 ? <span aria-hidden>{picked.length}</span> : <Check className="mf-icon cat-ic" aria-hidden /> : <Plus className="mf-icon cat-ic" aria-hidden />}
       </button>
     </li>
   );

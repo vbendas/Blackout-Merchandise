@@ -2,76 +2,93 @@
 
 import { useEffect, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
 import Image from 'next/image';
-import { ChevronLeft } from 'lucide-react';
-import type { CatalogueDetail, CatalogueItem } from '@/lib/catalog/catalogue-index';
+import { Check, ChevronLeft, Plus } from 'lucide-react';
+import type { PickColour } from '@/lib/agent/pick';
+import type { CatalogueColour, CatalogueDetail, CatalogueItem } from '@/lib/catalog/catalogue-index';
 import { formatMoney } from '@/components/cards/CardKit';
 import { loadCatalogueDetail, peekCatalogueDetail } from './catalogue-client';
-import { fitPhrase, makeProductMessage, printPhrase, quoteRunMessage, sizeLabel } from './catalogue-state';
+import { fitPhrase, printPhrase, sizeLabel } from './catalogue-state';
 
 /** Colours shown before "+N more": two rows of the most common ones. */
 const SWATCH_LIMIT = 24;
 
-// The panel is 560px wide minus 20px padding each side; full width on phones.
-const PLATE_SIZES = '(max-width: 759px) 100vw, 520px';
+// The drawer is 560px wide minus 20px padding each side; full width on phones.
+const PLATE_SIZES = '(max-width: 767px) 100vw, 520px';
 
 const swatchColour = (hex: string) => ({ '--c': hex }) as CSSProperties;
 
-export interface CatalogueDetailPanelProps {
-  asideRef: Ref<HTMLElement>;
+export interface CatalogueDrawerProps {
+  /** the drawer itself, for the page's focus trap */
+  drawerRef: Ref<HTMLElement>;
   open: boolean;
-  /** the blank on show; kept after closing so the panel slides out with its content */
+  /** the blank on show; kept after closing so the drawer slides out with its content.
+   * A code the catalogue does not have is passed as null: it is ignored. */
   code: string | null;
   /** that blank's entry in the index; null until the index has loaded */
   item: CatalogueItem | null;
-  /** the index has loaded and has no blank with this code */
-  missing: boolean;
-  /** '3 of 36' when it was opened from the list */
+  /** '3 of 36' when the blank is in the list on the page */
   position: string | null;
   /** the colour to start on, such as the colour filter in use */
   startColour: string | null;
+  /** this blank's colours that are in the artist's pick */
+  pickColours: readonly PickColour[];
+  /** the primary action: puts the colour on show in the pick, or takes it out */
+  onTogglePick: (colour: CatalogueColour) => void;
+  /** the back arrow, the dim layer */
   onBack: () => void;
-  /** "Use this blank" and "Quote a run" hand their message over here */
-  onSend: (text: string) => void;
+  /** "Use just this one": the blank and the colour on show, for one product */
+  onUseOne: (blankName: string, colourName: string) => void;
 }
 
-/** The slide-in panel for one blank: big photo with Front/Back, every colour,
- * the specs and the two ways on. Always in the page once the catalogue has
- * opened, hidden until a blank is chosen. */
-export function CatalogueDetailPanel({ asideRef, open, code, item, missing, position, startColour, onBack, onSend }: CatalogueDetailPanelProps) {
+/** The slide-in drawer for one blank, over the catalogue page and not the
+ * sidebar, with its own dim layer: big photo with Front/Back, every colour
+ * (a dot marks the ones in the pick), the specs, and the two ways on, adding
+ * the colour to the pick or using just this blank. Always in the page, hidden
+ * until a blank is open. */
+export function CatalogueDrawer({
+  drawerRef,
+  open,
+  code,
+  item,
+  position,
+  startColour,
+  pickColours,
+  onTogglePick,
+  onBack,
+  onUseOne,
+}: CatalogueDrawerProps) {
   return (
-    <aside
-      ref={asideRef}
-      className="cat-detail"
-      role="dialog"
-      aria-modal="true"
-      aria-label={item?.name ?? 'Blank'}
-      tabIndex={-1}
-      data-open={open}
-      inert={!open}
-    >
-      <div className="cat-dtop">
-        <button type="button" className="mf-chip" data-autofocus onClick={onBack}>
-          <ChevronLeft className="mf-icon cat-ic" aria-hidden />
-          Catalogue
-        </button>
-        {position ? <span className="cat-label cat-dim">{position}</span> : null}
-      </div>
-      {code && item ? (
-        <DetailBody key={code} item={item} startColour={startColour} onSend={onSend} />
-      ) : code && missing ? (
-        <div className="cat-dbody">
-          <p className="cat-dnote">That blank is no longer in the catalogue.</p>
+    <div className="cat-drawer" data-open={open} inert={!open}>
+      <div className="cat-veil" aria-hidden onClick={onBack} />
+      <aside ref={drawerRef} className="cat-detail" role="dialog" aria-modal="true" aria-label={item?.name ?? 'Blank'} tabIndex={-1}>
+        <div className="cat-dtop">
+          <button type="button" className="mf-chip" data-autofocus onClick={onBack}>
+            <ChevronLeft className="mf-icon cat-ic" aria-hidden />
+            Catalogue
+          </button>
+          {position ? <span className="cat-label cat-dim">{position}</span> : null}
         </div>
-      ) : code ? (
-        <DetailSkeleton />
-      ) : null}
-    </aside>
+        {code && item ? (
+          <DetailBody key={code} item={item} startColour={startColour} pickColours={pickColours} onTogglePick={onTogglePick} onUseOne={onUseOne} />
+        ) : code ? (
+          <DetailSkeleton />
+        ) : null}
+      </aside>
+    </div>
   );
 }
 
 type View = 'front' | 'back';
 
-function DetailBody({ item, startColour, onSend }: { item: CatalogueItem; startColour: string | null; onSend: (text: string) => void }) {
+interface DetailBodyProps {
+  item: CatalogueItem;
+  startColour: string | null;
+  pickColours: readonly PickColour[];
+  onTogglePick: (colour: CatalogueColour) => void;
+  onUseOne: (blankName: string, colourName: string) => void;
+}
+
+function DetailBody({ item, startColour, pickColours, onTogglePick, onUseOne }: DetailBodyProps) {
   const base = item.colours[0];
   const [detail, setDetail] = useState<CatalogueDetail | undefined>(() => peekCatalogueDetail(item.code));
   const [failed, setFailed] = useState(false);
@@ -109,6 +126,8 @@ function DetailBody({ item, startColour, onSend }: { item: CatalogueItem; startC
   const src = shownView === 'back' && back ? back : front;
   const current = item.colours.find((c) => c.code === colour) ?? base;
 
+  const picked = pickColours.some((c) => c.code === current.code);
+
   // Blanks with more than two rows of colours show the first rows and a
   // "+N more"; a colour past them (picked by a filter) must not hide in it.
   const hidden = item.colours.length - SWATCH_LIMIT;
@@ -119,7 +138,7 @@ function DetailBody({ item, startColour, onSend }: { item: CatalogueItem; startC
     <>
       <div className="cat-dbody">
         <div className="cat-dplate mf-plate">
-          <Image className="cat-dimg" src={src} alt={`${item.name}, ${current.name}, ${shownView}`} fill sizes={PLATE_SIZES} loading="eager" />
+          <Image src={src} alt={`${item.name}, ${current.name}, ${shownView}`} fill sizes={PLATE_SIZES} loading="eager" />
           {back ? (
             <div className="cat-views" role="group" aria-label="View">
               <button type="button" aria-pressed={shownView === 'front'} onClick={() => setView('front')}>
@@ -145,24 +164,31 @@ function DetailBody({ item, startColour, onSend }: { item: CatalogueItem; startC
         <div className="cat-colours">
           <span className="cat-label cat-dim">Colour · {current.name}</span>
           <div className="cat-swrow" role="group" aria-label="Colour">
-            {swatches.map((c) => (
-              <button
-                key={c.code}
-                type="button"
-                className="cat-sw"
-                style={swatchColour(c.hex)}
-                aria-pressed={c.code === colour}
-                aria-label={c.name}
-                title={c.name}
-                onClick={() => setColour(c.code)}
-              />
-            ))}
+            {swatches.map((c) => {
+              const inPick = pickColours.some((p) => p.code === c.code);
+              return (
+                <button
+                  key={c.code}
+                  type="button"
+                  className="cat-sw"
+                  style={swatchColour(c.hex)}
+                  data-inpick={inPick}
+                  aria-pressed={c.code === colour}
+                  aria-label={inPick ? `${c.name}, in your pick` : c.name}
+                  title={c.name}
+                  onClick={() => setColour(c.code)}
+                />
+              );
+            })}
             {expanded ? null : (
               <button type="button" className="cat-more-colours" onClick={() => setShowAll(true)}>
                 + {hidden} more
               </button>
             )}
           </div>
+          <span className="cat-inpick">
+            {pickColours.length > 0 ? `In your pick: ${pickColours.map((c) => c.name).join(', ')}` : 'Not in your pick yet'}
+          </span>
         </div>
 
         {detail ? (
@@ -180,11 +206,12 @@ function DetailBody({ item, startColour, onSend }: { item: CatalogueItem; startC
       </div>
 
       <div className="cat-dacts">
-        <button type="button" className="mf-pill mf-pill-primary" onClick={() => onSend(makeProductMessage(item.name, current.name))}>
-          Use this blank
+        <button type="button" className="mf-pill mf-pill-primary" aria-pressed={picked} onClick={() => onTogglePick(current)}>
+          {picked ? <Check className="mf-icon cat-ic" aria-hidden /> : <Plus className="mf-icon cat-ic" aria-hidden />}
+          {picked ? `${current.name} in your pick` : `Add ${current.name} to your pick`}
         </button>
-        <button type="button" className="mf-pill" onClick={() => onSend(quoteRunMessage(item.name, current.name))}>
-          Quote a run
+        <button type="button" className="mf-pill" onClick={() => onUseOne(item.name, current.name)}>
+          Use just this one
         </button>
       </div>
     </>

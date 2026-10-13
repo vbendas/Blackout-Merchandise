@@ -1,16 +1,16 @@
 import type { CatalogueAudience, CatalogueItem } from '@/lib/catalog/catalogue-index';
 import { CATALOGUE_CATEGORIES } from '@/lib/catalog/categories';
 
-// Filtering, sorting and searching for the catalogue panel. Pure functions on
+// Filtering, sorting and searching for the catalogue page. Pure functions on
 // the feed's items; nothing here touches React or the network.
 
-export const PAGE_SIZE = 12;
+export const PAGE_SIZE = 24;
 
-/** The rail's first entry: every category. */
+/** The tabs' first entry: every category. */
 export const ALL = 'All';
 
-/** The 8 categories in the rail's order. The feed carries the same list with
- * counts; this one lets the rail show its names while the feed loads and
+/** The 8 categories in the tabs' order. The feed carries the same list with
+ * counts; this one lets the tabs show their names while the feed loads and
  * resolves a category the assistant named. */
 export const CATEGORY_NAMES = CATALOGUE_CATEGORIES;
 
@@ -32,8 +32,8 @@ export const SORTS: readonly { key: SortKey; label: string }[] = [
 ];
 
 /** Tightest to loosest. */
-const FIT_ORDER = ['Fitted', 'Medium', 'Relaxed', 'Oversized'];
-const AUDIENCE_ORDER: readonly CatalogueAudience[] = ['Unisex', 'Men', 'Women', 'Kids', 'Baby'];
+export const FIT_ORDER: readonly string[] = ['Fitted', 'Medium', 'Relaxed', 'Oversized'];
+export const AUDIENCE_ORDER: readonly CatalogueAudience[] = ['Unisex', 'Men', 'Women', 'Kids', 'Baby'];
 
 /** The six colours the filter offers, matched by colour code. Hex values are
  * the sampled garment colours of lib/catalog/variants.ts. */
@@ -262,9 +262,4 @@ export function sizeLabel(size: string): string {
 /** What "Use this blank" sends to the chat. */
 export function makeProductMessage(name: string, colour: string): string {
   return `Make a product on the ${name} in ${colour}`;
-}
-
-/** What "Quote a run" sends. */
-export function quoteRunMessage(name: string, colour: string): string {
-  return `Quote a run of 50 pieces on the ${name} in ${colour}`;
 }
