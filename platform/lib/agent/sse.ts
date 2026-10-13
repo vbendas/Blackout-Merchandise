@@ -1,4 +1,4 @@
-import type { AgentEvent } from '@/lib/agent/protocol';
+import { STUDIO_PROBLEM, type AgentEvent } from '@/lib/agent/protocol';
 
 /** Formats one AgentEvent as an SSE frame: `event: <type>\ndata: <json>\n\n`. */
 function formatFrame(event: AgentEvent): string {
@@ -7,27 +7,48 @@ function formatFrame(event: AgentEvent): string {
 
 /**
  * Wraps a turn-running function into a `text/event-stream` ReadableStream.
- * `run` receives an `emit` callback; any error it throws (or a caller-visible
- * failure it doesn't otherwise report) is surfaced as an `error` event before
- * the stream closes, so the client always sees a terminal frame.
+ * `run` receives an `emit` callback and an AbortSignal that fires when the
+ * client goes away (Stop, a closed tab, a dropped connection), so the turn
+ * can end at its next safe point instead of running on unseen. Emitting
+ * after that is a no-op, never a throw. Any error `run` throws is logged here
+ * and reaches the client only as a plain `error` event, never its raw text.
  */
-export function createAgentSseStream(run: (emit: (event: AgentEvent) => void) => Promise<void>): ReadableStream<Uint8Array> {
+export function createAgentSseStream(
+  run: (emit: (event: AgentEvent) => void, signal: AbortSignal) => Promise<void>,
+): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
+  const disconnected = new AbortController();
+  let closed = false;
   return new ReadableStream<Uint8Array>({
     async start(controller) {
-      let closed = false;
       const emit = (event: AgentEvent) => {
         if (closed) return;
-        controller.enqueue(encoder.encode(formatFrame(event)));
+        try {
+          controller.enqueue(encoder.encode(formatFrame(event)));
+        } catch {
+          // The stream was torn down under us: the client is gone.
+          closed = true;
+        }
       };
       try {
-        await run(emit);
+        await run(emit, disconnected.signal);
       } catch (err) {
-        emit({ type: 'error', message: err instanceof Error ? err.message : 'Unexpected agent error.' });
+        console.error('[agent] turn failed', err);
+        emit({ type: 'error', message: STUDIO_PROBLEM });
       } finally {
-        closed = true;
-        controller.close();
+        if (!closed) {
+          closed = true;
+          try {
+            controller.close();
+          } catch {
+            // already closed by a cancel
+          }
+        }
       }
+    },
+    cancel() {
+      closed = true;
+      disconnected.abort();
     },
   });
 }

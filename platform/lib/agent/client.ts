@@ -1,13 +1,16 @@
-import type {
-  AgentEvent,
-  AgentRequest,
-  ConfirmRequest,
-  HistoryResponse,
-  Suggestion,
-  SuggestResponse,
-  TranscribeResponse,
-  TtsRequest,
-  VoiceSessionResponse,
+import {
+  STUDIO_PROBLEM,
+  type AgentErrorCode,
+  type AgentEvent,
+  type AgentRequest,
+  type ConfirmRequest,
+  type HistoryPage,
+  type HistoryResponse,
+  type Suggestion,
+  type SuggestResponse,
+  type TranscribeResponse,
+  type TtsRequest,
+  type VoiceSessionResponse,
 } from '@/lib/agent/protocol';
 
 export const AGENT_ENDPOINT = process.env.NEXT_PUBLIC_AGENT_ENDPOINT ?? '/api/agent';
@@ -19,6 +22,25 @@ export const CONVERSATION_STORAGE_KEY = 'mf-conversation';
 // greeting/quickActions/checklist/projectPill. Until it does, these keep the
 // empty state sane instead of throwing on missing fields.
 const DEFAULT_GREETING = { headline: 'What are we making?', line: '' };
+
+/** Plain words for each way a request can fail. Never a status code. */
+const FAILURE_MESSAGES: Record<AgentErrorCode, string> = {
+  offline: "You're offline. Your message is kept.",
+  signed_out: "You've been signed out. Sign in again.",
+  rate_limited: 'Too many messages at once. Wait a moment and try again.',
+  not_pending: 'This step was already handled.',
+  server: STUDIO_PROBLEM,
+  dropped: STUDIO_PROBLEM,
+};
+
+export function failureMessage(code: AgentErrorCode): string {
+  return FAILURE_MESSAGES[code];
+}
+
+/** The browser knows it has no network. */
+export function isOffline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine === false;
+}
 
 function parseFrame(frame: string): AgentEvent | null {
   const dataLines: string[] = [];
@@ -34,37 +56,103 @@ function parseFrame(frame: string): AgentEvent | null {
   }
 }
 
-async function streamEvents(response: Response, onEvent: (event: AgentEvent) => void): Promise<void> {
-  if (!response.body) {
-    onEvent({ type: 'error', message: 'The agent returned an empty response.' });
-    return;
-  }
+/** How a request for a streamed reply ended. `done`: a closing event
+ * (message_end, confirm_required or an error) arrived. `failed` always comes
+ * with an error event first, so a caller that only listens to events still
+ * hears about it. `aborted`: the caller's signal (Stop) cut it short. */
+export type StreamEnd =
+  | { status: 'done' }
+  | { status: 'aborted' }
+  | { status: 'failed'; code: AgentErrorCode; body?: unknown };
+
+function closes(event: AgentEvent): boolean {
+  return event.type === 'message_end' || event.type === 'confirm_required' || event.type === 'error';
+}
+
+/** Reads SSE frames until the stream ends. A dropped connection (the reader
+ * throws) and a stream that ends without its closing event both come back
+ * as `failed`, never as a throw, so the chat can always unlock. */
+async function readEvents(response: Response, onEvent: (event: AgentEvent) => void, signal?: AbortSignal): Promise<StreamEnd> {
+  if (!response.body) return { status: 'failed', code: 'dropped' };
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    let separatorIndex = buffer.indexOf('\n\n');
-    while (separatorIndex !== -1) {
-      const frame = buffer.slice(0, separatorIndex);
-      buffer = buffer.slice(separatorIndex + 2);
-      const event = parseFrame(frame);
-      if (event) onEvent(event);
-      separatorIndex = buffer.indexOf('\n\n');
+  let closed = false;
+  const deliver = (frame: string) => {
+    const event = parseFrame(frame);
+    if (!event) return;
+    if (closes(event)) closed = true;
+    onEvent(event);
+  };
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let separatorIndex = buffer.indexOf('\n\n');
+      while (separatorIndex !== -1) {
+        deliver(buffer.slice(0, separatorIndex));
+        buffer = buffer.slice(separatorIndex + 2);
+        separatorIndex = buffer.indexOf('\n\n');
+      }
     }
+    buffer += decoder.decode();
+    if (buffer.trim()) deliver(buffer);
+  } catch {
+    if (signal?.aborted) return { status: 'aborted' };
+    return closed ? { status: 'done' } : { status: 'failed', code: 'dropped' };
   }
-  const trailing = parseFrame(buffer);
-  if (trailing) onEvent(trailing);
+  if (closed) return { status: 'done' };
+  return signal?.aborted ? { status: 'aborted' } : { status: 'failed', code: 'dropped' };
+}
+
+/** Signed out: 401/403, Clerk's 404 for an API call without a session (it
+ * marks the response with its auth headers), or a redirect to sign-in. */
+function isSignedOut(response: Response): boolean {
+  if (response.status === 401 || response.status === 403) return true;
+  if (response.status === 404 && (response.headers.get('x-clerk-auth-reason') || response.headers.get('x-clerk-auth-status') === 'signed-out')) {
+    return true;
+  }
+  if (!response.redirected) return false;
+  try {
+    return new URL(response.url).pathname.startsWith('/sign-in');
+  } catch {
+    return false;
+  }
+}
+
+function failureFor(response: Response): AgentErrorCode {
+  if (isSignedOut(response)) return 'signed_out';
+  if (response.status === 429) return 'rate_limited';
+  if (response.status === 409) return 'not_pending';
+  return 'server';
+}
+
+async function readJson(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    return undefined;
+  }
 }
 
 export interface StreamHandlers {
   onEvent: (event: AgentEvent) => void;
+  /** the server accepted the request and its reply is about to stream */
+  onOpen?: () => void;
   signal?: AbortSignal;
 }
 
-async function postForEvents(url: string, body: unknown, handlers: StreamHandlers): Promise<void> {
+/** POSTs and streams the reply's events. Always settles (never rejects): every
+ * failure is reported as an error event in plain words, then returned. */
+async function postForEvents(url: string, body: unknown, handlers: StreamHandlers): Promise<StreamEnd> {
+  const fail = (code: AgentErrorCode, extra: { body?: unknown } = {}): StreamEnd => {
+    handlers.onEvent({ type: 'error', message: failureMessage(code), code });
+    return { status: 'failed', code, ...extra };
+  };
+  if (handlers.signal?.aborted) return { status: 'aborted' };
+  if (isOffline()) return fail('offline');
+
   let response: Response;
   try {
     response = await fetch(url, {
@@ -73,23 +161,28 @@ async function postForEvents(url: string, body: unknown, handlers: StreamHandler
       body: JSON.stringify(body),
       signal: handlers.signal,
     });
-  } catch (error) {
-    if ((error as Error).name === 'AbortError') return;
-    handlers.onEvent({ type: 'error', message: 'Could not reach the agent.' });
-    return;
+  } catch {
+    if (handlers.signal?.aborted) return { status: 'aborted' };
+    // fetch rejects (a TypeError) only when no answer came back at all: no
+    // network, or the Studio out of reach. Nothing was sent.
+    return fail('offline');
   }
-  if (!response.ok) {
-    handlers.onEvent({ type: 'error', message: `Agent request failed (${response.status}).` });
-    return;
+  if (!response.ok || isSignedOut(response)) {
+    return fail(failureFor(response), { body: await readJson(response) });
   }
-  await streamEvents(response, handlers.onEvent);
+  if (!(response.headers.get('content-type') ?? '').includes('text/event-stream')) return fail('server');
+
+  handlers.onOpen?.();
+  const end = await readEvents(response, handlers.onEvent, handlers.signal);
+  if (end.status === 'failed') handlers.onEvent({ type: 'error', message: failureMessage(end.code), code: end.code });
+  return end;
 }
 
-export function sendAgentMessage(request: AgentRequest, handlers: StreamHandlers): Promise<void> {
+export function sendAgentMessage(request: AgentRequest, handlers: StreamHandlers): Promise<StreamEnd> {
   return postForEvents(AGENT_ENDPOINT, request, handlers);
 }
 
-export function sendAgentConfirm(request: ConfirmRequest, handlers: StreamHandlers): Promise<void> {
+export function sendAgentConfirm(request: ConfirmRequest, handlers: StreamHandlers): Promise<StreamEnd> {
   return postForEvents(`${AGENT_ENDPOINT}/confirm`, request, handlers);
 }
 
@@ -106,6 +199,7 @@ export async function fetchAgentHistory(
     return {
       conversationId: data.conversationId,
       messages: data.messages,
+      earlierCursor: data.earlierCursor ?? null,
       chips: data.chips,
       project: data.project,
       greeting: data.greeting ?? DEFAULT_GREETING,
@@ -114,6 +208,21 @@ export async function fetchAgentHistory(
       projectPill: data.projectPill ?? null,
       resume: data.resume ?? null,
     };
+  } catch {
+    return null;
+  }
+}
+
+/** The page of messages before `before` (a message id from the last page's
+ * `earlierCursor`), or null when it could not load. */
+export async function fetchEarlierHistory(conversationId: string, before: string): Promise<HistoryPage | null> {
+  try {
+    const query = `conversationId=${encodeURIComponent(conversationId)}&before=${encodeURIComponent(before)}`;
+    const response = await fetch(`${AGENT_ENDPOINT}/history?${query}`);
+    if (!response.ok) return null;
+    const data = (await response.json()) as Partial<HistoryPage>;
+    if (!data.conversationId || !Array.isArray(data.messages)) return null;
+    return { conversationId: data.conversationId, messages: data.messages, earlierCursor: data.earlierCursor ?? null };
   } catch {
     return null;
   }
@@ -167,13 +276,13 @@ export function uploadDesign(file: File, handlers: UploadHandlers = {}): Promise
         try {
           resolve(JSON.parse(xhr.responseText) as UploadResult);
         } catch {
-          reject(new Error('The upload endpoint returned an unreadable response.'));
+          reject(new Error("That upload didn't go through. Try again."));
         }
       } else {
-        reject(new Error(`Upload failed (${xhr.status}).`));
+        reject(new Error("That upload didn't go through. Try again."));
       }
     };
-    xhr.onerror = () => reject(new Error('Could not reach the upload endpoint.'));
+    xhr.onerror = () => reject(new Error("Couldn't reach the Studio. Check your connection."));
     xhr.onabort = () => reject(new Error('Upload cancelled.'));
     handlers.signal?.addEventListener('abort', () => xhr.abort());
     const formData = new FormData();
@@ -193,9 +302,9 @@ export async function transcribeAudio(audio: Blob, signal?: AbortSignal): Promis
   try {
     response = await fetch(`${VOICE_ENDPOINT}/transcribe`, { method: 'POST', body: formData, signal });
   } catch {
-    throw new Error('Could not reach the transcription service.');
+    throw new Error("Couldn't reach the Studio. Check your connection.");
   }
-  if (!response.ok) throw new Error(`Transcription failed (${response.status}).`);
+  if (!response.ok) throw new Error("Couldn't make out what you said. Try again.");
   return (await response.json()) as TranscribeResponse;
 }
 
@@ -211,9 +320,9 @@ export async function fetchTts(text: string, signal?: AbortSignal): Promise<Blob
       signal,
     });
   } catch {
-    throw new Error('Could not reach the voice service.');
+    throw new Error("Couldn't reach the Studio. Check your connection.");
   }
-  if (!response.ok) throw new Error(`Voice playback failed (${response.status}).`);
+  if (!response.ok) throw new Error("Couldn't play the reply.");
   return await response.blob();
 }
 

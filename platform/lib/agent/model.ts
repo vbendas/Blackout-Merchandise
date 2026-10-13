@@ -26,7 +26,7 @@ async function realRunModelTurn(params: RunModelTurnParams): Promise<RunModelTur
       tools: params.tools,
       thinking: { type: 'adaptive' },
       output_config: { effort: 'low' },
-    });
+    }, { signal: params.signal });
 
     if (params.onTextDelta) {
       stream.on('text', (delta) => params.onTextDelta?.(delta));
@@ -39,6 +39,10 @@ async function realRunModelTurn(params: RunModelTurnParams): Promise<RunModelTur
       usage: { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens },
     };
   } catch (err) {
+    // Stopped by the artist: an empty turn; the loop keeps the words already shown.
+    if (params.signal?.aborted) {
+      return { content: [], stopReason: null, usage: { inputTokens: 0, outputTokens: 0 } };
+    }
     // Most-specific-first: typed SDK errors carry a clearer signal than a
     // generic message-string check (see claude-api skill, error handling).
     if (err instanceof Anthropic.RateLimitError) {

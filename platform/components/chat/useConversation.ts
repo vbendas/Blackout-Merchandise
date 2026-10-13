@@ -1,15 +1,39 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { AgentEvent, AgentRequest, ChecklistStep, HistoryResponse } from '@/lib/agent/protocol';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type {
+  AgentErrorCode,
+  AgentEvent,
+  AgentRequest,
+  ChecklistStep,
+  ConfirmConflict,
+  ConfirmOutcome,
+  HistoryMessage,
+  HistoryResponse,
+} from '@/lib/agent/protocol';
 import type { Card, Chip, ProductProjectState, ToolUi } from '@/lib/ui-cards/schemas';
 import type { BulkOrderProjectState } from '@/components/cards/project/types';
+import { runLabel } from '@/lib/format/runs';
+import { humanStatus } from '@/lib/format/status';
 import {
+  failureMessage,
   fetchAgentHistory,
+  fetchEarlierHistory,
+  isOffline,
   sendAgentConfirm,
   sendAgentMessage,
   storeConversationId,
+  type StreamEnd,
 } from '@/lib/agent/client';
+
+/** A reply that didn't come through. */
+export interface FailedReply {
+  /** what the artist reads, in plain words */
+  message: string;
+  code?: AgentErrorCode;
+  /** what Try again sends; absent when there is nothing to send again */
+  retry?: { text: string; attachments?: AgentRequest['attachments'] };
+}
 
 export interface ChatMessage {
   id: string;
@@ -17,6 +41,11 @@ export interface ChatMessage {
   text: string;
   cards: Card[];
   streaming?: boolean;
+  /** waiting for the reply's next words: the thread shows a Thinking line */
+  thinking?: boolean;
+  /** the artist stopped this reply; what it had said stays */
+  stopped?: boolean;
+  failed?: FailedReply;
   attachments?: AgentRequest['attachments'];
 }
 
@@ -29,6 +58,36 @@ export interface ProjectPill {
   label: string;
   status: string;
   colourHex?: string;
+}
+
+/** Where a confirm card stands in this session: a decision on its way, what
+ * became of it, or why a decision didn't go through (the buttons show again).
+ * Cards loaded from history carry their own `outcome`. */
+export interface ConfirmState {
+  phase?: 'approving' | 'declining' | ConfirmOutcome;
+  error?: string;
+}
+
+/** How a send went, for the composer. `sent`: the Studio took the message.
+ * `offline`: nothing was sent and the composer keeps its draft. `failed`: the
+ * thread shows what went wrong. `busy`: a reply is still coming. */
+export type SendOutcome = 'sent' | 'offline' | 'failed' | 'busy';
+
+export interface SendOptions {
+  /** sent from the composer: offline, it keeps its draft rather than the
+   * thread showing a failed message */
+  fromComposer?: boolean;
+  /** Try again on this failed reply: it is replaced, and the message above it sent again */
+  retryOf?: string;
+}
+
+/** "Show earlier messages": more of the session is stored than the thread shows. */
+export interface EarlierMessages {
+  hasMore: boolean;
+  loading: boolean;
+  /** the last load didn't come through */
+  failed: boolean;
+  load: () => Promise<void>;
 }
 
 function makeId(prefix: string): string {
@@ -49,6 +108,41 @@ export interface UseConversationOptions {
   onTurnEnd?: (conversationId: string) => void;
 }
 
+/** One reply in flight: a message sent, or a decision on a confirm card. It
+ * ends exactly once (closing event, error, dropped stream, Stop or another
+ * session opening), and ending it is what unlocks the composer. */
+interface Turn {
+  controller: AbortController;
+  /** the assistant bubble it writes into; a confirm turn makes one once the server replies */
+  bubbleId: string | null;
+  /** the artist's bubble this send added */
+  userBubbleId: string | null;
+  /** the server took the request */
+  opened: boolean;
+  /** the server started the reply (message_start) */
+  started: boolean;
+  done: boolean;
+  /** the reply's text so far, for the voice loop */
+  text: string;
+  /** tools running now, by call id, with their progress line */
+  running: Map<string, string>;
+  /** what Try again sends (message turns only) */
+  request?: { text: string; attachments?: AgentRequest['attachments'] };
+  fromComposer: boolean;
+  confirm?: { toolCallId: string; approve: boolean };
+  /** answers the send's promise; only the first call counts */
+  settle: (outcome: SendOutcome) => void;
+}
+
+function fromHistory(message: HistoryMessage): ChatMessage {
+  return { id: message.id, role: message.role, text: message.text, cards: message.cards ?? [], attachments: message.attachments };
+}
+
+function conflictOutcome(body: unknown): ConfirmOutcome | null {
+  const outcome = (body as Partial<ConfirmConflict> | null | undefined)?.outcome;
+  return outcome === 'approved' || outcome === 'declined' || outcome === 'done' || outcome === 'failed' ? outcome : null;
+}
+
 export function useConversation({ initialConversationId, onMessageStart, onTurnEnd }: UseConversationOptions = {}) {
   const [conversationId, setConversationId] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -63,15 +157,19 @@ export function useConversation({ initialConversationId, onMessageStart, onTurnE
   const [sending, setSending] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [historyError, setHistoryError] = useState(false);
-  const [confirmResolutions, setConfirmResolutions] = useState<Record<string, 'approved' | 'rejected'>>({});
+  const [confirmResolutions, setConfirmResolutions] = useState<Record<string, ConfirmState>>({});
   const [lastAssistantText, setLastAssistantText] = useState('');
+  const [earlierCursor, setEarlierCursor] = useState<string | null>(null);
+  const [loadingEarlier, setLoadingEarlier] = useState(false);
+  const [earlierFailed, setEarlierFailed] = useState(false);
 
-  const currentMessageId = useRef<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
-  // Mirrors the streaming assistant text outside React state so the voice
-  // loop (useVoice) can read the finished turn's text the instant it ends,
-  // without waiting on a render to land in `messages`.
-  const currentTextRef = useRef('');
+  // The reply in flight. A ref, not state, so a second send in the same tick
+  // (a double tap on a chip) already sees it.
+  const turnRef = useRef<Turn | null>(null);
+  const confirmRef = useRef<Record<string, ConfirmState>>({});
+  const earlierRef = useRef<{ cursor: string | null; loading: boolean }>({ cursor: null, loading: false });
+  // Bumped whenever a session loads, so a late page from the one before is dropped.
+  const sessionEpoch = useRef(0);
   const assistantDoneListeners = useRef<Set<(text: string) => void>>(new Set());
   // Latest callbacks and conversation id, read from the stream handler
   // without re-creating it on every render.
@@ -91,7 +189,7 @@ export function useConversation({ initialConversationId, onMessageStart, onTurnE
   }, []);
 
   /** Subscribes to the end of the next assistant turn (message_end, an
-   * error, or a confirm_required pause) — used by the voice conversation
+   * error, a confirm_required pause or Stop) — used by the voice conversation
    * loop to know when to speak the reply. Returns an unsubscribe function. */
   const onAssistantDone = useCallback((callback: (text: string) => void) => {
     assistantDoneListeners.current.add(callback);
@@ -100,64 +198,13 @@ export function useConversation({ initialConversationId, onMessageStart, onTurnE
     };
   }, []);
 
-  const applyHistory = useCallback((history: HistoryResponse) => {
-    setConversationId(history.conversationId);
-    conversationIdRef.current = history.conversationId;
-    storeConversationId(history.conversationId);
-    setMessages(
-      history.messages.map((message) => ({
-        id: message.id,
-        role: message.role,
-        text: message.text,
-        cards: message.cards ?? [],
-      })),
-    );
-    setChips(history.chips);
-    setProject(history.project);
-    setGreeting(history.greeting);
-    setQuickActions(history.quickActions);
-    setChecklist(history.checklist);
-    setProjectPill(history.projectPill);
-    setResume(history.resume ?? null);
-    setConfirmResolutions({});
+  const writeConfirm = useCallback((toolCallId: string, state: ConfirmState | null) => {
+    const next = { ...confirmRef.current };
+    if (state) next[toolCallId] = state;
+    else delete next[toolCallId];
+    confirmRef.current = next;
+    setConfirmResolutions(next);
   }, []);
-
-  // /studio opens on its home screen: a blank session, with the previous
-  // conversation offered as `resume` rather than reopened. /studio/s/<id>
-  // loads that conversation instead.
-  useEffect(() => {
-    let cancelled = false;
-    fetchAgentHistory(initialConversationId ?? '', { fresh: !initialConversationId }).then((history) => {
-      if (cancelled) return;
-      if (history) applyHistory(history);
-      setHistoryError(!history);
-      setLoadingHistory(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [applyHistory, initialConversationId]);
-
-  const loadSession = useCallback(
-    async (target: { fresh: true } | { conversationId: string }) => {
-      setLoadingHistory(true);
-      const history = await fetchAgentHistory('conversationId' in target ? target.conversationId : '', {
-        fresh: 'fresh' in target,
-      });
-      if (history) applyHistory(history);
-      setHistoryError(!history);
-      setLoadingHistory(false);
-    },
-    [applyHistory],
-  );
-
-  const startNewSession = useCallback(() => loadSession({ fresh: true }), [loadSession]);
-  const openConversation = useCallback((id: string) => loadSession({ conversationId: id }), [loadSession]);
-  /** after a failed load: try the same session (or a fresh home) again */
-  const retryHistory = useCallback(
-    () => loadSession(initialConversationId ? { conversationId: initialConversationId } : { fresh: true }),
-    [initialConversationId, loadSession],
-  );
 
   const updateMessage = useCallback((id: string, updater: (message: ChatMessage) => ChatMessage) => {
     setMessages((prev) => prev.map((message) => (message.id === id ? updater(message) : message)));
@@ -182,47 +229,123 @@ export function useConversation({ initialConversationId, onMessageStart, onTurnE
     [updateMessage],
   );
 
-  const handleEvent = useCallback(
-    (event: AgentEvent) => {
+  /** Ends a turn, once: the composer unlocks and listeners (voice, sidebar)
+   * hear the reply is over. `patch` marks the bubble (stopped, failed). */
+  const finishTurn = useCallback(
+    (turn: Turn, patch?: Partial<ChatMessage>) => {
+      if (turn.done) return;
+      turn.done = true;
+      if (turn.bubbleId) updateMessage(turn.bubbleId, (message) => ({ ...message, streaming: false, thinking: false, ...patch }));
+      if (turnRef.current === turn) {
+        turnRef.current = null;
+        setSending(false);
+        setWorkingLabel(null);
+      }
+      turn.settle(turn.opened ? 'sent' : 'failed');
+      notifyAssistantDone(turn.text);
+    },
+    [notifyAssistantDone, updateMessage],
+  );
+
+  /** A reply that didn't come through, with what went wrong in plain words. */
+  const failTurn = useCallback(
+    (turn: Turn, message: string, code?: AgentErrorCode) => {
+      if (turn.done) return;
+      if (turn.confirm && !turn.started) {
+        // The decision never got going: the buttons come back with the reason
+        // under them. A step decided elsewhere shows its result instead (from
+        // the 409, see afterStream).
+        if (code !== 'not_pending') writeConfirm(turn.confirm.toolCallId, { error: message });
+        finishTurn(turn);
+        return;
+      }
+      if (code === 'offline' && turn.fromComposer && !turn.opened) {
+        // Nothing was sent: the composer keeps the draft and says so.
+        const gone = new Set([turn.bubbleId, turn.userBubbleId]);
+        setMessages((prev) => prev.filter((m) => !gone.has(m.id)));
+        turn.bubbleId = null;
+        turn.settle('offline');
+        finishTurn(turn);
+        return;
+      }
+      const failed: FailedReply = { message, code, retry: turn.request };
+      if (!turn.bubbleId) {
+        const id = makeId('assistant');
+        turn.bubbleId = id;
+        setMessages((prev) => [...prev, { id, role: 'assistant', text: '', cards: [] }]);
+      }
+      finishTurn(turn, { failed });
+    },
+    [finishTurn, writeConfirm],
+  );
+
+  /** Stop: the reply ends where it is and keeps what it said. A decision the
+   * server had not started on yet goes back to waiting. */
+  const stopTurn = useCallback(
+    (turn: Turn) => {
+      if (turn.done) return;
+      turn.controller.abort();
+      if (turn.confirm && !turn.started) {
+        writeConfirm(turn.confirm.toolCallId, null);
+        finishTurn(turn);
+        return;
+      }
+      finishTurn(turn, { stopped: true });
+    },
+    [finishTurn, writeConfirm],
+  );
+
+  const handleTurnEvent = useCallback(
+    (turn: Turn, event: AgentEvent) => {
+      if (turn.done) return;
       switch (event.type) {
         case 'message_start': {
-          if (event.conversationId && event.conversationId !== conversationId) {
+          turn.started = true;
+          if (event.conversationId && event.conversationId !== conversationIdRef.current) {
             setConversationId(event.conversationId);
             storeConversationId(event.conversationId);
           }
-          conversationIdRef.current = event.conversationId || conversationId;
+          if (event.conversationId) conversationIdRef.current = event.conversationId;
           callbacksRef.current.onMessageStart?.(conversationIdRef.current);
-          currentMessageId.current = event.messageId;
-          currentTextRef.current = '';
-          setMessages((prev) => [
-            ...prev,
-            { id: event.messageId, role: 'assistant', text: '', cards: [], streaming: true },
-          ]);
+          if (turn.confirm) {
+            // Only now, with the server on it, does the card read as decided.
+            writeConfirm(turn.confirm.toolCallId, { phase: turn.confirm.approve ? 'approved' : 'declined' });
+            const id = makeId('assistant');
+            turn.bubbleId = id;
+            setMessages((prev) => [...prev, { id, role: 'assistant', text: '', cards: [], streaming: true, thinking: true }]);
+          }
           break;
         }
         case 'text_delta': {
-          const id = currentMessageId.current;
-          if (!id) break;
-          currentTextRef.current += event.text;
-          updateMessage(id, (message) => ({ ...message, text: message.text + event.text }));
+          turn.text += event.text;
+          if (turn.bubbleId) updateMessage(turn.bubbleId, (message) => ({ ...message, text: message.text + event.text, thinking: false }));
           break;
         }
         case 'tool_start': {
+          turn.running.set(event.toolCallId, event.label);
           setWorkingLabel(event.label);
+          if (turn.bubbleId) updateMessage(turn.bubbleId, (message) => (message.thinking ? { ...message, thinking: false } : message));
           break;
         }
         case 'tool_end': {
-          setWorkingLabel(null);
-          const id = currentMessageId.current;
+          turn.running.delete(event.toolCallId);
+          const stillRunning = [...turn.running.values()];
+          setWorkingLabel(stillRunning.length > 0 ? stillRunning[stillRunning.length - 1] : null);
           const ui = event.ui;
-          if (ui?.cards && id) appendCards(id, ui.cards);
+          if (turn.bubbleId) {
+            if (ui?.cards) appendCards(turn.bubbleId, ui.cards);
+            // With every tool done, the model picks up again.
+            if (stillRunning.length === 0) updateMessage(turn.bubbleId, (message) => ({ ...message, thinking: true }));
+          }
           if (ui?.next) setChips(ui.next);
           if (ui?.project) setProject(ui.project);
+          if (confirmRef.current[event.toolCallId]?.phase === 'approved') {
+            writeConfirm(event.toolCallId, { phase: event.ok ? 'done' : 'failed' });
+          }
           break;
         }
         case 'cards': {
-          const id = currentMessageId.current;
-          if (id) appendCards(id, event.cards);
+          if (turn.bubbleId) appendCards(turn.bubbleId, event.cards);
           break;
         }
         case 'chips': {
@@ -245,10 +368,11 @@ export function useConversation({ initialConversationId, onMessageStart, onTurnE
             const st = event.project.state as Partial<BulkOrderProjectState>;
             const lines = st.lines ?? [];
             const qty = lines.reduce((sum, line) => sum + (line.qty ?? 0), 0);
-            const itemLabel = lines[0]?.label ?? 'Bulk order';
+            const itemLabel = lines[0]?.label;
+            const run = typeof st.runNumber === 'number' ? runLabel(st.runNumber) : 'Run';
             setProjectPill({
-              label: `Bulk · ${qty} × ${itemLabel}`,
-              status: st.status ? st.status.replace(/_/g, ' ').replace(/^./, (ch) => ch.toUpperCase()) : '',
+              label: itemLabel ? `${run} · ${qty} × ${itemLabel}` : run,
+              status: st.status ? humanStatus(st.status) : '',
             });
           } else if (event.project === null) {
             setProjectPill(null);
@@ -256,79 +380,260 @@ export function useConversation({ initialConversationId, onMessageStart, onTurnE
           break;
         }
         case 'confirm_required': {
-          const id = currentMessageId.current;
-          setWorkingLabel(null);
-          setSending(false);
-          if (id) appendCards(id, [event.card]);
-          // The turn pauses here rather than reaching message_end — the
-          // voice loop still needs to be unblocked, even with no text to say.
-          notifyAssistantDone(currentTextRef.current);
+          if (turn.bubbleId) appendCards(turn.bubbleId, [event.card]);
+          // The reply pauses here for the artist's decision.
+          finishTurn(turn);
           break;
         }
         case 'message_end': {
-          const id = currentMessageId.current;
-          if (id) updateMessage(id, (message) => ({ ...message, streaming: false }));
-          setSending(false);
-          setWorkingLabel(null);
-          currentMessageId.current = null;
-          notifyAssistantDone(currentTextRef.current);
+          finishTurn(turn);
           break;
         }
         case 'error': {
-          setSending(false);
-          setWorkingLabel(null);
-          const noticeCard: Card = {
-            id: makeId('notice'),
-            kind: 'notice',
-            tone: 'error',
-            text: event.message,
-          };
-          const id = currentMessageId.current;
-          if (id) {
-            appendCards(id, [noticeCard]);
-          } else {
-            const newId = makeId('assistant');
-            setMessages((prev) => [...prev, { id: newId, role: 'assistant', text: '', cards: [noticeCard] }]);
-          }
-          // Nothing to speak, but the voice loop is waiting for this turn.
-          notifyAssistantDone('');
+          failTurn(turn, event.message, event.code);
           break;
         }
         default:
           break;
       }
     },
-    [appendCards, conversationId, notifyAssistantDone, updateMessage],
+    [appendCards, failTurn, finishTurn, updateMessage, writeConfirm],
   );
 
-  const sendText = useCallback(
-    (text: string, attachments?: AgentRequest['attachments']) => {
-      const trimmed = text.trim();
-      if ((!trimmed && (!attachments || attachments.length === 0)) || sending) return;
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-      setMessages((prev) => [...prev, { id: makeId('user'), role: 'user', text: trimmed, cards: [], attachments }]);
-      setSending(true);
-      sendAgentMessage(
-        { conversationId: conversationId || undefined, text: trimmed, attachments },
-        { onEvent: handleEvent, signal: controller.signal },
-      );
+  /** After the request settles. Every way it can end was reported as an event
+   * already; this is the backstop, so nothing can leave the composer locked. */
+  const afterStream = useCallback(
+    (turn: Turn, end: StreamEnd) => {
+      if (turn.confirm && end.status === 'failed' && end.code === 'not_pending') {
+        const outcome = conflictOutcome(end.body);
+        writeConfirm(turn.confirm.toolCallId, outcome ? { phase: outcome } : { error: failureMessage('not_pending') });
+      }
+      if (turn.done) return;
+      if (end.status === 'aborted') {
+        stopTurn(turn);
+        return;
+      }
+      const code = end.status === 'failed' ? end.code : 'dropped';
+      failTurn(turn, failureMessage(code), code);
     },
-    [conversationId, handleEvent, sending],
+    [failTurn, stopTurn, writeConfirm],
   );
 
+  /** Lets go of a reply still coming in when another session opens here: the
+   * server finishes it, its events just no longer reach this thread. */
+  const releaseTurn = useCallback(() => {
+    const turn = turnRef.current;
+    if (!turn) return;
+    turn.done = true;
+    turnRef.current = null;
+    setSending(false);
+    setWorkingLabel(null);
+    turn.settle('sent');
+    notifyAssistantDone('');
+  }, [notifyAssistantDone]);
+
+  const applyHistory = useCallback(
+    (history: HistoryResponse) => {
+      sessionEpoch.current += 1;
+      setConversationId(history.conversationId);
+      conversationIdRef.current = history.conversationId;
+      storeConversationId(history.conversationId);
+      setMessages(history.messages.map(fromHistory));
+      setChips(history.chips);
+      setProject(history.project);
+      setGreeting(history.greeting);
+      setQuickActions(history.quickActions);
+      setChecklist(history.checklist);
+      setProjectPill(history.projectPill);
+      setResume(history.resume ?? null);
+      confirmRef.current = {};
+      setConfirmResolutions({});
+      const cursor = history.earlierCursor ?? null;
+      earlierRef.current = { cursor, loading: false };
+      setEarlierCursor(cursor);
+      setLoadingEarlier(false);
+      setEarlierFailed(false);
+    },
+    [],
+  );
+
+  // /studio opens on its home screen: a blank session, with the previous
+  // conversation offered as `resume` rather than reopened. /studio/s/<id>
+  // loads that conversation instead.
+  useEffect(() => {
+    let cancelled = false;
+    fetchAgentHistory(initialConversationId ?? '', { fresh: !initialConversationId }).then((history) => {
+      if (cancelled) return;
+      if (history) applyHistory(history);
+      setHistoryError(!history);
+      setLoadingHistory(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [applyHistory, initialConversationId]);
+
+  const loadSession = useCallback(
+    async (target: { fresh: true } | { conversationId: string }) => {
+      releaseTurn();
+      setLoadingHistory(true);
+      const history = await fetchAgentHistory('conversationId' in target ? target.conversationId : '', {
+        fresh: 'fresh' in target,
+      });
+      if (history) applyHistory(history);
+      setHistoryError(!history);
+      setLoadingHistory(false);
+    },
+    [applyHistory, releaseTurn],
+  );
+
+  const startNewSession = useCallback(() => loadSession({ fresh: true }), [loadSession]);
+  const openConversation = useCallback((id: string) => loadSession({ conversationId: id }), [loadSession]);
+  /** after a failed load: try the same session (or a fresh home) again */
+  const retryHistory = useCallback(
+    () => loadSession(initialConversationId ? { conversationId: initialConversationId } : { fresh: true }),
+    [initialConversationId, loadSession],
+  );
+
+  /** "Show earlier messages": the page before the oldest one shown. */
+  const loadEarlier = useCallback(async () => {
+    const { cursor, loading } = earlierRef.current;
+    const conversation = conversationIdRef.current;
+    if (!cursor || loading || !conversation) return;
+    const epoch = sessionEpoch.current;
+    earlierRef.current = { cursor, loading: true };
+    setLoadingEarlier(true);
+    setEarlierFailed(false);
+    const page = await fetchEarlierHistory(conversation, cursor);
+    if (epoch !== sessionEpoch.current) return;
+    earlierRef.current = { cursor: page ? page.earlierCursor : cursor, loading: false };
+    setLoadingEarlier(false);
+    if (!page) {
+      setEarlierFailed(true);
+      return;
+    }
+    setEarlierCursor(page.earlierCursor);
+    setMessages((prev) => {
+      const shown = new Set(prev.map((message) => message.id));
+      return [...page.messages.filter((message) => !shown.has(message.id)).map(fromHistory), ...prev];
+    });
+  }, []);
+
+  const earlier = useMemo<EarlierMessages>(
+    () => ({ hasMore: earlierCursor !== null, loading: loadingEarlier, failed: earlierFailed, load: loadEarlier }),
+    [earlierCursor, loadingEarlier, earlierFailed, loadEarlier],
+  );
+
+  /** Sends a message. Resolves once the Studio has taken it (or it could not
+   * go), not when the reply ends; see SendOutcome. While a reply is coming in
+   * nothing is sent, whichever chip or card asks. */
+  const sendText = useCallback(
+    (text: string, attachments?: AgentRequest['attachments'], options: SendOptions = {}): Promise<SendOutcome> => {
+      const trimmed = text.trim();
+      if (!trimmed && (!attachments || attachments.length === 0)) return Promise.resolve('failed');
+      if (turnRef.current) return Promise.resolve('busy');
+      // Known to be offline: the composer keeps its draft, nothing changes here.
+      if (options.fromComposer && isOffline()) return Promise.resolve('offline');
+
+      let resolveSend: (outcome: SendOutcome) => void = () => undefined;
+      const sent = new Promise<SendOutcome>((resolve) => {
+        resolveSend = resolve;
+      });
+      let settled = false;
+      const userBubbleId = options.retryOf ? null : makeId('user');
+      const turn: Turn = {
+        controller: new AbortController(),
+        bubbleId: makeId('assistant'),
+        userBubbleId,
+        opened: false,
+        started: false,
+        done: false,
+        text: '',
+        running: new Map(),
+        request: { text: trimmed, attachments },
+        fromComposer: Boolean(options.fromComposer),
+        settle: (outcome) => {
+          if (settled) return;
+          settled = true;
+          resolveSend(outcome);
+        },
+      };
+      const bubbleId = turn.bubbleId as string;
+      setMessages((prev) => [
+        // Try again replaces the failed reply; the artist's message above it stays.
+        ...(options.retryOf ? prev.filter((message) => message.id !== options.retryOf) : prev),
+        ...(userBubbleId ? [{ id: userBubbleId, role: 'user' as const, text: trimmed, cards: [], attachments }] : []),
+        { id: bubbleId, role: 'assistant', text: '', cards: [], streaming: true, thinking: true },
+      ]);
+      turnRef.current = turn;
+      setSending(true);
+      setWorkingLabel(null);
+      void sendAgentMessage(
+        { conversationId: conversationIdRef.current || undefined, text: trimmed, attachments, retry: options.retryOf ? true : undefined },
+        {
+          onEvent: (event) => handleTurnEvent(turn, event),
+          onOpen: () => {
+            turn.opened = true;
+            turn.settle('sent');
+          },
+          signal: turn.controller.signal,
+        },
+      ).then(
+        (end) => afterStream(turn, end),
+        () => afterStream(turn, { status: 'failed', code: 'dropped' }),
+      );
+      return sent;
+    },
+    [afterStream, handleTurnEvent],
+  );
+
+  /** Approve or cancel a confirm card. The clicked button shows it is on its
+   * way; the card reads as decided only once the server starts on it, and
+   * goes back to its buttons (with the reason) if it can't. */
   const resolveConfirm = useCallback(
     (toolCallId: string, approve: boolean) => {
-      if (!conversationId) return;
-      setConfirmResolutions((prev) => ({ ...prev, [toolCallId]: approve ? 'approved' : 'rejected' }));
+      const conversation = conversationIdRef.current;
+      if (!conversation || turnRef.current) return;
+      if (confirmRef.current[toolCallId]?.phase) return;
+      writeConfirm(toolCallId, { phase: approve ? 'approving' : 'declining' });
+      const turn: Turn = {
+        controller: new AbortController(),
+        bubbleId: null,
+        userBubbleId: null,
+        opened: false,
+        started: false,
+        done: false,
+        text: '',
+        running: new Map(),
+        fromComposer: false,
+        confirm: { toolCallId, approve },
+        settle: () => undefined,
+      };
+      turnRef.current = turn;
       setSending(true);
-      const controller = new AbortController();
-      abortRef.current = controller;
-      sendAgentConfirm({ conversationId, toolCallId, approve }, { onEvent: handleEvent, signal: controller.signal });
+      setWorkingLabel(null);
+      void sendAgentConfirm(
+        { conversationId: conversation, toolCallId, approve },
+        {
+          onEvent: (event) => handleTurnEvent(turn, event),
+          onOpen: () => {
+            turn.opened = true;
+          },
+          signal: turn.controller.signal,
+        },
+      ).then(
+        (end) => afterStream(turn, end),
+        () => afterStream(turn, { status: 'failed', code: 'dropped' }),
+      );
     },
-    [conversationId, handleEvent],
+    [afterStream, handleTurnEvent, writeConfirm],
   );
+
+  /** Stop the reply being written. */
+  const stop = useCallback(() => {
+    const turn = turnRef.current;
+    if (turn) stopTurn(turn);
+  }, [stopTurn]);
 
   return {
     conversationId,
@@ -352,5 +657,7 @@ export function useConversation({ initialConversationId, onMessageStart, onTurnE
     onAssistantDone,
     sendText,
     resolveConfirm,
+    stop,
+    earlier,
   };
 }

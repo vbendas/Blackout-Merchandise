@@ -1,5 +1,13 @@
 import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
 
+/** What the artist reads when something on our side went wrong. Raw errors
+ * stay in the server log; this is all that reaches the screen. */
+export const STUDIO_PROBLEM = 'The Studio had a problem. Try again.';
+
+/** Why a request failed. Set by the client on the error events it makes up
+ * itself (the server's own error events carry no code). */
+export type AgentErrorCode = 'offline' | 'signed_out' | 'rate_limited' | 'not_pending' | 'server' | 'dropped';
+
 // SSE events streamed from POST /api/agent to the chat client, in order.
 export type AgentEvent =
   | { type: 'message_start'; messageId: string; conversationId: string }
@@ -12,7 +20,7 @@ export type AgentEvent =
   /** a confirm-gated tool is waiting; the turn ends here */
   | { type: 'confirm_required'; toolCallId: string; name: string; card: Extract<Card, { kind: 'confirm' }> }
   | { type: 'message_end'; messageId: string; stopReason: string }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string; code?: AgentErrorCode };
 
 export interface AgentRequest {
   conversationId?: string;
@@ -20,12 +28,24 @@ export interface AgentRequest {
   text: string;
   /** optional image/file references already uploaded (Cloudinary URLs) */
   attachments?: { url: string; kind: 'image' | 'file'; name?: string; designId?: string }[];
+  /** Try again after a failed reply: when the artist's last stored message
+   * is this same text, the server answers it instead of storing it twice */
+  retry?: boolean;
 }
 
 export interface ConfirmRequest {
   conversationId: string;
   toolCallId: string;
   approve: boolean;
+}
+
+/** What became of a confirm-gated step (absent while it waits for the artist). */
+export type ConfirmOutcome = NonNullable<Extract<Card, { kind: 'confirm' }>['outcome']>;
+
+/** 409 from POST /api/agent/confirm: the step was already decided, here or elsewhere. */
+export interface ConfirmConflict {
+  error: 'not_pending';
+  outcome: ConfirmOutcome | null;
 }
 
 // --- Guided-chat additions (chat redesign) ---
@@ -50,10 +70,30 @@ export interface ChecklistStep {
   prompt: string;
 }
 
+export interface HistoryMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  cards?: Card[];
+  /** images the artist sent with the message */
+  attachments?: AgentRequest['attachments'];
+}
+
+/** GET /api/agent/history?conversationId=&before=<message id>: the page of
+ * messages before that one (older first), for "Show earlier messages". */
+export interface HistoryPage {
+  conversationId: string;
+  messages: HistoryMessage[];
+  /** pass as `before` for the page before this one; null at the start */
+  earlierCursor: string | null;
+}
+
 /** GET /api/agent/history?conversationId= */
 export interface HistoryResponse {
   conversationId: string;
-  messages: { id: string; role: 'user' | 'assistant'; text: string; cards?: Card[] }[];
+  messages: HistoryMessage[];
+  /** older messages exist: pass as `before` to load them (null when all are here) */
+  earlierCursor?: string | null;
   /** chips from the last assistant turn */
   chips: Chip[];
   project: NonNullable<ToolUi['project']> | null;

@@ -5,6 +5,7 @@ import { uploadDesign, type UploadResult } from '@/lib/agent/client';
 
 export const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
 const MAX_BYTES = 25 * 1024 * 1024;
+const MAX_MB = MAX_BYTES / (1024 * 1024);
 
 export interface UploadAttachment {
   id: string;
@@ -23,6 +24,15 @@ function makeId(): string {
   return `up-${Math.random().toString(36).slice(2)}-${Date.now()}`;
 }
 
+/** The artist-facing reason a file can't be attached, or null when it can. */
+function rejectionFor(file: File): string | null {
+  const isPdf = file.type === 'application/pdf' || (file.type === '' && /\.pdf$/i.test(file.name));
+  if (isPdf) return "PDFs aren't supported yet. Export a PNG or JPG.";
+  if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) return "That file type isn't supported. Use a PNG or JPG.";
+  if (file.size > MAX_BYTES) return `That file is over ${MAX_MB} MB. Export a smaller PNG or JPG.`;
+  return null;
+}
+
 /** Shared upload flow behind the composer's attach button/drop zone/paste
  * handler, the 'Upload artwork' quick action, and the `upload` card's
  * 'Choose file' pill — one hook instance lives in ChatShell so every entry
@@ -38,9 +48,13 @@ export function useUpload() {
 
   const uploadOne = useCallback(
     (file: File) => {
-      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) return;
-      if (file.size > MAX_BYTES) return;
       const id = makeId();
+      const rejection = rejectionFor(file);
+      if (rejection) {
+        // Listed in the composer like a failed upload, so the artist sees why it was not added.
+        setAttachments((prev) => [...prev, { id, name: file.name, previewUrl: '', progress: 0, status: 'error', error: rejection }]);
+        return;
+      }
       const previewUrl = URL.createObjectURL(file);
       setAttachments((prev) => [...prev, { id, name: file.name, previewUrl, progress: 0, status: 'uploading' }]);
       const controller = new AbortController();
@@ -57,7 +71,7 @@ export function useUpload() {
           });
         })
         .catch(() => {
-          update(id, { status: 'error', error: "Uploads aren't live yet — try again shortly." });
+          update(id, { status: 'error', error: "That upload didn't go through. Try again." });
         })
         .finally(() => {
           controllers.current.delete(id);

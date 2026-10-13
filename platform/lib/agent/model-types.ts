@@ -7,6 +7,8 @@ export interface RunModelTurnParams {
   tools: Anthropic.Tool[];
   maxTokens: number;
   onTextDelta?: (text: string) => void;
+  /** Stop: ends the model request itself, so no more tokens are spent */
+  signal?: AbortSignal;
 }
 
 export interface RunModelTurnUsage {

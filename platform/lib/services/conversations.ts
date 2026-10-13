@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, ne } from 'drizzle-orm';
+import { and, desc, eq, isNull, ne, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import type Anthropic from '@anthropic-ai/sdk';
 import type { ToolUi } from '@/lib/ui-cards/schemas';
@@ -142,15 +142,61 @@ export function titleFromContent(content: StoredMessageContent): string | null {
   return out || null;
 }
 
+/** Replaces the ui stored with a message (what the client renders); the
+ * model's blocks stay exactly as they were. */
+export async function setMessageUi(row: MessageRow, ui: ToolUi | null): Promise<void> {
+  const content: StoredMessageContent = { ...(row.content as unknown as StoredMessageContent), ui };
+  await db
+    .update(schema.messages)
+    .set({ content: content as unknown as object })
+    .where(eq(schema.messages.id, row.id));
+}
+
+export interface MessagePage {
+  /** oldest first */
+  rows: MessageRow[];
+  /** older messages exist before the first row */
+  hasMore: boolean;
+}
+
+/** Up to `limit` messages, oldest first: the latest ones, or with `beforeId`
+ * the ones just before that message. Keyset on (created_at, id) compared in
+ * Postgres, so pages never repeat or skip a message, even two written in the
+ * same millisecond. A cursor from another conversation yields nothing. */
+export async function loadHistoryPage(
+  conversationId: string,
+  { limit = 40, beforeId }: { limit?: number; beforeId?: string } = {},
+): Promise<MessagePage> {
+  const m = schema.messages;
+  const where = beforeId
+    ? and(
+        eq(m.conversationId, conversationId),
+        sql`(${m.createdAt}, ${m.id}) < (select ${m.createdAt}, ${m.id} from ${m} where ${m.id} = ${beforeId} and ${m.conversationId} = ${conversationId})`,
+      )
+    : eq(m.conversationId, conversationId);
+  const rows = await db
+    .select()
+    .from(m)
+    .where(where)
+    .orderBy(desc(m.createdAt), desc(m.id))
+    .limit(limit + 1);
+  return { rows: rows.slice(0, limit).reverse(), hasMore: rows.length > limit };
+}
+
 /** Most recent `limit` messages for this conversation, oldest first. */
 export async function loadHistory(conversationId: string, limit = 40): Promise<MessageRow[]> {
+  return (await loadHistoryPage(conversationId, { limit })).rows;
+}
+
+/** The conversation's newest message, or null when nothing was said yet. */
+export async function latestMessage(conversationId: string): Promise<MessageRow | null> {
   const rows = await db
     .select()
     .from(schema.messages)
     .where(eq(schema.messages.conversationId, conversationId))
-    .orderBy(desc(schema.messages.createdAt))
-    .limit(limit);
-  return rows.reverse();
+    .orderBy(desc(schema.messages.createdAt), desc(schema.messages.id))
+    .limit(1);
+  return rows[0] ?? null;
 }
 
 export async function setSummary(conversationId: string, summary: string): Promise<void> {

@@ -42,8 +42,8 @@ export async function POST(req: NextRequest) {
     locale: user.locale ?? 'en',
   };
 
-  const stream = createAgentSseStream((emit) =>
-    startAgentTurn({ base, userText: body.text, attachments: body.attachments, emit }),
+  const stream = createAgentSseStream((emit, signal) =>
+    startAgentTurn({ base, userText: body.text, attachments: body.attachments, retry: body.retry === true, emit, signal }),
   );
 
   return new Response(stream, { headers: SSE_HEADERS });

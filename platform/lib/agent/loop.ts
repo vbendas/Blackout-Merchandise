@@ -1,5 +1,5 @@
 import type Anthropic from '@anthropic-ai/sdk';
-import type { AgentEvent } from '@/lib/agent/protocol';
+import { STUDIO_PROBLEM, type AgentEvent } from '@/lib/agent/protocol';
 import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
 import type { ToolContext } from '@/lib/tools/types';
 import { AGENT_MAX_TOKENS, AGENT_MODEL, MAX_LOOP_ITERATIONS, runModelTurn } from '@/lib/agent/model';
@@ -8,30 +8,68 @@ import { buildSystemBlocks } from '@/lib/agent/system-prompt';
 import { buildApiMessages } from '@/lib/agent/history';
 import { toolsForRole } from '@/lib/tools/registry';
 import { toAnthropicTools } from '@/lib/tools/to-anthropic';
+import { confirmLabels, toolProgressLabel } from '@/lib/tools/labels';
 import {
   appendMessage,
   getMessageById,
   getProjectCard,
+  latestMessage,
+  setMessageUi,
   setProjectCard,
+  type MessageRow,
+  type StoredMessageContent,
 } from '@/lib/services/conversations';
 import { storeSummary } from '@/lib/services/stores';
-import { completeInvocationByIdempotencyKey, findByIdempotencyKey, recordInvocation } from '@/lib/services/tools-audit';
+import {
+  claimPendingInvocation,
+  completeInvocationByIdempotencyKey,
+  declinePendingInvocation,
+  findByIdempotencyKey,
+  findByIdempotencyKeys,
+  recordInvocation,
+  type ToolInvocationRow,
+} from '@/lib/services/tools-audit';
 import { getTool } from '@/lib/tools/registry';
 import { getDesignSummary, listDesignsForStore } from '@/lib/services/designs';
 
 export type BaseAgentContext = Omit<ToolContext, 'idempotencyKey'>;
 export type Emit = (event: AgentEvent) => void;
 
-type LooseBlock = { type?: string; id?: string };
+type LooseBlock = { type?: string; id?: string; text?: string };
 
 function blockList(content: unknown): LooseBlock[] {
   return Array.isArray(content) ? (content as LooseBlock[]) : [];
 }
 
-function toolLabel(description: string): string {
-  const firstSentence = description.split(/(?<=\.)\s/)[0] ?? description;
-  return firstSentence.length > 80 ? `${firstSentence.slice(0, 77)}...` : firstSentence;
+/** tool_use ids of a stored assistant message, in block order. */
+function toolUseIdsOf(row: MessageRow): string[] {
+  const stored = row.content as unknown as { blocks?: unknown } | undefined;
+  return blockList(stored?.blocks)
+    .filter((b) => b.type === 'tool_use' && typeof b.id === 'string')
+    .map((b) => b.id as string);
 }
+
+/** The tool_result a stored call gives the model when its turn is rebuilt
+ * from the audit log (a confirm resumed, or a waiting step moved past). */
+function storedResult(toolUseId: string, row: ToolInvocationRow | undefined): Anthropic.ToolResultBlockParam {
+  if (!row) {
+    return { type: 'tool_result', tool_use_id: toolUseId, content: JSON.stringify({ error: 'This step did not run.' }), is_error: true };
+  }
+  if (row.status === 'error') {
+    return { type: 'tool_result', tool_use_id: toolUseId, content: JSON.stringify({ error: row.error ?? 'Tool failed' }), is_error: true };
+  }
+  if (row.status === 'pending_confirm') {
+    return { type: 'tool_result', tool_use_id: toolUseId, content: JSON.stringify({ declined: true, message: 'Not confirmed.' }) };
+  }
+  return { type: 'tool_result', tool_use_id: toolUseId, content: JSON.stringify(row.output ?? null) };
+}
+
+const ALREADY_HANDLED = 'This step was already handled.';
+const TOO_MANY_STEPS = 'That needed too many steps at once. Try a smaller request.';
+/** what the model is told about a confirm-gated call it made alongside another */
+const ONE_STEP_AT_A_TIME = 'Only one step can wait for approval at a time. Ask again after this one.';
+/** what the model is told when the artist sent a new message instead of deciding */
+const MOVED_ON = 'The artist sent a new message instead of confirming, so this step did not run.';
 
 interface MergedUi {
   cards: Card[];
@@ -66,24 +104,24 @@ async function flushUi(base: BaseAgentContext, ui: MergedUi, emit: Emit): Promis
   }
 }
 
+type PendingConfirm = { toolCallId: string; toolName: string; card: Extract<Card, { kind: 'confirm' }> };
+
 type ExecOutcome =
   | { kind: 'done'; result: Anthropic.ToolResultBlockParam; ui?: ToolUi }
-  | { kind: 'confirm'; pending: { toolCallId: string; toolName: string; card: Extract<Card, { kind: 'confirm' }> } };
+  | { kind: 'confirm'; pending: PendingConfirm };
 
 async function executeToolCall(block: Anthropic.ToolUseBlock, base: BaseAgentContext, messageId: string, emit: Emit): Promise<ExecOutcome> {
   const idempotencyKey = block.id;
   const tool = getTool(block.name);
 
   if (!tool) {
-    emit({ type: 'tool_start', toolCallId: block.id, name: block.name, label: block.name });
+    emit({ type: 'tool_start', toolCallId: block.id, name: block.name, label: toolProgressLabel(block.name) });
     emit({ type: 'tool_end', toolCallId: block.id, name: block.name, ok: false });
     return {
       kind: 'done',
       result: { type: 'tool_result', tool_use_id: block.id, content: JSON.stringify({ error: `Unknown tool: ${block.name}` }), is_error: true },
     };
   }
-
-  emit({ type: 'tool_start', toolCallId: block.id, name: tool.name, label: toolLabel(tool.description) });
 
   const parsed = tool.input.safeParse(block.input);
   if (!parsed.success) {
@@ -117,17 +155,23 @@ async function executeToolCall(block: Anthropic.ToolUseBlock, base: BaseAgentCon
       idempotencyKey,
       status: 'pending_confirm',
     });
-    const summary = tool.summarize ? tool.summarize(parsed.data) : `Run ${tool.name}`;
+    const summary = tool.summarize ? tool.summarize(parsed.data) : 'Confirm this step.';
+    const labels = confirmLabels(tool.name);
     const card: Extract<Card, { kind: 'confirm' }> = {
       id: `confirm_${idempotencyKey}`,
       kind: 'confirm',
       toolCallId: idempotencyKey,
       toolName: tool.name,
       summary,
+      approveLabel: labels.approve,
+      cancelLabel: labels.cancel,
     };
     return { kind: 'confirm', pending: { toolCallId: idempotencyKey, toolName: tool.name, card } };
   }
 
+  // The progress line shows only for a call that runs now: a confirm-gated
+  // one waits for the artist (its card says so), an invalid one never starts.
+  emit({ type: 'tool_start', toolCallId: block.id, name: tool.name, label: toolProgressLabel(tool.name) });
   const startedAt = Date.now();
   try {
     const ctx: ToolContext = { ...base, idempotencyKey };
@@ -185,12 +229,17 @@ async function currentSystemBlocks(base: BaseAgentContext): Promise<Anthropic.Te
 
 /** The core model<->tools loop, shared by a fresh turn and a confirm-resume.
  * One model serves the whole turn so its prompt cache stays warm across
- * iterations. */
+ * iterations. When the client goes away (`signal`: Stop, a closed tab, a
+ * dropped connection) the turn ends at its next safe point: a reply being
+ * written keeps the words the artist saw and runs none of its tool calls,
+ * tools already running finish and are stored, and no further model call
+ * starts. Either way the stored history stays whole. */
 async function runIterations(
   base: BaseAgentContext,
   initialMessages: Anthropic.MessageParam[],
   emit: Emit,
   model: string,
+  signal?: AbortSignal,
 ): Promise<void> {
   let messages = initialMessages;
   const tools = toolsForRole(base.role);
@@ -199,7 +248,10 @@ async function runIterations(
   let turnHadText = false;
   let iterationHadText = false;
   for (let iteration = 0; iteration < MAX_LOOP_ITERATIONS; iteration += 1) {
+    if (signal?.aborted) return;
     iterationHadText = false;
+    // What the artist has seen of this iteration's reply, kept if they stop it.
+    let seenText = '';
     const system = await currentSystemBlocks(base);
 
     const turn = await runModelTurn({
@@ -208,7 +260,9 @@ async function runIterations(
       messages,
       tools: anthropicTools,
       maxTokens: AGENT_MAX_TOKENS,
+      signal,
       onTextDelta: (text) => {
+        if (!signal?.aborted) seenText += text;
         // Text from a later iteration (after tool results) starts a new
         // paragraph instead of gluing onto the previous sentence.
         if (turnHadText && !iterationHadText) emit({ type: 'text_delta', text: '\n\n' });
@@ -220,6 +274,14 @@ async function runIterations(
 
     const blocks = turn.content as unknown as Anthropic.ContentBlockParam[];
     const tokens = { in: turn.usage.inputTokens, out: turn.usage.outputTokens };
+
+    if (signal?.aborted) {
+      // Stopped while the model was writing: keep only the words already
+      // shown (no thinking, no tool calls, so nothing is left unanswered).
+      const kept = seenText.trim();
+      if (kept) await appendMessage(base.conversationId, 'assistant', { blocks: [{ type: 'text', text: kept }], ui: null, model }, tokens);
+      return;
+    }
 
     if (turn.stopReason === 'refusal') {
       const assistantRow = await appendMessage(base.conversationId, 'assistant', { blocks, ui: null, model }, tokens);
@@ -250,11 +312,11 @@ async function runIterations(
 
     const results = new Map<string, Anthropic.ToolResultBlockParam>();
     const mergedUi: MergedUi = { cards: [], next: [], project: undefined };
-    let pendingConfirm: Extract<ExecOutcome, { kind: 'confirm' }>['pending'] | null = null;
+    const confirms: PendingConfirm[] = [];
 
     const handleOutcome = (block: Anthropic.ToolUseBlock, outcome: ExecOutcome) => {
       if (outcome.kind === 'confirm') {
-        pendingConfirm = outcome.pending;
+        confirms.push(outcome.pending);
       } else {
         results.set(block.id, outcome.result);
         mergeUi(mergedUi, outcome.ui);
@@ -274,9 +336,17 @@ async function runIterations(
 
     await flushUi(base, mergedUi, emit);
 
-    if (pendingConfirm) {
-      const confirmPending = pendingConfirm as Extract<ExecOutcome, { kind: 'confirm' }>['pending'];
-      emit({ type: 'confirm_required', toolCallId: confirmPending.toolCallId, name: confirmPending.toolName, card: confirmPending.card });
+    if (confirms.length > 0) {
+      // One step waits for the artist; any other gated call in the same turn
+      // is declined so the resumed turn can answer every call.
+      const [waiting, ...others] = confirms;
+      for (const other of others) {
+        await declinePendingInvocation(other.toolCallId, base.conversationId, { output: { declined: true, message: ONE_STEP_AT_A_TIME } });
+      }
+      // Stored with the turn, so a reload shows the card (and its buttons)
+      // until the step is decided; the history derives its outcome.
+      await setMessageUi(assistantRow, toToolUi({ ...mergedUi, cards: [...mergedUi.cards, waiting.card] }));
+      emit({ type: 'confirm_required', toolCallId: waiting.toolCallId, name: waiting.toolName, card: waiting.card });
       emit({ type: 'message_end', messageId: assistantRow.id, stopReason: 'tool_use' });
       return;
     }
@@ -287,32 +357,82 @@ async function runIterations(
     messages = await buildApiMessages(base.conversationId);
   }
 
-  emit({ type: 'error', message: 'The assistant needed too many steps to finish this turn.' });
+  emit({ type: 'error', message: TOO_MANY_STEPS });
+}
+
+/** Rebuilds the tool results of a stored assistant turn from the audit log,
+ * in block order, with `overrides` for calls decided just now. */
+async function storedResultsFor(
+  row: MessageRow,
+  overrides: Map<string, Anthropic.ToolResultBlockParam> = new Map(),
+): Promise<Anthropic.ToolResultBlockParam[]> {
+  const ids = toolUseIdsOf(row);
+  const invocations = await findByIdempotencyKeys(ids.filter((id) => !overrides.has(id)));
+  const byKey = new Map(invocations.map((inv) => [inv.idempotencyKey, inv]));
+  return ids.map((id) => overrides.get(id) ?? storedResult(id, byKey.get(id)));
+}
+
+/** A new message moves past a step still waiting for approval: the waiting
+ * call is declined and its turn gets its tool results before the message is
+ * stored, so the model's history stays whole. Only the newest turn can be
+ * waiting; an older one was settled when the message after it came in. */
+async function settleWaitingStep(base: BaseAgentContext): Promise<void> {
+  const last = await latestMessage(base.conversationId);
+  if (!last || last.role !== 'assistant') return;
+  const ids = toolUseIdsOf(last);
+  if (ids.length === 0) return;
+  const invocations = await findByIdempotencyKeys(ids);
+  const waiting = invocations.filter((inv) => inv.status === 'pending_confirm' && !inv.confirmedAt && inv.idempotencyKey);
+  if (waiting.length === 0) return;
+  for (const inv of waiting) {
+    await declinePendingInvocation(inv.idempotencyKey as string, base.conversationId, { output: { declined: true, message: MOVED_ON } });
+  }
+  await appendMessage(base.conversationId, 'tool', { blocks: await storedResultsFor(last), ui: null });
+}
+
+/** Try again: the artist's last stored message, when it is this same text
+ * and nothing was stored after it, so the retry answers it instead of
+ * storing it twice. */
+async function retriedMessage(conversationId: string, text: string): Promise<MessageRow | null> {
+  const last = await latestMessage(conversationId);
+  if (!last || last.role !== 'user') return null;
+  const stored = last.content as unknown as StoredMessageContent | undefined;
+  const lastText = [...blockList(stored?.blocks)].reverse().find((b) => b.type === 'text');
+  return lastText?.text === text ? last : null;
 }
 
 export interface StartAgentTurnParams {
   base: BaseAgentContext;
   userText: string;
   attachments?: { url: string; kind: 'image' | 'file'; name?: string; designId?: string }[];
+  /** Try again after a failed reply (see AgentRequest.retry) */
+  retry?: boolean;
   emit: Emit;
+  /** fires when the client goes away; the turn ends at its next safe point */
+  signal?: AbortSignal;
 }
 
 export async function startAgentTurn(params: StartAgentTurnParams): Promise<void> {
-  const { base, emit } = params;
-  const blocks: Anthropic.ContentBlockParam[] = [];
-  for (const attachment of params.attachments ?? []) {
-    if (attachment.kind === 'image') blocks.push({ type: 'image', source: { type: 'url', url: attachment.url } });
-    if (attachment.designId) {
-      const summary = await getDesignSummary(attachment.designId);
-      if (summary) {
-        const dims = summary.widthPx && summary.heightPx ? `${summary.widthPx}×${summary.heightPx}` : 'unknown size';
-        blocks.push({ type: 'text', text: `Attached design ${attachment.designId} (${dims}, ${summary.readiness}).` });
+  const { base, emit, signal } = params;
+
+  await settleWaitingStep(base);
+
+  let userMessage = params.retry ? await retriedMessage(base.conversationId, params.userText) : null;
+  if (!userMessage) {
+    const blocks: Anthropic.ContentBlockParam[] = [];
+    for (const attachment of params.attachments ?? []) {
+      if (attachment.kind === 'image') blocks.push({ type: 'image', source: { type: 'url', url: attachment.url } });
+      if (attachment.designId) {
+        const summary = await getDesignSummary(attachment.designId);
+        if (summary) {
+          const dims = summary.widthPx && summary.heightPx ? `${summary.widthPx}×${summary.heightPx}` : 'unknown size';
+          blocks.push({ type: 'text', text: `Attached design ${attachment.designId} (${dims}, ${summary.readiness}).` });
+        }
       }
     }
+    blocks.push({ type: 'text', text: params.userText });
+    userMessage = await appendMessage(base.conversationId, 'user', { blocks, ui: null });
   }
-  blocks.push({ type: 'text', text: params.userText });
-
-  const userMessage = await appendMessage(base.conversationId, 'user', { blocks, ui: null });
   emit({ type: 'message_start', messageId: userMessage.id, conversationId: base.conversationId });
 
   const projectCard = await getProjectCard(base.conversationId);
@@ -323,7 +443,7 @@ export async function startAgentTurn(params: StartAgentTurnParams): Promise<void
   });
 
   const messages = await buildApiMessages(base.conversationId);
-  await runIterations(base, messages, emit, route.model);
+  await runIterations(base, messages, emit, route.model, signal);
 }
 
 export interface ResumeAgentTurnParams {
@@ -331,48 +451,52 @@ export interface ResumeAgentTurnParams {
   toolCallId: string;
   approve: boolean;
   emit: Emit;
+  /** fires when the client goes away; the turn ends at its next safe point */
+  signal?: AbortSignal;
 }
 
 export async function resumeAgentTurn(params: ResumeAgentTurnParams): Promise<void> {
-  const { base, toolCallId, approve, emit } = params;
+  const { base, toolCallId, approve, emit, signal } = params;
 
   const invocation = await findByIdempotencyKey(toolCallId);
-  if (!invocation || invocation.conversationId !== base.conversationId || invocation.status !== 'pending_confirm' || !invocation.messageId) {
-    emit({ type: 'error', message: 'This confirmation is no longer pending.' });
+  if (!invocation || invocation.conversationId !== base.conversationId || !invocation.messageId) {
+    emit({ type: 'error', message: ALREADY_HANDLED });
     return;
   }
   const tool = getTool(invocation.toolName);
   if (!tool) {
-    emit({ type: 'error', message: `Unknown tool ${invocation.toolName}.` });
+    console.error(`[agent] confirm for unknown tool ${invocation.toolName}`);
+    emit({ type: 'error', message: STUDIO_PROBLEM });
+    return;
+  }
+
+  const startedAt = Date.now();
+  // Taking the decision is one guarded update, so the step runs at most once
+  // however many times it is clicked.
+  const claimed = approve
+    ? await claimPendingInvocation(toolCallId, base.conversationId, base.userId)
+    : await declinePendingInvocation(toolCallId, base.conversationId, { output: { declined: true }, confirmedBy: base.userId });
+  if (!claimed) {
+    emit({ type: 'error', message: ALREADY_HANDLED });
     return;
   }
 
   emit({ type: 'message_start', messageId: invocation.messageId, conversationId: base.conversationId });
-  emit({ type: 'tool_start', toolCallId, name: tool.name, label: toolLabel(tool.description) });
 
   let resultBlock: Anthropic.ToolResultBlockParam;
   const mergedUi: MergedUi = { cards: [], next: [], project: undefined };
-  const startedAt = Date.now();
 
   if (!approve) {
-    await completeInvocationByIdempotencyKey(toolCallId, {
-      status: 'cancelled',
-      output: { declined: true },
-      confirmedBy: base.userId,
-      confirmedAt: new Date(),
-      durationMs: Date.now() - startedAt,
-    });
     emit({ type: 'tool_end', toolCallId, name: tool.name, ok: false });
     resultBlock = { type: 'tool_result', tool_use_id: toolCallId, content: JSON.stringify({ declined: true, message: 'User declined.' }) };
   } else {
+    emit({ type: 'tool_start', toolCallId, name: tool.name, label: toolProgressLabel(tool.name) });
     try {
       const ctx: ToolContext = { ...base, idempotencyKey: toolCallId };
       const result = await tool.run(ctx, invocation.input);
       await completeInvocationByIdempotencyKey(toolCallId, {
         status: 'ok',
         output: result.data,
-        confirmedBy: base.userId,
-        confirmedAt: new Date(),
         durationMs: Date.now() - startedAt,
       });
       mergeUi(mergedUi, result.ui);
@@ -383,8 +507,6 @@ export async function resumeAgentTurn(params: ResumeAgentTurnParams): Promise<vo
       await completeInvocationByIdempotencyKey(toolCallId, {
         status: 'error',
         error: message,
-        confirmedBy: base.userId,
-        confirmedAt: new Date(),
         durationMs: Date.now() - startedAt,
       });
       emit({ type: 'tool_end', toolCallId, name: tool.name, ok: false });
@@ -398,28 +520,12 @@ export async function resumeAgentTurn(params: ResumeAgentTurnParams): Promise<vo
   // calls alongside the confirm-gated one) already ran and was held back —
   // rebuild the full tool_result set in the original block order.
   const assistantMessage = await getMessageById(invocation.messageId);
-  const storedContent = assistantMessage?.content as unknown as { blocks?: LooseBlock[] } | undefined;
-  const assistantBlocks = blockList(storedContent?.blocks);
-  const toolUseIdsInOrder = assistantBlocks.filter((b) => b.type === 'tool_use' && typeof b.id === 'string').map((b) => b.id as string);
-
-  const resultsById = new Map<string, Anthropic.ToolResultBlockParam>();
-  resultsById.set(toolCallId, resultBlock);
-  const siblingIds = toolUseIdsInOrder.filter((id) => id !== toolCallId);
-  const siblings = await Promise.all(siblingIds.map((id) => findByIdempotencyKey(id)));
-  for (const sibling of siblings) {
-    if (!sibling || !sibling.idempotencyKey) continue;
-    resultsById.set(sibling.idempotencyKey, {
-      type: 'tool_result',
-      tool_use_id: sibling.idempotencyKey,
-      content: JSON.stringify(sibling.output ?? null),
-      is_error: sibling.status === 'error' ? true : undefined,
-    });
-  }
-
-  const orderedResults = toolUseIdsInOrder.map((id) => resultsById.get(id)).filter((r): r is Anthropic.ToolResultBlockParam => !!r);
+  const orderedResults = assistantMessage
+    ? await storedResultsFor(assistantMessage, new Map([[toolCallId, resultBlock]]))
+    : [resultBlock];
   await appendMessage(base.conversationId, 'tool', { blocks: orderedResults, ui: toToolUi(mergedUi) });
 
   // A confirmed action continues a consequential flow: always the main model.
   const messages = await buildApiMessages(base.conversationId);
-  await runIterations(base, messages, emit, AGENT_MODEL);
+  await runIterations(base, messages, emit, AGENT_MODEL, signal);
 }

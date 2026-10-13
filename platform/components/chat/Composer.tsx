@@ -10,8 +10,9 @@ import { useSuggestions } from '@/components/chat/useSuggestions';
 import { pickAudioMimeType, micPermissionErrorMessage } from '@/components/chat/useVoice';
 import type { UploadAttachment, UseUploadReturn } from '@/components/chat/useUpload';
 import { ACCEPTED_IMAGE_TYPES } from '@/components/chat/useUpload';
-import { transcribeAudio } from '@/lib/agent/client';
+import { failureMessage, isOffline, transcribeAudio } from '@/lib/agent/client';
 import type { AgentRequest, Suggestion } from '@/lib/agent/protocol';
+import type { SendOptions, SendOutcome } from '@/components/chat/useConversation';
 
 const DEFAULT_UPLOAD_TEXT = 'I uploaded my artwork';
 const TAP_THRESHOLD_MS = 300;
@@ -26,7 +27,9 @@ function formatTimer(seconds: number): string {
 }
 
 interface ComposerProps {
-  onSend: (text: string, attachments?: AgentRequest['attachments']) => void;
+  /** resolves to how the send went (see SendOutcome): offline keeps the draft here */
+  onSend: (text: string, attachments?: AgentRequest['attachments'], options?: SendOptions) => void | Promise<SendOutcome>;
+  /** a reply is on its way: nothing can be sent until it lands (typing can go on) */
   disabled: boolean;
   /** the dropdown renders below the composer in the empty state, above it
    * once the thread is active (per the design mock). */
@@ -36,6 +39,12 @@ interface ComposerProps {
   isDragging: boolean;
   /** opens the full-screen hands-free conversation mode */
   onOpenVoice: () => void;
+  /** stops the reply being written; while one is, Stop takes the send button's place */
+  onStop?: () => void;
+  /** text to put in the box from outside (a ?prompt= link); `id` changes for each new draft */
+  draft?: { id: number; text: string } | null;
+  /** a reply is being written (defaults to `disabled`) */
+  streaming?: boolean;
 }
 
 function AttachmentChip({ attachment, onRemove }: { attachment: UploadAttachment; onRemove: () => void }) {
@@ -78,15 +87,32 @@ function ProgressPill({ attachment, onRemove }: { attachment: UploadAttachment; 
   );
 }
 
-export function Composer({ onSend, disabled, dropdownPosition, upload, isDragging, onOpenVoice }: ComposerProps) {
+export function Composer({ onSend, disabled, dropdownPosition, upload, isDragging, onOpenVoice, onStop, streaming, draft }: ComposerProps) {
   const [text, setText] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  // The message could not go out (no network): the draft stays, with a line saying so.
+  const [offline, setOffline] = useState(false);
+  // A send is on its way to the Studio: its images are held (hidden) until it
+  // lands, so they can come back if it can't.
+  const [pendingSend, setPendingSend] = useState(false);
 
   const [micState, setMicState] = useState<MicState>('idle');
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [micError, setMicError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // A draft from a link lands in the box for the artist to read and send
+  // (state adjusted while rendering, the pattern React recommends for this).
+  const [appliedDraftId, setAppliedDraftId] = useState<number | null>(null);
+  if (draft && draft.text && draft.id !== appliedDraftId) {
+    setAppliedDraftId(draft.id);
+    setText(draft.text);
+  }
+  const draftId = draft?.id;
+  useEffect(() => {
+    if (draftId !== undefined) textareaRef.current?.focus();
+  }, [draftId]);
   const micPhaseRef = useRef<MicPhase>('idle');
   const pointerDownAtRef = useRef(0);
   const pendingLatchStopRef = useRef(false);
@@ -98,8 +124,11 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
   const suggestions = useSuggestions(text, dismissed);
   const showSuggestions = suggestions.length > 0 && text.trim().length >= 2 && !dismissed;
 
-  const uploading = upload.attachments.filter((attachment) => attachment.status === 'uploading' || attachment.status === 'error');
-  const uploaded = upload.attachments.filter((attachment) => attachment.status !== 'uploading' && attachment.status !== 'error');
+  // Taken apart once: the file input's ref stays a ref, the rest plain values.
+  const { attachments: queued, inputRef: fileInputRef, openPicker, remove: removeAttachment, reset: resetAttachments, upload: addFiles } = upload;
+  const uploading = queued.filter((attachment) => attachment.status === 'uploading' || attachment.status === 'error');
+  const uploaded = queued.filter((attachment) => attachment.status !== 'uploading' && attachment.status !== 'error');
+  const showStop = Boolean(onStop) && (streaming ?? disabled);
 
   // Reset the highlight whenever a new suggestion set arrives — done during
   // render (React's "adjusting state when a prop changes" pattern) rather
@@ -118,6 +147,14 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
       micStreamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
+
+  // Back online: the offline line has nothing left to say.
+  useEffect(() => {
+    if (!offline) return;
+    const clear = () => setOffline(false);
+    window.addEventListener('online', clear);
+    return () => window.removeEventListener('online', clear);
+  }, [offline]);
 
   async function finishRecording(mimeType: string | undefined) {
     micStreamRef.current?.getTracks().forEach((track) => track.stop());
@@ -200,8 +237,8 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
     }
   }
 
-  function submitText(value: string) {
-    if (disabled) return;
+  async function submitText(value: string) {
+    if (disabled || pendingSend) return;
     const trimmed = value.trim();
     const ready = uploaded.filter((attachment) => attachment.url);
     if (!trimmed && ready.length === 0) return;
@@ -216,20 +253,45 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
         : undefined;
     const finalText = trimmed || (attachments ? DEFAULT_UPLOAD_TEXT : '');
     if (!finalText) return;
-    onSend(finalText, attachments);
+    // Known to be offline: nothing is sent and the draft stays as it is.
+    if (isOffline()) {
+      setOffline(true);
+      return;
+    }
+    setOffline(false);
     setText('');
     setHighlightedIndex(null);
     setDismissed(false);
-    upload.reset();
+    setPendingSend(true);
+    const outcome = await onSend(finalText, attachments, { fromComposer: true });
+    setPendingSend(false);
+    if (outcome === 'offline' || outcome === 'busy') {
+      // It didn't go: the draft comes back, unless something new was typed meanwhile.
+      setText((current) => (current.trim() ? current : trimmed));
+      setOffline(outcome === 'offline');
+      return;
+    }
+    resetAttachments();
+  }
+
+  /** A suggestion sends at once, or fills the box while a reply is still coming. */
+  function pickSuggestion(value: string) {
+    if (disabled) {
+      setText(value);
+      setDismissed(true);
+      return;
+    }
+    void submitText(value);
   }
 
   function handleSubmit(message: PromptInputMessage) {
-    submitText(message.text);
+    return submitText(message.text);
   }
 
   function onChangeText(event: ChangeEvent<HTMLTextAreaElement>) {
     setText(event.target.value);
     setDismissed(false);
+    setOffline(false);
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -248,16 +310,16 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
       setDismissed(true);
     } else if (event.key === 'Enter' && !event.shiftKey && highlightedIndex !== null) {
       event.preventDefault();
-      submitText(suggestions[highlightedIndex].text);
+      pickSuggestion(suggestions[highlightedIndex].text);
     }
   }
 
   function onSelectSuggestion(suggestion: Suggestion) {
-    submitText(suggestion.text);
+    pickSuggestion(suggestion.text);
   }
 
   function onFileChange(event: ChangeEvent<HTMLInputElement>) {
-    if (event.target.files) upload.upload(event.target.files);
+    if (event.target.files) addFiles(event.target.files);
     event.target.value = '';
   }
 
@@ -275,15 +337,14 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
     }
     if (files.length > 0) {
       event.preventDefault();
-      upload.upload(files);
+      addFiles(files);
     }
   }
 
   const hasContent = text.trim().length > 0 || uploaded.some((attachment) => attachment.url);
   const micPlaceholder =
     micState === 'recording' ? 'Listening…' : micState === 'transcribing' ? 'Transcribing…' : 'Describe a piece, a drop or a run';
-  const micAriaLabel =
-    micState === 'recording' ? 'Recording — release or tap to stop' : micState === 'transcribing' ? 'Transcribing' : 'Hold to talk';
+  const micAriaLabel = micState === 'recording' ? 'Stop dictating' : micState === 'transcribing' ? 'Transcribing' : 'Hold to dictate';
 
   return (
     <div className="relative w-full max-w-[720px]">
@@ -297,16 +358,16 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
           position={dropdownPosition}
         />
       ) : null}
-      {uploaded.length > 0 ? (
+      {uploaded.length > 0 && !pendingSend ? (
         <div className="mb-2 flex flex-wrap gap-2">
           {uploaded.map((attachment) => (
-            <AttachmentChip key={attachment.id} attachment={attachment} onRemove={() => upload.remove(attachment.id)} />
+            <AttachmentChip key={attachment.id} attachment={attachment} onRemove={() => removeAttachment(attachment.id)} />
           ))}
         </div>
       ) : null}
       <PromptInput className={`mf-composer w-full ${isDragging ? 'mf-drop-highlight' : ''}`} onSubmit={handleSubmit}>
         <input
-          ref={upload.inputRef}
+          ref={fileInputRef}
           type="file"
           accept={ACCEPTED_IMAGE_TYPES.join(',')}
           className="hidden"
@@ -317,7 +378,7 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
           type="button"
           aria-label="Attach an image"
           title="Attach an image"
-          onClick={upload.openPicker}
+          onClick={() => openPicker()}
           className="mf-icon-btn mf-icon-btn-ghost size-9 shrink-0"
         >
           <Plus className="mf-icon" />
@@ -329,7 +390,6 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
           onKeyDown={onKeyDown}
           onPaste={onPasteAttachment}
           placeholder={micPlaceholder}
-          disabled={disabled}
           rows={1}
         />
         {micState === 'recording' ? <span className="mf-mic-timer">{formatTimer(elapsedSeconds)}</span> : null}
@@ -337,7 +397,7 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
           type="button"
           aria-label={micAriaLabel}
           title={micAriaLabel}
-          disabled={disabled || micState === 'transcribing'}
+          disabled={micState === 'transcribing'}
           onPointerDown={(event) => {
             event.preventDefault();
             beginMicPress();
@@ -352,13 +412,15 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
           onPointerCancel={() => {
             if (micPhaseRef.current === 'holding') endMicPress();
           }}
+          // Space or Enter: hold to dictate, or tap once to start and again to stop.
           onKeyDown={(event) => {
-            if (event.key !== ' ' || event.repeat) return;
+            if (event.key !== ' ' && event.key !== 'Enter') return;
             event.preventDefault();
+            if (event.repeat) return;
             beginMicPress();
           }}
           onKeyUp={(event) => {
-            if (event.key !== ' ') return;
+            if (event.key !== ' ' && event.key !== 'Enter') return;
             event.preventDefault();
             endMicPress();
           }}
@@ -372,7 +434,18 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
             <Mic className="mf-icon" />
           )}
         </PromptInputButton>
-        {hasContent ? (
+        {showStop ? (
+          <button
+            type="button"
+            aria-label="Stop"
+            title="Stop"
+            onClick={onStop}
+            className="mf-icon-btn mf-icon-btn-solid size-10 shrink-0"
+          >
+            {/* .mf-icon sets fill: none from the stylesheet; inline style wins. */}
+            <Square className="mf-icon" style={{ fill: 'currentColor' }} />
+          </button>
+        ) : hasContent ? (
           <PromptInputSubmit
             disabled={disabled}
             aria-label="Send"
@@ -387,17 +460,23 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
             title="Talk to MerchFrom"
             onClick={onOpenVoice}
             disabled={disabled}
+            data-voice-trigger=""
             className="mf-icon-btn mf-icon-btn-solid mf-breathe size-10 shrink-0"
           >
             <VoiceWaveIcon className="mf-icon" />
           </button>
         )}
       </PromptInput>
+      {offline ? (
+        <p role="status" className="mt-2 text-[12px]">
+          {failureMessage('offline')}
+        </p>
+      ) : null}
       {micError ? <div className="mf-dimmed mt-2 text-[12px]">{micError}</div> : null}
       {uploading.length > 0 ? (
         <div className="mt-2 flex flex-wrap gap-2">
           {uploading.map((attachment) => (
-            <ProgressPill key={attachment.id} attachment={attachment} onRemove={() => upload.remove(attachment.id)} />
+            <ProgressPill key={attachment.id} attachment={attachment} onRemove={() => removeAttachment(attachment.id)} />
           ))}
         </div>
       ) : null}
