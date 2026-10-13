@@ -124,6 +124,17 @@ function matchMockRules(rules: MockRule[], text: string): PrimaryToolCall | null
   return null;
 }
 
+/** Rules with no tool answer in words only (a catalogue pick waiting for
+ * its design, for example); they win before any tool rule. */
+function matchTextOnlyRule(rules: MockRule[], text: string): string | null {
+  for (const rule of rules) {
+    if (rule.tool || !rule.text) continue;
+    const hit = typeof rule.match === 'string' ? text.toLowerCase().includes(rule.match.toLowerCase()) : rule.match.test(text);
+    if (hit) return rule.text;
+  }
+  return null;
+}
+
 function pickPrimaryTool(text: string): PrimaryToolCall | null {
   const t = text.toLowerCase();
   if (t.includes('show my shop')) return { name: 'get_my_store', input: {} };
@@ -169,6 +180,11 @@ export async function mockRunModelTurn(params: RunModelTurnParams): Promise<RunM
 
   if (!hasTrailingToolResult(params.messages)) {
     const humanText = lastHumanText(params.messages);
+    const wordsOnly = matchTextOnlyRule(EXTRA_MOCK_RULES, humanText);
+    if (wordsOnly) {
+      emit(wordsOnly);
+      return { content: [textBlock(wordsOnly)], stopReason: 'end_turn', usage: usage(12) };
+    }
     const primary = matchMockRules(EXTRA_MOCK_RULES, humanText) ?? matchMockRules(DESIGN_MOCK_RULES, humanText) ?? pickPrimaryTool(humanText);
     if (!primary) {
       const text = "Here's a quick menu to get you moving.";

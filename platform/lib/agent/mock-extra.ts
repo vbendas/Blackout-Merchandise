@@ -56,6 +56,19 @@ function runInput(match: RegExpMatchArray | null): Record<string, unknown> {
 }
 
 export const EXTRA_MOCK_RULES: MockRule[] = [
+  // -- catalogue picks (lib/agent/pick.ts) ----------------------------------
+  // Text only: the assistant asks instead of acting. These sit first, ahead of
+  // the 'use ... design' and 'quote' rules that would otherwise take the message.
+  // mock.ts's matchMockRules skips rules with no tool, so until it emits the
+  // text of a tool-less rule these messages fall through to the rules below.
+  {
+    match: /^(?:use one design on these|put .+ on these)\b/i,
+    text: 'Got your blanks. Which design should go on them? Upload it, or pick one you made.',
+  },
+  {
+    match: /^quote a run of these\b/i,
+    text: 'Got your blanks for a run. How many of each, and in which sizes?',
+  },
   // -- runs by number (Needs-you rows, run cards, billing) ------------------
   // These must stay ahead of the generic 'send the proof' / 'quote' rules.
   {

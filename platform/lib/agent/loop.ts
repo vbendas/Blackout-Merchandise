@@ -3,9 +3,11 @@ import { STUDIO_PROBLEM, type AgentEvent } from '@/lib/agent/protocol';
 import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
 import type { ToolContext } from '@/lib/tools/types';
 import { AGENT_MAX_TOKENS, AGENT_MODEL, MAX_LOOP_ITERATIONS, runModelTurn } from '@/lib/agent/model';
-import { routeTurn } from '@/lib/agent/model-router';
+import { routeTurn, type RouteDecision } from '@/lib/agent/model-router';
 import { buildSystemBlocks } from '@/lib/agent/system-prompt';
-import { buildApiMessages } from '@/lib/agent/history';
+import { buildApiMessages, storedArtistText } from '@/lib/agent/history';
+import { pickModelText } from '@/lib/agent/pick-server';
+import type { ChatPick } from '@/lib/agent/pick';
 import { toolsForRole } from '@/lib/tools/registry';
 import { toAnthropicTools } from '@/lib/tools/to-anthropic';
 import { confirmLabels, toolProgressLabel } from '@/lib/tools/labels';
@@ -397,8 +399,7 @@ async function retriedMessage(conversationId: string, text: string): Promise<Mes
   const last = await latestMessage(conversationId);
   if (!last || last.role !== 'user') return null;
   const stored = last.content as unknown as StoredMessageContent | undefined;
-  const lastText = [...blockList(stored?.blocks)].reverse().find((b) => b.type === 'text');
-  return lastText?.text === text ? last : null;
+  return storedArtistText(stored) === text ? last : null;
 }
 
 export interface StartAgentTurnParams {
@@ -407,6 +408,8 @@ export interface StartAgentTurnParams {
   attachments?: { url: string; kind: 'image' | 'file'; name?: string; designId?: string }[];
   /** Try again after a failed reply (see AgentRequest.retry) */
   retry?: boolean;
+  /** a catalogue pick sent with the message, already checked by the route (lib/agent/pick-server.ts) */
+  pick?: ChatPick;
   emit: Emit;
   /** fires when the client goes away; the turn ends at its next safe point */
   signal?: AbortSignal;
@@ -431,16 +434,25 @@ export async function startAgentTurn(params: StartAgentTurnParams): Promise<void
       }
     }
     blocks.push({ type: 'text', text: params.userText });
-    userMessage = await appendMessage(base.conversationId, 'user', { blocks, ui: null });
+    // The pick's note follows the artist's own words: exact codes for the model, while the transcript shows the words (history.ts).
+    if (params.pick) blocks.push({ type: 'text', text: pickModelText(params.pick) });
+    userMessage = await appendMessage(base.conversationId, 'user', {
+      blocks,
+      ui: null,
+      ...(params.pick ? { pick: params.pick } : {}),
+    });
   }
   emit({ type: 'message_start', messageId: userMessage.id, conversationId: base.conversationId });
 
   const projectCard = await getProjectCard(base.conversationId);
-  const route = routeTurn({
-    userText: params.userText,
-    hasAttachments: (params.attachments?.length ?? 0) > 0,
-    projectKind: projectCard?.kind ?? null,
-  });
+  // A pick starts a consequential flow (products or a quote), so it always gets the main model, as a confirmed action does.
+  const route: RouteDecision = params.pick
+    ? { model: AGENT_MODEL, tier: 'main', reason: 'catalogue pick' }
+    : routeTurn({
+        userText: params.userText,
+        hasAttachments: (params.attachments?.length ?? 0) > 0,
+        projectKind: projectCard?.kind ?? null,
+      });
 
   const messages = await buildApiMessages(base.conversationId);
   await runIterations(base, messages, emit, route.model, signal);

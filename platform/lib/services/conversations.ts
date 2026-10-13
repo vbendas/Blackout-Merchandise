@@ -2,6 +2,7 @@ import { and, desc, eq, isNull, ne, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import type Anthropic from '@anthropic-ai/sdk';
 import type { ToolUi } from '@/lib/ui-cards/schemas';
+import type { ChatPick } from '@/lib/agent/pick';
 
 export type Conversation = typeof schema.conversations.$inferSelect;
 export type MessageRow = typeof schema.messages.$inferSelect;
@@ -15,6 +16,9 @@ export interface StoredMessageContent {
   ui: ToolUi | null;
   /** model that wrote an assistant message (for cost and quality review) */
   model?: string;
+  /** the catalogue pick a user message was sent with, for its strip on reload.
+   * The model reads the pick as the note stored among `blocks`, never as this field. */
+  pick?: ChatPick;
 }
 
 export async function getConversation(conversationId: string): Promise<Conversation | null> {
@@ -124,9 +128,17 @@ export async function appendMessage(
 
 /** First 60 characters of the first text block, cut at a word boundary,
  * without trailing punctuation. Null when there is no usable text. */
+/** Notes the server adds for the assistant (an attached design's id, a
+ * catalogue pick's codes) are not the artist's words, so titles skip them. */
+const ATTACHED_DESIGN_NOTE = /^Attached design [0-9a-f-]{36} /;
+
 export function titleFromContent(content: StoredMessageContent): string | null {
-  const text = (content.blocks ?? [])
+  const texts = (content.blocks ?? [])
     .map((b) => (b.type === 'text' ? b.text : ''))
+    .filter((t) => t && !ATTACHED_DESIGN_NOTE.test(t));
+  // A pick's note for the assistant is always the last text block.
+  if (content.pick) texts.pop();
+  const text = texts
     .join(' ')
     .replace(/\s+/g, ' ')
     .trim();

@@ -4,6 +4,47 @@ import type { CardActionContext } from '@/components/cards/actions';
 import { CardSwitch } from '@/components/cards/CardSwitch';
 import { Chip } from '@/components/ui/Chip';
 import { Message, MessageContent, MessageResponse } from '@/components/ai-elements/message';
+import type { ChatPick } from '@/lib/agent/pick';
+
+/** Colour dots shown under a garment; any more are counted. */
+const PICK_DOTS = 6;
+
+/** The garments an artist picked in the catalogue: small plates with names and colour dots. */
+function PickStrip({ pick }: { pick: ChatPick }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {pick.blanks.map((blank) => {
+        const dots = blank.colours.slice(0, PICK_DOTS);
+        const more = blank.colours.length - dots.length;
+        return (
+          <div key={blank.code} className="grid w-[92px] gap-1">
+            <div className="relative aspect-[4/5] rounded-[2px] bg-[#ECE5DA]">
+              <img
+                src={blank.image}
+                alt=""
+                width={92}
+                height={115}
+                loading="lazy"
+                className="absolute inset-0 size-full object-contain p-[6%]"
+              />
+            </div>
+            <span className="text-[11px] leading-[1.3] opacity-80">{blank.name}</span>
+            <span role="img" aria-label={blank.colours.map((colour) => colour.name).join(', ')} className="flex items-center gap-[3px]">
+              {dots.map((colour) => (
+                <span key={colour.code} aria-hidden="true" className="mf-hairline size-2 rounded-full" style={{ background: colour.hex }} />
+              ))}
+              {more > 0 ? (
+                <span aria-hidden="true" className="text-[11px] leading-none opacity-80">
+                  +{more}
+                </span>
+              ) : null}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function MessageBubble({
   message,
@@ -32,6 +73,7 @@ export function MessageBubble({
             </div>
           ) : null}
           {message.text ? message.text : null}
+          {message.pick ? <PickStrip pick={message.pick} /> : null}
         </MessageContent>
       </Message>
     );

@@ -13,6 +13,7 @@ import type {
 } from '@/lib/agent/protocol';
 import type { Card, Chip, ProductProjectState, ToolUi } from '@/lib/ui-cards/schemas';
 import type { BulkOrderProjectState } from '@/components/cards/project/types';
+import type { ChatPick } from '@/lib/agent/pick';
 import { runLabel } from '@/lib/format/runs';
 import { humanStatus } from '@/lib/format/status';
 import {
@@ -32,7 +33,7 @@ export interface FailedReply {
   message: string;
   code?: AgentErrorCode;
   /** what Try again sends; absent when there is nothing to send again */
-  retry?: { text: string; attachments?: AgentRequest['attachments'] };
+  retry?: { text: string; attachments?: AgentRequest['attachments']; pick?: ChatPick };
 }
 
 export interface ChatMessage {
@@ -47,6 +48,8 @@ export interface ChatMessage {
   stopped?: boolean;
   failed?: FailedReply;
   attachments?: AgentRequest['attachments'];
+  /** the catalogue pick a user message was sent with: its strip of garments */
+  pick?: ChatPick;
 }
 
 export interface Greeting {
@@ -79,6 +82,8 @@ export interface SendOptions {
   fromComposer?: boolean;
   /** Try again on this failed reply: it is replaced, and the message above it sent again */
   retryOf?: string;
+  /** a catalogue pick sent with the message (lib/agent/pick.ts) */
+  pick?: ChatPick;
 }
 
 /** "Show earlier messages": more of the session is stored than the thread shows. */
@@ -127,7 +132,7 @@ interface Turn {
   /** tools running now, by call id, with their progress line */
   running: Map<string, string>;
   /** what Try again sends (message turns only) */
-  request?: { text: string; attachments?: AgentRequest['attachments'] };
+  request?: { text: string; attachments?: AgentRequest['attachments']; pick?: ChatPick };
   fromComposer: boolean;
   confirm?: { toolCallId: string; approve: boolean };
   /** answers the send's promise; only the first call counts */
@@ -135,7 +140,14 @@ interface Turn {
 }
 
 function fromHistory(message: HistoryMessage): ChatMessage {
-  return { id: message.id, role: message.role, text: message.text, cards: message.cards ?? [], attachments: message.attachments };
+  return {
+    id: message.id,
+    role: message.role,
+    text: message.text,
+    cards: message.cards ?? [],
+    attachments: message.attachments,
+    pick: message.pick,
+  };
 }
 
 function conflictOutcome(body: unknown): ConfirmOutcome | null {
@@ -181,6 +193,11 @@ export function useConversation({ initialConversationId, onMessageStart, onTurnE
   useEffect(() => {
     conversationIdRef.current = conversationId;
   }, [conversationId]);
+  // The thread as shown, so sendText can find the reply a Try again answers.
+  const messagesRef = useRef<ChatMessage[]>([]);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   const notifyAssistantDone = useCallback((text: string) => {
     setLastAssistantText(text);
@@ -534,6 +551,9 @@ export function useConversation({ initialConversationId, onMessageStart, onTurnE
       if (turnRef.current) return Promise.resolve('busy');
       // Known to be offline: the composer keeps its draft, nothing changes here.
       if (options.fromComposer && isOffline()) return Promise.resolve('offline');
+      // Try again names only the reply it answers, so its pick is the one sent again.
+      const answered = options.retryOf ? messagesRef.current.find((message) => message.id === options.retryOf) : undefined;
+      const pick = options.pick ?? answered?.failed?.retry?.pick;
 
       let resolveSend: (outcome: SendOutcome) => void = () => undefined;
       const sent = new Promise<SendOutcome>((resolve) => {
@@ -550,7 +570,7 @@ export function useConversation({ initialConversationId, onMessageStart, onTurnE
         done: false,
         text: '',
         running: new Map(),
-        request: { text: trimmed, attachments },
+        request: { text: trimmed, attachments, pick },
         fromComposer: Boolean(options.fromComposer),
         settle: (outcome) => {
           if (settled) return;
@@ -562,14 +582,20 @@ export function useConversation({ initialConversationId, onMessageStart, onTurnE
       setMessages((prev) => [
         // Try again replaces the failed reply; the artist's message above it stays.
         ...(options.retryOf ? prev.filter((message) => message.id !== options.retryOf) : prev),
-        ...(userBubbleId ? [{ id: userBubbleId, role: 'user' as const, text: trimmed, cards: [], attachments }] : []),
+        ...(userBubbleId ? [{ id: userBubbleId, role: 'user' as const, text: trimmed, cards: [], attachments, pick }] : []),
         { id: bubbleId, role: 'assistant', text: '', cards: [], streaming: true, thinking: true },
       ]);
       turnRef.current = turn;
       setSending(true);
       setWorkingLabel(null);
       void sendAgentMessage(
-        { conversationId: conversationIdRef.current || undefined, text: trimmed, attachments, retry: options.retryOf ? true : undefined },
+        {
+          conversationId: conversationIdRef.current || undefined,
+          text: trimmed,
+          attachments,
+          retry: options.retryOf ? true : undefined,
+          pick,
+        },
         {
           onEvent: (event) => handleTurnEvent(turn, event),
           onOpen: () => {

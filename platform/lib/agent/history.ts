@@ -3,6 +3,7 @@ import { getConversation, loadHistory, type MessagePage, type MessageRow } from 
 import type { StoredMessageContent } from '@/lib/services/conversations';
 import type { HistoryMessage } from '@/lib/agent/protocol';
 import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
+import { storedPick } from '@/lib/agent/pick-server';
 
 function toMessageParam(row: MessageRow): Anthropic.MessageParam | null {
   const content = row.content as unknown as StoredMessageContent;
@@ -10,6 +11,8 @@ function toMessageParam(row: MessageRow): Anthropic.MessageParam | null {
 
   // Tool results are stored as their own 'tool' rows but must be replayed to
   // the API as a `user` turn (tool_result blocks only exist in user content).
+  // Only `blocks` go to the model: a stored `pick` reaches it as the note among
+  // them, and the API never sees the pick object itself.
   const role = row.role === 'tool' ? 'user' : row.role;
   return { role, content: content.blocks };
 }
@@ -117,11 +120,14 @@ function extractText(blocks: unknown): string {
     .trim();
 }
 
-/** The artist's own words: the last text block. Any earlier one is the
- * Studio's note about an attached design, which is for the model only. */
-function artistText(blocks: unknown): string {
-  const texts = blocksOf(blocks).filter((b) => b.type === 'text' && typeof b.text === 'string');
-  return (texts[texts.length - 1]?.text ?? '').trim();
+/** The text the artist typed, as stored (untrimmed). A message sent with a pick
+ * has the pick's note for the model after it, so the artist's words are the
+ * text block before that note. An earlier text block is the Studio's note about
+ * an attached design, which is for the model only. The retry check reads it too. */
+export function storedArtistText(content: { blocks?: unknown; pick?: unknown } | null | undefined): string | undefined {
+  const texts = blocksOf(content?.blocks).filter((b) => b.type === 'text' && typeof b.text === 'string');
+  const own = content?.pick ? texts[texts.length - 2] : texts[texts.length - 1];
+  return own?.text;
 }
 
 function attachmentsOf(blocks: unknown): NonNullable<HistoryMessage['attachments']> {
@@ -167,7 +173,7 @@ export function transcriptOf(rows: MessageRow[]): { messages: HistoryMessage[]; 
   };
 
   for (const row of rows) {
-    const content = row.content as unknown as { blocks?: unknown; ui?: ToolUi | null } | null;
+    const content = row.content as unknown as { blocks?: unknown; ui?: ToolUi | null; pick?: unknown } | null;
     const ui = content?.ui ?? null;
     if (ui?.next) latestChips = ui.next;
 
@@ -179,7 +185,13 @@ export function transcriptOf(rows: MessageRow[]): { messages: HistoryMessage[]; 
     if (row.role === 'user') {
       flushCards();
       const attachments = attachmentsOf(content?.blocks);
-      messages.push({ id: row.id, role: 'user', text: artistText(content?.blocks), attachments: attachments.length > 0 ? attachments : undefined });
+      messages.push({
+        id: row.id,
+        role: 'user',
+        text: (storedArtistText(content) ?? '').trim(),
+        attachments: attachments.length > 0 ? attachments : undefined,
+        pick: storedPick(content?.pick),
+      });
       continue;
     }
 

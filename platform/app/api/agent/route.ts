@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { requireUser } from '@/lib/auth';
 import type { AgentRequest } from '@/lib/agent/protocol';
+import type { ChatPick } from '@/lib/agent/pick';
+import { catalogPick, pickSchema } from '@/lib/agent/pick-server';
 import { createAgentSseStream, SSE_HEADERS } from '@/lib/agent/sse';
 import { startAgentTurn, type BaseAgentContext } from '@/lib/agent/loop';
 import { checkRateLimit } from '@/lib/agent/rate-limit';
@@ -29,6 +31,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'text is required' }, { status: 400 });
   }
 
+  // A catalogue pick must have the shape in lib/agent/pick-server.ts (400 otherwise). Its codes and colours
+  // are then checked against the catalogue; a pick with nothing valid left goes as plain text.
+  let pick: ChatPick | undefined;
+  if (body.pick !== undefined && body.pick !== null) {
+    const parsed = pickSchema.safeParse(body.pick);
+    if (!parsed.success) return NextResponse.json({ error: 'invalid_pick' }, { status: 400 });
+    pick = catalogPick(parsed.data);
+  }
+
   const existing = body.conversationId ? await getConversation(body.conversationId) : null;
   const owned = existing && existing.userId === user.id;
   const conversation = owned ? existing! : await getOrCreateConversation(user.id, role);
@@ -43,7 +54,7 @@ export async function POST(req: NextRequest) {
   };
 
   const stream = createAgentSseStream((emit, signal) =>
-    startAgentTurn({ base, userText: body.text, attachments: body.attachments, retry: body.retry === true, emit, signal }),
+    startAgentTurn({ base, userText: body.text, attachments: body.attachments, retry: body.retry === true, pick, emit, signal }),
   );
 
   return new Response(stream, { headers: SSE_HEADERS });

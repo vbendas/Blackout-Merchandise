@@ -1,4 +1,5 @@
 import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
+import type { ChatPick } from '@/lib/agent/pick';
 
 /** What the artist reads when something on our side went wrong. Raw errors
  * stay in the server log; this is all that reaches the screen. */
@@ -31,6 +32,8 @@ export interface AgentRequest {
   /** Try again after a failed reply: when the artist's last stored message
    * is this same text, the server answers it instead of storing it twice */
   retry?: boolean;
+  /** several blanks picked in the catalogue, for one design or one run (lib/agent/pick.ts) */
+  pick?: ChatPick;
 }
 
 export interface ConfirmRequest {
@@ -77,6 +80,8 @@ export interface HistoryMessage {
   cards?: Card[];
   /** images the artist sent with the message */
   attachments?: AgentRequest['attachments'];
+  /** the catalogue pick the artist sent with a user message, for its strip */
+  pick?: ChatPick;
 }
 
 /** GET /api/agent/history?conversationId=&before=<message id>: the page of
