@@ -3,6 +3,7 @@ import { db, schema } from '@/lib/db';
 import { revalidateStore } from '@/lib/storefront/revalidate';
 import { printServicesFor, quoteFor } from '@/lib/services/quotes';
 import { renderProductMockups } from '@/lib/services/mockups';
+import { blankDisplayName } from '@/lib/catalog/display-names';
 
 // Products are an artist's design printed on a blank, for sale in their
 // shop. All ownership is scoped by storeId — every read/write here takes it
@@ -107,7 +108,6 @@ export async function getProduct(storeId: string, productId: string): Promise<Pr
       description: schema.products.description,
       blankCode: schema.products.blankCode,
       blankName: schema.blanks.name,
-      blankSupplierName: schema.blanks.supplierName,
       printServiceCode: schema.products.printServiceCode,
       printServiceName: schema.printServices.name,
       placement: schema.products.placement,
@@ -143,7 +143,8 @@ export async function getProduct(storeId: string, productId: string): Promise<Pr
     name: row.name,
     description: row.description,
     blankCode: row.blankCode,
-    blankName: row.blankSupplierName ?? row.blankName,
+    // The name people read for the blank, never the supplier's model name.
+    blankName: blankDisplayName(row.blankCode, row.blankName),
     printServiceCode: row.printServiceCode,
     printServiceName: row.printServiceName,
     placement: (row.placement as Placement | null) ?? null,
@@ -246,7 +247,7 @@ export async function createProduct(input: CreateProductInput): Promise<ServiceR
   ]);
 
   if (!printServices.some((p) => p.code === input.printServiceCode)) {
-    return { ok: false, error: `"${input.printServiceCode}" isn't offered on ${blank.supplierName ?? blank.name} (${input.blankCode}).` };
+    return { ok: false, error: `That print method isn't offered on the ${blankDisplayName(blank.code, blank.name)}.` };
   }
   const badColours = input.colours.filter((c) => !colours.has(c));
   if (badColours.length > 0) return { ok: false, error: `Colour(s) not available on this blank: ${badColours.join(', ')}.` };
@@ -266,7 +267,8 @@ export async function createProduct(input: CreateProductInput): Promise<ServiceR
   const quote = await quoteFor({ blankCode: input.blankCode, printServiceCode: input.printServiceCode, qty: 1 });
   if (!quote) return { ok: false, error: `No pricing configured for ${input.blankCode} with ${input.printServiceCode}.` };
 
-  const name = input.name?.trim() || blank.supplierName || blank.name;
+  // An unnamed product takes its blank's display name, never the supplier's model name.
+  const name = input.name?.trim() || blankDisplayName(blank.code, blank.name);
 
   const [product] = await db
     .insert(schema.products)

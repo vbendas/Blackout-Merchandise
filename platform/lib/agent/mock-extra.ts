@@ -49,7 +49,57 @@ function bulkQuoteInput(qty: number): Record<string, unknown> {
   };
 }
 
+/** A run named by its number ("Run 3") in a prompt; the bulk tools resolve it within the shop. */
+function runInput(match: RegExpMatchArray | null): Record<string, unknown> {
+  const runNumber = Number(match?.[1]);
+  return Number.isInteger(runNumber) && runNumber > 0 ? { runNumber } : {};
+}
+
 export const EXTRA_MOCK_RULES: MockRule[] = [
+  // -- runs by number (Needs-you rows, run cards, billing) ------------------
+  // These must stay ahead of the generic 'send the proof' / 'quote' rules.
+  {
+    match: /send the proof for run (\d+)/i,
+    text: 'Sending the proof...',
+    tool: 'submit_bulk_proof',
+    buildInput: runInput,
+  },
+  {
+    match: /approve the proof for run (\d+)/i,
+    text: 'Approving the proof...',
+    tool: 'approve_bulk_proof',
+    buildInput: runInput,
+  },
+  {
+    match: /show me the proof for run (\d+)/i,
+    text: 'Opening the proof...',
+    tool: 'get_bulk_order',
+    buildInput: runInput,
+  },
+  {
+    match: /pay for run (\d+)/i,
+    text: 'Preparing payment...',
+    tool: 'pay_bulk_order',
+    buildInput: runInput,
+  },
+  {
+    match: /cancel run (\d+)/i,
+    text: 'Checking the run...',
+    tool: 'cancel_bulk_order',
+    buildInput: runInput,
+  },
+  {
+    match: /(?:open|show me|how is|track|watch) run (\d+)/i,
+    text: 'Opening the run...',
+    tool: 'get_bulk_order',
+    buildInput: runInput,
+  },
+  {
+    match: 'show my runs',
+    text: 'Here are your runs.',
+    tool: 'list_bulk_orders',
+    input: {},
+  },
   // -- wave 3: bulk orders -----------------------------------------------
   // Both must stay ahead of the plain '/run of (\d+)/i' -> get_quote rule
   // below, which would otherwise win first on 'run of 40 hoodies'.
@@ -163,7 +213,7 @@ export const EXTRA_MOCK_RULES: MockRule[] = [
   },
   {
     match: /connect stripe|set up payouts/i,
-    text: 'Starting Stripe onboarding...',
+    text: 'Setting up your payouts...',
     tool: 'start_stripe_onboarding',
     input: {},
   },

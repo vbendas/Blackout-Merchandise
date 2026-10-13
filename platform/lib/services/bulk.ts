@@ -1,4 +1,7 @@
 import { and, desc, eq, inArray } from 'drizzle-orm';
+import { blankDisplayName } from '@/lib/catalog/display-names';
+import { runLabel } from '@/lib/format/runs';
+import { runNumberFor } from '@/lib/services/runs';
 import { db, schema } from '@/lib/db';
 import { createProduct, getProduct, type Placement } from '@/lib/services/products';
 import { createBulkProof, setBulkProofStatus, type ProofDetail, type ProofSpecLine } from '@/lib/services/proofs';
@@ -260,7 +263,7 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput): Pr
     const blank = blankRows[0];
     if (!blank) return { ok: false, error: `Unknown blank code "${input.blankCode}".` };
     blankCode = blank.code;
-    blankName = blank.supplierName ?? blank.name;
+    blankName = blankDisplayName(blank.code, blank.name);
     placement = input.placement;
 
     const services = await printServicesFor(input.blankCode);
@@ -530,13 +533,14 @@ export async function markBulkPaid(sessionId: string, session: CheckoutSessionSn
     .returning();
 
   // Notifications are best-effort — never let a failure here undo the sale.
+  const runNumber = await runNumberFor(bulkOrderId).catch(() => null);
   try {
     await notify({
       userId: store.artistId,
       event: 'sale.new',
-      text: 'Bulk order paid',
+      text: runNumber !== null ? `${runLabel(runNumber)} is paid and going into production` : 'Your run is paid and going into production',
       payload: { bulkOrderId, orderId: order.id, grossCents },
-      prompt: `Open bulk order ${bulkOrderId}`,
+      prompt: runNumber !== null ? `Open ${runLabel(runNumber)}` : 'Show my runs',
     });
   } catch (err) {
     console.error('[markBulkPaid] notify(sale.new) failed:', err instanceof Error ? err.message : err);

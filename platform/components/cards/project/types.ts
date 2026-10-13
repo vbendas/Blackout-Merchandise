@@ -21,10 +21,12 @@ export interface BulkOrderLine {
 }
 
 // State carried by the 'bulk_order' project card (right-hand / top-bar
-// pill). Deliberately narrower than the bulk_quote card's line shape (no
-// per-unit cost) — the panel is a status glance, not the full quote.
+// pill): one run. Deliberately narrower than the bulk_quote card's line shape
+// (no per-unit cost) — the panel is a status glance, not the full quote.
 export interface BulkOrderProjectState {
   bulkOrderId: string;
+  /** the run's number in its shop ('Run 3' is 3); runs saved before numbering have none */
+  runNumber?: number;
   lines: BulkOrderLine[];
   totalCents: number;
   status: string;

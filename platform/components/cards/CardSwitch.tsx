@@ -26,6 +26,7 @@ import { SalesSummaryCard } from '@/components/cards/SalesSummaryCard';
 import { AdminQueueCard } from '@/components/cards/AdminQueueCard';
 import { SupplierOrderCard } from '@/components/cards/SupplierOrderCard';
 import { BulkQuoteCard } from '@/components/cards/BulkQuoteCard';
+import { RunCard } from '@/components/cards/RunCard';
 import { TicketCard } from '@/components/cards/TicketCard';
 import { WaitlistTableCard } from '@/components/cards/WaitlistTableCard';
 
@@ -77,6 +78,8 @@ function renderBody(card: Card, ctx: CardActionContext, confirmResolution?: 'app
       return <SalesSummaryCard card={card} ctx={ctx} />;
     case 'bulk_quote':
       return <BulkQuoteCard card={card} ctx={ctx} />;
+    case 'run':
+      return <RunCard card={card} ctx={ctx} />;
     case 'admin_queue':
       return <AdminQueueCard card={card} ctx={ctx} />;
     case 'supplier_order':
@@ -99,7 +102,7 @@ export function CardSwitch({ card, ctx, confirmResolution }: CardSwitchProps) {
   return (
     <div className="mf-fade-in">
       <div className="max-h-[240px] overflow-hidden">{body}</div>
-      <button type="button" className="mf-chip mt-2" onClick={() => setOpen(true)}>
+      <button type="button" className="mf-chip mt-2" onClick={() => setOpen(true)} aria-label={card.title ? `Open ${card.title}` : 'Open'}>
         Open
       </button>
       <Modal open={open} onClose={() => setOpen(false)} title={card.title}>

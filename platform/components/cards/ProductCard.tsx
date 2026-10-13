@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import type { Card } from '@/lib/ui-cards/schemas';
+import { humanStatus } from '@/lib/format/status';
 import { CardActions } from '@/components/cards/CardActions';
+import { CardFrame, CardHead, Sizes, SpecRows, Swatches, blankLabel, formatMoney, placementWords, type SpecRowData } from '@/components/cards/CardKit';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
 import type { CardActionContext } from '@/components/cards/actions';
 
@@ -17,86 +19,42 @@ const statusLabel: Record<ProductCardType['status'], string> = {
 
 const statusTone: Record<ProductCardType['status'], StatusTone> = {
   draft: 'neutral',
-  proof_pending: 'dim',
+  proof_pending: 'warning',
   live: 'positive',
   archived: 'dim',
 };
-
-function formatCents(cents?: number): string | null {
-  if (cents === undefined) return null;
-  return (cents / 100).toLocaleString(undefined, { style: 'currency', currency: 'EUR' });
-}
 
 export function ProductCard({ card, ctx }: { card: ProductCardType; ctx: CardActionContext }) {
   const [activeCode, setActiveCode] = useState(card.colours[0]?.code);
   const activeColour = card.colours.find((colour) => colour.code === activeCode) ?? card.colours[0];
   const image = activeColour?.mockupUrl ?? card.imageUrl;
-  const margin = formatCents(card.marginCents);
+
+  const rows: SpecRowData[] = [
+    { key: 'print', label: 'Print', value: [card.printService, placementWords(card.placement)].filter(Boolean).join(' · ') },
+    { key: 'base', label: 'Base cost', value: card.baseCostCents !== undefined ? formatMoney(card.baseCostCents) : '—', dim: true },
+    { key: 'retail', label: 'Retail', value: card.retailPriceCents !== undefined ? formatMoney(card.retailPriceCents) : '—' },
+    { key: 'margin', label: 'Margin', value: card.marginCents !== undefined ? formatMoney(card.marginCents) : '—', strong: true },
+  ];
 
   return (
-    <div className="mf-card p-4">
-      <div className="flex gap-4">
-        <div className="mf-hairline aspect-square w-28 shrink-0 overflow-hidden rounded-2xl">
-          {image ? <img src={image} alt={card.name} className="h-full w-full object-cover" loading="lazy" /> : null}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="mf-display text-[20px] leading-tight">{card.name}</div>
-          <div className="mf-label mf-dimmed mt-1">
-            {card.blankName} · {card.blankCode}
-          </div>
-          {card.colours.length > 0 ? (
-            <div className="mt-2 flex flex-wrap gap-1.5" role="list" aria-label="Colours">
-              {card.colours.map((colour) => (
-                <button
-                  key={colour.code}
-                  type="button"
-                  role="listitem"
-                  title={colour.name}
-                  aria-pressed={colour.code === activeCode}
-                  onClick={() => colour.mockupUrl && setActiveCode(colour.code)}
-                  className="h-4 w-4 shrink-0 rounded-full border"
-                  style={{
-                    background: colour.hex,
-                    borderColor: colour.code === activeCode ? 'var(--signal)' : 'color-mix(in srgb, var(--signal) 30%, transparent)',
-                    borderWidth: colour.code === activeCode ? 2 : 1,
-                  }}
-                />
-              ))}
-            </div>
-          ) : null}
-          {card.sizes.length > 0 ? (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {card.sizes.map((size) => (
-                <span key={size} className="mf-hairline px-2 py-0.5 text-[11px]">
-                  {size}
-                </span>
-              ))}
-            </div>
-          ) : null}
-          <div className="mf-dimmed mt-2 text-[12px]">
-            {card.printService}
-            {card.placement ? ` · ${card.placement}` : ''}
-          </div>
-        </div>
-      </div>
-      <div className="mf-hairline-t mt-3 flex flex-col gap-1 pt-2 text-[13px]">
-        <div className="flex items-center justify-between">
-          <span className="mf-dimmed">Base cost</span>
-          <span className="mf-dimmed">{formatCents(card.baseCostCents) ?? '—'}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="mf-dimmed">Retail</span>
-          <span className="mf-dimmed">{formatCents(card.retailPriceCents) ?? '—'}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="mf-dimmed">Margin</span>
-          <span style={{ color: 'var(--signal)' }}>{margin ?? '—'}</span>
-        </div>
-      </div>
-      <div className="mt-3">
-        <StatusPill label={statusLabel[card.status]} tone={statusTone[card.status]} />
-      </div>
+    <CardFrame media={image} mediaAlt={card.name}>
+      <CardHead
+        label={card.title ?? 'Product'}
+        title={card.name}
+        sentence={blankLabel(card.blankCode, card.blankName)}
+        aside={<StatusPill label={statusLabel[card.status] ?? humanStatus(card.status)} tone={statusTone[card.status] ?? 'neutral'} />}
+      />
+      <Swatches
+        colours={card.colours}
+        activeCode={activeCode}
+        onPick={(colour) => {
+          if (colour.mockupUrl) setActiveCode(colour.code);
+        }}
+        canPick={(colour) => Boolean(colour.mockupUrl)}
+      />
+      <Sizes sizes={card.sizes} />
+      <SpecRows rows={rows} variant="plain" />
       <CardActions actions={card.actions} ctx={ctx} />
-    </div>
+    </CardFrame>
   );
 }

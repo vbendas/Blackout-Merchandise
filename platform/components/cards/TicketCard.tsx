@@ -1,6 +1,7 @@
 import { humanStatus } from '@/lib/format/status';
 import type { Card } from '@/lib/ui-cards/schemas';
 import { CardActions } from '@/components/cards/CardActions';
+import { CardFrame, CardHead } from '@/components/cards/CardKit';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
 import type { CardActionContext } from '@/components/cards/actions';
 
@@ -25,43 +26,36 @@ function formatTime(iso: string): string {
 const authorLabel: Record<TicketMessage['author'], string> = {
   artist: 'Artist',
   admin: 'Support',
-  system: 'System',
+  system: 'MerchFrom',
 };
 
 export function TicketCard({ card, ctx }: { card: TicketCardType; ctx: CardActionContext }) {
   return (
-    <div className="mf-card p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="mf-display truncate text-[18px]">{card.subject}</div>
-        <StatusPill label={humanStatus(card.status)} tone={statusTone(card.status)} />
-      </div>
-      {card.from ? <div className="mf-dimmed mt-1 text-[12px]">{card.from}</div> : null}
+    <CardFrame>
+      <CardHead
+        label="Support"
+        title={card.subject}
+        sentence={card.from}
+        aside={<StatusPill label={humanStatus(card.status)} tone={statusTone(card.status)} />}
+      />
 
       {card.messages.length > 0 ? (
-        <div className="mf-hairline-t mt-3 flex flex-col gap-2.5 pt-3">
-          {card.messages.map((message, index) => {
-            // Admin replies read as the artist's own conversation with
-            // support, so they mirror a chat bubble (right, tinted); artist
-            // and system lines stay left, unadorned.
-            const isAdmin = message.author === 'admin';
-            return (
-              <div key={index} className={`flex flex-col ${isAdmin ? 'items-end text-right' : 'items-start text-left'}`}>
-                <div
-                  className="max-w-[85%] rounded-2xl px-3 py-2 text-[13px] leading-relaxed"
-                  style={isAdmin ? { background: 'var(--tint-8)' } : undefined}
-                >
-                  {message.text}
-                </div>
-                <div className="mf-dimmed mt-0.5 text-[11px]">
-                  {authorLabel[message.author]} · {formatTime(message.at)}
-                </div>
+        <div className="mfc-msgs">
+          {card.messages.map((message, index) => (
+            // Support replies read as the artist's own conversation with
+            // support, so they sit on the right, tinted; artist and system
+            // lines stay left.
+            <div key={index} className="mfc-msg" data-side={message.author === 'admin' ? 'end' : undefined}>
+              <div className="mfc-bubble">{message.text}</div>
+              <div className="mfc-msg-meta">
+                {authorLabel[message.author]} · {formatTime(message.at)}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       ) : null}
 
       <CardActions actions={card.actions} ctx={ctx} />
-    </div>
+    </CardFrame>
   );
 }

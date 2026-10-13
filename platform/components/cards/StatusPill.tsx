@@ -1,19 +1,38 @@
+import '@/components/cards/cards.css';
+
 export type StatusTone = 'neutral' | 'positive' | 'warning' | 'dim' | 'danger';
 
-const toneClass: Record<StatusTone, string> = {
-  neutral: '',
-  positive: 'mf-pill-positive',
-  warning: 'mf-pill-warning',
-  dim: 'mf-pill-dim',
-  danger: 'mf-pill-blocked',
+const toneAttr: Record<StatusTone, string> = {
+  neutral: 'pending',
+  positive: 'done',
+  warning: 'warning',
+  dim: 'quiet',
+  danger: 'danger',
 };
 
-/** Small non-interactive badge shared by design readiness, product status
- * and proof status — same pill shape as the button chips, just inert. */
+/** Status as a small mono tag. Monochrome: done is filled, pending a hairline,
+ * and what needs attention is white. Inert, so it never reads as a button. */
 export function StatusPill({ label, tone = 'neutral' }: { label: string; tone?: StatusTone }) {
   return (
-    <span className={`mf-pill mf-pill-sm ${toneClass[tone]}`} style={{ cursor: 'default' }}>
+    <span className="mfc-tag" data-tone={toneAttr[tone]}>
       {label}
     </span>
   );
+}
+
+/** Tag tone for a run (bulk order) status: what waits on the artist is white,
+ * what is finished is filled, a cancelled run goes quiet. */
+export function runStatusTone(status: string): StatusTone {
+  switch (status) {
+    case 'proof_pending':
+    case 'awaiting_payment':
+      return 'warning';
+    case 'paid':
+    case 'delivered':
+      return 'positive';
+    case 'cancelled':
+      return 'dim';
+    default:
+      return 'neutral';
+  }
 }

@@ -1,21 +1,22 @@
 import type { Card } from '@/lib/ui-cards/schemas';
 import { Chip } from '@/components/ui/Chip';
 import { CardActions } from '@/components/cards/CardActions';
+import { CardFrame, CardHead } from '@/components/cards/CardKit';
 import type { CardActionContext } from '@/components/cards/actions';
 
 type MenuCardType = Extract<Card, { kind: 'menu' }>;
 
 export function MenuCard({ card, ctx }: { card: MenuCardType; ctx: CardActionContext }) {
   return (
-    <div className="mf-card p-4">
-      {card.title ? <div className="mf-label mf-dimmed mb-3">{card.title}</div> : null}
-      <div className="flex flex-col gap-4">
+    <CardFrame>
+      <CardHead label={card.title} />
+      <div className="mfc-sections">
         {card.sections.map((section) => (
-          <div key={section.title}>
-            <div className="mf-label mf-dimmed mb-2">{section.title}</div>
-            <div className="flex flex-wrap gap-2">
+          <div key={section.title} className="mfc-section">
+            <span className="mfc-label">{section.title}</span>
+            <div className="mfc-chips">
               {section.chips.map((chip) => (
-                <Chip key={chip.label} primary={chip.primary} onClick={() => ctx.onPrompt(chip.prompt ?? chip.label)}>
+                <Chip key={chip.label} small primary={chip.primary} onClick={() => ctx.onPrompt(chip.prompt ?? chip.label)}>
                   {chip.label}
                 </Chip>
               ))}
@@ -24,6 +25,6 @@ export function MenuCard({ card, ctx }: { card: MenuCardType; ctx: CardActionCon
         ))}
       </div>
       <CardActions actions={card.actions} ctx={ctx} />
-    </div>
+    </CardFrame>
   );
 }

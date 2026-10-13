@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { blankDisplayName } from '@/lib/catalog/display-names';
 import { z } from 'zod';
 import { defineTool, type Tool, type ToolContext, type ToolResult } from '@/lib/tools/types';
 import {
@@ -310,7 +311,7 @@ export const getQuoteTool = defineTool({
     const card: Card = {
       id: `quote_${randomUUID()}`,
       kind: 'quote',
-      title: blankLabel ? `Quote — ${blankLabel}` : 'Quote',
+      title: blankLabel ? `Quote — ${blankDisplayName(blankLabel, blankLabel)}` : 'Quote',
       lines: quote.breaks.map((b) => ({ label: `${b.qtyFrom}+ units`, qty: b.qtyFrom, unitCents: b.unitCents, totalCents: b.unitCents * b.qtyFrom })),
       totalCents: quote.totalCents,
       currency: 'EUR',

@@ -1,6 +1,7 @@
 import { humanStatus } from '@/lib/format/status';
 import type { Card } from '@/lib/ui-cards/schemas';
 import { CardActions } from '@/components/cards/CardActions';
+import { CardFrame, CardHead, SpecRows, formatDate, formatMoney, type SpecRowData } from '@/components/cards/CardKit';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
 import type { CardActionContext } from '@/components/cards/actions';
 
@@ -14,86 +15,50 @@ function statusTone(status: string): StatusTone {
   return 'neutral';
 }
 
-function formatCents(cents: number): string {
-  return (cents / 100).toLocaleString(undefined, { style: 'currency', currency: 'EUR' });
-}
-
-function formatDate(iso: string): string {
-  const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? iso : date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
 export function OrderCard({ card, ctx }: { card: OrderCardType; ctx: CardActionContext }) {
   const subtotalCents = card.totals.grossCents - card.totals.shippingCents - card.totals.taxCents;
+  const placed = formatDate(card.placedAt);
+
+  const rows: SpecRowData[] = [
+    ...card.lines.map((line, index) => ({
+      key: `line-${index}`,
+      label: `${line.label}${line.colour ? ` · ${line.colour}` : ''}${line.size ? ` · ${line.size}` : ''} × ${line.qty}`,
+      value: formatMoney(line.unitCents * line.qty),
+    })),
+    { key: 'subtotal', label: 'Subtotal', value: formatMoney(subtotalCents), dim: true },
+    { key: 'shipping', label: 'Shipping', value: formatMoney(card.totals.shippingCents), dim: true },
+    { key: 'tax', label: 'Tax', value: formatMoney(card.totals.taxCents), dim: true },
+    { key: 'total', label: 'Total', value: formatMoney(card.totals.grossCents), strong: true },
+    ...(card.totals.transferCents !== undefined
+      ? [{ key: 'share', label: 'Your share', value: formatMoney(card.totals.transferCents), strong: true }]
+      : []),
+    ...(card.tracking
+      ? [
+          {
+            key: 'tracking',
+            label: 'Tracking',
+            value: card.tracking.url ? (
+              <a href={card.tracking.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+                {card.tracking.carrier} · {card.tracking.code}
+              </a>
+            ) : (
+              `${card.tracking.carrier} · ${card.tracking.code}`
+            ),
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <div className="mf-card p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="mf-display truncate text-[16px]">{card.reference}</div>
-          <div className="mf-dimmed text-[12px]">
-            {formatDate(card.placedAt)}
-            {card.productionStatus ? ` · ${humanStatus(card.productionStatus)}` : ''}
-          </div>
-        </div>
-        <StatusPill label={humanStatus(card.status)} tone={statusTone(card.status)} />
-      </div>
-
-      {card.lines.length > 0 ? (
-        <div className="mf-hairline-t mt-3 pt-1">
-          {card.lines.map((line, index) => (
-            <div key={`${line.label}-${index}`} className="flex items-center justify-between gap-2 py-1.5 text-[13px]">
-              <span className="min-w-0 truncate">
-                {line.label}
-                {line.colour ? ` · ${line.colour}` : ''}
-                {line.size ? ` · ${line.size}` : ''} × {line.qty}
-              </span>
-              <span className="mf-dimmed shrink-0">{formatCents(line.unitCents)}</span>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="mf-hairline-t mt-1 flex flex-col gap-1 pt-2 text-[13px]">
-        <div className="flex items-center justify-between">
-          <span className="mf-dimmed">Subtotal</span>
-          <span className="mf-dimmed">{formatCents(subtotalCents)}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="mf-dimmed">Shipping</span>
-          <span className="mf-dimmed">{formatCents(card.totals.shippingCents)}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="mf-dimmed">Tax</span>
-          <span className="mf-dimmed">{formatCents(card.totals.taxCents)}</span>
-        </div>
-        <div className="flex items-center justify-between text-[14px]">
-          <span>Total</span>
-          <span>{formatCents(card.totals.grossCents)}</span>
-        </div>
-        {card.totals.transferCents !== undefined ? (
-          <div className="flex items-center justify-between">
-            <span className="mf-dimmed">Your share</span>
-            <span style={{ color: 'var(--signal)' }}>{formatCents(card.totals.transferCents)}</span>
-          </div>
-        ) : null}
-      </div>
-
-      {card.tracking ? (
-        <div className="mf-hairline-t mt-2 pt-2 text-[12px]">
-          {card.tracking.url ? (
-            <a href={card.tracking.url} target="_blank" rel="noopener noreferrer" className="underline">
-              {card.tracking.carrier} · {card.tracking.code}
-            </a>
-          ) : (
-            <span className="mf-dimmed">
-              {card.tracking.carrier} · {card.tracking.code}
-            </span>
-          )}
-        </div>
-      ) : null}
-
+    <CardFrame>
+      <CardHead
+        label="Order"
+        title={card.reference}
+        sentence={card.productionStatus ? `${placed} · ${humanStatus(card.productionStatus)}` : placed}
+        aside={<StatusPill label={humanStatus(card.status)} tone={statusTone(card.status)} />}
+      />
+      <SpecRows rows={rows} variant="plain" />
       <CardActions actions={card.actions} ctx={ctx} />
-    </div>
+    </CardFrame>
   );
 }

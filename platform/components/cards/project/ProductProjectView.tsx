@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Chip } from '@/components/ui/Chip';
+import { humanStatus } from '@/lib/format/status';
+import { ActionRow, CardHead, Plate, Sizes, SpecRows, Swatches, blankLabel, formatMoney, placementWords, type SpecRowData } from '@/components/cards/CardKit';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
 import type { CardActionContext } from '@/components/cards/actions';
 import type { ProductProjectState } from '@/components/cards/project/types';
@@ -15,7 +16,7 @@ const statusLabel: Record<ProductProjectState['status'], string> = {
 
 const statusTone: Record<ProductProjectState['status'], StatusTone> = {
   draft: 'neutral',
-  proof_pending: 'dim',
+  proof_pending: 'warning',
   live: 'positive',
   archived: 'dim',
 };
@@ -27,101 +28,53 @@ const proofLabel: Record<NonNullable<ProductProjectState['proofStatus']>, string
 };
 
 const proofTone: Record<NonNullable<ProductProjectState['proofStatus']>, StatusTone> = {
-  pending: 'neutral',
+  pending: 'warning',
   approved: 'positive',
-  changes_requested: 'warning',
+  changes_requested: 'neutral',
 };
 
-function formatCents(cents?: number): string | null {
-  if (cents === undefined) return null;
-  return (cents / 100).toLocaleString(undefined, { style: 'currency', currency: 'EUR' });
-}
-
 export function ProductProjectView({ state, ctx }: { state: ProductProjectState; ctx: CardActionContext }) {
-  const [activeCode, setActiveCode] = useState(state.colours[0]?.code);
-  const activeColour = state.colours.find((colour) => colour.code === activeCode) ?? state.colours[0];
+  const colours = state.colours ?? [];
+  const [activeCode, setActiveCode] = useState(colours[0]?.code);
+  const activeColour = colours.find((colour) => colour.code === activeCode) ?? colours[0];
   const image = activeColour?.mockupUrl ?? state.imageUrl;
-  const margin = formatCents(state.marginCents);
+
+  const rows: SpecRowData[] = [
+    { key: 'print', label: 'Print', value: [state.printService, placementWords(state.placement)].filter(Boolean).join(' · ') },
+    { key: 'base', label: 'Base cost', value: state.baseCostCents !== undefined ? formatMoney(state.baseCostCents) : '—', dim: true },
+    { key: 'retail', label: 'Retail', value: state.retailPriceCents !== undefined ? formatMoney(state.retailPriceCents) : '—' },
+    { key: 'margin', label: 'Margin', value: state.marginCents !== undefined ? formatMoney(state.marginCents) : '—', strong: true },
+  ];
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="mf-hairline aspect-square w-full overflow-hidden rounded-2xl">
-        {image ? <img src={image} alt={state.name} className="h-full w-full object-cover" loading="lazy" /> : null}
+    <div className="mfc-stack">
+      <Plate src={image} alt={state.name} ratio="4 / 3" className="w-full max-w-[360px]" />
+      <CardHead title={state.name} sentence={blankLabel(state.blankCode, state.blankName)} />
+      <div className="flex flex-wrap items-center gap-1.5">
+        <StatusPill label={statusLabel[state.status] ?? humanStatus(state.status)} tone={statusTone[state.status] ?? 'neutral'} />
+        {state.proofStatus ? <StatusPill label={proofLabel[state.proofStatus] ?? humanStatus(state.proofStatus)} tone={proofTone[state.proofStatus] ?? 'neutral'} /> : null}
       </div>
-      <div>
-        <div className="mf-display text-[18px] leading-snug">{state.name}</div>
-        <div className="mf-label mf-dimmed mt-1">
-          {state.blankName} · {state.blankCode}
-        </div>
-      </div>
-      {state.colours.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5" role="list" aria-label="Colours">
-          {state.colours.map((colour) => (
-            <button
-              key={colour.code}
-              type="button"
-              role="listitem"
-              title={colour.name}
-              aria-pressed={colour.code === activeCode}
-              onClick={() => colour.mockupUrl && setActiveCode(colour.code)}
-              className="h-4 w-4 shrink-0 rounded-full border"
-              style={{
-                background: colour.hex,
-                borderColor: colour.code === activeCode ? 'var(--signal)' : 'color-mix(in srgb, var(--signal) 30%, transparent)',
-                borderWidth: colour.code === activeCode ? 2 : 1,
-              }}
-            />
-          ))}
-        </div>
-      ) : null}
-      {state.sizes.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5">
-          {state.sizes.map((size) => (
-            <span key={size} className="mf-hairline px-2 py-0.5 text-[11px]">
-              {size}
-            </span>
-          ))}
-        </div>
-      ) : null}
-      <div className="mf-dimmed text-[13px]">
-        {state.printService}
-        {state.placement ? ` · ${state.placement}` : ''}
-      </div>
-      <div className="mf-hairline-t flex flex-col gap-1 pt-2 text-[13px]">
-        <div className="flex items-center justify-between">
-          <span className="mf-dimmed">Base cost</span>
-          <span className="mf-dimmed">{formatCents(state.baseCostCents) ?? '—'}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="mf-dimmed">Retail</span>
-          <span className="mf-dimmed">{formatCents(state.retailPriceCents) ?? '—'}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="mf-dimmed">Margin</span>
-          <span style={{ color: 'var(--signal)' }}>{margin ?? '—'}</span>
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <StatusPill label={statusLabel[state.status]} tone={statusTone[state.status]} />
-        {state.proofStatus ? <StatusPill label={proofLabel[state.proofStatus]} tone={proofTone[state.proofStatus]} /> : null}
-      </div>
-      <div className="mf-hairline-t flex flex-wrap gap-2 pt-3">
-        {/* the mock pricing tool needs a euro amount in the text (e.g. 'price
-            it at €35'), so this re-sends the current retail price, or a
-            sensible default the first time it's priced. */}
-        <Chip
-          small
-          onClick={() => ctx.onPrompt(`Price it at €${Math.round((state.retailPriceCents ?? 3500) / 100)}`)}
-        >
-          Price it
-        </Chip>
-        <Chip small onClick={() => ctx.onPrompt('Send the proof')}>
-          Send the proof
-        </Chip>
-        <Chip small primary onClick={() => ctx.onPrompt('Publish')}>
-          Publish
-        </Chip>
-      </div>
+      <Swatches
+        colours={colours}
+        activeCode={activeCode}
+        onPick={(colour) => {
+          if (colour.mockupUrl) setActiveCode(colour.code);
+        }}
+        canPick={(colour) => Boolean(colour.mockupUrl)}
+      />
+      <Sizes sizes={state.sizes ?? []} />
+      <SpecRows rows={rows} variant="plain" />
+      <ActionRow
+        actions={[
+          // The mock pricing tool needs a euro amount in the text (e.g. 'price
+          // it at €35'), so this re-sends the current retail price, or a
+          // sensible default the first time it's priced. The panel closes
+          // after any message it sends (see ProjectPanel).
+          { key: 'price', label: 'Price it', onClick: () => ctx.onPrompt(`Price it at €${Math.round((state.retailPriceCents ?? 3500) / 100)}`) },
+          { key: 'proof', label: 'Send the proof', onClick: () => ctx.onPrompt('Send the proof') },
+          { key: 'publish', label: 'Publish', primary: true, onClick: () => ctx.onPrompt('Publish') },
+        ]}
+      />
     </div>
   );
 }

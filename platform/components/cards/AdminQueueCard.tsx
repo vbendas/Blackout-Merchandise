@@ -10,7 +10,7 @@ export function AdminQueueCard({ card, ctx }: { card: AdminQueueCardType; ctx: C
   return (
     <div className="mf-card p-4">
       <div className="mf-label mf-dimmed mb-3">{card.title ?? "What's waiting"}</div>
-      {sections.length === 0 ? <div className="mf-dimmed py-2 text-[13px]">Nothing waiting — you're clear.</div> : null}
+      {sections.length === 0 ? <div className="mf-dimmed py-2 text-[13px]">Nothing waiting. You&apos;re clear.</div> : null}
       <div className="flex flex-col gap-4">
         {sections.map((section) => (
           <div key={section.key}>

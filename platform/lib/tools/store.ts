@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { getSalesThisMonth } from '@/lib/services/studio-home';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db, schema } from '@/lib/db';
@@ -33,7 +34,10 @@ interface UnpublishStoreData {
   error?: 'no_store';
 }
 
-function storeCard(summary: NonNullable<Awaited<ReturnType<typeof storeSummary>>>): Card {
+function storeCard(
+  summary: NonNullable<Awaited<ReturnType<typeof storeSummary>>>,
+  salesThisMonth?: { count: number; grossCents: number },
+): Card {
   return {
     id: `store_${summary.id}`,
     kind: 'store',
@@ -46,6 +50,7 @@ function storeCard(summary: NonNullable<Awaited<ReturnType<typeof storeSummary>>
     logoUrl: summary.logoUrl ?? undefined,
     stripeReady: summary.stripeReady,
     liveProducts: summary.liveProducts,
+    salesThisMonth,
   };
 }
 
@@ -68,7 +73,7 @@ export const getMyStoreTool = defineTool({
       return { data: { hasStore: false }, ui: { cards: [{ id: `no_store_${ctx.userId}`, kind: 'notice', tone: 'error', text: 'Shop record is missing.' }] } };
     }
 
-    const cards: Card[] = [storeCard(summary)];
+    const cards: Card[] = [storeCard(summary, await getSalesThisMonth(summary.id).catch(() => undefined))];
     if (!summary.hasAnyProduct) {
       cards.push({
         id: `onboarding_${summary.id}`,
@@ -77,8 +82,8 @@ export const getMyStoreTool = defineTool({
           { key: 'name', label: 'Name your shop', done: summary.name.trim().length > 0 },
           { key: 'browse', label: 'Browse blanks', done: false, prompt: 'Show me blanks' },
           { key: 'product', label: 'Create your first product', done: summary.hasAnyProduct },
-          { key: 'stripe', label: 'Connect Stripe payouts', done: summary.stripeReady, prompt: 'Start Stripe onboarding' },
-          { key: 'publish', label: 'Publish your shop', done: summary.isPublished, prompt: 'Publish my store' },
+          { key: 'stripe', label: 'Set up payouts', done: summary.stripeReady, prompt: 'Set up payouts' },
+          { key: 'publish', label: 'Publish your shop', done: summary.isPublished, prompt: 'Publish my shop' },
         ],
       });
     }
@@ -126,7 +131,7 @@ export const updateStoreTool = defineTool({
 
     const result = await updateStore(ctx.storeId, input);
     if (!result.ok) {
-      const text = result.error === 'slug_taken' ? `The slug "${input.slug}" is already taken.` : 'Shop not found.';
+      const text = result.error === 'slug_taken' ? 'That shop address is taken. Try another.' : 'Shop not found.';
       return { data: { ok: false, error: result.error }, ui: { cards: [{ id: `update_store_err_${randomUUID()}`, kind: 'notice', tone: 'warning', text }] } };
     }
 
@@ -145,7 +150,7 @@ export const publishStoreTool = defineTool({
   input: z.object({}).strict(),
   scope: 'artist',
   confirm: true,
-  summarize: () => 'Publish your store so fans can see and buy from it.',
+  summarize: () => 'Publish your shop so fans can see and buy from it.',
   run: async (ctx): Promise<ToolResult<PublishStoreData>> => {
     if (!ctx.storeId) return { data: { ok: false, error: 'no_store' } };
 
@@ -153,13 +158,13 @@ export const publishStoreTool = defineTool({
     if (!summary) return { data: { ok: false, error: 'no_store' } };
 
     if (!summary.stripeReady) {
-      const text = 'Publishing is blocked until Stripe payouts are connected — both charges and payouts need to be enabled.';
+      const text = 'Publishing is blocked until your payouts are set up.';
       return {
         data: { ok: false, error: 'stripe_not_ready', note: text },
         ui: {
           cards: [{ id: `publish_blocked_${ctx.storeId}`, kind: 'notice', tone: 'warning', text }],
           next: [
-            { label: 'Connect Stripe', prompt: 'Start Stripe onboarding', primary: true },
+            { label: 'Set up payouts', prompt: 'Set up payouts', primary: true },
             { label: 'Check payout status', prompt: 'Payout status' },
           ],
         },

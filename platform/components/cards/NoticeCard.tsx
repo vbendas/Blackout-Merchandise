@@ -1,24 +1,18 @@
 import type { Card } from '@/lib/ui-cards/schemas';
 import { CardActions } from '@/components/cards/CardActions';
 import type { CardActionContext } from '@/components/cards/actions';
+import '@/components/cards/cards.css';
 
 type NoticeCardType = Extract<Card, { kind: 'notice' }>;
 
-const toneColour: Record<NoticeCardType['tone'], string> = {
-  info: 'var(--signal)',
-  success: 'var(--success)',
-  warning: 'var(--warning)',
-  error: 'var(--danger)',
-};
-
+/** Monochrome: an error is white text inside a white rule, a warning 80%, an
+ * info 50% (see .mfc-notice). The tone is set on the element, not a colour. */
 export function NoticeCard({ card, ctx }: { card: NoticeCardType; ctx: CardActionContext }) {
   return (
-    <div className="mf-card flex gap-3 p-4" style={{ borderLeft: `2px solid ${toneColour[card.tone]}` }}>
-      <div className="min-w-0 flex-1">
-        {card.title ? <div className="mf-label mf-dimmed mb-1">{card.title}</div> : null}
-        <p className="text-[14px] leading-relaxed">{card.text}</p>
-        <CardActions actions={card.actions} ctx={ctx} />
-      </div>
+    <div className="mfc-notice" data-tone={card.tone}>
+      {card.title ? <div className="mfc-label">{card.title}</div> : null}
+      <p>{card.text}</p>
+      <CardActions actions={card.actions} ctx={ctx} />
     </div>
   );
 }

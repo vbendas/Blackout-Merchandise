@@ -22,13 +22,13 @@ export function SupplierOrderCard({ card, ctx }: { card: SupplierOrderCardType; 
             {card.supplier} · {card.totalUnits} unit{card.totalUnits === 1 ? '' : 's'}
           </div>
         </div>
-        <StatusPill label={humanStatus(card.status)}tone={statusTone(card.status)} />
+        <StatusPill label={humanStatus(card.status)} tone={statusTone(card.status)} />
       </div>
 
       {card.lines.length > 0 ? (
         <div className="mf-hairline-t mt-3 grid gap-1.5 pt-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))' }}>
           {card.lines.map((line, index) => (
-            <div key={`${line.blankCode}-${line.colour}-${line.size}-${index}`} className="mf-hairline rounded-lg px-2.5 py-2 text-[12px]">
+            <div key={`${line.blankCode}-${line.colour}-${line.size}-${index}`} className="mf-hairline px-2.5 py-2 text-[12px]">
               <div className="truncate">{line.blankName}</div>
               <div className="mf-dimmed truncate">
                 {line.colour} · {line.size}

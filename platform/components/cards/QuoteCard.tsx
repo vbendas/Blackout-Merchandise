@@ -1,36 +1,42 @@
 import type { Card } from '@/lib/ui-cards/schemas';
+import { blankDisplayName } from '@/lib/catalog/display-names';
 import { CardActions } from '@/components/cards/CardActions';
+import { CardFrame, CardHead, RowSub, SpecRows, formatMoney, type SpecRowData } from '@/components/cards/CardKit';
 import type { CardActionContext } from '@/components/cards/actions';
 
 type QuoteCardType = Extract<Card, { kind: 'quote' }>;
 
-function formatCents(cents: number, currency: string): string {
-  return (cents / 100).toLocaleString(undefined, { style: 'currency', currency });
+/** 'Quote — STSU177' becomes 'Quote — Heavy hoodie'; a code with no name is dropped. */
+function quoteLabel(title: string | undefined): string {
+  if (!title) return 'Quote';
+  return title.replace(/\s*[—–-]\s*(ST[A-Z]{2}\d{3})$/i, (_match, code: string) => {
+    const name = blankDisplayName(code, '');
+    return name ? ` — ${name}` : '';
+  });
 }
 
 export function QuoteCard({ card, ctx }: { card: QuoteCardType; ctx: CardActionContext }) {
+  const rows: SpecRowData[] = [
+    ...card.lines.map((line, index) => ({
+      key: `line-${index}`,
+      label: (
+        <>
+          {line.label}
+          <RowSub>
+            {line.qty} × {formatMoney(line.unitCents, card.currency)}
+          </RowSub>
+        </>
+      ),
+      value: formatMoney(line.totalCents, card.currency),
+    })),
+    { key: 'total', label: 'Your total', value: formatMoney(card.totalCents, card.currency), strong: true },
+  ];
+
   return (
-    <div className="mf-card p-4">
-      {card.title ? <div className="mf-label mf-dimmed mb-3">{card.title}</div> : null}
-      <div className="mf-dimmed flex items-center justify-between text-[11px] uppercase tracking-wide">
-        <span>Item</span>
-        <span>Qty · Unit · Total</span>
-      </div>
-      {card.lines.map((line, index) => (
-        <div key={`${line.label}-${index}`} className="mf-hairline-t flex items-center justify-between py-1.5 text-[13px]">
-          <span>{line.label}</span>
-          <span className="mf-dimmed">
-            {line.qty} · {formatCents(line.unitCents, card.currency)} ·{' '}
-            <span style={{ color: 'var(--signal)' }}>{formatCents(line.totalCents, card.currency)}</span>
-          </span>
-        </div>
-      ))}
-      <div className="mf-hairline-t flex items-center justify-between pt-2 text-[14px]">
-        <span>Total</span>
-        <span style={{ color: 'var(--signal)' }}>{formatCents(card.totalCents, card.currency)}</span>
-      </div>
-      {card.note ? <p className="mf-dimmed mt-2 text-[12px] leading-relaxed">{card.note}</p> : null}
+    <CardFrame>
+      <CardHead label={quoteLabel(card.title)} sentence={card.note} />
+      <SpecRows rows={rows} variant="plain" />
       <CardActions actions={card.actions} ctx={ctx} />
-    </div>
+    </CardFrame>
   );
 }

@@ -1,71 +1,60 @@
 import { humanStatus } from '@/lib/format/status';
-import { Chip } from '@/components/ui/Chip';
-import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
+import { runLabel } from '@/lib/format/runs';
+import { ActionRow, CardHead, RowSub, SpecRows, formatMoney, type ActionItem, type SpecRowData } from '@/components/cards/CardKit';
+import { StatusPill, runStatusTone } from '@/components/cards/StatusPill';
 import type { CardActionContext } from '@/components/cards/actions';
 import type { BulkOrderProjectState } from '@/components/cards/project/types';
 
-function formatCents(cents?: number): string | null {
-  if (cents === undefined) return null;
-  return (cents / 100).toLocaleString(undefined, { style: 'currency', currency: 'EUR' });
-}
-
-function statusTone(status: string): StatusTone {
-  const value = status.toLowerCase();
-  if (['paid', 'shipped', 'delivered'].includes(value)) return 'positive';
-  if (value === 'cancelled') return 'danger';
-  if (['proof_pending', 'in_production', 'awaiting_payment'].includes(value)) return 'dim';
-  return 'neutral';
+/** The next step for a run at this stage, as a message to the assistant. */
+function nextSteps(status: string, label: string, ctx: CardActionContext): ActionItem[] {
+  const send = (text: string) => () => ctx.onPrompt(text);
+  switch (status) {
+    case 'quoted':
+      return [{ key: 'proof', label: 'Send the proof', primary: true, onClick: send(`Send the proof for ${label}`) }];
+    case 'proof_pending':
+      return [
+        { key: 'approve', label: 'Approve the proof', primary: true, onClick: send(`Approve the proof for ${label}`) },
+        { key: 'changes', label: 'Ask for changes', onClick: send(`Ask for changes to the proof for ${label}`) },
+      ];
+    case 'awaiting_payment':
+      return [{ key: 'pay', label: `Pay for ${label}`, primary: true, onClick: send(`Pay for ${label}`) }];
+    default:
+      return [];
+  }
 }
 
 export function BulkOrderProjectView({ state, ctx }: { state: BulkOrderProjectState; ctx: CardActionContext }) {
   const lines = state.lines ?? [];
-  const total = formatCents(state.totalCents);
+  const label = state.runNumber ? runLabel(state.runNumber) : 'this run';
+  const pieces = lines.reduce((sum, line) => sum + line.qty, 0);
+
+  const rows: SpecRowData[] = [
+    ...lines.map((line, index) => ({
+      key: `line-${index}`,
+      label: (
+        <>
+          {line.label}
+          {line.colour ? ` · ${line.colour}` : ''}
+          <RowSub>
+            {line.qty} {line.qty === 1 ? 'piece' : 'pieces'}
+            {line.sizes ? ` · ${line.sizes}` : ''}
+          </RowSub>
+        </>
+      ),
+      value: line.totalCents !== undefined ? formatMoney(line.totalCents) : undefined,
+    })),
+    ...(lines.length > 0 && typeof state.totalCents === 'number' ? [{ key: 'total', label: 'Total', value: formatMoney(state.totalCents), strong: true }] : []),
+    ...(state.shipTo ? [{ key: 'shipTo', label: 'Ships to', value: state.shipTo }] : []),
+  ];
 
   return (
-    <div className="flex flex-col gap-3">
-      {lines.length === 0 ? (
-        <p className="mf-dimmed text-[13px]">No lines yet.</p>
-      ) : (
-        <ul className="flex flex-col">
-          {lines.map((line, index) => (
-            <li
-              key={`${line.label}-${index}`}
-              className={`${index > 0 ? 'mf-hairline-t' : ''} flex items-center justify-between gap-2 py-1.5 text-[13px]`}
-            >
-              <span className="min-w-0 truncate">
-                {line.label}
-                {line.colour ? ` · ${line.colour}` : ''}
-                {line.sizes ? ` · ${line.sizes}` : ''} <span className="mf-dimmed">× {line.qty}</span>
-              </span>
-              <span className="mf-dimmed shrink-0">{formatCents(line.totalCents) ?? '—'}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {total ? (
-        <div className="mf-hairline-t flex items-center justify-between pt-2 text-[14px]">
-          <span>Total</span>
-          <span style={{ color: 'var(--signal)' }}>{total}</span>
-        </div>
-      ) : null}
-
-      {state.shipTo ? <div className="mf-dimmed text-[13px]">Ship to {state.shipTo}</div> : null}
-
-      {state.status ? (
-        <div>
-          <StatusPill label={humanStatus(state.status)} tone={statusTone(state.status)} />
-        </div>
-      ) : null}
-
-      <div className="mf-hairline-t flex flex-wrap gap-2 pt-3">
-        <Chip small onClick={() => ctx.onPrompt('Send the bulk proof')}>
-          Send the bulk proof
-        </Chip>
-        <Chip small primary onClick={() => ctx.onPrompt('Pay the bulk order')}>
-          Pay the bulk order
-        </Chip>
-      </div>
+    <div className="mfc-stack">
+      <CardHead
+        title={lines.length === 0 ? 'No pieces yet' : `${pieces} ${pieces === 1 ? 'piece' : 'pieces'}`}
+        aside={state.status ? <StatusPill label={humanStatus(state.status)} tone={runStatusTone(state.status)} /> : undefined}
+      />
+      <SpecRows rows={rows} variant="plain" />
+      <ActionRow actions={nextSteps(state.status, label, ctx)} />
     </div>
   );
 }

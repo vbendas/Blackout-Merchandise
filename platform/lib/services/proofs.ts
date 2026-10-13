@@ -70,7 +70,7 @@ export async function submitProof(storeId: string, productId: string): Promise<S
 
   const mockupUrls = product.colours.map((c) => c.mockupUrl).filter((u): u is string => !!u);
   const spec: ProofSpecLine[] = [
-    { label: 'Blank', value: `${product.blankName} (${product.blankCode})` },
+    { label: 'Blank', value: product.blankName },
     { label: 'Print service', value: product.printServiceName },
     { label: 'Placement', value: product.placement ? `${product.placement.position}, ${product.placement.widthCm}cm` : 'Not set' },
     { label: 'Colours', value: product.colours.map((c) => c.name).join(', ') || 'None' },

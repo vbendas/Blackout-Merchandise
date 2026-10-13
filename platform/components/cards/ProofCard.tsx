@@ -1,55 +1,63 @@
 import type { Card } from '@/lib/ui-cards/schemas';
+import { blankDisplayName } from '@/lib/catalog/display-names';
 import { CardActions } from '@/components/cards/CardActions';
+import { CardFrame, CardHead, Plate, SpecRows, type SpecRowData } from '@/components/cards/CardKit';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
 import type { CardActionContext } from '@/components/cards/actions';
 
 type ProofCardType = Extract<Card, { kind: 'proof' }>;
 
 const statusLabel: Record<ProofCardType['status'], string> = {
-  pending: 'Pending',
+  pending: 'Waiting for your OK',
   approved: 'Approved',
   changes_requested: 'Changes requested',
 };
 
 const statusTone: Record<ProofCardType['status'], StatusTone> = {
-  pending: 'neutral',
+  pending: 'warning',
   approved: 'positive',
-  changes_requested: 'warning',
+  changes_requested: 'neutral',
 };
 
+const statusSentence: Record<ProofCardType['status'], string> = {
+  pending: 'Check the mockups and the details, then approve it or ask for changes.',
+  approved: 'You approved this proof.',
+  changes_requested: 'You asked for changes.',
+};
+
+/** The title repeats 'Proof v2 — ' in front of the product's name; the label already says it. */
+function proofName(title: string | undefined): string | undefined {
+  const name = title?.replace(/^(?:bulk\s+)?proof\s+v\d+\s*(?:[—–-]\s*)?/i, '').trim();
+  return name ? name : undefined;
+}
+
+/** 'Cruiser 2.0 (STSU177)' becomes the blank's name; a supplier code never shows. */
+function specValue(value: string): string {
+  return value.replace(/^(.*?)\s*\((ST[A-Z]{2}\d{3})\)/, (_match, name: string, code: string) => blankDisplayName(code, name.trim()));
+}
+
 export function ProofCard({ card, ctx }: { card: ProofCardType; ctx: CardActionContext }) {
+  const rows: SpecRowData[] = card.spec.map((row, index) => ({ key: `${row.label}-${index}`, label: row.label, value: specValue(row.value) }));
+
   return (
-    <div className="mf-card p-4">
-      <div className="flex items-center justify-between">
-        <div className="mf-label mf-dimmed">Proof v{card.version}</div>
-        <StatusPill label={statusLabel[card.status]} tone={statusTone[card.status]} />
-      </div>
+    <CardFrame>
+      <CardHead
+        label={`Proof v${card.version}`}
+        title={proofName(card.title)}
+        sentence={statusSentence[card.status]}
+        aside={<StatusPill label={statusLabel[card.status]} tone={statusTone[card.status]} />}
+      />
       {card.mockupUrls.length > 0 ? (
-        <div className="mt-3 flex gap-2 overflow-x-auto">
+        <div className="mfc-strip">
           {card.mockupUrls.map((url, index) => (
-            <img
-              key={`${url}-${index}`}
-              src={url}
-              alt={`Proof mockup ${index + 1}`}
-              className="mf-hairline h-28 w-28 shrink-0 rounded-2xl object-cover"
-              loading="lazy"
-            />
+            <Plate key={`${url}-${index}`} src={url} alt={`Proof mockup ${index + 1}`} />
           ))}
         </div>
       ) : null}
-      {card.spec.length > 0 ? (
-        <div className="mf-hairline-t mt-3 pt-2">
-          {card.spec.map((row) => (
-            <div key={row.label} className="flex items-center justify-between py-1.5 text-[13px]">
-              <span className="mf-dimmed">{row.label}</span>
-              <span>{row.value}</span>
-            </div>
-          ))}
-        </div>
-      ) : null}
+      <SpecRows rows={rows} variant="plain" />
       {/* Approve is a confirm-gated tool call, so it arrives as a separate
           confirm card — this card only renders whatever actions it was given. */}
       <CardActions actions={card.actions} ctx={ctx} />
-    </div>
+    </CardFrame>
   );
 }

@@ -1,21 +1,15 @@
 import type { Card } from '@/lib/ui-cards/schemas';
 import { CardActions } from '@/components/cards/CardActions';
+import { CardFrame, CardHead, SpecRows, formatMoney, type SpecRowData } from '@/components/cards/CardKit';
 import type { CardActionContext } from '@/components/cards/actions';
 
 type SalesSummaryCardType = Extract<Card, { kind: 'sales_summary' }>;
 
-function formatCents(cents: number): string {
-  return (cents / 100).toLocaleString(undefined, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function StatTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="mf-label mf-dimmed">{label}</span>
-      <span className="mf-display text-[22px] leading-none">{value}</span>
-    </div>
-  );
-}
+const PERIOD_WORDS: Record<string, string> = {
+  month: 'This month',
+  '30d': 'Last 30 days',
+  all: 'All time',
+};
 
 function Sparkline({ series }: { series: NonNullable<SalesSummaryCardType['series']> }) {
   const width = 280;
@@ -25,47 +19,47 @@ function Sparkline({ series }: { series: NonNullable<SalesSummaryCardType['serie
   const barWidth = Math.max(1, width / series.length - gap);
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} role="img" aria-label="Daily gross sales, last 31 days">
+    <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} role="img" aria-label="Daily sales">
       {series.map((point, index) => {
         const barHeight = Math.max(1, (point.grossCents / max) * height);
         const x = index * (barWidth + gap);
-        return <rect key={point.day} x={x} y={height - barHeight} width={barWidth} height={barHeight} fill="var(--signal)" opacity={0.7} />;
+        return <rect key={point.day} x={x} y={height - barHeight} width={barWidth} height={barHeight} fill="currentColor" />;
       })}
     </svg>
   );
 }
 
+// The three figures are rows, not tiles: a value can grow past EUR 1,000 and
+// still fit at 390px, because the row gives it the whole line.
 export function SalesSummaryCard({ card, ctx }: { card: SalesSummaryCardType; ctx: CardActionContext }) {
-  return (
-    <div className="mf-card p-4">
-      <div className="mf-label mf-dimmed mb-3">{card.title ?? card.period}</div>
-      <div className="grid grid-cols-3 gap-3">
-        <StatTile label="Orders" value={String(card.orders)} />
-        <StatTile label="Gross" value={formatCents(card.grossCents)} />
-        <StatTile label="Your share" value={formatCents(card.transferCents)} />
-      </div>
+  const rows: SpecRowData[] = [
+    { key: 'orders', label: 'Orders', value: String(card.orders) },
+    { key: 'gross', label: 'Gross', value: formatMoney(card.grossCents) },
+    { key: 'share', label: 'Your share', value: formatMoney(card.transferCents), strong: true },
+  ];
 
+  const topRows: SpecRowData[] = card.topProducts.map((product, index) => ({
+    key: `${product.name}-${index}`,
+    label: `${product.name} × ${product.qty}`,
+    value: formatMoney(product.grossCents),
+  }));
+
+  return (
+    <CardFrame>
+      <CardHead label={card.title ?? 'Sales'} title={PERIOD_WORDS[card.period] ?? card.period} />
+      <SpecRows rows={rows} />
       {card.series && card.series.length > 0 ? (
-        <div className="mf-hairline-t mt-3 pt-3">
+        <div className="mfc-sparkline">
           <Sparkline series={card.series} />
         </div>
       ) : null}
-
-      {card.topProducts.length > 0 ? (
-        <div className="mf-hairline-t mt-3 pt-2">
-          <div className="mf-dimmed mb-1 text-[11px] uppercase tracking-wide">Top products</div>
-          {card.topProducts.map((product, index) => (
-            <div key={`${product.name}-${index}`} className="flex items-center justify-between py-1 text-[13px]">
-              <span className="min-w-0 truncate">
-                {product.name} <span className="mf-dimmed">× {product.qty}</span>
-              </span>
-              <span className="mf-dimmed shrink-0">{formatCents(product.grossCents)}</span>
-            </div>
-          ))}
+      {topRows.length > 0 ? (
+        <div className="mfc-section">
+          <span className="mfc-label">Top products</span>
+          <SpecRows rows={topRows} variant="plain" />
         </div>
       ) : null}
-
       <CardActions actions={card.actions} ctx={ctx} />
-    </div>
+    </CardFrame>
   );
 }
