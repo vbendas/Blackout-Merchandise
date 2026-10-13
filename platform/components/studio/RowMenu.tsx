@@ -9,7 +9,7 @@ export interface MenuAction {
   onSelect?: () => void;
   /** opens a nested list in place of the current one, with a Back item */
   submenu?: MenuEntry[];
-  /** radio-style mark, e.g. the session's current project */
+  /** radio-style mark, e.g. the session's current drop */
   checked?: boolean;
   href?: string;
   /** with href: opens in a new tab, and the menu hands focus back on select */

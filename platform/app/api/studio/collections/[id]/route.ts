@@ -27,7 +27,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
 
   const result = await deleteCollection(store.id, id);
   if (!result.ok) {
-    const status = result.error === 'Project not found.' ? 404 : 400;
+    const status = result.error === 'Drop not found.' ? 404 : 400;
     return NextResponse.json({ error: result.error }, { status });
   }
   return NextResponse.json({ ok: true });

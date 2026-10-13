@@ -24,7 +24,7 @@ function slugify(name: string): string {
 }
 
 export interface CreateCollectionOptions {
-  /** shown on the public shop; default true. Studio sidebar projects pass false (private). */
+  /** shown on the public shop; default true. Studio sidebar drops pass false (private). */
   visible?: boolean;
 }
 

@@ -64,7 +64,7 @@ export interface PublicCollection {
 }
 
 /** Shop sections: visible collections with at least one live product. Private
- * ones (Studio sidebar projects) and empty ones never reach fans. */
+ * ones (Studio sidebar drops) and empty ones never reach fans. */
 export async function listCollections(storeId: string, slug: string): Promise<PublicCollection[]> {
   return unstable_cache(
     async () => {

@@ -10,7 +10,7 @@ import { useStudioSidebar } from '@/components/studio/StudioSidebarProvider';
 type Mode = 'idle' | 'rename' | 'new-collection' | 'delete';
 
 /** One session in the sidebar: a link to /studio/s/<id>, with a "..." menu
- * for Rename, Move to project and Delete. F2 on the focused link renames.
+ * for Rename, Move to drop and Delete. F2 on the focused link renames.
  * Delete asks first, right under the row. */
 export function SessionRow({
   session,
@@ -20,7 +20,7 @@ export function SessionRow({
 }: {
   session: StudioSession;
   active: boolean;
-  /** null: no store (admins), so no Move to project */
+  /** null: no store (admins), so no Move to drop */
   collections: StudioCollection[] | null;
   indent?: boolean;
 }) {
@@ -87,16 +87,16 @@ export function SessionRow({
   const items: MenuEntry[] = [{ label: 'Rename', onSelect: () => setMode('rename') }];
   if (collections) {
     items.push({
-      label: 'Move to project',
+      label: 'Move to drop',
       submenu: [
         ...collections.map((c) => ({
           label: c.name,
           checked: session.collectionId === c.id,
           onSelect: () => void move(c.id),
         })),
-        { label: 'No project', checked: session.collectionId === null, onSelect: () => void move(null) },
+        { label: 'No drop', checked: session.collectionId === null, onSelect: () => void move(null) },
         'separator' as const,
-        { label: 'New project...', onSelect: () => setMode('new-collection') },
+        { label: 'New drop...', onSelect: () => setMode('new-collection') },
       ],
     });
   }
@@ -106,9 +106,9 @@ export function SessionRow({
     return (
       <li className={indent ? 'pl-3' : undefined}>
         <InlineInput
-          label={mode === 'rename' ? 'Session name' : 'New project name'}
+          label={mode === 'rename' ? 'Session name' : 'New drop name'}
           initialValue={mode === 'rename' ? session.title : ''}
-          placeholder={mode === 'rename' ? undefined : 'Project name'}
+          placeholder={mode === 'rename' ? undefined : 'Drop name'}
           maxLength={mode === 'rename' ? 80 : 60}
           onSubmit={mode === 'rename' ? saveTitle : createAndMove}
           onCancel={() => setMode('idle')}

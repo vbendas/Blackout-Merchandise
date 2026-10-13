@@ -7,7 +7,7 @@ import { InlineInput } from '@/components/studio/InlineInput';
 import { SessionRow } from '@/components/studio/SessionRow';
 import { useStudioSidebar } from '@/components/studio/StudioSidebarProvider';
 
-/** A project in the sidebar: an expandable row listing its sessions, with a
+/** A drop in the sidebar: an expandable row listing its sessions, with a
  * "..." menu for Rename and Delete. Delete asks first, right under the row. */
 export function CollectionGroup({
   collection,
@@ -32,8 +32,8 @@ export function CollectionGroup({
   const listId = `collection-${collection.id}`;
   const open = expanded;
 
-  // Opening a session in this project unfolds it once; after that the
-  // project can still be folded up while its session stays open.
+  // Opening a session in this drop unfolds it once; after that the
+  // drop can still be folded up while its session stays open.
   const [wasHoldingActive, setWasHoldingActive] = useState(holdsActive);
   if (holdsActive !== wasHoldingActive) {
     setWasHoldingActive(holdsActive);
@@ -65,8 +65,8 @@ export function CollectionGroup({
     setDeleting(false);
     setError(result.ok ? null : result.error);
     if (result.ok) {
-      // The row is gone with the project; park focus on the list's New project button.
-      document.getElementById('studio-new-project')?.focus();
+      // The row is gone with the drop; park focus on the list's New drop button.
+      document.getElementById('studio-new-drop')?.focus();
     } else {
       keep();
     }
@@ -76,7 +76,7 @@ export function CollectionGroup({
     <li ref={itemRef}>
       {renaming ? (
         <InlineInput
-          label="Project name"
+          label="Drop name"
           initialValue={collection.name}
           maxLength={60}
           onSubmit={save}
@@ -137,7 +137,7 @@ export function CollectionGroup({
             keep();
           }}
         >
-          <p>Delete this project? Its sessions stay.</p>
+          <p>Delete this drop? Its sessions stay.</p>
           <div className="mf-confirm-actions">
             <button type="button" ref={keepRef} onClick={keep} disabled={deleting} className="mf-ulink disabled:opacity-40">
               Keep

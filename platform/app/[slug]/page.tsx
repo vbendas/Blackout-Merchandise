@@ -23,7 +23,7 @@ export default async function ShopPage({
   ]);
 
   // ?collection= only counts when it names a section the shop lists (visible,
-  // with live products). A hidden project, an empty one or a made-up slug is
+  // with live products). A hidden drop, an empty one or a made-up slug is
   // ignored and the whole shop shows.
   const active = collections.find((c) => c.slug === collection);
   const products = active ? allProducts.filter((p) => p.collectionSlug === active.slug) : allProducts;

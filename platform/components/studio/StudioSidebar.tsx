@@ -62,7 +62,7 @@ function SkeletonRows() {
   );
 }
 
-/** The Studio's left column: New session, the Shop block, Projects (each
+/** The Studio's left column: New session, the Shop block, Drops (each
  * holding its sessions), ungrouped Sessions, admin links and the account
  * footer. Fixed at 272px on desktop; an off-canvas drawer below 768px. */
 export function StudioSidebar() {
@@ -191,11 +191,11 @@ export function StudioSidebar() {
             {showCollections ? (
               <section aria-labelledby="studio-collections-label" className="flex flex-col gap-1.5">
                 <div className="flex h-7 items-center justify-between pr-1">
-                  <SectionLabel id="studio-collections-label">Projects</SectionLabel>
+                  <SectionLabel id="studio-collections-label">Drops</SectionLabel>
                   <button
                     type="button"
-                    id="studio-new-project"
-                    aria-label="New project"
+                    id="studio-new-drop"
+                    aria-label="New drop"
                     onClick={() => {
                       setCreateError(null);
                       setCreating(true);
@@ -209,8 +209,8 @@ export function StudioSidebar() {
                 </div>
                 {creating ? (
                   <InlineInput
-                    label="New project name"
-                    placeholder="Project name"
+                    label="New drop name"
+                    placeholder="Drop name"
                     maxLength={60}
                     onSubmit={create}
                     onCancel={() => setCreating(false)}
@@ -256,7 +256,7 @@ export function StudioSidebar() {
                 </p>
               ) : ungrouped.length === 0 ? (
                 <p className="mf-dimmed px-2.5 text-[13px] leading-[18px]">
-                  {sessions.length === 0 ? 'Your sessions will appear here.' : 'Every session is in a project.'}
+                  {sessions.length === 0 ? 'Your sessions will appear here.' : 'Every session is in a drop.'}
                 </p>
               ) : (
                 <ul aria-labelledby="studio-sessions-label" className="flex flex-col gap-px">

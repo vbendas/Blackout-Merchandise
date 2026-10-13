@@ -243,7 +243,7 @@
     color: var(--signal);
   }
 
-  /* Project delete: the question sits under the project's row. */
+  /* Drop and session delete: the question sits under the row. */
   .mf-confirm {
     display: grid;
     gap: 8px;
