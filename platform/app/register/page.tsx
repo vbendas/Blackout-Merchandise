@@ -4,11 +4,10 @@ import { redirect } from 'next/navigation';
 import { requireUser } from '@/lib/auth';
 import { checkRegistrationEligibility } from '@/lib/services/registration';
 import { RegisterMark } from '@/components/RegisterMark';
+import { siteHref } from '@/components/auth/door-links';
 import { RegisterForm } from './RegisterForm';
 
 export const metadata: Metadata = { title: 'Register' };
-
-const PUBLIC_WAITLIST_URL = 'https://merchfrom.com/waitlist';
 
 export default async function RegisterPage() {
   const session = await requireUser();
@@ -30,13 +29,12 @@ export default async function RegisterPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 py-16 text-center">
         <RegisterMark className="h-6 w-6 text-signal" />
-        <h1 className="font-display text-2xl">You&apos;re not on the list yet</h1>
+        <h1 className="font-display text-2xl">Not on the list yet.</h1>
         <p className="mf-dim max-w-sm text-sm">
-          MerchFrom is invite-only while we&apos;re in early access. Join the waitlist and we&apos;ll email you when
-          it&apos;s your turn.
+          Membership is by application. Apply, and we&apos;ll reply by email.
         </p>
-        <a href={PUBLIC_WAITLIST_URL} className="label mf-dim underline">
-          Join the waitlist
+        <a href={siteHref('/#apply')} className="label mf-dim underline">
+          Apply
         </a>
       </div>
     );
