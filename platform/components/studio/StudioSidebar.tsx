@@ -150,10 +150,10 @@ export function StudioSidebar() {
           {showCollections ? (
             <section aria-labelledby="studio-collections-label" className="flex flex-col gap-1.5">
               <div className="flex h-7 items-center justify-between pr-1">
-                <SectionLabel id="studio-collections-label">Collections</SectionLabel>
+                <SectionLabel id="studio-collections-label">Projects</SectionLabel>
                 <button
                   type="button"
-                  aria-label="New collection"
+                  aria-label="New project"
                   onClick={() => {
                     setCreateError(null);
                     setCreating(true);
@@ -167,8 +167,8 @@ export function StudioSidebar() {
               </div>
               {creating ? (
                 <InlineInput
-                  label="New collection name"
-                  placeholder="Collection name"
+                  label="New project name"
+                  placeholder="Project name"
                   maxLength={60}
                   onSubmit={create}
                   onCancel={() => setCreating(false)}
@@ -214,7 +214,7 @@ export function StudioSidebar() {
               </p>
             ) : ungrouped.length === 0 ? (
               <p className="mf-dimmed px-2.5 text-[13px] leading-[18px]">
-                {sessions.length === 0 ? 'Your sessions will appear here.' : 'Every session is in a collection.'}
+                {sessions.length === 0 ? 'Your sessions will appear here.' : 'Every session is in a project.'}
               </p>
             ) : (
               <ul aria-labelledby="studio-sessions-label" className="flex flex-col gap-px">

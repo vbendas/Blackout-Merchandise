@@ -141,7 +141,7 @@ export async function setSessionCollection(
   if (!(await ownedSession(userId, sessionId))) return { ok: false, error: 'Session not found.' };
   if (collectionId) {
     if (!storeId || !(await ownedCollection(storeId, collectionId))) {
-      return { ok: false, error: 'Collection not found.' };
+      return { ok: false, error: 'Project not found.' };
     }
   }
   const [row] = await db
@@ -157,7 +157,7 @@ export async function renameCollection(storeId: string, collectionId: string, na
   if (trimmed.length < 1 || trimmed.length > COLLECTION_NAME_MAX) {
     return { ok: false, error: `Name must be 1 to ${COLLECTION_NAME_MAX} characters.` };
   }
-  if (!(await ownedCollection(storeId, collectionId))) return { ok: false, error: 'Collection not found.' };
+  if (!(await ownedCollection(storeId, collectionId))) return { ok: false, error: 'Project not found.' };
   const [row] = await db
     .update(schema.collections)
     .set({ name: trimmed })
@@ -167,9 +167,9 @@ export async function renameCollection(storeId: string, collectionId: string, na
 }
 
 export async function deleteCollection(storeId: string, collectionId: string): Promise<ServiceResult<null>> {
-  if (!(await ownedCollection(storeId, collectionId))) return { ok: false, error: 'Collection not found.' };
+  if (!(await ownedCollection(storeId, collectionId))) return { ok: false, error: 'Project not found.' };
   if ((await productCount(collectionId)) > 0) {
-    return { ok: false, error: 'This collection still has products. Move or remove them first.' };
+    return { ok: false, error: 'This project still has products. Move or remove them first.' };
   }
   await db.update(schema.conversations).set({ collectionId: null }).where(eq(schema.conversations.collectionId, collectionId));
   await db

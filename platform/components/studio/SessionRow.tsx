@@ -56,7 +56,7 @@ export function SessionRow({
   const items: MenuEntry[] = [{ label: 'Rename', onSelect: () => setMode('rename') }];
   if (collections) {
     items.push({
-      label: 'Move to collection',
+      label: 'Move to project',
       submenu: [
         ...collections.map((c) => ({
           label: c.name,
@@ -65,7 +65,7 @@ export function SessionRow({
         })),
         { label: 'No collection', checked: session.collectionId === null, onSelect: () => void move(null) },
         'separator' as const,
-        { label: 'New collection...', onSelect: () => setMode('new-collection') },
+        { label: 'New project...', onSelect: () => setMode('new-collection') },
       ],
     });
   }
@@ -74,9 +74,9 @@ export function SessionRow({
     return (
       <li className={indent ? 'pl-3' : undefined}>
         <InlineInput
-          label={mode === 'rename' ? 'Session name' : 'New collection name'}
+          label={mode === 'rename' ? 'Session name' : 'New project name'}
           initialValue={mode === 'rename' ? session.title : ''}
-          placeholder={mode === 'rename' ? undefined : 'Collection name'}
+          placeholder={mode === 'rename' ? undefined : 'Project name'}
           maxLength={mode === 'rename' ? 80 : 60}
           onSubmit={mode === 'rename' ? saveTitle : createAndMove}
           onCancel={() => setMode('idle')}
