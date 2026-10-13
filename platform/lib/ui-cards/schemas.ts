@@ -80,6 +80,10 @@ export const cardSchema = z.discriminatedUnion('kind', [
       )
       .max(24),
     total: z.number().optional(),
+    /** the catalogue category the grid was filtered to; 'Browse all' opens the catalogue on it */
+    category: z.string().max(60).optional(),
+    /** the search text the grid came from; 'Browse all' opens the catalogue with it */
+    query: z.string().max(120).optional(),
   }),
   z.object({
     ...base,

@@ -1,4 +1,4 @@
-import { and, asc, eq, ilike, inArray, or } from 'drizzle-orm';
+import { and, asc, count, eq, ilike, inArray, or } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 
 export interface ListBlanksInput {
@@ -45,6 +45,7 @@ export async function listTypes(): Promise<string[]> {
   return rows.map((r) => r.type);
 }
 
+/** Up to `limit` active blanks matching the filters, plus `total`: how many match in all. */
 export async function listBlanks(input: ListBlanksInput): Promise<{ items: BlankListItem[]; total: number }> {
   const limit = Math.min(Math.max(input.limit ?? 12, 1), 24);
   const conditions = [eq(schema.blanks.isActive, true)];
@@ -71,19 +72,24 @@ export async function listBlanks(input: ListBlanksInput): Promise<{ items: Blank
     conditions.push(inArray(schema.blanks.code, codes));
   }
 
-  const rows = await db
-    .select({
-      code: schema.blanks.code,
-      name: schema.blanks.name,
-      supplierName: schema.blanks.supplierName,
-      type: schema.blanks.type,
-      fit: schema.blanks.fit,
-      frontImageUrl: schema.blanks.frontImageUrl,
-    })
-    .from(schema.blanks)
-    .where(and(...conditions))
-    .orderBy(asc(schema.blanks.displayOrder), asc(schema.blanks.name))
-    .limit(limit);
+  // `total` counts every match: the page's `limit` does not cap it.
+  const [rows, totalRows] = await Promise.all([
+    db
+      .select({
+        code: schema.blanks.code,
+        name: schema.blanks.name,
+        supplierName: schema.blanks.supplierName,
+        type: schema.blanks.type,
+        fit: schema.blanks.fit,
+        frontImageUrl: schema.blanks.frontImageUrl,
+      })
+      .from(schema.blanks)
+      .where(and(...conditions))
+      .orderBy(asc(schema.blanks.displayOrder), asc(schema.blanks.name))
+      .limit(limit),
+    db.select({ total: count() }).from(schema.blanks).where(and(...conditions)),
+  ]);
+  const total = totalRows[0]?.total ?? 0;
 
   const prices = await minPricesByBlank(rows.map((r) => r.code));
 
@@ -97,7 +103,7 @@ export async function listBlanks(input: ListBlanksInput): Promise<{ items: Blank
       imageUrl: r.frontImageUrl,
       fromPriceCents: prices.get(r.code) ?? null,
     })),
-    total: rows.length,
+    total,
   };
 }
 

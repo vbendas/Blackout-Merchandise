@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { CATALOGUE_CATEGORIES } from '@/lib/catalog/catalog-filters';
 import { z } from 'zod';
 import { defineTool } from '@/lib/tools/types';
 import { getBlank, listBlanks, type BlankListItem } from '@/lib/services/blanks';
@@ -24,13 +25,23 @@ function displayName(blank: Pick<BlankListItem, 'code' | 'genericName'>): string
   return blankDisplayName(blank.code, blank.genericName);
 }
 
+// The catalogue's category names, as typeFor() in lib/catalog/catalog-filters.ts
+// names them. A blank's stored type is one of these.
+
+/** The category a type filter names, matched without regard to case ('T-Shirts' is 'T-shirts'). */
+function categoryFor(type: string | undefined): string | undefined {
+  const wanted = type?.trim().toLowerCase();
+  if (!wanted) return undefined;
+  return CATALOGUE_CATEGORIES.find((category) => category.toLowerCase() === wanted);
+}
+
 export const listBlanksTool = defineTool({
   name: 'list_blanks',
   description:
     "Browse the blank garment catalogue (t-shirts, hoodies, tote bags, ...) the artist can print designs on. Call this whenever the artist wants to see, browse, or search available blanks or garments — e.g. 'show me hoodies', 'what blanks do you have', 'anything in black'. Shows the user a visual grid; you only need to summarise the count and top results in text. Never invent blanks, types, or prices — only what this tool returns exists in the catalogue. Every blank has a `name` (e.g. 'Heavy hoodie') and a `facts` line (fabric, weight, fit): talk about blanks by that name, never by the code or a supplier's model name. Keep the `code` for tool calls. `q` also accepts a blank's name.",
   input: z
     .object({
-      type: z.string().max(60).optional().describe("Garment type filter, e.g. 'T-Shirts', 'Sweats & Hoodies'."),
+      type: z.string().max(60).optional().describe("Garment type filter: one of 'T-shirts', 'Sweats & Hoodies', 'Jackets', 'Bags & Accessories', 'Kids & Baby', 'Bottoms', 'Shirts', 'Polos'."),
       fit: z.string().max(40).optional().describe("Fit filter, e.g. 'Regular', 'Oversized'."),
       colour: z.string().max(20).optional().describe('Supplier colour code to filter by, e.g. C002.'),
       q: z.string().max(120).optional().describe('Free-text search over name, description and code.'),
@@ -40,11 +51,15 @@ export const listBlanksTool = defineTool({
   scope: 'both',
   readOnly: true,
   run: async (_ctx, input) => {
+    // Stored types are the category names, so a type typed in another case ('T-Shirts') must still match.
+    const category = categoryFor(input.type);
+    const filter = category ? { ...input, type: category } : input;
     // A search for a blank's display name is a search for its code.
     const codes = input.q ? codesForName(input.q) : [];
-    const results = codes.length > 0 ? await Promise.all(codes.map((code) => listBlanks({ ...input, q: code }))) : [await listBlanks(input)];
+    const results = codes.length > 0 ? await Promise.all(codes.map((code) => listBlanks({ ...filter, q: code }))) : [await listBlanks(filter)];
     const items = results.flatMap((result) => result.items);
-    const total = codes.length > 0 ? items.length : (results[0]?.total ?? 0);
+    // Each search reports every blank it matches, not just the page it returns.
+    const total = results.reduce((sum, result) => sum + result.total, 0);
 
     const shown = items.map((b) => ({
       code: b.code,
@@ -62,10 +77,19 @@ export const listBlanksTool = defineTool({
         title: 'Blanks',
         items: shown.map(({ code, name, imageUrl, fromPriceCents, facts }) => ({ code, name, imageUrl, fromPriceCents, facts })),
         total,
+        // What the grid's 'Browse all in the catalogue' link opens.
+        category,
+        query: input.q?.trim() || undefined,
       },
     ];
+    const browseHint =
+      total > shown.length ? `The grid shows ${shown.length} of ${total}. The artist can open the full catalogue from the card.` : undefined;
     return {
-      data: { total, items: shown.map(({ code, name, type, facts, fromPriceCents }) => ({ code, name, type, facts, fromPriceCents })) },
+      data: {
+        total,
+        ...(browseHint ? { browseHint } : {}),
+        items: shown.map(({ code, name, type, facts, fromPriceCents }) => ({ code, name, type, facts, fromPriceCents })),
+      },
       ui: { cards },
     };
   },
