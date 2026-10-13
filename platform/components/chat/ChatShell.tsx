@@ -16,6 +16,7 @@ import { NeedsYou } from '@/components/studio/NeedsYou';
 import { NoticeLine } from '@/components/studio/NoticeLine';
 import { PromptParam } from '@/components/studio/PromptParam';
 import { ThreadSkeleton } from '@/components/studio/ThreadSkeleton';
+import { useRegisterCatalogueSend } from '@/components/catalogue/useRegisterCatalogueSend';
 import { useOptionalStudioSidebar } from '@/components/studio/StudioSidebarProvider';
 import { useMediaQuery } from '@/components/studio/useMediaQuery';
 import '@/components/studio/studio.css';
@@ -78,6 +79,9 @@ export function ChatShell({ sessionId }: { sessionId?: string }) {
     stop,
     earlier,
   } = useConversation({ initialConversationId: sessionId, onMessageStart, onTurnEnd });
+
+  // The catalogue's "Use this blank" and "Quote a run" send into this session.
+  useRegisterCatalogueSend(sendText, sending);
 
   // A prompt from a link only fills the composer; one from an in-app button
   // (askStudio: the artist's own click) is sent once the fresh session is ready.

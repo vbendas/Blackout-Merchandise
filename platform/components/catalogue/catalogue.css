@@ -1,0 +1,1036 @@
+/* The catalogue: a panel over the Studio listing every blank (components/
+   catalogue/). Black ground, white type, white at 80/50/46% for the greys,
+   16% hairlines, 2px corners, garments on the ecru plate; the garment colours
+   are the only colour. Identity classes (.mf-pill, .mf-chip, .mf-plate,
+   .mf-skel) come from components/chat/tokens.css; everything here is
+   prefixed cat-. Focus rules are unlayered, at the end, like the other area
+   stylesheets. */
+
+@layer components {
+  .cat-root {
+    --cat-a8: color-mix(in srgb, var(--signal) 80%, transparent);
+    --cat-a5: color-mix(in srgb, var(--signal) 50%, transparent);
+    --cat-a46: color-mix(in srgb, var(--signal) 46%, transparent);
+    --cat-rule: color-mix(in srgb, var(--signal) 16%, transparent);
+    --cat-rule-strong: color-mix(in srgb, var(--signal) 32%, transparent);
+    --cat-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* The scrim: the whole Studio behind, sidebar included, dimmed. */
+    background: rgba(0, 0, 0, 0.72);
+    color: var(--signal);
+    color-scheme: dark;
+    font-size: 15px;
+    line-height: 1.5;
+    /* Closed: gone, but kept in the page so the next open is instant. It fades
+       out; the fade in is the animation below. */
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 200ms ease,
+      visibility 0s linear 200ms;
+  }
+
+  .cat-root[data-open='true'] {
+    opacity: 1;
+    visibility: visible;
+    transition: none;
+    animation: cat-fade 220ms ease both;
+  }
+
+  @keyframes cat-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes cat-rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+
+  /* The window: 85% of the viewport (1440px wide at most), so the dimmed
+     Studio shows on every side. The frame fills it and, over the frame, sit
+     its own dim layer and the detail panel. Phones and short screens take the
+     whole screen instead (below). */
+  .cat-stage {
+    /* the frame's border width: the dim layer and the detail panel sit inside it */
+    --cat-bw: 1px;
+    position: relative;
+    width: min(85vw, 1440px);
+    height: 85vh;
+    height: 85dvh;
+    /* The detail panel slides in from beyond the window's edge: clip it there. */
+    overflow: hidden;
+    border-radius: 2px;
+  }
+
+  .cat-root[data-open='true'] .cat-stage {
+    animation: cat-rise 320ms var(--ease-settle) both;
+  }
+
+  .cat-frame {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--paper);
+    border: var(--cat-bw) solid var(--cat-rule-strong);
+    border-radius: 2px;
+  }
+
+  .cat-label {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .cat-dim {
+    color: var(--cat-a5);
+  }
+
+  /* .mf-icon (tokens.css) is 18px; these sit in 40px controls beside 14px type. */
+  .cat-root .cat-ic {
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+
+  /* ---------- header ---------- */
+
+  .cat-top {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border-bottom: var(--hairline);
+  }
+
+  .cat-title {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    min-width: 0;
+    margin-right: auto;
+  }
+
+  .cat-title h2 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+  }
+
+  .cat-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: min(320px, 40vw);
+    height: 40px;
+    padding: 0 12px;
+    border: var(--hairline);
+    border-radius: 2px;
+    color: var(--cat-a5);
+    transition: border-color 300ms var(--ease-settle);
+  }
+
+  .cat-search:focus-within {
+    border-color: var(--cat-a5);
+  }
+
+  .cat-search input {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--signal);
+    font: inherit;
+    font-size: 14px;
+  }
+
+  .cat-search input::placeholder {
+    color: var(--cat-a46);
+  }
+
+  .cat-x {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: var(--hairline);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--signal);
+    cursor: pointer;
+    transition:
+      background-color 300ms var(--ease-settle),
+      border-color 300ms var(--ease-settle);
+  }
+
+  .cat-x:hover {
+    background: var(--tint-8);
+    border-color: var(--cat-a5);
+  }
+
+  .cat-root .cat-fbtn {
+    display: none;
+  }
+
+  /* ---------- rail ---------- */
+
+  .cat-body {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 236px minmax(0, 1fr);
+  }
+
+  .cat-rail {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    padding: 12px 10px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-right: var(--hairline);
+  }
+
+  .cat-rail button {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 2px;
+    background: transparent;
+    color: var(--cat-a8);
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      background-color 200ms var(--ease-settle),
+      color 200ms var(--ease-settle);
+  }
+
+  .cat-rail button:hover {
+    color: var(--signal);
+  }
+
+  .cat-rail button[aria-pressed='true'] {
+    background: var(--tint-8);
+    color: var(--signal);
+  }
+
+  .cat-n {
+    font-family: var(--cat-mono);
+    font-size: 11px;
+    color: var(--cat-a5);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cat-sep {
+    height: 1px;
+    margin: 8px 10px;
+    background: var(--cat-rule);
+  }
+
+  .cat-rail-end {
+    display: none;
+  }
+
+  /* ---------- filters ---------- */
+
+  .cat-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .cat-filters {
+    flex: none;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 18px;
+    padding: 12px 20px;
+    border-bottom: var(--hairline);
+  }
+
+  .cat-fgroup {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cat-fgroup > .cat-label {
+    margin-right: 2px;
+  }
+
+  .cat-filters .mf-chip {
+    height: 30px;
+    padding: 0 10px;
+  }
+
+  /* Chosen: white fill, black type, like the website's pills. Hover keeps it. */
+  .cat-root .mf-chip[aria-pressed='true'],
+  .cat-root .mf-chip[aria-pressed='true']:hover:not(:disabled) {
+    background: var(--signal);
+    border-color: var(--signal);
+    color: var(--paper);
+  }
+
+  .cat-chip-range {
+    font-family: var(--cat-mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--cat-a5);
+  }
+
+  .mf-chip[aria-pressed='true'] .cat-chip-range {
+    color: color-mix(in srgb, var(--paper) 60%, transparent);
+  }
+
+  /* A colour swatch: the button is the hit area, the dot is drawn inside it. */
+  .cat-sw {
+    --hit: 26px;
+    --dot: 22px;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--hit);
+    height: var(--hit);
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .cat-sw::before {
+    content: '';
+    width: var(--dot);
+    height: var(--dot);
+    border-radius: 50%;
+    background: var(--c);
+    border: 1px solid var(--cat-rule-strong);
+  }
+
+  .cat-sw[aria-pressed='true']::before {
+    outline: 1px solid var(--signal);
+    outline-offset: 2px;
+  }
+
+  .cat-sw:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .cat-sort {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .cat-sort select {
+    height: 30px;
+    padding: 0 28px 0 8px;
+    border: var(--hairline);
+    border-radius: 2px;
+    background-color: var(--paper);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='white' stroke-opacity='.7' stroke-width='1.3'%3E%3Cpath d='M1.5 3.5 5 7l3.5-3.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 9px center;
+    background-size: 10px 10px;
+    color: var(--signal);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  /* ---------- results ---------- */
+
+  .cat-results {
+    flex: 1;
+    min-height: 0;
+    padding: 16px 20px 24px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .cat-rhead {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 14px;
+  }
+
+  .cat-rhead h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cat-cell {
+    min-width: 0;
+    list-style: none;
+  }
+
+  .cat-tile {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .cat-tplate {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+  }
+
+  .cat-tplate img {
+    padding: 8%;
+    object-fit: contain;
+    transition: opacity 250ms ease;
+  }
+
+  /* The back view shows on hover or keyboard focus, once it has loaded. */
+  .cat-back {
+    opacity: 0;
+  }
+
+  .cat-tile[data-back='ready']:hover .cat-back,
+  .cat-tile[data-back='ready']:focus-visible .cat-back {
+    opacity: 1;
+  }
+
+  .cat-tile[data-back='ready']:hover .cat-front,
+  .cat-tile[data-back='ready']:focus-visible .cat-front {
+    opacity: 0;
+  }
+
+  .cat-tinfo {
+    display: grid;
+    gap: 3px;
+    padding-top: 10px;
+    border-top: var(--hairline);
+  }
+
+  .cat-tname {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  .cat-tfacts {
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--cat-a5);
+  }
+
+  .cat-tmeta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .cat-dots {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .cat-dots i {
+    display: block;
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--c);
+    border: 1px solid var(--cat-rule);
+  }
+
+  .cat-dots > span:not(.sr-only) {
+    margin-left: 4px;
+    font-family: var(--cat-mono);
+    font-size: 11px;
+    color: var(--cat-a5);
+  }
+
+  .cat-price {
+    font-size: 12px;
+    color: var(--cat-a8);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .cat-sk {
+    display: block;
+  }
+
+  .cat-more {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-top: 28px;
+  }
+
+  .cat-empty {
+    display: grid;
+    justify-items: start;
+    gap: 12px;
+    padding: 48px 0;
+    color: var(--cat-a8);
+  }
+
+  .cat-empty p {
+    margin: 0;
+  }
+
+  .cat-empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ---------- detail panel ---------- */
+
+  .cat-scrim {
+    position: absolute;
+    inset: var(--cat-bw);
+    background: rgba(0, 0, 0, 0.72);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+  }
+
+  .cat-scrim[data-on='true'] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .cat-detail {
+    position: absolute;
+    top: var(--cat-bw);
+    right: var(--cat-bw);
+    bottom: var(--cat-bw);
+    display: flex;
+    flex-direction: column;
+    width: min(560px, 100%);
+    background: var(--paper);
+    border-left: 1px solid var(--cat-rule-strong);
+    /* Closed: off to the right and out of the page for focus and screen readers. */
+    transform: translateX(100%);
+    visibility: hidden;
+    transition:
+      transform 280ms var(--ease-settle),
+      visibility 0s linear 280ms;
+  }
+
+  .cat-detail[data-open='true'] {
+    transform: none;
+    visibility: visible;
+    transition:
+      transform 280ms var(--ease-settle),
+      visibility 0s;
+  }
+
+  .cat-dtop {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: var(--hairline);
+  }
+
+  .cat-dbody {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 18px;
+    padding: 16px 20px 24px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .cat-dplate {
+    position: relative;
+    aspect-ratio: 1 / 1;
+  }
+
+  .cat-dplate img {
+    padding: 6%;
+    object-fit: contain;
+  }
+
+  .cat-views {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    display: flex;
+    gap: 6px;
+  }
+
+  .cat-views button {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    border-radius: 2px;
+    background: rgba(236, 229, 218, 0.85);
+    color: #111;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .cat-views button[aria-pressed='true'] {
+    background: #111;
+    border-color: #111;
+    color: #ece5da;
+  }
+
+  .cat-dhead {
+    display: grid;
+    gap: 6px;
+  }
+
+  .cat-dname {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+  }
+
+  .cat-dhead p {
+    margin: 0;
+    color: var(--cat-a8);
+  }
+
+  .cat-colours {
+    display: grid;
+    gap: 8px;
+  }
+
+  .cat-swrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-left: -2px;
+  }
+
+  .cat-colours .cat-sw {
+    --hit: 32px;
+    --dot: 28px;
+  }
+
+  .cat-more-colours {
+    height: 32px;
+    padding: 0 6px;
+    border: 0;
+    background: transparent;
+    color: var(--cat-a5);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    cursor: pointer;
+  }
+
+  .cat-more-colours:hover {
+    color: var(--signal);
+  }
+
+  .cat-spec {
+    display: grid;
+    margin: 0;
+  }
+
+  .cat-spec > div {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 12px;
+    padding: 10px 0;
+    border-top: var(--hairline);
+    font-size: 14px;
+  }
+
+  .cat-spec > div:last-child {
+    border-bottom: var(--hairline);
+  }
+
+  .cat-spec dt {
+    margin: 0;
+    padding-top: 2px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cat-a5);
+  }
+
+  .cat-spec dd {
+    margin: 0;
+    min-width: 0;
+    color: var(--cat-a8);
+  }
+
+  .cat-spec-skel {
+    display: grid;
+    gap: 14px;
+    padding-top: 8px;
+  }
+
+  .cat-sg summary {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .cat-sg summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .cat-sgwrap {
+    margin-top: 10px;
+    overflow-x: auto;
+  }
+
+  .cat-sgtable {
+    min-width: 420px;
+    border-collapse: collapse;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cat-sgtable th,
+  .cat-sgtable td {
+    padding: 6px 10px 6px 0;
+    border-top: var(--hairline);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .cat-sgtable thead th {
+    border-top: 0;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .cat-sgtable th {
+    font-weight: 600;
+    color: var(--cat-a5);
+  }
+
+  .cat-dnote {
+    display: grid;
+    justify-items: start;
+    gap: 10px;
+    margin: 0;
+    color: var(--cat-a8);
+  }
+
+  .cat-dnote p {
+    margin: 0;
+  }
+
+  .cat-dacts {
+    flex: none;
+    display: flex;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: var(--hairline);
+  }
+
+  .cat-dacts .mf-pill {
+    flex: 1;
+  }
+
+  /* ---------- narrower windows: a slimmer rail, fewer columns ---------- */
+
+  @media (max-width: 1199.98px) {
+    .cat-body {
+      grid-template-columns: 200px minmax(0, 1fr);
+    }
+
+    .cat-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 899.98px) {
+    .cat-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* ---------- phones, and screens too short for a window: the whole screen ---------- */
+
+  @media (max-width: 759.98px), (max-height: 480px) {
+    .cat-root {
+      height: 100dvh;
+      background: var(--paper);
+    }
+
+    .cat-stage {
+      --cat-bw: 0px;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+    }
+
+    .cat-frame {
+      border-radius: 0;
+    }
+  }
+
+  /* ---------- phones: two columns, filters behind a button, 44px targets ---------- */
+
+  @media (max-width: 759.98px) {
+    .cat-top {
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .cat-title h2 {
+      font-size: 22px;
+    }
+
+    .cat-search {
+      order: 3;
+      width: 100%;
+      height: 44px;
+    }
+
+    .cat-search input {
+      /* 16px keeps iOS from zooming the page when the field takes focus. */
+      font-size: 16px;
+    }
+
+    .cat-x {
+      width: 44px;
+      height: 44px;
+    }
+
+    .cat-root .cat-fbtn {
+      display: inline-flex;
+    }
+
+    .cat-root .mf-chip,
+    .cat-root .mf-pill {
+      min-height: 44px;
+    }
+
+    .cat-body {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .cat-rail {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      border-right: 0;
+      border-bottom: var(--hairline);
+      -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+      mask-image: linear-gradient(90deg, #000 88%, transparent);
+    }
+
+    .cat-rail button {
+      flex: none;
+      align-items: center;
+      width: auto;
+      min-height: 44px;
+      padding: 7px 12px;
+      border: var(--hairline);
+      font-size: 13px;
+    }
+
+    .cat-sep {
+      display: none;
+    }
+
+    /* Room at the end of the strip, so the last category scrolls clear of the fade. */
+    .cat-rail-end {
+      display: block;
+      flex: none;
+      width: 36px;
+      height: 1px;
+    }
+
+    .cat-filters {
+      display: none;
+      padding: 12px;
+    }
+
+    .cat-root[data-filters='open'] .cat-filters {
+      display: flex;
+    }
+
+    .cat-filters .mf-chip {
+      height: 44px;
+    }
+
+    .cat-sw {
+      --hit: 44px;
+      --dot: 24px;
+    }
+
+    .cat-colours .cat-sw {
+      --hit: 44px;
+      --dot: 28px;
+    }
+
+    .cat-sort {
+      margin-left: 0;
+    }
+
+    .cat-sort select {
+      height: 44px;
+    }
+
+    .cat-results {
+      padding: 12px 12px 20px;
+    }
+
+    .cat-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px 10px;
+    }
+
+    .cat-detail {
+      width: 100%;
+      border-left: 0;
+    }
+
+    .cat-dtop {
+      padding: 8px 12px;
+    }
+
+    .cat-dbody {
+      padding: 16px 16px 24px;
+    }
+
+    .cat-views button {
+      height: 44px;
+      padding: 0 14px;
+    }
+
+    .cat-more-colours {
+      height: 44px;
+    }
+
+    .cat-spec > div {
+      grid-template-columns: 96px minmax(0, 1fr);
+    }
+
+    .cat-sg summary {
+      padding: 12px 0;
+      margin-top: 0;
+    }
+
+    .cat-dacts {
+      padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cat-root,
+    .cat-detail,
+    .cat-scrim,
+    .cat-tplate img {
+      transition: none;
+    }
+
+    .cat-root[data-open='true'],
+    .cat-root[data-open='true'] .cat-stage {
+      animation: none;
+    }
+  }
+}
+
+/* Focus stays unlayered so it always shows (app/globals.css draws the ring).
+   The panels take focus themselves, and the search shows it on its box. */
+.cat-frame:focus-visible,
+.cat-detail:focus-visible {
+  outline: none;
+}
+
+.cat-search input:focus-visible {
+  outline: none;
+}
+
+.cat-rail button:focus-visible {
+  outline-offset: -1px;
+}

@@ -1,3 +1,4 @@
+export { CATALOGUE_CATEGORIES, type CatalogueCategory } from './categories';
 import { blankDisplayName } from './display-names';
 import { colourName } from './colour-names';
 import { PRODUCT_DETAILS } from './product-details';
