@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import { getPublicStore, listCollections, listLiveProducts } from '@/lib/storefront/read-model';
+import { piecesLabel } from '@/lib/storefront/present';
 import { CollectionPills } from '@/components/storefront/CollectionPills';
 import { ProductGrid } from '@/components/storefront/ProductGrid';
-import { Hairline } from '@/components/ui/Hairline';
 
 export default async function ShopPage({
   params,
@@ -17,24 +17,27 @@ export default async function ShopPage({
   const store = await getPublicStore(slug);
   if (!store) notFound();
 
-  const [collections, products] = await Promise.all([
+  const [collections, allProducts] = await Promise.all([
     listCollections(store.id, slug),
-    listLiveProducts(store.id, slug, collection),
+    listLiveProducts(store.id, slug),
   ]);
+
+  // ?collection= only counts when it names a section the shop lists (visible,
+  // with live products). A hidden project, an empty one or a made-up slug is
+  // ignored and the whole shop shows.
+  const active = collections.find((c) => c.slug === collection);
+  const products = active ? allProducts.filter((p) => p.collectionSlug === active.slug) : allProducts;
 
   return (
     <div>
-      {store.bannerUrl && (
-        <div className="mb-10">
-          <div style={{ aspectRatio: '16 / 6' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={store.bannerUrl} alt={store.name} className="h-full w-full object-cover" />
-          </div>
-          <Hairline />
-        </div>
-      )}
+      <div className="sf-line">
+        <h1 className="sf-title">{active?.name ?? 'Shop'}</h1>
+        {products.length > 0 && (
+          <p className="mf-label mf-dim">{piecesLabel(products.length)} · printed in Barcelona</p>
+        )}
+      </div>
 
-      <CollectionPills slug={slug} collections={collections} active={collection} />
+      <CollectionPills slug={slug} collections={collections} active={active?.slug} />
       <ProductGrid slug={slug} products={products} />
     </div>
   );

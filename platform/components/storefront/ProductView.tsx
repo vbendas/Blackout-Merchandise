@@ -1,36 +1,50 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { PublicProductDetail } from '@/lib/storefront/read-model';
 import { useCart } from '@/components/storefront/CartProvider';
-import { Hairline } from '@/components/ui/Hairline';
+import { formatPrice } from '@/lib/storefront/present';
 
-function formatCents(cents: number | null): string {
-  return cents == null ? '—' : `€${(cents / 100).toFixed(2)}`;
+// How long the button keeps saying "Added to cart".
+const ADDED_MS = 2000;
+
+interface SpecRow {
+  label: string;
+  value: string | null;
+  /** a quieter line under the value */
+  note?: string | null;
 }
 
 export function ProductView({ slug, product }: { slug: string; product: PublicProductDetail }) {
-  const { add } = useCart();
+  const { add, count } = useCart();
   const [colourCode, setColourCode] = useState(product.colours[0]?.code ?? '');
   const [size, setSize] = useState(product.sizes[0] ?? '');
   const [qty, setQty] = useState(1);
   const [guideOpen, setGuideOpen] = useState(false);
   const [added, setAdded] = useState(false);
+  const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (addedTimer.current) clearTimeout(addedTimer.current);
+    },
+    [],
+  );
 
   const colour = product.colours.find((c) => c.code === colourCode) ?? product.colours[0];
 
-  const specs = useMemo(
-    () =>
-      [
-        { label: 'Garment', value: product.blank.supplierName ?? product.blank.name },
-        { label: 'Composition', value: product.blank.composition },
-        { label: 'Weight', value: product.blank.weightGsm ? `${product.blank.weightGsm} gsm` : null },
-        { label: 'Print', value: product.printServiceName },
-        product.blank.fit ? { label: 'Fit', value: product.blank.fit } : null,
-      ].filter((s): s is { label: string; value: string } => Boolean(s?.value)),
-    [product],
-  );
+  const specs = useMemo(() => {
+    const { garment } = product;
+    const rows: SpecRow[] = [
+      { label: 'Garment', value: garment.name, note: garment.facts },
+      { label: 'Composition', value: garment.composition },
+      { label: 'Weight', value: garment.weightGsm ? `${garment.weightGsm} gsm` : null },
+      { label: 'Print', value: product.printServiceName },
+      { label: 'Fit', value: garment.fit },
+    ];
+    return rows.filter((row) => Boolean(row.value));
+  }, [product]);
 
   function handleAdd() {
     if (!colour || !size) return;
@@ -45,64 +59,54 @@ export function ProductView({ slug, product }: { slug: string; product: PublicPr
       priceCents: product.retailPriceCents ?? 0,
     });
     setAdded(true);
-    setTimeout(() => setAdded(false), 1600);
+    if (addedTimer.current) clearTimeout(addedTimer.current);
+    addedTimer.current = setTimeout(() => setAdded(false), ADDED_MS);
   }
 
   const canAdd = Boolean(colour) && Boolean(size) && product.retailPriceCents != null;
+  const addLabel = added ? 'Added to cart' : 'Add to cart';
 
   return (
-    <div className="pb-28 md:pb-0" style={{ paddingInline: 'var(--gutter)' }}>
-      <Link href={`/${slug}`} className="label mf-dim mb-6 inline-block hover:opacity-80">
+    <div className="pt-8">
+      <Link href={`/${slug}`} className="mf-label mf-dim mb-6 inline-block hover:opacity-80">
         ← Back to shop
       </Link>
+
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-16">
         {/* Gallery */}
         <div>
-          <div className="hairline relative aspect-square w-full overflow-hidden">
-            <div className="absolute inset-[9%]">
-              {colour?.mockupUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={colour.mockupUrl}
-                  alt={`${product.name} — ${colour.name}`}
-                  className="h-full w-full object-contain"
-                />
-              ) : (
-                <div className="mf-dim flex h-full w-full items-center justify-center text-xs">No image</div>
-              )}
-            </div>
+          <div className="sf-plate mf-plate">
+            {colour?.mockupUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={colour.mockupUrl} alt={`${product.name}, ${colour.name}`} fetchPriority="high" />
+            ) : (
+              <span className="sf-plate-empty">No image</span>
+            )}
           </div>
 
           {colour?.backMockupUrl && (
-            <div className="hairline relative mt-4 aspect-square w-full overflow-hidden">
-              <div className="absolute inset-[9%]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={colour.backMockupUrl}
-                  alt={`${product.name} — ${colour.name}, back`}
-                  className="h-full w-full object-contain"
-                />
-              </div>
+            <div className="sf-plate mf-plate mt-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={colour.backMockupUrl} alt={`${product.name}, ${colour.name}, back`} loading="lazy" />
             </div>
           )}
 
           {product.colours.length > 1 && (
-            <div className="mt-4 flex gap-3">
+            <div className="mt-4 flex flex-wrap gap-3">
               {product.colours.map((c) => (
                 <button
                   key={c.code}
                   type="button"
-                  className="hairline flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden focus:outline-none"
-                  style={{ outline: c.code === colourCode ? '2px solid var(--accent)' : undefined, outlineOffset: '2px' }}
+                  className="sf-plate sf-thumb mf-plate"
                   onClick={() => setColourCode(c.code)}
                   aria-label={c.name}
                   aria-pressed={c.code === colourCode}
                 >
                   {c.mockupUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={c.mockupUrl} alt={c.name} className="h-full w-full object-cover" />
+                    <img src={c.mockupUrl} alt="" loading="lazy" />
                   ) : (
-                    <span aria-hidden className="h-6 w-6 rounded-full" style={{ background: c.hex }} />
+                    <span aria-hidden="true" className="absolute inset-0" style={{ background: c.hex }} />
                   )}
                 </button>
               ))}
@@ -112,35 +116,27 @@ export function ProductView({ slug, product }: { slug: string; product: PublicPr
 
         {/* Info */}
         <div>
-          <h1 className="font-display text-2xl">{product.name}</h1>
-          <p className="mt-2 text-lg">{formatCents(product.retailPriceCents)}</p>
+          <h1 className="mf-display text-[28px] leading-tight md:text-[32px]">{product.name}</h1>
+          <p className="mt-2 text-lg tabular-nums">{formatPrice(product.retailPriceCents)}</p>
 
           {product.description && <p className="mf-dim mt-4 text-sm leading-relaxed">{product.description}</p>}
 
           {/* Colour swatches */}
           {product.colours.length > 0 && (
             <div className="mt-8">
-              <span className="label mf-dim">Colour — {colour?.name}</span>
-              <div className="mt-3 flex flex-wrap gap-3">
+              <span className="mf-label mf-dim">Colour: {colour?.name}</span>
+              <div className="mt-2 flex flex-wrap gap-1">
                 {product.colours.map((c) => (
                   <button
                     key={c.code}
                     type="button"
-                    className="flex min-h-11 items-center gap-2 rounded-full px-1 focus:outline-none"
+                    className="sf-swatch-btn"
                     onClick={() => setColourCode(c.code)}
                     aria-pressed={c.code === colourCode}
                     aria-label={c.name}
+                    title={c.name}
                   >
-                    <span
-                      aria-hidden
-                      className="h-6 w-6 rounded-full"
-                      style={{
-                        background: c.hex,
-                        border: '1px solid color-mix(in srgb, var(--signal) 30%, transparent)',
-                        outline: c.code === colourCode ? '2px solid var(--accent)' : undefined,
-                        outlineOffset: '2px',
-                      }}
-                    />
+                    <span aria-hidden="true" className="sf-swatch" style={{ background: c.hex }} />
                   </button>
                 ))}
               </div>
@@ -151,24 +147,24 @@ export function ProductView({ slug, product }: { slug: string; product: PublicPr
           {product.sizes.length > 0 && (
             <div className="mt-8">
               <div className="flex items-center justify-between">
-                <span className="label mf-dim">Size</span>
+                <span className="mf-label mf-dim">Size</span>
                 {product.sizeGuide && (
-                  <button type="button" className="label hover:opacity-80" onClick={() => setGuideOpen((v) => !v)}>
-                    {guideOpen ? 'Hide guide' : 'Size guide'}
+                  <button
+                    type="button"
+                    className="mf-ulink inline-flex min-h-11 cursor-pointer items-center"
+                    onClick={() => setGuideOpen((v) => !v)}
+                    aria-expanded={guideOpen}
+                  >
+                    {guideOpen ? 'Hide size guide' : 'Size guide'}
                   </button>
                 )}
               </div>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-1 flex flex-wrap gap-2">
                 {product.sizes.map((s) => (
                   <button
                     key={s}
                     type="button"
-                    className="hairline label flex min-h-11 min-w-11 items-center justify-center px-3"
-                    style={
-                      s === size
-                        ? { borderColor: 'var(--accent)', color: 'var(--accent)' }
-                        : undefined
-                    }
+                    className="mf-pill sf-opt"
                     onClick={() => setSize(s)}
                     aria-pressed={s === size}
                   >
@@ -182,9 +178,9 @@ export function ProductView({ slug, product }: { slug: string; product: PublicPr
                   <table style={{ borderCollapse: 'collapse', width: '100%' }}>
                     <thead>
                       <tr>
-                        <th className="hairline p-2 text-left text-xs">Size</th>
+                        <th className="hairline p-2 text-left text-xs font-semibold">Size</th>
                         {product.sizeGuide.columns.map((col) => (
-                          <th key={col} className="hairline p-2 text-left text-xs">
+                          <th key={col} className="hairline p-2 text-left text-xs font-semibold">
                             {col}
                           </th>
                         ))}
@@ -211,23 +207,21 @@ export function ProductView({ slug, product }: { slug: string; product: PublicPr
 
           {/* Quantity */}
           <div className="mt-8">
-            <span className="label mf-dim">Quantity</span>
-            <div className="hairline mt-3 inline-flex items-center">
+            <span className="mf-label mf-dim">Quantity</span>
+            <div className="sf-stepper mt-2 flex w-fit">
               <button
                 type="button"
-                className="flex h-11 w-11 items-center justify-center text-lg"
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
+                disabled={qty <= 1}
                 aria-label="Decrease quantity"
               >
                 −
               </button>
-              <span className="w-10 text-center text-sm" aria-live="polite">
-                {qty}
-              </span>
+              <output aria-live="polite">{qty}</output>
               <button
                 type="button"
-                className="flex h-11 w-11 items-center justify-center text-lg"
                 onClick={() => setQty((q) => Math.min(20, q + 1))}
+                disabled={qty >= 20}
                 aria-label="Increase quantity"
               >
                 +
@@ -238,48 +232,46 @@ export function ProductView({ slug, product }: { slug: string; product: PublicPr
           {/* Add to cart (desktop) */}
           <button
             type="button"
-            className="mt-10 hidden min-h-11 w-full items-center justify-center rounded-full py-3 text-sm font-bold md:flex"
-            style={{ background: 'var(--accent)', color: '#fff', opacity: canAdd ? 1 : 0.5 }}
+            className="mf-pill sf-cta mt-10 hidden w-full md:flex"
             onClick={handleAdd}
             disabled={!canAdd}
           >
-            {added ? 'Added' : 'Add to cart'}
+            {addLabel}
           </button>
 
+          {/* Announces the add to screen readers; the header count updates with it. */}
+          <p role="status" aria-live="polite" className="sr-only">
+            {added ? `Added to cart. ${count} ${count === 1 ? 'item' : 'items'} in your cart.` : ''}
+          </p>
+
           {specs.length > 0 && (
-            <dl className="mt-10 space-y-2">
+            <dl className="sf-specs mt-10">
               {specs.map((s) => (
-                <div key={s.label} className="flex justify-between text-sm">
-                  <dt className="mf-dim">{s.label}</dt>
-                  <dd>{s.value}</dd>
+                <div key={s.label} className="sf-spec">
+                  <dt>{s.label}</dt>
+                  <dd>
+                    {s.value}
+                    {s.note && <span className="sf-spec-note">{s.note}</span>}
+                  </dd>
                 </div>
               ))}
             </dl>
           )}
 
-          {product.blank.certifications.length > 0 && (
-            <p className="mf-dim mt-4 text-xs">{product.blank.certifications.join(' · ')}</p>
+          {product.garment.certifications.length > 0 && (
+            <p className="mf-dim mt-4 text-xs">{product.garment.certifications.join(' · ')}</p>
           )}
 
-          <p className="label mf-dim mt-6">Printed to order in Barcelona · ships in 8 working days</p>
+          <p className="mf-label mf-dim mt-6">Printed to order in Barcelona · ships in 8 working days</p>
         </div>
       </div>
 
-      {/* Sticky mobile add-to-cart bar */}
-      <div className="fixed inset-x-0 bottom-0 z-20 md:hidden" style={{ background: 'var(--paper)' }}>
-        <Hairline />
-        <div className="flex items-center justify-between gap-4 p-4">
-          <span className="text-sm font-bold">{formatCents(product.retailPriceCents)}</span>
-          <button
-            type="button"
-            className="flex min-h-11 flex-1 items-center justify-center rounded-full py-3 text-sm font-bold"
-            style={{ background: 'var(--accent)', color: '#fff', opacity: canAdd ? 1 : 0.5 }}
-            onClick={handleAdd}
-            disabled={!canAdd}
-          >
-            {added ? 'Added' : 'Add to cart'}
-          </button>
-        </div>
+      {/* Phone add-to-cart bar */}
+      <div className="sf-bar md:hidden">
+        <span className="text-[15px] font-semibold tabular-nums">{formatPrice(product.retailPriceCents)}</span>
+        <button type="button" className="mf-pill sf-cta flex-1" onClick={handleAdd} disabled={!canAdd}>
+          {addLabel}
+        </button>
       </div>
     </div>
   );

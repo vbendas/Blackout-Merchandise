@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
-import { getPublicStore, listCollections } from '@/lib/storefront/read-model';
+import type { CSSProperties, ReactNode } from 'react';
+import { getPublicStore } from '@/lib/storefront/read-model';
+import { resolveAccent } from '@/lib/storefront/accent';
 import { CartProvider } from '@/components/storefront/CartProvider';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
-
-const DEFAULT_ACCENT = '#E11D48';
+import '@/components/storefront/storefront.css';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -44,17 +44,18 @@ export default async function StoreLayout({
   // app/[slug]/not-found.tsx correctly since the layout renders fine.
   if (!store) return <>{children}</>;
 
-  const collections = await listCollections(store.id, slug);
+  // White on black unless the artist chose a colour of their own; the text on
+  // it is picked by contrast (lib/storefront/accent.ts).
+  const { accent, onAccent } = resolveAccent(store.accentColour);
 
   return (
     <div
-      data-mode="dark"
-      style={{ '--accent': store.accentColour ?? DEFAULT_ACCENT } as React.CSSProperties}
-      className="flex min-h-screen flex-col"
+      style={{ '--shop-accent': accent, '--shop-on-accent': onAccent } as CSSProperties}
+      className="sf-shell"
     >
       <CartProvider slug={store.slug}>
-        <Header store={store} collections={collections} />
-        <main className="flex-1 pt-12">{children}</main>
+        <Header store={store} />
+        <main className="sf-wrap flex-1">{children}</main>
         <Footer store={store} />
       </CartProvider>
     </div>

@@ -1,48 +1,35 @@
 import Link from 'next/link';
-import type { PublicCollection, PublicStore } from '@/lib/storefront/read-model';
+import type { PublicStore } from '@/lib/storefront/read-model';
 import { CartButton } from '@/components/storefront/CartButton';
-import { Hairline } from '@/components/ui/Hairline';
+import { ShopNav } from '@/components/storefront/ShopNav';
 
+// Shop and About left, the artist's mark centred, Cart right: the layout the
+// website's apply preview promises. The mark is the shop's logo when it has
+// one, its name otherwise. About only shows when there is something to read.
+//
 // Plain <img>, not next/image: mockups and store assets come from a mix of
 // Cloudinary, fal and local /packshots paths with no remotePatterns
 // configured (next.config.ts is owned by another agent) — the rest of the
 // codebase (components/cards/*) follows the same convention.
-export function Header({ store, collections }: { store: PublicStore; collections: PublicCollection[] }) {
+export function Header({ store }: { store: PublicStore }) {
+  const hasAbout = Boolean(store.about?.trim() || store.bannerUrl);
+
   return (
-    <header>
-      <div
-        className="flex items-center justify-between gap-6"
-        style={{ paddingInline: 'var(--gutter)', height: '72px' }}
-      >
-        <Link href={`/${store.slug}`} className="flex min-w-0 items-center gap-3">
+    <header className="sf-header">
+      <div className="sf-wrap sf-top">
+        <ShopNav slug={store.slug} showAbout={hasAbout} />
+
+        <Link href={`/${store.slug}`} className="sf-top-mark">
           {store.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={store.logoUrl} alt={store.name} className="h-9 w-9 shrink-0 rounded-full object-cover" />
+            <img src={store.logoUrl} alt={store.name} className="sf-mark-img" />
           ) : (
-            <span className="font-display truncate text-lg font-bold">{store.name}</span>
+            <span className="sf-mark">{store.name}</span>
           )}
         </Link>
 
-        {collections.length > 0 && (
-          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-6 overflow-x-auto md:flex" aria-label="Collections">
-            <Link href={`/${store.slug}`} className="label mf-dim whitespace-nowrap hover:opacity-80">
-              All
-            </Link>
-            {collections.map((c) => (
-              <Link
-                key={c.id}
-                href={`/${store.slug}?collection=${c.slug}`}
-                className="label mf-dim whitespace-nowrap hover:opacity-80"
-              >
-                {c.name}
-              </Link>
-            ))}
-          </nav>
-        )}
-
         <CartButton slug={store.slug} />
       </div>
-      <Hairline />
     </header>
   );
 }

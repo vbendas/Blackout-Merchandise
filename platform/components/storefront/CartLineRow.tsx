@@ -1,11 +1,8 @@
 'use client';
 
 import type { CartLine } from '@/lib/storefront/cart';
+import { formatCents } from '@/lib/storefront/present';
 import { Hairline } from '@/components/ui/Hairline';
-
-function formatCents(cents: number): string {
-  return `€${(cents / 100).toFixed(2)}`;
-}
 
 export function CartLineRow({
   line,
@@ -19,47 +16,35 @@ export function CartLineRow({
   return (
     <div>
       <div className="flex items-center gap-4 py-5">
-        <div className="hairline h-20 w-20 shrink-0 overflow-hidden">
+        <div className="sf-plate mf-plate w-[72px] shrink-0">
           {line.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={line.imageUrl} alt={`${line.name} — ${line.colourName}`} className="h-full w-full object-cover" />
+            <img src={line.imageUrl} alt="" loading="lazy" />
           ) : (
-            <div className="mf-dim flex h-full w-full items-center justify-center text-[10px]">No image</div>
+            <span className="sf-plate-empty text-[10px]">No image</span>
           )}
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-bold">{line.name}</div>
+          <div className="truncate text-sm font-semibold">{line.name}</div>
           <div className="mf-dim mt-1 text-xs">
             {line.colourName} · {line.size}
           </div>
 
-          <div className="hairline mt-3 inline-flex items-center">
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center text-sm"
-              onClick={() => onQtyChange(line.qty - 1)}
-              aria-label={`Decrease quantity of ${line.name}`}
-            >
+          <div className="sf-stepper mt-3">
+            <button type="button" onClick={() => onQtyChange(line.qty - 1)} aria-label={`Decrease quantity of ${line.name}`}>
               −
             </button>
-            <span className="w-8 text-center text-xs" aria-live="polite">
-              {line.qty}
-            </span>
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center text-sm"
-              onClick={() => onQtyChange(line.qty + 1)}
-              aria-label={`Increase quantity of ${line.name}`}
-            >
+            <output aria-live="polite">{line.qty}</output>
+            <button type="button" onClick={() => onQtyChange(line.qty + 1)} aria-label={`Increase quantity of ${line.name}`}>
               +
             </button>
           </div>
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-3">
-          <span className="text-sm">{formatCents(line.priceCents * line.qty)}</span>
-          <button type="button" className="label mf-dim min-h-11 hover:opacity-80" onClick={onRemove}>
+          <span className="text-sm tabular-nums">{formatCents(line.priceCents * line.qty)}</span>
+          <button type="button" className="mf-ulink inline-flex min-h-11 cursor-pointer items-center hover:opacity-80" onClick={onRemove}>
             Remove
           </button>
         </div>

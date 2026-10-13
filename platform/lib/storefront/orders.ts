@@ -1,5 +1,6 @@
 import { eq, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
+import { fanProductName } from '@/lib/storefront/fan-names';
 
 // Public, token-scoped order lookup for the fan order-status page and its
 // API route. There is no lib/services/orders.ts yet (it's being built
@@ -65,9 +66,13 @@ export async function getPublicOrder(token: string): Promise<PublicOrder | null>
       colourName: schema.colours.name,
       size: schema.orderItems.size,
       productName: schema.products.name,
+      blankCode: schema.products.blankCode,
+      blankName: schema.blanks.name,
+      blankSupplierName: schema.blanks.supplierName,
     })
     .from(schema.orderItems)
     .innerJoin(schema.products, eq(schema.orderItems.productId, schema.products.id))
+    .innerJoin(schema.blanks, eq(schema.products.blankCode, schema.blanks.code))
     .leftJoin(schema.colours, eq(schema.orderItems.colourCode, schema.colours.code))
     .where(eq(schema.orderItems.orderId, order.id));
 
@@ -91,7 +96,7 @@ export async function getPublicOrder(token: string): Promise<PublicOrder | null>
     storeName: order.storeName,
     lines: itemRows.map((i) => ({
       productId: i.productId,
-      name: i.productName,
+      name: fanProductName(i.productName, { code: i.blankCode, name: i.blankName, supplierName: i.blankSupplierName }),
       colourCode: i.colourCode,
       colourName: i.colourName ?? i.colourCode,
       size: i.size,

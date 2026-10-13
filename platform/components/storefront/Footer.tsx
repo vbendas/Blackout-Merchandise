@@ -1,5 +1,5 @@
 import type { PublicStore } from '@/lib/storefront/read-model';
-import { Hairline } from '@/components/ui/Hairline';
+import { safeExternalUrl } from '@/lib/storefront/present';
 
 const SOCIAL_LABELS: Record<string, string> = {
   instagram: 'Instagram',
@@ -11,29 +11,27 @@ const SOCIAL_LABELS: Record<string, string> = {
 };
 
 export function Footer({ store }: { store: PublicStore }) {
-  const socials = Object.entries(store.socials ?? {}).filter(([, url]) => Boolean(url));
+  const socials = Object.entries(store.socials ?? {}).flatMap(([key, value]) => {
+    const href = safeExternalUrl(value);
+    return href ? [{ key, href }] : [];
+  });
 
   return (
-    <footer className="mt-24">
-      <Hairline />
-      <div style={{ padding: 'var(--gutter)' }}>
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-          {store.about && <p className="mf-dim max-w-md text-sm leading-relaxed">{store.about}</p>}
+    <footer className="sf-footer">
+      <div className="sf-wrap sf-footer-in">
+        <p className="mf-label mf-dim">Merch by MerchFrom · printed in Barcelona</p>
 
-          {socials.length > 0 && (
-            <ul className="flex flex-wrap gap-4">
-              {socials.map(([key, url]) => (
-                <li key={key}>
-                  <a href={url} target="_blank" rel="noreferrer" className="label hover:opacity-80">
-                    {SOCIAL_LABELS[key.toLowerCase()] ?? key}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <p className="label mf-dim mt-10">Merch by MerchFrom · printed in Barcelona</p>
+        {socials.length > 0 && (
+          <ul role="list" className="sf-socials">
+            {socials.map(({ key, href }) => (
+              <li key={key}>
+                <a href={href} target="_blank" rel="noreferrer" className="mf-label hover:opacity-80">
+                  {SOCIAL_LABELS[key.toLowerCase()] ?? key}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </footer>
   );

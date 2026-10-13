@@ -6,11 +6,34 @@ import { useCart } from '@/components/storefront/CartProvider';
 import { CartLineRow } from '@/components/storefront/CartLineRow';
 import { lineKey } from '@/lib/storefront/cart';
 import { checkProductsLive } from '@/lib/storefront/actions';
+import { formatCents } from '@/lib/storefront/present';
 import { SHIPPING_COUNTRIES } from '@/lib/storefront/shipping-countries';
 import type { CheckoutRequest, CheckoutResponse } from '@/lib/agent/protocol';
 
-function formatCents(cents: number): string {
-  return `€${(cents / 100).toFixed(2)}`;
+const CHECKOUT_CLOSED = 'Checkout is closed right now. Try again soon.';
+const CHECKOUT_FAILED = "Checkout didn't start. Try again in a moment.";
+
+/** A plain sentence for a failed checkout call. The server's own text is only
+ * read to pick the sentence, never shown: it speaks in system terms. */
+function checkoutErrorMessage(status: number, serverText: string): string {
+  if (status === 404) return CHECKOUT_CLOSED;
+  if (status === 429) return 'Too many tries. Wait a moment, then try again.';
+  if (status >= 500) return 'Something went wrong on our side. Try again in a moment.';
+
+  const text = serverText.toLowerCase();
+  if (text.includes('cannot accept payments')) return CHECKOUT_CLOSED;
+  if (text.includes('ship to that country') || text.includes('destination country')) {
+    return "We can't ship to that destination yet. Pick another country.";
+  }
+  if (
+    text.includes('no longer available') ||
+    text.includes('not currently for sale') ||
+    text.includes("doesn't come in") ||
+    text.includes('no price')
+  ) {
+    return "Something in your cart isn't available anymore. Remove it and try again.";
+  }
+  return CHECKOUT_FAILED;
 }
 
 type CheckoutState = { kind: 'idle' } | { kind: 'loading' } | { kind: 'error'; message: string };
@@ -56,28 +79,29 @@ export function CartPageClient({ slug }: { slug: string }) {
         body: JSON.stringify(body),
       });
 
-      if (res.status === 404) {
-        setCheckout({ kind: 'error', message: "Checkout isn't live yet — hang tight, it's being built." });
-        return;
-      }
       if (!res.ok) {
         const text = await res.text().catch(() => '');
-        setCheckout({ kind: 'error', message: text || 'Checkout failed. Please try again.' });
+        setCheckout({ kind: 'error', message: checkoutErrorMessage(res.status, text) });
         return;
       }
 
       const data = (await res.json()) as CheckoutResponse;
+      if (!data.url) {
+        setCheckout({ kind: 'error', message: CHECKOUT_FAILED });
+        return;
+      }
       window.location.href = data.url;
     } catch {
-      setCheckout({ kind: 'error', message: "Couldn't reach checkout. Please try again." });
+      setCheckout({ kind: 'error', message: "We couldn't reach checkout. Check your connection and try again." });
     }
   }
 
   if (lines.length === 0) {
     return (
-      <div style={{ paddingInline: 'var(--gutter)', paddingBlock: '80px' }}>
-        <p className="mf-dim">Your cart is empty.</p>
-        <Link href={`/${slug}`} className="label mt-4 inline-block hover:opacity-80" style={{ color: 'var(--accent)' }}>
+      <div className="pb-20 pt-8">
+        <h1 className="sf-title">Cart</h1>
+        <p className="mf-dim mt-6">Your cart is empty.</p>
+        <Link href={`/${slug}`} className="mf-ulink mt-4 inline-block">
           Continue shopping
         </Link>
       </div>
@@ -85,13 +109,13 @@ export function CartPageClient({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-12 md:grid-cols-[1fr_320px]" style={{ paddingInline: 'var(--gutter)' }}>
+    <div className="grid grid-cols-1 gap-12 pt-8 md:grid-cols-[1fr_340px]">
       <div>
-        <h1 className="font-display mb-6 text-2xl">Cart ({count})</h1>
+        <h1 className="sf-title mb-6">Cart ({count})</h1>
 
         {staleNotice && (
-          <p className="hairline mb-6 p-3 text-xs" style={{ color: 'var(--accent)' }}>
-            One or more items in your cart are no longer available and were removed.
+          <p role="status" className="sf-notice mb-6">
+            Something in your cart isn&apos;t available anymore, so we removed it.
           </p>
         )}
 
@@ -106,20 +130,16 @@ export function CartPageClient({ slug }: { slug: string }) {
       </div>
 
       <div>
-        <div className="hairline p-5">
+        <div className="sf-box">
           <div className="flex justify-between text-sm">
             <span className="mf-dim">Subtotal</span>
-            <span>{formatCents(subtotalCents)}</span>
+            <span className="tabular-nums">{formatCents(subtotalCents)}</span>
           </div>
           <p className="mf-dim mt-1 text-xs">Shipping calculated at checkout.</p>
 
           <label className="mt-6 block">
-            <span className="label mf-dim">Destination</span>
-            <select
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className="hairline mt-2 min-h-11 w-full bg-transparent p-2 text-sm"
-            >
+            <span className="mf-label mf-dim">Destination</span>
+            <select value={country} onChange={(e) => setCountry(e.target.value)} className="sf-field mt-2">
               {SHIPPING_COUNTRIES.map((c) => (
                 <option key={c.code} value={c.code} style={{ background: 'var(--paper)' }}>
                   {c.name}
@@ -129,28 +149,29 @@ export function CartPageClient({ slug }: { slug: string }) {
           </label>
 
           <label className="mt-4 block">
-            <span className="label mf-dim">Email (optional)</span>
+            <span className="mf-label mf-dim">Email (optional)</span>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="hairline mt-2 min-h-11 w-full bg-transparent p-2 text-sm outline-none"
+              autoComplete="email"
+              className="sf-field mt-2"
             />
           </label>
 
           {checkout.kind === 'error' && (
-            <p className="mt-4 text-xs" style={{ color: 'var(--accent)' }}>
+            <p role="alert" className="sf-notice mt-4">
               {checkout.message}
             </p>
           )}
 
           <button
             type="button"
-            className="mt-6 flex min-h-11 w-full items-center justify-center rounded-full py-3 text-sm font-bold"
-            style={{ background: 'var(--accent)', color: '#fff', opacity: checkout.kind === 'loading' ? 0.6 : 1 }}
+            className="mf-pill sf-cta mt-6 w-full"
             onClick={handleCheckout}
             disabled={checkout.kind === 'loading'}
+            aria-busy={checkout.kind === 'loading'}
           >
             {checkout.kind === 'loading' ? 'Redirecting…' : 'Checkout'}
           </button>
