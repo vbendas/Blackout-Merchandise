@@ -2,6 +2,7 @@ import { requireRegistered } from '@/lib/auth';
 import { getMonthFigures, listRecentPayouts, waitingOnYou } from '@/lib/services/billing';
 import { listRunsForStore } from '@/lib/services/runs';
 import { getStripeAccountStatus } from '@/lib/services/stripe';
+import { PageTopBar } from '@/components/studio/PageTopBar';
 import { Figures } from '@/components/studio/billing/Figures';
 import { PageSection } from '@/components/studio/billing/PageSection';
 import { PayoutSetup } from '@/components/studio/billing/PayoutSetup';
@@ -16,16 +17,18 @@ export default async function BillingPage() {
   const { store } = await requireRegistered();
 
   return (
-    <main className="bl">
-      <h1 className="mf-display bl-title">Billing</h1>
-      {store ? (
-        <StoreBilling storeId={store.id} />
-      ) : (
-        <PageSection id="payouts" label="Payouts">
-          <p className="mf-dimmed bl-empty">This account has no shop, so there are no payouts or runs to show.</p>
-        </PageSection>
-      )}
-    </main>
+    <>
+      <PageTopBar title="Billing" />
+      <main className="bl">
+        {store ? (
+          <StoreBilling storeId={store.id} />
+        ) : (
+          <PageSection id="payouts" label="Payouts">
+            <p className="mf-dimmed bl-empty">This account has no shop, so there are no payouts or runs to show.</p>
+          </PageSection>
+        )}
+      </main>
+    </>
   );
 }
 

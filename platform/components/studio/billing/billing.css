@@ -16,19 +16,20 @@
     --bl-cols: minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 0.9fr) minmax(0, 1.7fr) 108px;
     width: 100%;
     max-width: 960px;
-    margin: 0 auto;
-    padding: 40px var(--gutter) 80px;
+    /* left-aligned under the top bar (PageTopBar), at the bar's own padding */
+    margin: 0;
+    padding: 32px 20px 80px;
+  }
+
+  @media (min-width: 768px) {
+    .bl {
+      padding-inline: 32px;
+    }
   }
 
   /* Zero specificity, so the margins set on the classes below still apply. */
   :where(.bl) :where(dl, dd, p, ul) {
     margin: 0;
-  }
-
-  .bl-title {
-    margin: 0 0 32px;
-    font-size: clamp(30px, 5vw, 44px);
-    line-height: 1.05;
   }
 
   /* Payouts not set up yet: one line and the button, between hairlines. */
