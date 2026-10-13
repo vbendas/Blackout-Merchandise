@@ -4,10 +4,12 @@ import { getOrder } from '@/lib/services/orders';
 import { getBulkOrder } from '@/lib/services/bulk';
 import { payMockCheckout } from './actions';
 
-// A plain, clearly-labelled stand-in for Stripe's hosted Checkout page while
-// STRIPE_MOCK=1 — lists what the session would charge and lets a "fan" pay
-// with a fake email/country instead of a card. Never reachable once real
-// Stripe keys land (createCheckoutSession then returns a real hosted URL).
+// A plain, clearly-labelled stand-in for Stripe's hosted Checkout page in
+// mock mode — lists what the session would charge and lets a "fan" pay
+// with a fake email/country instead of a card. 404s in every other mode:
+// with real keys (createCheckoutSession then returns a real hosted URL) and
+// in a production deploy that has neither a real key nor STRIPE_MOCK=1
+// (stripe.ts's stripeModeFor). The action re-checks on its own.
 //
 // Two session shapes land here: a POD session (metadata.orderId, a real
 // 'pending' order already exists) and a bulk session (metadata.bulkOrderId

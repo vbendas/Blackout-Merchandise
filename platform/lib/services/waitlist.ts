@@ -2,7 +2,7 @@
 // the only writer for `waitlist_signups`; the retired website-v3 public form
 // inserted into the same table directly (its own DATABASE_URL, no service
 // layer) and never touched the approval columns owned here.
-import { and, desc, eq, ilike, inArray, isNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql, type SQL } from 'drizzle-orm';
 import { customAlphabet } from 'nanoid';
 import { db, schema } from '@/lib/db';
 import { getEmailGateway } from '@/lib/services/email';
@@ -13,6 +13,14 @@ export type WaitlistStatus = 'pending' | 'approved' | 'rejected' | 'registered';
 
 // URL-safe (Clerk redirect / query-string safe), no ambiguous-looking chars.
 const nanoid = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789', 32);
+
+/** Exact match on lower(email), for an address already trimmed and
+ * lowercased. Not ilike, which reads '_' and '%' in an address as wildcards:
+ * a verified john_smith@outlook.com would pass as an approved
+ * john.smith@outlook.com. */
+function emailIs(normalised: string): SQL {
+  return sql`lower(${schema.waitlistSignups.email}) = ${normalised}`;
+}
 
 export interface ListWaitlistInput {
   status?: WaitlistStatus;
@@ -123,7 +131,7 @@ export async function markRegisteredByEmail(email: string, userId: string): Prom
   const [updated] = await db
     .update(schema.waitlistSignups)
     .set({ status: 'registered', registeredUserId: userId })
-    .where(and(ilike(schema.waitlistSignups.email, normalised), inArray(schema.waitlistSignups.status, ['approved', 'registered'])))
+    .where(and(emailIs(normalised), inArray(schema.waitlistSignups.status, ['approved', 'registered'])))
     .returning();
   return updated ?? null;
 }
@@ -136,7 +144,7 @@ export async function isEmailApproved(email: string): Promise<boolean> {
   const rows = await db
     .select({ id: schema.waitlistSignups.id })
     .from(schema.waitlistSignups)
-    .where(and(ilike(schema.waitlistSignups.email, normalised), inArray(schema.waitlistSignups.status, ['approved', 'registered'])))
+    .where(and(emailIs(normalised), inArray(schema.waitlistSignups.status, ['approved', 'registered'])))
     .limit(1);
   return rows.length > 0;
 }
@@ -155,9 +163,44 @@ export async function linkWaitlistSignupToUser(email: string, userId: string): P
     .set({ registeredUserId: userId })
     .where(
       and(
-        ilike(schema.waitlistSignups.email, normalised),
+        emailIs(normalised),
         inArray(schema.waitlistSignups.status, ['approved', 'registered']),
         isNull(schema.waitlistSignups.registeredUserId),
       ),
     );
+}
+
+export interface CreateApplicationInput {
+  name: string;
+  /** what they do, and where */
+  about: string;
+  /** what the run is for */
+  runFor: string;
+  email: string;
+}
+
+/** Stores an application from the website's Apply form (app/api/apply) as a
+ * pending signup for the approval flow above: `role` holds what they do,
+ * `notes` their name and what the run is for. Inserts nothing when any row
+ * already has this email, whatever its status, so applying twice never
+ * queues a second review. Returns whether a row was added; the route replies
+ * the same either way. */
+export async function createApplication(input: CreateApplicationInput): Promise<boolean> {
+  const email = input.email.trim().toLowerCase();
+  if (!email) return false;
+
+  const existing = await db
+    .select({ id: schema.waitlistSignups.id })
+    .from(schema.waitlistSignups)
+    .where(emailIs(email))
+    .limit(1);
+  if (existing.length > 0) return false;
+
+  await db.insert(schema.waitlistSignups).values({
+    email,
+    role: input.about || null,
+    notes: `Name: ${input.name}\nRun: ${input.runFor}\nSource: website apply`,
+    status: 'pending',
+  });
+  return true;
 }

@@ -1,6 +1,7 @@
 import { and, eq, inArray } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
-import { appBaseUrl, getStripeGateway, type CheckoutLineItemInput } from '@/lib/services/stripe';
+import { appBaseUrl, CHECKOUT_CLOSED_MESSAGE, getStripeGateway, isCheckoutOpen, type CheckoutLineItemInput } from '@/lib/services/stripe';
+import { fanProductName } from '@/lib/storefront/fan-names';
 import { REST_OF_WORLD_COUNTRIES, shippingCentsFor, zoneForCountry } from '@/lib/services/shipping';
 import { storeUrl } from '@/lib/services/stores';
 import { getBulkOrder, recordBulkCheckoutSession } from '@/lib/services/bulk';
@@ -56,11 +57,20 @@ async function loadCheckoutProducts(storeId: string, productIds: string[]): Prom
       status: schema.products.status,
       retailPriceCents: schema.products.retailPriceCents,
       baseCostCents: schema.products.baseCostCents,
+      blankCode: schema.blanks.code,
+      blankName: schema.blanks.name,
+      blankSupplierName: schema.blanks.supplierName,
     })
     .from(schema.products)
+    .innerJoin(schema.blanks, eq(schema.products.blankCode, schema.blanks.code))
     .where(and(eq(schema.products.storeId, storeId), inArray(schema.products.id, ids)));
 
-  for (const row of rows) map.set(row.id, { ...row, colours: new Map(), sizes: new Set() });
+  // Fans (and Stripe's receipt) see the same name as the shop: never the
+  // supplier's model name.
+  for (const { blankCode, blankName, blankSupplierName, ...row } of rows) {
+    const name = fanProductName(row.name, { code: blankCode, name: blankName, supplierName: blankSupplierName });
+    map.set(row.id, { ...row, name, colours: new Map(), sizes: new Set() });
+  }
 
   const [colourRows, sizeRows] = await Promise.all([
     db
@@ -90,6 +100,7 @@ function validateLine(line: CheckoutLine, product: CheckoutProductInfo | undefin
 }
 
 export async function buildCheckout(req: CheckoutRequest): Promise<BuildCheckoutResult> {
+  if (!isCheckoutOpen()) return { ok: false, error: CHECKOUT_CLOSED_MESSAGE };
   if (!Array.isArray(req.lines) || req.lines.length === 0) return { ok: false, error: 'Cart is empty.' };
   if (!req.country || req.country.trim().length < 2) return { ok: false, error: 'A destination country is required.' };
 
@@ -219,6 +230,7 @@ export async function buildCheckout(req: CheckoutRequest): Promise<BuildCheckout
  * those does).
  */
 export async function buildBulkCheckout(storeId: string, bulkOrderId: string): Promise<BuildCheckoutResult> {
+  if (!isCheckoutOpen()) return { ok: false, error: CHECKOUT_CLOSED_MESSAGE };
   const detail = await getBulkOrder(storeId, bulkOrderId);
   if (!detail) return { ok: false, error: 'Bulk order not found for this shop.' };
   if (detail.status !== 'awaiting_payment') {
@@ -230,8 +242,9 @@ export async function buildBulkCheckout(storeId: string, bulkOrderId: string): P
   lineItems.push({ name: 'Shipping', unitAmountCents: detail.shippingCents, quantity: 1 });
 
   const base = appBaseUrl();
-  const successUrl = `${base}/studio?bulk=${bulkOrderId}&paid=1`;
-  const cancelUrl = `${base}/studio?bulk=${bulkOrderId}`;
+  // Back to Billing, where the run's new status and the figures show.
+  const successUrl = `${base}/studio/billing?paid=${bulkOrderId}`;
+  const cancelUrl = `${base}/studio/billing`;
 
   const gateway = getStripeGateway();
   let session: { id: string; url: string };

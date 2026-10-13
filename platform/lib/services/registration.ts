@@ -3,16 +3,26 @@ import { db, schema } from '@/lib/db';
 import { DEV_BYPASS } from '@/lib/auth';
 import { findInvite, isEmailApproved, type WaitlistSignup } from '@/lib/services/waitlist';
 
+/** Shop addresses an artist can't take, at sign-up or later (stores.ts):
+ * every top-level route the app owns, where a shop would never be reached,
+ * plus a few words kept for the app. The same list as APP_SEGMENTS in
+ * proxy.ts; scripts/public-routes-smoke.ts checks both against app/. */
 export const RESERVED_SLUGS = new Set([
+  // app routes
   'admin',
   'api',
-  'chat',
+  'mock-checkout',
+  'privacy',
   'register',
   'sign-in',
   'sign-up',
-  'waitlist',
+  'studio',
+  'terms',
+  // kept for the app (/chat redirects to /studio in next.config.ts)
   'about',
+  'chat',
   'contact',
+  'waitlist',
 ]);
 
 export async function isSlugAvailable(slug: string): Promise<boolean> {

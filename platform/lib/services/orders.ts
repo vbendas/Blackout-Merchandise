@@ -4,6 +4,7 @@ import { getStore } from '@/lib/services/stores';
 import { getStripeGateway, type CheckoutSessionSnapshot } from '@/lib/services/stripe';
 import { anomalyFlags, flagLedgerForOrder, setLedgerStatus } from '@/lib/services/payouts';
 import { notify, notifyFan } from '@/lib/services/notifications';
+import { fanProductName } from '@/lib/storefront/fan-names';
 
 // Orders are created pending by checkout.ts and only ever move to 'paid'
 // here, in markPaid — the single place that touches order status, the
@@ -194,12 +195,19 @@ export async function claimWebhookEvent(eventId: string, objectId?: string): Pro
  * Marks an order paid from a Checkout Session snapshot. Idempotent by
  * processed_webhook_events under the synthetic key
  * `checkout.session.completed:<sessionId>` — safe to call from the real
- * webhook (checkout.session.completed), the webhook's own generic dedup, or
- * the mock-checkout page's server action, in any combination or order.
+ * webhook (checkout.session.completed, or async_payment_succeeded for a
+ * delayed payment method), the webhook's own generic dedup, or the
+ * mock-checkout page's server action, in any combination or order. Refuses
+ * a session that isn't paid yet.
  */
 export async function markPaid(sessionId: string, session: CheckoutSessionSnapshot): Promise<ServiceResult<OrderDetail>> {
   const orderId = session.metadata.orderId;
   if (!orderId) return { ok: false, error: 'Checkout session has no orderId in metadata.' };
+
+  // Checked before the claim below: a delayed payment completes Checkout
+  // unpaid, and the later async_payment_succeeded call needs this session's
+  // key still unclaimed to mark the order paid.
+  if (session.paymentStatus !== 'paid') return { ok: false, error: 'This payment has not gone through yet.' };
 
   const firstTime = await claimWebhookEvent(`checkout.session.completed:${sessionId}`, orderId);
   if (!firstTime) {
@@ -385,7 +393,8 @@ function periodStart(period: SalesPeriod): Date | null {
 
 export async function salesSummary(storeId: string, period: SalesPeriod): Promise<SalesSummary> {
   const since = periodStart(period);
-  const conditions = [eq(schema.orders.storeId, storeId), eq(schema.orders.status, 'paid')];
+  // Fan sales only: an artist paying for their own run is a purchase, not a sale.
+  const conditions = [eq(schema.orders.storeId, storeId), eq(schema.orders.status, 'paid'), eq(schema.orders.orderType, 'pod')];
   if (since) conditions.push(gte(schema.orders.createdAt, since));
 
   const orders = await db
@@ -406,9 +415,17 @@ export async function salesSummary(storeId: string, period: SalesPeriod): Promis
   let topProducts: { name: string; qty: number; grossCents: number }[] = [];
   if (orders.length > 0) {
     const items = await db
-      .select({ name: schema.products.name, quantity: schema.orderItems.quantity, priceAtPurchase: schema.orderItems.priceAtPurchase })
+      .select({
+        name: schema.products.name,
+        blankCode: schema.blanks.code,
+        blankName: schema.blanks.name,
+        blankSupplierName: schema.blanks.supplierName,
+        quantity: schema.orderItems.quantity,
+        priceAtPurchase: schema.orderItems.priceAtPurchase,
+      })
       .from(schema.orderItems)
       .innerJoin(schema.products, eq(schema.orderItems.productId, schema.products.id))
+      .innerJoin(schema.blanks, eq(schema.products.blankCode, schema.blanks.code))
       .where(
         inArray(
           schema.orderItems.orderId,
@@ -418,10 +435,11 @@ export async function salesSummary(storeId: string, period: SalesPeriod): Promis
 
     const byName = new Map<string, { qty: number; grossCents: number }>();
     for (const item of items) {
-      const cur = byName.get(item.name) ?? { qty: 0, grossCents: 0 };
+      const name = fanProductName(item.name, { code: item.blankCode, name: item.blankName, supplierName: item.blankSupplierName });
+      const cur = byName.get(name) ?? { qty: 0, grossCents: 0 };
       cur.qty += item.quantity;
       cur.grossCents += item.quantity * item.priceAtPurchase;
-      byName.set(item.name, cur);
+      byName.set(name, cur);
     }
     topProducts = [...byName.entries()]
       .sort((a, b) => b[1].grossCents - a[1].grossCents)

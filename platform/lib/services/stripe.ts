@@ -8,9 +8,12 @@ import { db, schema } from '@/lib/db';
 // verification, behind one interface with two implementations — a real one
 // on the `stripe` SDK and an in-memory mock — so onboarding -> checkout ->
 // webhook can be exercised end to end before real Stripe keys land (see
-// Platform-Plan.md §0 Money row, §6 Commerce flows). Selection is automatic:
-// STRIPE_MOCK=1 or a secret key that doesn't look like a real 'sk_...' key
-// forces the mock. This file also owns the small DB-backed helpers
+// Platform-Plan.md §0 Money row, §6 Commerce flows). Selection is automatic
+// (stripeModeFor): STRIPE_MOCK=1 forces the mock; otherwise a real 'sk_...'
+// key means real Stripe, and without one development falls back to the mock
+// while production runs a third, closed gateway that refuses every call, so
+// a missing key never lets anyone "pay" for real orders with the test
+// checkout. This file also owns the small DB-backed helpers
 // (startOnboarding, syncStripeAccountStatus*) that read/write stripe_accounts
 // — kept here rather than split into a separate service so every write to
 // that table goes through one place.
@@ -96,6 +99,10 @@ export interface CheckoutSessionSnapshot {
   paymentIntentId: string | null;
   metadata: Record<string, string>;
   shippingDetails: CheckoutShippingDetails | null;
+  /** Stripe's payment_status. Only 'paid' means the money is in: a delayed
+   * method (SEPA Direct Debit, bank transfer) completes Checkout 'unpaid'
+   * and is paid later, with checkout.session.async_payment_succeeded. */
+  paymentStatus: Stripe.Checkout.Session.PaymentStatus;
   /**
    * Mock mode only: the success_url with '{CHECKOUT_SESSION_ID}' already
    * resolved, so the mock-checkout page's server action knows where to send
@@ -115,8 +122,9 @@ export interface StripeGateway {
    * some serverless setups instantiate the same source file's classes more
    * than once across separate route bundles, so a plain field survives
    * where `instanceof MockStripeGateway` would not (see getStripeGateway's
-   * globalThis-backed singleton doc below). */
-  readonly mode: 'real' | 'mock';
+   * globalThis-backed singleton doc below). 'closed' is production without
+   * a real key (see stripeModeFor). */
+  readonly mode: 'real' | 'mock' | 'closed';
   createExpressAccount(input: { storeId: string; country: string; email: string }): Promise<{ accountId: string }>;
   createAccountLink(accountId: string, opts: { returnUrl: string; refreshUrl: string }): Promise<{ url: string }>;
   retrieveAccount(accountId: string): Promise<AccountStatus>;
@@ -141,6 +149,7 @@ export function toCheckoutSessionSnapshot(session: Stripe.Checkout.Session): Che
     paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : (session.payment_intent?.id ?? null),
     metadata: (session.metadata as Record<string, string> | null) ?? {},
     shippingDetails: shipping ? { name: shipping.name ?? null, address: shipping.address as unknown as Record<string, unknown> } : null,
+    paymentStatus: session.payment_status,
   };
 }
 
@@ -337,6 +346,10 @@ class MockStripeGateway implements StripeGateway {
       paymentIntentId: `pi_mock_${record.id}`,
       metadata: record.metadata,
       shippingDetails: null,
+      // No card step to wait for: whatever reaches a mock session stands in
+      // for the payment itself (the mock-checkout page's "Pay (test)", which
+      // needs mock mode, or a smoke script).
+      paymentStatus: 'paid',
       successUrl: record.successUrl,
     };
   }
@@ -350,11 +363,60 @@ class MockStripeGateway implements StripeGateway {
   }
 }
 
+// -- closed -----------------------------------------------------------------
+
+/** Production with no real key and no STRIPE_MOCK (see stripeModeFor): every
+ * call fails, so nothing can be charged, faked or marked paid. The
+ * mock-checkout page and its action need mock mode, so they 404, and the
+ * webhook rejects every event, an unsigned "paid" one included. */
+class ClosedStripeGateway implements StripeGateway {
+  readonly mode = 'closed' as const;
+
+  private fail(): never {
+    throw new Error('Stripe is switched off: STRIPE_SECRET_KEY is missing or not an sk_ key, and STRIPE_MOCK is not set.');
+  }
+
+  async createExpressAccount(): Promise<{ accountId: string }> {
+    return this.fail();
+  }
+
+  async createAccountLink(): Promise<{ url: string }> {
+    return this.fail();
+  }
+
+  async retrieveAccount(): Promise<AccountStatus> {
+    return this.fail();
+  }
+
+  async createCheckoutSession(): Promise<CheckoutSessionResult> {
+    return this.fail();
+  }
+
+  async retrieveCheckoutSession(): Promise<CheckoutSessionSnapshot> {
+    return this.fail();
+  }
+
+  constructWebhookEvent(): Stripe.Event {
+    return this.fail();
+  }
+
+  async refund(): Promise<RefundResult> {
+    return this.fail();
+  }
+}
+
 // -- selection --------------------------------------------------------------
 
-function isMockMode(): boolean {
-  const key = process.env.STRIPE_SECRET_KEY ?? '';
-  return process.env.STRIPE_MOCK === '1' || !key.startsWith('sk_');
+/** Which gateway runs. STRIPE_MOCK=1 always means the mock: a test deploy
+ * opts in explicitly. Otherwise a real 'sk_...' key means real Stripe. With
+ * neither, development falls back to the mock, but production (next start,
+ * every Vercel deploy, previews included) runs closed: a missing or mistyped
+ * key must never put the test checkout, where anyone can "pay", in front of
+ * fans. Pure, so the rule can be checked without a server. */
+export function stripeModeFor(env: { STRIPE_MOCK?: string; STRIPE_SECRET_KEY?: string; NODE_ENV?: string }): StripeGateway['mode'] {
+  if (env.STRIPE_MOCK === '1') return 'mock';
+  if ((env.STRIPE_SECRET_KEY ?? '').startsWith('sk_')) return 'real';
+  return env.NODE_ENV === 'production' ? 'closed' : 'mock';
 }
 
 // The mock gateway's accounts/sessions maps must survive across the
@@ -373,7 +435,16 @@ declare global {
 
 export function getStripeGateway(): StripeGateway {
   if (!globalThis.__merchfromStripeGateway) {
-    globalThis.__merchfromStripeGateway = isMockMode() ? new MockStripeGateway() : new RealStripeGateway(process.env.STRIPE_SECRET_KEY!);
+    const mode = stripeModeFor({
+      STRIPE_MOCK: process.env.STRIPE_MOCK,
+      STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+      NODE_ENV: process.env.NODE_ENV,
+    });
+    if (mode === 'closed') {
+      console.error('[stripe] No real STRIPE_SECRET_KEY and STRIPE_MOCK is not set: checkout, payouts and webhooks are switched off.');
+    }
+    globalThis.__merchfromStripeGateway =
+      mode === 'real' ? new RealStripeGateway(process.env.STRIPE_SECRET_KEY!) : mode === 'mock' ? new MockStripeGateway() : new ClosedStripeGateway();
   }
   return globalThis.__merchfromStripeGateway;
 }
@@ -382,9 +453,19 @@ export function isStripeMockMode(): boolean {
   return getStripeGateway().mode === 'mock';
 }
 
+/** What fans read when checkout can't take payments. */
+export const CHECKOUT_CLOSED_MESSAGE = 'Checkout is closed right now. Try again soon.';
+
+/** False only in production with Stripe switched off (see stripeModeFor):
+ * checkout should then answer CHECKOUT_CLOSED_MESSAGE before it creates an
+ * order. */
+export function isCheckoutOpen(): boolean {
+  return getStripeGateway().mode !== 'closed';
+}
+
 /** Flips a mock Express account to charges/payouts enabled — called by the
- * connect route's GET (return/refresh) handler in mock mode. Throws in real
- * mode: there is no hosted onboarding to fake there. */
+ * connect route's GET (return/refresh) handler in mock mode. Throws in any
+ * other mode: there is no hosted onboarding to fake there. */
 export function completeMockOnboarding(accountId: string): void {
   const gateway = getStripeGateway();
   if (gateway.mode !== 'mock') {
@@ -425,11 +506,13 @@ export type StartOnboardingResult = { ok: true; url: string; accountId: string }
  * fresh onboarding Account Link. Idempotent: a second call reuses the
  * existing account and just issues a new link. */
 export async function startOnboarding(storeId: string, urls: { returnUrl: string; refreshUrl: string }): Promise<StartOnboardingResult> {
+  const gateway = getStripeGateway();
+  if (gateway.mode === 'closed') return { ok: false, error: "Payouts can't be set up right now. Try again soon." };
+
   const storeRows = await db.select().from(schema.artistStores).where(eq(schema.artistStores.id, storeId)).limit(1);
   const store = storeRows[0];
   if (!store) return { ok: false, error: 'Shop not found.' };
 
-  const gateway = getStripeGateway();
   const existing = await db.select().from(schema.stripeAccounts).where(eq(schema.stripeAccounts.storeId, storeId)).limit(1);
 
   let accountId = existing[0]?.accountId;

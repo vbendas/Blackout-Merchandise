@@ -5,10 +5,12 @@ import { claimWebhookEvent, handleChargeRefunded, markPaid } from '@/lib/service
 import { markBulkPaid } from '@/lib/services/bulk';
 import { notify } from '@/lib/services/notifications';
 
-// Stripe webhook receiver. Handles checkout.session.completed (mark the
-// order paid — a bulk order when metadata.bulkOrderId is set, otherwise the
-// POD path), account.updated (sync stripe_accounts, notify the artist once
-// both flags flip true) and charge.refunded (reconcile the payout ledger).
+// Stripe webhook receiver. Handles checkout.session.completed and
+// checkout.session.async_payment_succeeded (mark the order paid once the
+// session's payment_status is 'paid' — a bulk order when
+// metadata.bulkOrderId is set, otherwise the POD path), account.updated
+// (sync stripe_accounts, notify the artist once both flags flip true) and
+// charge.refunded (reconcile the payout ledger).
 // Every event is recorded in processed_webhook_events before dispatch, so a
 // Stripe retry (or any other event type) is a fast, safe no-op.
 
@@ -36,14 +38,28 @@ export async function POST(req: NextRequest) {
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed': {
+      case 'checkout.session.completed':
+      case 'checkout.session.async_payment_succeeded': {
         const session = event.data.object as Stripe.Checkout.Session;
         const snapshot = toCheckoutSessionSnapshot(session);
+        // A delayed method (SEPA Direct Debit, bank transfer) completes
+        // Checkout unpaid; the order stays pending until
+        // async_payment_succeeded brings the paid session back here.
+        if (snapshot.paymentStatus !== 'paid') {
+          console.info(`[stripe webhook] ${event.type}: session ${session.id} is ${snapshot.paymentStatus}, waiting for the payment`);
+          break;
+        }
         if (snapshot.metadata.bulkOrderId) {
           await markBulkPaid(session.id, snapshot);
         } else {
           await markPaid(session.id, snapshot);
         }
+        break;
+      }
+      case 'checkout.session.async_payment_failed': {
+        // Nothing was paid, so nothing changes: the order stays pending.
+        const session = event.data.object as Stripe.Checkout.Session;
+        console.warn(`[stripe webhook] delayed payment failed for session ${session.id}; its order stays pending`);
         break;
       }
       case 'account.updated': {
@@ -55,7 +71,7 @@ export async function POST(req: NextRequest) {
               userId: synced.artistId,
               event: 'stripe.ready',
               text: 'Stripe payouts are ready — you can publish your shop.',
-              prompt: 'Publish my store',
+              prompt: 'Publish my shop',
             });
           } catch (notifyErr) {
             console.error('[stripe webhook] notify(stripe.ready) failed:', notifyErr instanceof Error ? notifyErr.message : notifyErr);

@@ -1,7 +1,7 @@
 'use server';
 
-import { redirect } from 'next/navigation';
-import { getStripeGateway } from '@/lib/services/stripe';
+import { notFound, redirect } from 'next/navigation';
+import { getStripeGateway, isStripeMockMode } from '@/lib/services/stripe';
 import { markPaid } from '@/lib/services/orders';
 import { markBulkPaid } from '@/lib/services/bulk';
 
@@ -12,6 +12,11 @@ import { markBulkPaid } from '@/lib/services/bulk';
 // metadata.orderId, so it routes to markBulkPaid — same idempotency table,
 // distinct synthetic key (see bulk.ts's markBulkPaid doc).
 export async function payMockCheckout(sessionId: string, formData: FormData): Promise<void> {
+  // A server action can be posted to without the page that renders it, so
+  // this checks mock mode itself: outside it there is no test payment to
+  // take, and a real session id must never be marked paid from here.
+  if (!isStripeMockMode()) notFound();
+
   const gateway = getStripeGateway();
   const snapshot = await gateway.retrieveCheckoutSession(sessionId);
 
