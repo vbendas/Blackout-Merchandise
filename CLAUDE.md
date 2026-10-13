@@ -30,16 +30,16 @@
 │   └── public/             # Static assets
 │
 ├── /mainpage               # Public website: static HTML/CSS/JS, no framework, no build step
-│   ├── index.html          # Members-only door (email, then key), Apply flow with merch preview, press board, Ask panel (scripted, keyword-matched answers from faq/faq.json), footer
+│   ├── index.html          # Members-only door (email hands off to the platform's /sign-in, where the key step lives), Apply flow with merch preview (posts to the platform's /api/apply), press board, Ask panel (scripted, keyword-matched answers from faq/faq.json), footer
 │   ├── faq/                # FAQ page (index.html, entries inline) + faq.json (feeds the Ask panel on index.html only)
 │   ├── agents/             # For agents / MCP page
 │   ├── watch/              # Film page (media/show.mp4 and its own media/)
-│   ├── studio/             # Merch Studio app-home mock (forked from aurora-dashboard/index.html)
-│   ├── img/                # Shared images (members/, merch/, press/)
-│   ├── fonts/              # Self-hosted Mornsey.woff2
+│   ├── img/                # Shared images (merch/, press/)
+│   ├── fonts/              # Self-hosted fonts: fonts.css (Inter, IBM Plex Mono) and Mornsey.woff2
+│   ├── favicon.ico, llms.txt
 │   ├── LICENCES.md         # Font licence records
 │   └── package.json        # Only a "dev" script (python3 http.server, port 3000)
-│                           # Member accounts, keys, press rows and apply results are front-end sample data, not a backend
+│                           # Press rows are front-end sample data. Sign-in and applications go to the platform (STUDIO_ORIGIN in index.html)
 │
 ├── /platform               # Agent-first platform app (Next.js 16, React 19, npm; see Documentation/Dev/Platform-Plan.md)
 │   ├── app/                # App Router routes and api/
@@ -183,9 +183,9 @@ bunx drizzle-kit studio     # Open Drizzle Studio GUI
 - **kebab-case.tsx** for utilities/providers (`accessibility-widget.tsx`)
 
 ### Website Organization (mainpage)
-- One self-contained `index.html` per page (`/`, `faq/`, `agents/`, `watch/`, `studio/`) with inline CSS and JS
+- One self-contained `index.html` per page (`/`, `faq/`, `agents/`, `watch/`) with inline CSS and JS; fonts come from the shared `fonts/fonts.css`
 - Shared assets in `img/` and `fonts/`; page-specific media next to the page (`watch/media/`)
-- `faq/faq.json` feeds only the Ask panel on the door page (`index.html` fetches it, with a built-in `FALLBACK_FAQ`). The FAQ page (`faq/index.html`) has its entries inline and does not read `faq.json`: keep the two in sync by hand
+- `faq/faq.json` feeds only the Ask panel on the door page (`index.html` fetches it, with a built-in `FALLBACK_FAQ` copy). The FAQ page (`faq/index.html`) has its entries inline and does not read `faq.json`: keep all three (`faq.json`, `faq/index.html`, `FALLBACK_FAQ`) in sync by hand
 - No framework, no bundler, no build step: edit the HTML and reload
 
 ### Hook Pattern
@@ -244,13 +244,13 @@ const store = await db
 | **Base (Website)** | `#000000` | mainpage ground (`--bg`) |
 | **Primary Text** | `#FFFFFF` | Maximum contrast |
 | **Accent (App)** | `#E11D48` (Recording Red) | Action buttons, active states |
-| **Grey Text (Website)** | White at 80/50/40% (`--a8`, `--a5`, `--a4`) | Secondary type; rules at 16% (`--rule`) |
+| **Grey Text (Website)** | White at 80/50/46% (`--a8`, `--a5`, `--a4`; 46% keeps small text at 4.5:1) | Secondary type; rules at 16% (`--rule`) |
 | **Accent (Website)** | None | Monochrome only (orange and red were rejected) |
 
 ### Typography
-- **Website (mainpage):** Inter 400/600 for text, IBM Plex Mono for labels (`--mono`), both from Google Fonts. Mornsey (self-hosted `fonts/Mornsey.woff2`, copy in `watch/media/`) is used only for the sample artist marks printed on merch previews in `index.html` and on the `watch/` film page. The `studio/` mock uses Barlow 400/500 + IBM Plex Mono 400.
+- **Website (mainpage):** Inter 400/600 for text, IBM Plex Mono for labels (`--mono`), both self-hosted through `fonts/fonts.css` (no Google Fonts requests). Mornsey (`fonts/Mornsey.woff2`, copy in `watch/media/`) is used only for the sample artist marks printed on merch previews in `index.html` and on the `watch/` film page.
 - **App (`/app`):** Space Grotesk headings, Inter body
-- **Platform (`/platform`):** Barlow body, IBM Plex Mono labels (`lib/fonts.ts`)
+- **Platform (`/platform`):** Inter body and display, IBM Plex Mono labels and key tiles (`lib/fonts.ts`), same identity as the website: black, white alpha greys, 16% hairlines, 2px radius, ecru `#ECE5DA` plates behind garments
 
 ### Tailwind Class Merging
 ```typescript

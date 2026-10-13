@@ -1,0 +1,89 @@
+# UX scan: implementation plan
+
+13 Oct 2026. Source: the UX scan with mocks (private artifact https://claude.ai/artifact/2VgPPBT6bQz6a3EcQyPwhk, local copy of the mocks in the session scratchpad `ux-scan/index.html`). The owner approved all suggestions and asked for everything to be planned and the relevant parts built with Opus 5.5, Sonnet 5.5 and Haiku 5.5 subagents.
+
+Scope: the five P0 bugs, the six moves (one door, Needs-you home, run-page cards, fan shop, billing, vocabulary) and the smaller fixes. Items that need the owner's input are listed under Owner tasks and are not built.
+
+## Decisions taken where the scan left a choice
+
+- **Run numbers.** A run is a bulk order. Its number is its position in the shop's own history (Run 1, Run 2, ...), computed at read time from `bulk_orders.created_at`. No migration. The website's sample "Run 2844" style stays on the website only.
+- **Production progress.** "95 of 120" is not tracked anywhere. Runs show their stage (proof, payment, production, shipping) instead of a piece count.
+- **Projects.** Projects created from the Studio sidebar are private collections (`is_visible = false`). The fan shop lists only visible collections that have at least one live product, so existing test projects disappear from shops too.
+- **One door.** The website door hands off to the platform: the email step navigates to `<studio origin>/sign-in?email=...`. The platform door is a custom Clerk email-code flow drawn like the website door. The email is prefilled, never auto-sent (a link must not be able to trigger emails). Unknown emails get the same "key is on its way" reply as members.
+- **Studio origin.** The website uses one constant: `http://localhost:3010` when served from localhost, otherwise the same origin (site and platform behind one domain). Change it in one place if production differs.
+- **Local testing of the door.** Clerk keys in `.env.local` are placeholders. With `AUTH_DEV_BYPASS=1` the door runs in preview mode (any six digits open the Studio). Preview mode cannot run in production because `DEV_BYPASS` already refuses to.
+- **Billing figures.** The payout schedule lives in Stripe and is not stored, so "Next payout" from the mock becomes "Sales this month". The three figures are Earned this month, Sales this month and Waiting on you.
+- **Discord.** No invite URL exists in the repo. The footer item is removed until one exists.
+- **FAQ.** New answers state only facts the code or the owner has confirmed (vegan blanks, size ranges, print-to-order lead time, shipping zones). No prices or review times.
+- **Retired.** The website members page and `mainpage/studio/` (the old Aurora mock) are deleted. Git history keeps them.
+
+## Contract (built first, used by everyone)
+
+| File | Exports | Notes |
+|---|---|---|
+| `platform/lib/format/shop-url.ts` | `shopUrl(slug)`, `shopUrlLabel(slug)` | Client-safe. Uses `NEXT_PUBLIC_APP_URL`. Label drops the protocol: `merchfrom.com/slug`. |
+| `platform/lib/services/runs.ts` | `listRunsForStore(storeId)`, `runNumberFor(bulkOrderId)`, `runLabel(n)` | Per-shop ordinal by `created_at`. `runLabel(3)` is `Run 3`. |
+| `platform/lib/catalog/display-names.ts` | `BLANK_DISPLAY_NAMES`, `blankDisplayName(code, fallback)`, `blankFactsLine(code)` | Map starts empty, filled by WP-G. Facts line from `PRODUCT_DETAILS`: "100% organic cotton · 350 g · relaxed fit". |
+| `platform/lib/tools/labels.ts` | `TOOL_LABELS`, `CONFIRM_LABELS`, `toolProgressLabel(name)`, `confirmLabels(name)` | Maps start empty, filled by WP-F. Defaults: "Working on it", Approve / Cancel. |
+| `platform/lib/ui-cards/schemas.ts` | confirm card `approveLabel?`, `cancelLabel?`; new `run` card kind | Run card: run number, title, image, status, steps, actions. |
+| CSS | identity classes in `@layer components`, imported app-wide; `.mf-pill-float`; `.mf-chip`, `.mf-btn` defined | Only WP-0 edits `tokens.css` and `globals.css`. Others add area CSS files inside `@layer components`. |
+
+## Work packages
+
+Model choice: Opus 5.5 where a mistake is costly and the logic is subtle (cascade layers, streaming state, auth). Sonnet 5.5 for building approved mocks into components and for copy that needs taste. Haiku 5.5 for mechanical, fully specified edits.
+
+| WP | Scope | Model | Owns (exclusive) | Wave |
+|---|---|---|---|---|
+| 0 Foundation | Contract above; CSS layers; tokens app-wide; menu focus; composer focus; reduced motion via `MotionConfig`; tab titles "MerchFrom"; **P0 projects leak** | Opus | `app/globals.css`, `components/chat/tokens.css`, `app/layout.tsx`, `app/(chat)/layout.tsx`, contract files, `lib/services/collections.ts`, `app/api/studio/collections/route.ts`, `lib/storefront/read-model.ts` (collections query only) | A |
+| I Website door | Door hand-off to the platform; retire members page and `mainpage/studio/`; **P0 Apply stall**; Apply Continue buttons, editable name, visible errors, done copy, privacy link; contrast `--a4` .46; hero text for screen readers; 44px tap targets; phone press link; remove Discord; favicon and link previews; Ask renders answer links; local fonts link; "New here." | Sonnet | `mainpage/index.html`, `mainpage/studio/` | A |
+| J Website pages | Self-host Inter and Plex Mono (`mainpage/fonts/fonts.css`); FAQ, agents and film pages: local fonts, contrast, tap targets, Discord removal, token alignment; agents "not live yet" label; `llms.txt`; film `preload="none"`; favicon; FAQ answers from confirmed facts, kept identical in `faq.json` and `faq/index.html` | Haiku | `mainpage/fonts/`, `mainpage/faq/`, `mainpage/agents/`, `mainpage/watch/`, `mainpage/favicon.ico`, `mainpage/llms.txt` | A |
+| A Chat | **P0 lock-up**: catch stream drops, always reset sending, friendly HTTP errors, Stop button, Try again, offline keeps the draft; thinking indicator; chips disabled while sending; confirm cards stored and restored with their state, action labels, pending state; tool progress labels; no raw errors; jump-to-latest solid; mic labelled "Hold to dictate"; voice overlay focus; load earlier messages | Opus | `lib/agent/{client,sse,loop,protocol,history}.ts`, `app/api/agent/**`, `lib/services/conversations.ts`, `lib/services/tools-audit.ts`, `components/chat/{useConversation,Composer,Thread,MessageBubble,VoiceOverlay}.tsx`, `components/cards/ConfirmCard.tsx`, `components/ai-elements/conversation.tsx` | B |
+| B Studio home | Needs-you home; zero states; top-bar live run status; Shop block in the sidebar; View shop in the account menu; drawer focus trap; project delete confirmation; leftover "collection" labels; Settings polish (identity controls, save feedback, full shop address, ask-the-Studio button); phone composer docked, chips fade | Sonnet | `components/studio/**` except `billing/`, `components/chat/{ChatShell,TopBar,EmptyState}.tsx`, `lib/agent/guidance.ts`, `app/(chat)/studio/**` except `billing/`, `app/api/studio/**` except `collections/route.ts`, `lib/services/studio-{sessions,home}.ts` | B |
+| C Cards | Card grammar (label, sentence, spec rows, plate); Shop card; new Run card; monochrome notices; status as mono tag; blank grid without outer box, display names and facts, tap sends the name; mockups on plates; sales tiles overflow; Stripe field codes in words; product name fallback | Sonnet | `components/cards/**` except `ConfirmCard.tsx`, `lib/tools/{bulk,catalog}.ts`, `lib/services/products.ts` | B |
+| D Fan shop | Apply-preview layout; monochrome square buttons, accent contrast; plates; numbered grid with spec lines; small-catalog layout; product page spec fix and display names; fan-facing cart copy; timeline not colour-only | Sonnet | `app/[slug]/**`, `components/storefront/**`, `lib/storefront/**` (after WP-0) | B |
+| E Billing | Three figures; payout split; run numbers; Pay button; status words | Sonnet | `app/(chat)/studio/billing/**`, `components/studio/billing/**`, `lib/services/billing.ts`, `app/api/studio/runs/**` | B |
+| F Words | Fill `TOOL_LABELS` and `CONFIRM_LABELS`; vocabulary block in the system prompt; emails; slug and "Publish my store" copy; upload errors; register error colour | Haiku | `lib/tools/labels.ts` (maps), `lib/agent/system-prompt.ts`, `lib/emails/**`, `lib/tools/{store,commerce}.ts`, `components/chat/useUpload.ts`, `app/register/**` | B |
+| G Blank names | Fill `BLANK_DISPLAY_NAMES` for every blank | Sonnet | `lib/catalog/display-names.ts` (map) | B |
+| H Door | Custom sign-in drawn like the website door: email, six split-flap key tiles, send again, use another email, Apply link; neutral replies; prefill from `?email=`; preview mode under dev bypass | Opus | `app/(auth)/**`, `components/auth/**` | B |
+| K Public access + Apply | **P0 found during wave A**: in production the proxy only lets `/`, sign-in, sign-up, webhooks and health through, so fans hitting `merchfrom.com/<shop>`, product, cart and order pages, checkout (`/api/stripe/checkout`), order status (`/api/orders/[token]`), `/privacy` and `/terms` are sent to sign-in (local dev hides it because the bypass skips Clerk). Make fan and legal routes public while every app route stays protected, with a path smoke test. New public `POST /api/apply` that stores applications in `waitlist_signups` (email, `role` = what they do, `notes` = name and run), rate limited, honeypot, neutral replies | Opus | `proxy.ts`, `app/api/apply/**`, `scripts/public-routes-smoke.ts` | B |
+| L Website Apply | Apply sends to `/api/apply` (sending state, error with retry and the email fallback); press board pieces named in plain words instead of supplier codes; `FALLBACK_FAQ` synced with `faq.json` | Sonnet | `mainpage/index.html` | B |
+| M Security fixes | Found by WP-K: mock checkout could take fake payments in production when the Stripe key is missing; paid only on a paid session; exact email matching for invite approval (wildcards let a look-alike email pass); reserved shop addresses cover every app route; custom-domain links no longer double the shop address and keep the query | Opus | `lib/services/{stripe,waitlist,registration}.ts`, `app/mock-checkout/**`, `lib/services/orders.ts` (paid check), `proxy.ts` (rewrite only) | B |
+
+Wave A runs WP-0, I and J together (the website does not depend on the platform contract). Wave B starts when WP-0 is verified.
+
+## Rules for every agent
+
+- Touch only the files you own. If you need a change elsewhere, stop and report it.
+- No database writes: no migrations, no `db:migrate`, no seeding, no scripts that write to Neon. No git commits or pushes.
+- Do not run `npm run build` (one shared `.next`) or use the Playwright browser (shared). Verify with `npx tsc --noEmit -p .` and `npx eslint <your files>` from `platform/`, at the end of your work. Errors in files you don't own come from other agents working in parallel: report them, don't fix them.
+- Next.js 16 differs from older versions: read `platform/node_modules/next/dist/docs/` before using an API you're unsure of.
+- Identity: black ground, white type, white alpha greys (80/50/46%), 16% hairlines, Inter 400/600, IBM Plex Mono for small tags, 2px radius, ecru plate `#ECE5DA` behind garments, square uppercase pills. Monochrome: no accent colours, no gradients, no emoji.
+- Copy for artists and fans: plain words, no system terms (slug, Stripe, tool, agent, session IDs, status codes, supplier codes or model names).
+
+## Verification (orchestrator)
+
+After each wave: `tsc`, `eslint` on changed files, `npm run build`, then the Playwright walkthrough at 1440 and 390 px (Studio home, a session with cards, Settings, Billing, fan shop and product page, the door in preview mode, the website door, Apply, FAQ). Fix integration issues or send them back to the owning agent. Then update `CLAUDE.md` (platform fonts, mainpage structure) and this file's Status.
+
+## Owner tasks (not built)
+
+- **Clerk (one door):** production keys and `AUTH_DEV_BYPASS` removed; email address required; sign-in with "Email verification code"; email verified by code at sign-up; no password, names or username required; no MFA or new-device checks; organizations off; sign-up mode Public (the waitlist gates who gets a shop); "require express consent" off (`/register` collects it); email template "Verification code" subject "Your MerchFrom key". Env: `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in`, `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up`.
+- **Domains:** `NEXT_PUBLIC_SITE_URL` (the website origin, comma-separated if several) and `NEXT_PUBLIC_APP_URL` (the platform origin; `.env.local` says port 3006 while dev runs on 3010). The website's `STUDIO_ORIGIN` constant in `mainpage/index.html` assumes site and platform share a domain in production.
+- **Stripe:** production needs `STRIPE_SECRET_KEY=sk_…` (or `STRIPE_MOCK=1` explicitly for a demo; previews count as production). Platform webhook events: `checkout.session.completed`, `checkout.session.async_payment_succeeded` (new), `checkout.session.async_payment_failed`, `charge.refunded`. `account.updated` comes from a connected-accounts endpoint with its own secret, which the route doesn't verify yet.
+- **Cron and voice:** `CRON_SECRET` plus a scheduler for `/api/discord/drain`; `VOICE_BRIDGE_SECRET` for `/api/voice/llm`.
+- Discord invite URL (footer item removed; the FAQ contact answer still mentions Discord).
+- Privacy notice and terms (pages say "Coming soon."; registration and Apply link to them).
+- Real data for the press board before launch, or a sample label.
+- FAQ facts not in the code: pricing policy, how long application review takes. The vegan answer says every blank is vegan; the catalogue marks 12 of 122 as PETA-approved, so it rests on the owner's confirmation.
+- Review the blank names in `platform/lib/catalog/display-names.ts` (unsure: "Weather jacket", "Men's hooded softshell", STSU229 vs STSU824).
+- Optional: delete the dev test project "asdfads" and the test sessions the agents created.
+
+## Status
+
+- 13 Oct 2026: plan written. Wave A started.
+- Wave A, website: WP-I and WP-J done (door hand-off, members page and `mainpage/studio/` retired, Apply fixes, contrast, tap targets, self-hosted fonts, FAQ answers, film loading). Found during wave A: Apply never sent anything (WP-L), and fan routes are behind sign-in in production (WP-K).
+- WP-F and WP-K done (labels, vocabulary, emails, upload errors; public fan and legal routes, `/api/apply`). WP-M added for four security bugs WP-K found.
+- Wave A, platform: WP-0 done (contract, CSS layers app-wide, focus and composer fixes, reduced motion, "MerchFrom" titles, project leak fixed: the test project no longer appears on the shop). Wave B started with A, B, C, D, E, F, G, H alongside K and L.
+- 13 Oct 2026, wave B done: A (chat: no lock-up, Stop, Try again, offline draft, confirm cards stored and restored with action labels and a single-run guard, tool progress labels, earlier messages), B (Needs-you home, Shop block, live-run pill, drawer focus trap, project delete confirm, settings), C (card kit, run card, monochrome notices and status tags, blank names and facts, plates, bulk tools by run number), D (monochrome shop in the apply-preview layout, About page, accent contrast, fan copy, timeline), E (billing figures, payout split, run numbers, Pay), F (labels, vocabulary, emails, upload errors), G (122 blank names), H (door sign-in with preview mode, invited sign-up), K (public fan and legal routes, `/api/apply`), L (website Apply sends), M (production checkout guard, paid-only orders, exact invite matching, reserved addresses, custom-domain links).
+- Integration (orchestrator): checkout closes cleanly and uses fan names on Stripe; bulk payment returns to Billing; sales count fan orders only; shell weights hidden; search by display name; run numbers in pills and notifications; URL `?prompt=` only fills the composer (in-app buttons send through memory); Stop also cancels the model request; monochrome state colours; website press board, film run number, docs (`CLAUDE.md`, `mainpage/LICENCES.md`).
+- Verification: `tsc` clean; `eslint` clean on app code (3 old errors remain in `scripts/seed.ts`); `public-routes-smoke` and the mock `agent-smoke` pass; `npm run build` passes; Playwright walkthrough at 1440 and 390 px of the door (email → key → Studio in preview mode), Studio home, a session with a run card, Billing, fan shop and product page, website door and press board.
+- Follow-ups: approved applicants without a Clerk account need the invite link (the door could fall back to sign-up for them); order references (`ORD-xxxxxxxx`) and "Open order <id>" prompts still read as IDs; a unique index on `lower(email)` for `waitlist_signups` (migration) to stop duplicate applications racing; shop page names (`about`, `cart`, `product`, `order`) can still be taken as shop addresses; `summarize` for confirm cards can't see the run number unless the model passes it.
