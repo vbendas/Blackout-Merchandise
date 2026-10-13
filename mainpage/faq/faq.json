@@ -68,6 +68,23 @@
     }
   },
   {
+    "id": "hear-back",
+    "q": "When will I hear back after applying?",
+    "a": "We read every application and reply by email.",
+    "keywords": [
+      "hear",
+      "back",
+      "reply",
+      "response",
+      "answer",
+      "application",
+      "apply",
+      "email",
+      "review",
+      "wait"
+    ]
+  },
+  {
     "id": "sign-in",
     "q": "How do members sign in?",
     "a": "Type your email on the door. If it belongs to a member, we send a key to that inbox. Enter the key and you are in. Attempts are limited.",
@@ -138,6 +155,25 @@
     ]
   },
   {
+    "id": "lead-time",
+    "q": "How long does a shop order take?",
+    "a": "Each piece is printed to order in Barcelona and ships in 8 working days.",
+    "keywords": [
+      "how",
+      "long",
+      "time",
+      "lead",
+      "days",
+      "ship",
+      "shipping",
+      "delivery",
+      "production",
+      "order",
+      "shop",
+      "working"
+    ]
+  },
+  {
     "id": "blanks",
     "q": "What are the blanks?",
     "a": "The garments we print on: 122 blanks, from t-shirts and hoodies to tote bags. All 122 are OEKO-TEX tested, 74 are GOTS-certified, and organic cotton runs across most of the range. Weights go up to 450 gsm, and 73 blanks are 220 gsm or heavier.",
@@ -152,6 +188,41 @@
       "gsm",
       "heavyweight",
       "certified"
+    ]
+  },
+  {
+    "id": "vegan",
+    "q": "Are the garments vegan?",
+    "a": "Yes. Every blank in the catalogue is vegan.",
+    "keywords": [
+      "vegan",
+      "garments",
+      "blanks",
+      "animal",
+      "wool",
+      "leather",
+      "ethical",
+      "materials",
+      "fabric",
+      "plant"
+    ]
+  },
+  {
+    "id": "sizes",
+    "q": "What sizes are there?",
+    "a": "Adult sizes run from XXS to 5XL, and most adult blanks cover XS to 3XL. Bags and beanies come in one size. Some blanks have kids and baby sizes.",
+    "keywords": [
+      "sizes",
+      "size",
+      "fit",
+      "xxs",
+      "xs",
+      "xl",
+      "5xl",
+      "kids",
+      "baby",
+      "small",
+      "large"
     ]
   },
   {
@@ -185,6 +256,27 @@
       "address",
       "studio",
       "country"
+    ]
+  },
+  {
+    "id": "shipping",
+    "q": "Where do you ship?",
+    "a": "Shop orders ship to Spain, Portugal, the rest of the EU, the UK, Switzerland and the rest of the world.",
+    "keywords": [
+      "ship",
+      "shipping",
+      "delivery",
+      "deliver",
+      "country",
+      "countries",
+      "abroad",
+      "international",
+      "eu",
+      "uk",
+      "spain",
+      "portugal",
+      "world",
+      "send"
     ]
   },
   {

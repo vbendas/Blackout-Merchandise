@@ -8,15 +8,13 @@
 <meta name="robots" content="noindex">
 <title>Questions · MerchFrom</title>
 <meta name="description" content="Short answers about MerchFrom: who it is for, how membership works, the store and the bulk run, the blanks and the press.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../fonts/fonts.css">
+<link rel="icon" href="../favicon.ico">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 :root{
   --bg:#000;--fg:#fff;
-  --a8:rgba(255,255,255,.8);--a5:rgba(255,255,255,.5);--a4:rgba(255,255,255,.4);--a22:rgba(255,255,255,.22);
+  --a8:rgba(255,255,255,.8);--a5:rgba(255,255,255,.5);--a4:rgba(255,255,255,.46);--a22:rgba(255,255,255,.22);
   --rule:rgba(255,255,255,.16);--rule2:rgba(255,255,255,.08);--tile:rgba(255,255,255,.085);
   --g:32px;--h:56px;--sub:22px;
   --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -24,7 +22,7 @@
   color-scheme:dark;
 }
 @media (max-width:899.98px){:root{--g:24px}}
-@media (max-width:700px){:root{--g:16px;--h:40px;--sub:18px}}
+@media (max-width:700px){:root{--g:16px;--h:32px;--sub:18px}}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{background:#000;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{
@@ -51,7 +49,7 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
 .dim{color:var(--a5)}
 .d4{color:var(--a4)}
 .ulink{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;line-height:1.35;
-  text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px;color:#fff;padding:6px 0}
+  text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px;color:#fff;padding:4px 0}
 @media (min-width:900px){.ulink{font-size:13px}}
 .ulink:hover{text-decoration-thickness:2px}
 
@@ -116,7 +114,7 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
 .flink:hover{text-decoration-thickness:2px}
 .flink[aria-current="page"]{text-decoration-thickness:2px}
 .fcopy{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;line-height:1.35;color:var(--a4);cursor:pointer;
-  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:rgba(255,255,255,.22)}
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:var(--a22)}
 .fcopy:hover{color:#fff;text-decoration-color:currentColor}
 .fi .fnote{color:var(--a4)}
 .fi .fnote:empty{display:none}
@@ -124,7 +122,7 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
 @media (max-width:899.98px){.cfoot{gap:12px 28px}}
 @media (max-width:700px){
   .cfoot{gap:14px 22px;margin-top:40px;padding-top:16px}
-  .fi.f-ask{order:1}.fi.faq{order:2}.fi.disc{order:3}.fi.place{order:4}
+  .fi.f-ask{order:1}.fi.faq{order:2}.fi.place{order:4}
   .fi.write{order:5;flex-basis:100%}.fi.agents{order:6;flex-basis:100%}
   .fi .fnote{display:none}
 }
@@ -135,6 +133,10 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
   .qb{grid-template-columns:36px minmax(0,1fr) 16px;column-gap:10px;font-size:20px;padding:16px 0 16px}
   .ans-b{padding:0 0 24px 46px}
   .ans-b p{font-size:17px}
+}
+@media (pointer:coarse){
+  .skip,.ulink,.flink,.fcopy,.top .wm{display:inline-flex;align-items:center;min-height:44px}
+  .qb{min-height:44px}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
@@ -191,8 +193,16 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
         </div></div>
       </div>
     </li>
+    <li id="hear-back" class="r">
+      <h2 class="qh"><button type="button" class="qb" id="hear-back-b" aria-expanded="false" aria-controls="hear-back-p"><span class="n" aria-hidden="true">05</span><span class="qt">When will I hear back after applying?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <div class="ans" id="hear-back-p" role="region" aria-labelledby="hear-back-b">
+        <div class="ans-in"><div class="ans-b">
+          <p>We read every application and reply by email.</p>
+        </div></div>
+      </div>
+    </li>
     <li id="sign-in" class="r">
-      <h2 class="qh"><button type="button" class="qb" id="sign-in-b" aria-expanded="false" aria-controls="sign-in-p"><span class="n" aria-hidden="true">05</span><span class="qt">How do members sign in?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <h2 class="qh"><button type="button" class="qb" id="sign-in-b" aria-expanded="false" aria-controls="sign-in-p"><span class="n" aria-hidden="true">06</span><span class="qt">How do members sign in?</span><span class="pm" aria-hidden="true"></span></button></h2>
       <div class="ans" id="sign-in-p" role="region" aria-labelledby="sign-in-b">
         <div class="ans-in"><div class="ans-b">
           <p>Type your email on the door. If it belongs to a member, we send a key to that inbox. Enter the key and you are in. Attempts are limited.</p>
@@ -201,7 +211,7 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
       </div>
     </li>
     <li id="merch-studio" class="r">
-      <h2 class="qh"><button type="button" class="qb" id="merch-studio-b" aria-expanded="false" aria-controls="merch-studio-p"><span class="n" aria-hidden="true">06</span><span class="qt">What is Merch Studio?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <h2 class="qh"><button type="button" class="qb" id="merch-studio-b" aria-expanded="false" aria-controls="merch-studio-p"><span class="n" aria-hidden="true">07</span><span class="qt">What is Merch Studio?</span><span class="pm" aria-hidden="true"></span></button></h2>
       <div class="ans" id="merch-studio-p" role="region" aria-labelledby="merch-studio-b">
         <div class="ans-in"><div class="ans-b">
           <p>The app where the agent works with you. You describe the piece, bring artwork or have some made, see it on real blanks, price it, approve the proof and run your store. Members only.</p>
@@ -209,7 +219,7 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
       </div>
     </li>
     <li id="agent" class="r">
-      <h2 class="qh"><button type="button" class="qb" id="agent-b" aria-expanded="false" aria-controls="agent-p"><span class="n" aria-hidden="true">07</span><span class="qt">What does the agent do?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <h2 class="qh"><button type="button" class="qb" id="agent-b" aria-expanded="false" aria-controls="agent-p"><span class="n" aria-hidden="true">08</span><span class="qt">What does the agent do?</span><span class="pm" aria-hidden="true"></span></button></h2>
       <div class="ans" id="agent-p" role="region" aria-labelledby="agent-b">
         <div class="ans-in"><div class="ans-b">
           <p>It browses the blanks, checks your artwork is ready to print, cleans or edits it, builds designs around your logo or from a brief, renders mockups, prices a run, sends proofs, quotes bulk orders and runs your store, orders and support tickets. It only states what the catalogue and your account tell it. Approving a proof, publishing your store and cancelling an order wait for your confirmation.</p>
@@ -217,7 +227,7 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
       </div>
     </li>
     <li id="two-ways" class="r">
-      <h2 class="qh"><button type="button" class="qb" id="two-ways-b" aria-expanded="false" aria-controls="two-ways-p"><span class="n" aria-hidden="true">08</span><span class="qt">Store or bulk run: how do I sell?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <h2 class="qh"><button type="button" class="qb" id="two-ways-b" aria-expanded="false" aria-controls="two-ways-p"><span class="n" aria-hidden="true">09</span><span class="qt">Store or bulk run: how do I sell?</span><span class="pm" aria-hidden="true"></span></button></h2>
       <div class="ans" id="two-ways-p" role="region" aria-labelledby="two-ways-b">
         <div class="ans-in"><div class="ans-b">
           <p>Shop is your own store at merchfrom.com/you or your own domain. Each piece is printed as it sells: no stock, no minimums, no upfront cost. You set the retail price and keep everything above our base cost, paid with each sale. Zero upfront applies to Shop only.</p>
@@ -225,16 +235,40 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
         </div></div>
       </div>
     </li>
+    <li id="lead-time" class="r">
+      <h2 class="qh"><button type="button" class="qb" id="lead-time-b" aria-expanded="false" aria-controls="lead-time-p"><span class="n" aria-hidden="true">10</span><span class="qt">How long does a shop order take?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <div class="ans" id="lead-time-p" role="region" aria-labelledby="lead-time-b">
+        <div class="ans-in"><div class="ans-b">
+          <p>Each piece is printed to order in Barcelona and ships in 8 working days.</p>
+        </div></div>
+      </div>
+    </li>
     <li id="blanks" class="r">
-      <h2 class="qh"><button type="button" class="qb" id="blanks-b" aria-expanded="false" aria-controls="blanks-p"><span class="n" aria-hidden="true">09</span><span class="qt">What are the blanks?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <h2 class="qh"><button type="button" class="qb" id="blanks-b" aria-expanded="false" aria-controls="blanks-p"><span class="n" aria-hidden="true">11</span><span class="qt">What are the blanks?</span><span class="pm" aria-hidden="true"></span></button></h2>
       <div class="ans" id="blanks-p" role="region" aria-labelledby="blanks-b">
         <div class="ans-in"><div class="ans-b">
           <p>The garments we print on: 122 blanks, from t-shirts and hoodies to tote bags. All 122 are OEKO-TEX tested, 74 are GOTS-certified, and organic cotton runs across most of the range. Weights go up to 450 gsm, and 73 blanks are 220 gsm or heavier.</p>
         </div></div>
       </div>
     </li>
+    <li id="vegan" class="r">
+      <h2 class="qh"><button type="button" class="qb" id="vegan-b" aria-expanded="false" aria-controls="vegan-p"><span class="n" aria-hidden="true">12</span><span class="qt">Are the garments vegan?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <div class="ans" id="vegan-p" role="region" aria-labelledby="vegan-b">
+        <div class="ans-in"><div class="ans-b">
+          <p>Yes. Every blank in the catalogue is vegan.</p>
+        </div></div>
+      </div>
+    </li>
+    <li id="sizes" class="r">
+      <h2 class="qh"><button type="button" class="qb" id="sizes-b" aria-expanded="false" aria-controls="sizes-p"><span class="n" aria-hidden="true">13</span><span class="qt">What sizes are there?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <div class="ans" id="sizes-p" role="region" aria-labelledby="sizes-b">
+        <div class="ans-in"><div class="ans-b">
+          <p>Adult sizes run from XXS to 5XL, and most adult blanks cover XS to 3XL. Bags and beanies come in one size. Some blanks have kids and baby sizes.</p>
+        </div></div>
+      </div>
+    </li>
     <li id="printing" class="r">
-      <h2 class="qh"><button type="button" class="qb" id="printing-b" aria-expanded="false" aria-controls="printing-p"><span class="n" aria-hidden="true">10</span><span class="qt">How is it printed, and what artwork can I send?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <h2 class="qh"><button type="button" class="qb" id="printing-b" aria-expanded="false" aria-controls="printing-p"><span class="n" aria-hidden="true">14</span><span class="qt">How is it printed, and what artwork can I send?</span><span class="pm" aria-hidden="true"></span></button></h2>
       <div class="ans" id="printing-p" role="region" aria-labelledby="printing-b">
         <div class="ans-in"><div class="ans-b">
           <p>Screen print, DTG, embroidery and heat transfer, depending on the garment. Everything is printed, folded and tagged in Barcelona, and nothing goes to press until you approve the proof.</p>
@@ -243,15 +277,23 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
       </div>
     </li>
     <li id="where" class="r">
-      <h2 class="qh"><button type="button" class="qb" id="where-b" aria-expanded="false" aria-controls="where-p"><span class="n" aria-hidden="true">11</span><span class="qt">Where are you?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <h2 class="qh"><button type="button" class="qb" id="where-b" aria-expanded="false" aria-controls="where-p"><span class="n" aria-hidden="true">15</span><span class="qt">Where are you?</span><span class="pm" aria-hidden="true"></span></button></h2>
       <div class="ans" id="where-p" role="region" aria-labelledby="where-b">
         <div class="ans-in"><div class="ans-b">
           <p>Barcelona, Spain. Pieces are printed, folded and tagged there.</p>
         </div></div>
       </div>
     </li>
+    <li id="shipping" class="r">
+      <h2 class="qh"><button type="button" class="qb" id="shipping-b" aria-expanded="false" aria-controls="shipping-p"><span class="n" aria-hidden="true">16</span><span class="qt">Where do you ship?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <div class="ans" id="shipping-p" role="region" aria-labelledby="shipping-b">
+        <div class="ans-in"><div class="ans-b">
+          <p>Shop orders ship to Spain, Portugal, the rest of the EU, the UK, Switzerland and the rest of the world.</p>
+        </div></div>
+      </div>
+    </li>
     <li id="press-board" class="r">
-      <h2 class="qh"><button type="button" class="qb" id="press-board-b" aria-expanded="false" aria-controls="press-board-p"><span class="n" aria-hidden="true">12</span><span class="qt">What is the press board?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <h2 class="qh"><button type="button" class="qb" id="press-board-b" aria-expanded="false" aria-controls="press-board-p"><span class="n" aria-hidden="true">17</span><span class="qt">What is the press board?</span><span class="pm" aria-hidden="true"></span></button></h2>
       <div class="ans" id="press-board-p" role="region" aria-labelledby="press-board-b">
         <div class="ans-in"><div class="ans-b">
           <p>A live board of runs in production in Barcelona: who it is for, the piece, the quantity, the ink and the status. Clients are private unless they opt in, so many rows read private. Open it from the door with On the press now.</p>
@@ -260,7 +302,7 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
       </div>
     </li>
     <li id="mcp" class="r">
-      <h2 class="qh"><button type="button" class="qb" id="mcp-b" aria-expanded="false" aria-controls="mcp-p"><span class="n" aria-hidden="true">13</span><span class="qt">Can I use my own AI agent?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <h2 class="qh"><button type="button" class="qb" id="mcp-b" aria-expanded="false" aria-controls="mcp-p"><span class="n" aria-hidden="true">18</span><span class="qt">Can I use my own AI agent?</span><span class="pm" aria-hidden="true"></span></button></h2>
       <div class="ans" id="mcp-p" role="region" aria-labelledby="mcp-b">
         <div class="ans-in"><div class="ans-b">
           <p>That is the plan. The tools behind Merch Studio open up as an MCP server, so Claude, ChatGPT, Cursor and other MCP clients can work with them. Members only, with your member email and key. It is not open yet. The agents page has the endpoint, the setup steps and the full list of tools.</p>
@@ -269,7 +311,7 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
       </div>
     </li>
     <li id="contact" class="r">
-      <h2 class="qh"><button type="button" class="qb" id="contact-b" aria-expanded="false" aria-controls="contact-p"><span class="n" aria-hidden="true">14</span><span class="qt">How do I contact you?</span><span class="pm" aria-hidden="true"></span></button></h2>
+      <h2 class="qh"><button type="button" class="qb" id="contact-b" aria-expanded="false" aria-controls="contact-p"><span class="n" aria-hidden="true">19</span><span class="qt">How do I contact you?</span><span class="pm" aria-hidden="true"></span></button></h2>
       <div class="ans" id="contact-p" role="region" aria-labelledby="contact-b">
         <div class="ans-in"><div class="ans-b">
           <p>Write to hello@merchfrom.com. The community is on Discord. Members can also ask in Merch Studio, where the agent can open a support ticket for you.</p>
@@ -289,7 +331,6 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
   <span class="fi f-ask"><a class="flink" href="../#ask">Ask</a></span>
   <span class="fi faq"><a class="flink" href="./" aria-current="page">FAQ</a></span>
   <span class="fi write"><span class="label">Write</span><a class="flink lc" href="mailto:hello@merchfrom.com">hello@merchfrom.com</a></span>
-  <span class="fi disc"><button type="button" class="flink" data-note="Opens Discord.">Discord</button><span class="label fnote" aria-hidden="true"></span></span>
   <span class="fi agents"><span class="label">For agents</span><a class="flink lc" href="../agents/">mcp.merchfrom.com</a><button type="button" class="fcopy" data-copy="mcp.merchfrom.com" aria-label="Copy mcp.merchfrom.com to the clipboard">Copy</button></span>
   <span class="fi place label">Barcelona, ES</span>
 </footer>

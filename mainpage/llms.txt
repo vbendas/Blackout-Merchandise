@@ -1,0 +1,16 @@
+# MerchFrom
+
+> MerchFrom helps artists, brands and creators design, source and sell premium merchandise.
+
+Membership is by application. MerchFrom is based in Barcelona, Spain.
+
+## Pages on merchfrom.com
+
+- /: the door, with sign-in for members and the application.
+- /faq/: short answers about MerchFrom.
+- /watch/: a short film about one run, from brief to doorstep.
+- /agents/: connecting your own AI agent over MCP. Opening to members soon.
+
+## Contact
+
+hello@merchfrom.com
