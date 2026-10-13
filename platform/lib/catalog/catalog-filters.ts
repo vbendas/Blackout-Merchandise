@@ -1,3 +1,4 @@
+import { blankDisplayName } from './display-names';
 import { colourName } from './colour-names';
 import { PRODUCT_DETAILS } from './product-details';
 import { PRODUCTS } from './products';
@@ -20,6 +21,8 @@ export function matchesSearch(code: string, query: string): boolean {
   if (product?.name.toLowerCase().includes(q)) return true;
   const detailsName = PRODUCT_DETAILS[code]?.name;
   if (detailsName?.toLowerCase().includes(q)) return true;
+  // The name artists see in the Studio ('Heavy hoodie').
+  if (blankDisplayName(code, '').toLowerCase().includes(q)) return true;
   return false;
 }
 
