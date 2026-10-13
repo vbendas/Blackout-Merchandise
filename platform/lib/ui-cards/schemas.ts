@@ -60,11 +60,25 @@ export const cardSchema = z.discriminatedUnion('kind', [
     sizes: z.array(z.string()).optional(),
     printServices: z.array(z.string()).optional(),
     fromPriceCents: z.number().optional(),
+    /** the supplier's own model name; shown only as small detail text, `name` is the display name */
+    supplierName: z.string().optional(),
   }),
   z.object({
     ...base,
     kind: z.literal('blank_grid'),
-    items: z.array(z.object({ code: z.string(), name: z.string(), imageUrl: z.string(), fromPriceCents: z.number().optional() })).max(24),
+    items: z
+      .array(
+        z.object({
+          code: z.string(),
+          /** display name (lib/catalog/display-names.ts) */
+          name: z.string(),
+          imageUrl: z.string(),
+          fromPriceCents: z.number().optional(),
+          /** fabric facts line, e.g. '100% organic cotton · 350 g · relaxed fit' */
+          facts: z.string().optional(),
+        }),
+      )
+      .max(24),
     total: z.number().optional(),
   }),
   z.object({
@@ -79,6 +93,8 @@ export const cardSchema = z.discriminatedUnion('kind', [
     logoUrl: z.string().optional(),
     stripeReady: z.boolean(),
     liveProducts: z.number(),
+    /** shown as a 'Sales this month' row when the tool has it (lib/services/studio-home.ts getSalesThisMonth) */
+    salesThisMonth: z.object({ count: z.number(), grossCents: z.number() }).optional(),
   }),
   z.object({
     ...base,
@@ -88,6 +104,12 @@ export const cardSchema = z.discriminatedUnion('kind', [
     toolName: z.string(),
     summary: z.string(),
     details: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
+    /** button words (see lib/tools/labels.ts); default 'Approve' / 'Cancel' */
+    approveLabel: z.string().min(1).max(32).optional(),
+    cancelLabel: z.string().min(1).max(32).optional(),
+    /** set when history is loaded, from the stored call: what became of the
+     * step. Absent while it still waits, so the buttons show. */
+    outcome: z.enum(['approved', 'declined', 'done', 'failed']).optional(),
   }),
   z.object({
     ...base,
@@ -223,6 +245,23 @@ export const cardSchema = z.discriminatedUnion('kind', [
     shipTo: z.string().optional(),
     leadTime: z.string().optional(),
     checkoutUrl: z.string().optional(),
+  }),
+  // A run (one bulk order) as the artist follows it: its stage, not a piece count.
+  z.object({
+    ...base,
+    kind: z.literal('run'),
+    bulkOrderId: z.string(),
+    /** per-shop number from lib/services/runs.ts, shown as 'Run 3' */
+    runNumber: z.number().int().min(1),
+    title: z.string().max(120),
+    description: z.string().optional(),
+    imageUrl: z.string().optional(),
+    /** status in plain words, e.g. 'In production' */
+    status: z.string(),
+    /** stages in order: proof, payment, production, shipping */
+    steps: z.array(z.object({ label: z.string(), state: z.enum(['done', 'current', 'next']), value: z.string().optional() })),
+    /** next steps as chips (each sends its prompt) */
+    actions: z.array(chipSchema).max(4).optional(),
   }),
   z.object({
     ...base,

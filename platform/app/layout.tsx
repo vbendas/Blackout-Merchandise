@@ -4,13 +4,16 @@ import { auth } from '@clerk/nextjs/server';
 import { ibmPlexMono, inter } from '@/lib/fonts';
 import { getUserByClerkId } from '@/lib/services/users';
 import { DEV_BYPASS } from '@/lib/auth';
+import { MotionProvider } from '@/components/providers/MotionProvider';
+// Order matters: tokens.css (identity classes) loads after Tailwind.
 import './globals.css';
+import '@/components/chat/tokens.css';
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: {
-    default: 'MERCHFROM®',
-    template: '%s — MERCHFROM®',
+    default: 'MerchFrom',
+    template: '%s · MerchFrom',
   },
 };
 
@@ -31,7 +34,9 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
 
   const page = (
     <html lang={lang} className={cn("antialiased", inter.variable, ibmPlexMono.variable, "font-sans")}>
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        <MotionProvider>{children}</MotionProvider>
+      </body>
     </html>
   );
 

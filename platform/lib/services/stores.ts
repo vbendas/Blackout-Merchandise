@@ -1,5 +1,6 @@
 import { and, eq, ne } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
+import { shopUrl } from '@/lib/format/shop-url';
 import { RESERVED_SLUGS } from '@/lib/services/registration';
 
 export type ArtistStore = typeof schema.artistStores.$inferSelect;
@@ -101,6 +102,5 @@ export async function storeSummary(storeId: string): Promise<StoreSummary | null
 }
 
 export function storeUrl(slug: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? 'https://merchfrom.com';
-  return `${base.replace(/\/$/, '')}/${slug}`;
+  return shopUrl(slug);
 }

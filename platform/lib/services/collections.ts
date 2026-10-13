@@ -23,7 +23,16 @@ function slugify(name: string): string {
   return slug || 'collection';
 }
 
-export async function createCollection(storeId: string, name: string): Promise<ServiceResult<Collection>> {
+export interface CreateCollectionOptions {
+  /** shown on the public shop; default true. Studio sidebar projects pass false (private). */
+  visible?: boolean;
+}
+
+export async function createCollection(
+  storeId: string,
+  name: string,
+  options: CreateCollectionOptions = {},
+): Promise<ServiceResult<Collection>> {
   const trimmed = name.trim();
   if (!trimmed) return { ok: false, error: 'Collection name is required.' };
 
@@ -41,7 +50,10 @@ export async function createCollection(storeId: string, name: string): Promise<S
     slug = `${base}-${attempt}`;
   }
 
-  const [row] = await db.insert(schema.collections).values({ storeId, name: trimmed, slug }).returning();
+  const [row] = await db
+    .insert(schema.collections)
+    .values({ storeId, name: trimmed, slug, isVisible: options.visible ?? true })
+    .returning();
   return { ok: true, value: row };
 }
 

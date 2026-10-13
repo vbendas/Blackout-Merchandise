@@ -23,7 +23,8 @@ export async function POST(req: NextRequest) {
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
 
-  const result = await createCollection(store.id, parsed.data.name);
+  // Sidebar projects are private groupings of sessions, never shop sections.
+  const result = await createCollection(store.id, parsed.data.name, { visible: false });
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
 
   const out: StudioCollection = { id: result.value.id, name: result.value.name, productCount: 0 };

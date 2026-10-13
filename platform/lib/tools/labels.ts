@@ -1,0 +1,112 @@
+// Artist-facing words for tool activity, keyed by tool name: the progress
+// line shown while a tool runs, and the two buttons on its confirm card.
+// Client-safe (imports no tools). A tool without an entry gets the defaults.
+
+/** tool name -> progress line, e.g. 'Looking through blanks' */
+export const TOOL_LABELS: Record<string, string> = {
+  add_custom_domain: 'Connecting your domain',
+  admin_queue: 'Checking the queue',
+  advance_production: 'Moving the order along',
+  analyze_design: 'Checking the artwork',
+  approve_bulk_proof: 'Approving the proof',
+  approve_proof: 'Approving the proof',
+  approve_waitlist: 'Sending the invite',
+  archive_product: 'Archiving the product',
+  assign_to_collection: 'Moving to a collection',
+  cancel_bulk_order: 'Cancelling the run',
+  check_domain: 'Checking the domain',
+  clean_design: 'Cleaning up the artwork',
+  compose_design: 'Building the design',
+  connect_discord: 'Checking Discord',
+  contact_support: 'Sending to support',
+  create_bulk_quote: 'Quoting the run',
+  create_collection: 'Creating the collection',
+  create_product: 'Creating the product',
+  disconnect_discord: 'Disconnecting Discord',
+  draft_supplier_order: 'Drafting the supplier order',
+  edit_design: 'Editing the artwork',
+  generate_design: 'Drawing the design',
+  get_blank: 'Opening the blank',
+  get_bulk_order: 'Opening the run',
+  get_inbox: 'Checking your inbox',
+  get_my_store: 'Checking your shop',
+  get_order: 'Opening the order',
+  get_payout_status: 'Checking payouts',
+  get_product: 'Opening the product',
+  get_quote: 'Working out the price',
+  get_sales_summary: 'Adding up your sales',
+  get_ticket: 'Opening the ticket',
+  list_base_costs: 'Looking up the costs',
+  list_blanks: 'Looking through blanks',
+  list_bulk_orders: 'Looking through your runs',
+  list_domains: 'Checking your domains',
+  list_orders: 'Looking through orders',
+  list_payout_anomalies: 'Checking flagged payouts',
+  list_production: 'Looking at production',
+  list_products: 'Looking through products',
+  list_style_capsules: 'Looking through styles',
+  list_supplier_orders: 'Looking at supplier orders',
+  list_tickets: 'Looking through tickets',
+  list_waitlist: 'Checking the waitlist',
+  mark_inbox_read: 'Marking as read',
+  pay_bulk_order: 'Preparing payment',
+  place_supplier_order: 'Placing the supplier order',
+  preview_on_blank: 'Trying the design on',
+  publish_product: 'Publishing the product',
+  publish_store: 'Opening your shop',
+  receive_supplier_order: 'Marking as received',
+  refund_order: 'Processing the refund',
+  reject_waitlist: 'Declining the request',
+  remember: 'Making a note',
+  remove_domain: 'Removing the domain',
+  render_mockups: 'Making mockups',
+  reply_ticket: 'Sending the reply',
+  request_bulk_changes: 'Sending back for changes',
+  request_proof_changes: 'Sending back for changes',
+  resolve_ticket: 'Closing the ticket',
+  review_payout: 'Reviewing the payout',
+  set_base_cost: 'Saving the cost',
+  set_price: 'Setting the price',
+  set_tracking: 'Adding tracking',
+  start_stripe_onboarding: 'Setting up payouts',
+  submit_bulk_proof: 'Sending the proof',
+  submit_proof: 'Sending the proof',
+  suggest_next: 'Finding next steps',
+  unpublish_store: 'Taking your shop offline',
+  update_notification_prefs: 'Saving notification settings',
+  update_product: 'Saving the product',
+  update_shipping_zone: 'Saving the shipping zone',
+  update_store: 'Saving your shop',
+  upload_design: 'Opening the upload',
+  what_can_i_do: 'Finding your options',
+};
+
+/** tool name -> confirm card buttons, e.g. { approve: 'Cancel run', cancel: 'Keep it' } */
+export const CONFIRM_LABELS: Record<string, { approve: string; cancel: string }> = {
+  advance_production: { approve: 'Mark as shipped', cancel: 'Not yet' },
+  approve_bulk_proof: { approve: 'Approve proof', cancel: 'Not yet' },
+  approve_proof: { approve: 'Approve proof', cancel: 'Not yet' },
+  approve_waitlist: { approve: 'Send the invite', cancel: 'Not yet' },
+  archive_product: { approve: 'Archive', cancel: 'Keep it' },
+  cancel_bulk_order: { approve: 'Cancel the run', cancel: 'Keep the run' },
+  disconnect_discord: { approve: 'Disconnect', cancel: 'Stay connected' },
+  place_supplier_order: { approve: 'Place the order', cancel: 'Not yet' },
+  publish_product: { approve: 'Publish', cancel: 'Not yet' },
+  publish_store: { approve: 'Open my shop', cancel: 'Not yet' },
+  refund_order: { approve: 'Refund', cancel: 'Keep the order' },
+  reject_waitlist: { approve: 'Reject', cancel: 'Keep it on the list' },
+  remove_domain: { approve: 'Remove domain', cancel: 'Keep it' },
+  set_base_cost: { approve: 'Save the cost', cancel: 'Not yet' },
+  unpublish_store: { approve: 'Close my shop', cancel: 'Keep it open' },
+  update_shipping_zone: { approve: 'Save the zone', cancel: 'Not yet' },
+};
+
+/** Progress line for a running tool; 'Working on it' when it has none. */
+export function toolProgressLabel(name: string): string {
+  return Object.hasOwn(TOOL_LABELS, name) ? TOOL_LABELS[name] : 'Working on it';
+}
+
+/** Confirm card buttons for a tool; Approve / Cancel when it has none. */
+export function confirmLabels(name: string): { approve: string; cancel: string } {
+  return Object.hasOwn(CONFIRM_LABELS, name) ? { ...CONFIRM_LABELS[name] } : { approve: 'Approve', cancel: 'Cancel' };
+}

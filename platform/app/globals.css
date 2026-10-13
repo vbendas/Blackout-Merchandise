@@ -101,52 +101,76 @@
   }
 }
 
-* {
-  box-sizing: border-box;
+/* Element defaults sit in the base layer, so a utility on the same element
+   (underline on a link, a text colour) wins over them. */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    padding: 0;
+    margin: 0;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--signal);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--signal);
+    color: var(--paper);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Reduced motion: CSS animations and transitions finish at once, app-wide
+     (motion/react follows the same setting through MotionProvider). The
+     base layer gives these !important declarations precedence over any
+     later layer's. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
 }
 
-html,
-body {
-  padding: 0;
-  margin: 0;
-}
-
-body {
-  background: var(--paper);
-  color: var(--signal);
-  font-family: var(--font-ui);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
+/* Focus stays unlayered so it always shows, outline-none utilities included.
+   components/chat/tokens.css adjusts it per component. */
 :focus-visible {
   outline: 1px solid var(--signal);
   outline-offset: 4px;
 }
 
-::selection {
-  background: var(--signal);
-  color: var(--paper);
-}
+/* Identity classes sit in the components layer (with components/chat/
+   tokens.css), so Tailwind utilities on the same element win. */
+@layer components {
+  .hairline {
+    border: 1px solid color-mix(in srgb, var(--signal) 16%, transparent);
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+  .mf-dim {
+    opacity: 0.5;
+  }
 
-.hairline {
-  border: 1px solid color-mix(in srgb, var(--signal) 16%, transparent);
-}
-
-.mf-dim {
-  opacity: 0.5;
-}
-
-.label {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  .label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
 }
 
 @layer base {

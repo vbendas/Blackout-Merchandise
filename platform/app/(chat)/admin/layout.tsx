@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { requireUser } from '@/lib/auth';
-import '@/components/chat/tokens.css';
 
 // Admin surface: the morning queue lives in chat, but bulk tables (this
 // layout's children) are dedicated pages. Gated here so both pages inherit
