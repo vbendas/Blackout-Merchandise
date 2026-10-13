@@ -22,7 +22,7 @@ const onboardingItems = [
   { key: 'profile', label: 'Add your name and photo', done: false, prompt: 'Set up my profile' },
   { key: 'store', label: 'Name your shop', done: false, prompt: 'Name my shop' },
   { key: 'blank', label: 'Pick your first blank', done: false, prompt: 'Show me blanks' },
-  { key: 'stripe', label: 'Connect Stripe payouts', done: false, prompt: 'Set up Stripe' },
+  { key: 'stripe', label: 'Set up payouts', done: false, prompt: 'Set up payouts' },
 ];
 
 export function createConversation(id: string): ConversationState {

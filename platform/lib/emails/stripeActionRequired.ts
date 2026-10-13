@@ -6,14 +6,14 @@ export interface StripeActionRequiredPayload {
 }
 
 export function stripeActionRequiredEmail(payload: StripeActionRequiredPayload) {
-  const requirements = payload.requirements ?? [];
+  // Stripe requirement codes (such as "tos_acceptance.date") are never shown to artists; the button leads to the list.
   const { html, text } = renderEmail({
     heading: 'A few things left before you can get paid',
     paragraphs: [
-      'Stripe needs a bit more information to finish connecting your payouts.',
-      requirements.length > 0 ? `Outstanding: ${requirements.join(', ')}.` : 'Open the onboarding link to see what is missing.',
+      'We need a little more information to finish setting up your payouts.',
+      'Use the button below to see what is still missing.',
     ],
-    buttonLabel: 'Finish Stripe setup',
+    buttonLabel: 'Finish payout setup',
     buttonUrl: payload.onboardingUrl ?? appUrl('/studio'),
   });
   return { subject: 'Action needed to receive payouts', html, text };

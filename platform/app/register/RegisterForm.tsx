@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState, useTransition, type FormEvent } from 'react';
 import { checkSlug, submitRegistration } from './actions';
 import { COUNTRIES } from './countries';
@@ -14,7 +15,7 @@ function slugify(value: string): string {
 }
 
 const inputClass =
-  'hairline h-11 w-full rounded-[2px] bg-transparent px-3 text-sm text-signal outline-none focus:border-signal';
+  'hairline h-11 w-full rounded-[2px] bg-transparent px-3 text-sm text-signal outline-none';
 
 interface RegisterFormProps {
   defaultDisplayName: string;
@@ -65,7 +66,7 @@ export function RegisterForm({ defaultDisplayName }: RegisterFormProps) {
       return;
     }
     if (slugStatus === 'taken') {
-      setError('That shop name is taken.');
+      setError('That shop address is taken. Try another.');
       return;
     }
 
@@ -130,7 +131,7 @@ export function RegisterForm({ defaultDisplayName }: RegisterFormProps) {
         <p className="label">
           {slugStatus === 'checking' && <span className="mf-dim">Checking availability…</span>}
           {slugStatus === 'available' && <span>Available</span>}
-          {slugStatus === 'taken' && <span>Already taken</span>}
+          {slugStatus === 'taken' && <span>That address is taken</span>}
         </p>
       </div>
 
@@ -175,17 +176,17 @@ export function RegisterForm({ defaultDisplayName }: RegisterFormProps) {
         />
         <span>
           I accept the{' '}
-          <a href="/terms" className="underline">
+          <Link href="/terms" className="underline">
             Terms
-          </a>{' '}
+          </Link>{' '}
           and{' '}
-          <a href="/privacy" className="underline">
+          <Link href="/privacy" className="underline">
             Privacy Policy
-          </a>
+          </Link>
         </span>
       </label>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-signal">{error}</p>}
 
       <button
         type="submit"

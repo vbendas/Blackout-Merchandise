@@ -10,7 +10,7 @@ export function payoutPaidEmail(payload: PayoutPaidPayload) {
   const amount = formatCents(payload.amountCents, payload.currency ?? 'EUR');
   const { html, text } = renderEmail({
     heading: 'Payout sent',
-    paragraphs: [`Stripe sent ${amount} to your connected account${payload.arrivalDate ? `, arriving ${payload.arrivalDate}` : ''}.`],
+    paragraphs: [`Your payout of ${amount} has been sent${payload.arrivalDate ? `, arriving ${payload.arrivalDate}` : ''}.`],
     buttonLabel: 'Open MerchFrom',
     buttonUrl: appUrl('/studio'),
   });

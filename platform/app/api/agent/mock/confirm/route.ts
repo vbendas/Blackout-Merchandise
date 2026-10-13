@@ -9,7 +9,7 @@ function onboardingDone() {
     { key: 'profile', label: 'Add your name and photo', done: true },
     { key: 'store', label: 'Name your shop', done: true },
     { key: 'blank', label: 'Pick your first blank', done: true },
-    { key: 'stripe', label: 'Connect Stripe payouts', done: true },
+    { key: 'stripe', label: 'Set up payouts', done: true },
   ];
 }
 

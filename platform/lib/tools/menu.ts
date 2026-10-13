@@ -34,7 +34,7 @@ async function artistSections(storeId: string | null): Promise<MenuSection[]> {
 
   return [
     { title: 'Products', chips: [{ label: 'Add a product', prompt: 'Add a new product', primary: true }, { label: 'Browse blanks', prompt: 'Show me blanks' }] },
-    { title: 'Shop', chips: [{ label: 'Shop status', prompt: 'Show my shop' }, { label: 'Publish shop', prompt: 'Publish my store' }] },
+    { title: 'Shop', chips: [{ label: 'Shop status', prompt: 'Show my shop' }, { label: 'Publish shop', prompt: 'Publish my shop' }] },
     { title: 'Inbox', chips: [{ label: "What's new", prompt: 'Check my inbox' }] },
   ];
 }

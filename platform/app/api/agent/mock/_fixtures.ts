@@ -119,7 +119,7 @@ export function menuCard(): Card {
         title: 'Store',
         chips: [
           { label: 'Name my shop', prompt: 'Name my shop' },
-          { label: 'Set up Stripe', prompt: 'Set up Stripe' },
+          { label: 'Set up payouts', prompt: 'Set up payouts' },
         ],
       },
       {

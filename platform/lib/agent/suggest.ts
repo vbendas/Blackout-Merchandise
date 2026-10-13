@@ -57,10 +57,10 @@ const CATALOGUE_TEMPLATES: Template[] = [
   // Shop
   { text: 'Show my shop', area: 'Shop' },
   { text: 'Set my shop name to …', area: 'Shop' },
-  { text: 'Change my shop slug', area: 'Shop' },
+  { text: 'Change my shop address', area: 'Shop' },
   { text: 'Set my accent colour', area: 'Shop' },
-  { text: 'Connect Stripe payouts', area: 'Shop' },
-  { text: 'Publish my store', area: 'Shop' },
+  { text: 'Set up payouts', area: 'Shop' },
+  { text: 'Publish my shop', area: 'Shop' },
   { text: 'Show my sales this month', area: 'Shop' },
   { text: 'Check my inbox', area: 'Shop' },
   // Bulk

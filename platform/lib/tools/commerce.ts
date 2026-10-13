@@ -31,7 +31,7 @@ function stripeOnboardingCard(status: StoreStripeStatus, onboardingUrl?: string)
       ? undefined
       : onboardingUrl
         ? [{ label: 'Continue onboarding', href: onboardingUrl, variant: 'primary' }]
-        : [{ label: 'Start onboarding', prompt: 'Start Stripe onboarding', variant: 'primary' }];
+        : [{ label: 'Set up payouts', prompt: 'Set up payouts', variant: 'primary' }];
 
   return {
     id: `stripe_onboarding_${status.accountId ?? 'unconnected'}`,
@@ -150,8 +150,8 @@ export const getPayoutStatusTool = defineTool({
       ui: {
         cards: [stripeOnboardingCard(status)],
         next: ready
-          ? [{ label: 'Publish my shop', prompt: 'Publish my store', primary: true }]
-          : [{ label: 'Connect Stripe', prompt: 'Start Stripe onboarding', primary: true }],
+          ? [{ label: 'Publish my shop', prompt: 'Publish my shop', primary: true }]
+          : [{ label: 'Set up payouts', prompt: 'Set up payouts', primary: true }],
       },
     };
   },
