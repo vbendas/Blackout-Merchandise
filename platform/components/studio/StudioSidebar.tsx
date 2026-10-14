@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Logo } from '@/components/Logo';
 import { AccountMenu } from '@/components/studio/AccountMenu';
 import { CollectionGroup } from '@/components/studio/CollectionGroup';
 import { InlineInput } from '@/components/studio/InlineInput';
@@ -153,12 +154,13 @@ export function StudioSidebar() {
         aria-modal={drawerOpen ? true : undefined}
         aria-label="Studio"
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-5 pb-4">
-          <Link href="/studio" onClick={newSession} className="mf-label tracking-[0.12em]">
-            MERCHFROM
+        {/* the logo sits centred; on phones the close button keeps to the right edge */}
+        <div className="relative flex shrink-0 items-center justify-center px-4 pt-5 pb-4">
+          <Link href="/studio" onClick={newSession} className="block">
+            <Logo height={72} priority />
           </Link>
           {/* wrapper carries md:hidden: .mf-icon-btn sets its own display */}
-          <span className="md:hidden">
+          <span className="absolute right-4 md:hidden">
             <button
               type="button"
               aria-label="Close sessions"

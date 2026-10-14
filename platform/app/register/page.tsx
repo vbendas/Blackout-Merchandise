@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { requireUser } from '@/lib/auth';
 import { checkRegistrationEligibility } from '@/lib/services/registration';
+import { Logo } from '@/components/Logo';
 import { RegisterMark } from '@/components/RegisterMark';
 import { siteHref } from '@/components/auth/door-links';
 import { RegisterForm } from './RegisterForm';
@@ -43,8 +44,7 @@ export default async function RegisterPage() {
   return (
     <div className="flex min-h-screen flex-col items-center gap-10 px-6 py-16">
       <div className="flex flex-col items-center gap-3">
-        <RegisterMark className="h-6 w-6 text-signal" />
-        <span className="label mf-dim">MERCHFROM</span>
+        <Logo height={56} priority />
       </div>
       <h1 className="font-display text-2xl">Register</h1>
       <RegisterForm defaultDisplayName={session.user.displayName ?? ''} />

@@ -22,7 +22,7 @@
     /* side gutter, headline size, top bar height, least black around the statement */
     --door-g: 32px;
     --door-h: 56px;
-    --door-tb: 46px;
+    --door-tb: 96px;
     --door-sg: 56px;
     position: relative;
     min-height: 100vh;
@@ -47,7 +47,7 @@
     .door {
       --door-g: 16px;
       --door-h: 32px;
-      --door-tb: 44px;
+      --door-tb: 76px;
       --door-sg: 44px;
     }
   }
@@ -149,6 +149,19 @@
 
   .door-wm {
     padding: 4px 0;
+  }
+
+  /* the website's header logo: 72px tall, 52px on phones */
+  .door-logo {
+    display: block;
+    height: 72px;
+    width: auto;
+  }
+
+  @media (max-width: 700px) {
+    .door-logo {
+      height: 52px;
+    }
   }
 
   /* ---------- first screen: the top bar's height / the blank area / the door
