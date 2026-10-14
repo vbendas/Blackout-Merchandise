@@ -14,7 +14,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <div className="door">
       <header className="door-bar">
         <a href={siteHref('/')} className="door-wm">
-          <Logo height={72} className="door-logo" priority />
+          <Logo height={88} className="door-logo" priority />
         </a>
         {/* AUTH_DEV_BYPASS only, which lib/auth.ts refuses in production. */}
         {DEV_BYPASS ? <span className="mf-mono-note">Local preview</span> : null}

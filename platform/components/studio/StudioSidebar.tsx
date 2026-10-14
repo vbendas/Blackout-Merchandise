@@ -157,7 +157,7 @@ export function StudioSidebar() {
         {/* the logo sits centred; on phones the close button keeps to the right edge */}
         <div className="relative flex shrink-0 items-center justify-center px-4 pt-5 pb-4">
           <Link href="/studio" onClick={newSession} className="block">
-            <Logo height={72} priority />
+            <Logo height={88} priority />
           </Link>
           {/* wrapper carries md:hidden: .mf-icon-btn sets its own display */}
           <span className="absolute right-4 md:hidden">

@@ -22,7 +22,7 @@
     /* side gutter, headline size, top bar height, least black around the statement */
     --door-g: 32px;
     --door-h: 56px;
-    --door-tb: 96px;
+    --door-tb: 112px;
     --door-sg: 56px;
     position: relative;
     min-height: 100vh;
@@ -47,7 +47,7 @@
     .door {
       --door-g: 16px;
       --door-h: 32px;
-      --door-tb: 76px;
+      --door-tb: 84px;
       --door-sg: 44px;
     }
   }
@@ -151,16 +151,16 @@
     padding: 4px 0;
   }
 
-  /* the website's header logo: 72px tall, 52px on phones */
+  /* the website's header logo: 88px tall, 60px on phones */
   .door-logo {
     display: block;
-    height: 72px;
+    height: 88px;
     width: auto;
   }
 
   @media (max-width: 700px) {
     .door-logo {
-      height: 52px;
+      height: 60px;
     }
   }
 
