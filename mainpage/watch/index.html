@@ -117,6 +117,10 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .top{position:absolute;left:0;right:0;top:0;z-index:4;display:flex;justify-content:space-between;align-items:flex-start;padding:18px var(--gut) 0;gap:16px;pointer-events:none}
 .top>*{pointer-events:auto}
 .top .l{display:flex;flex-direction:column;gap:8px}
+/* the site logo, same size and spot as every other page (88px, 60px on phones) */
+.top .wm{pointer-events:auto;display:block;padding-top:6px;margin-bottom:10px}
+.top .wm img{display:block;height:88px;width:auto}
+@media (max-width:700px){.top .wm img{height:60px}}
 .top .l .a{display:flex;align-items:center;gap:10px;color:var(--a8)}
 .top .l .b{color:var(--a5)}
 .top .r{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
@@ -271,7 +275,8 @@ html.rm *,html.rm *::before,html.rm *::after{animation:none!important;transition
 
   <header class="top">
     <div class="l">
-      <p class="label a"><span class="dot pulse" id="dot" aria-hidden="true"></span><span>MerchFrom &middot; One run</span><span class="dim" id="state">Playing</span></p>
+      <a class="wm" href="../" target="_top"><img src="../img/logo.png" alt="MerchFrom" width="360" height="271"></a>
+      <p class="label a"><span class="dot pulse" id="dot" aria-hidden="true"></span><span>One run</span><span class="dim" id="state">Playing</span></p>
       <p class="label b">Run 2844 &middot; Grave Lanterns</p>
     </div>
     <div class="r">
