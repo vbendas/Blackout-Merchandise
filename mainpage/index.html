@@ -147,6 +147,8 @@ input:focus-visible{outline:none}
    space above / below it (0.5 / 0.5 = exact centre). Owner asked for it lower: 0.70 / 0.30.
    Spacers keep at least var(--sg) of black above and below at any height. */
 :root{--sy-a:.70;--sy-b:.30;--slogan-c:#8a8a8a}
+/* 13-14" laptops (about 800-1000px of window height): logo and line sit lower still, clear of the top bar */
+@media (min-width:701px) and (min-height:801px) and (max-height:1000px){:root{--sy-a:.88;--sy-b:.12}}
 .slogan{align-self:stretch;display:flex;flex-direction:column;align-items:center;margin:0}
 .slogan::before{content:'';flex:var(--sy-a) 0 var(--sg)}
 .slogan::after{content:'';flex:var(--sy-b) 0 var(--sg)}
