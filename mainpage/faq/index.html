@@ -65,7 +65,9 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
 .top .clk .where{color:var(--a5);margin-right:.6em}
 @media (max-width:420px){.top .clk .where{display:none}}
 
-.view{min-height:100vh;min-height:100dvh;padding:116px var(--g) 20px;display:flex;flex-direction:column}
+.view{min-height:100vh;min-height:100dvh;padding:116px var(--g) 28px;display:flex;flex-direction:column}
+/* the content fills the screen, so the footer always closes it, as on the door */
+.view>main{flex:1 0 auto}
 .view>main{flex:1 0 auto}
 .intro{padding-top:clamp(24px,7vh,72px);max-width:960px}
 .intro .head{margin-top:0}
