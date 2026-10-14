@@ -58,6 +58,8 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
 
 .top{position:absolute;z-index:30;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px var(--g) 0}
 .top .wm{padding:4px 0}
+.top .wm img{display:block;height:40px;width:auto}
+@media (max-width:700px){.top .wm img{height:34px}}
 .clk{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;white-space:nowrap}
 .clk .s{color:var(--a4)}
 .top .clk .where{color:var(--a5);margin-right:.6em}
@@ -149,7 +151,7 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
 <a class="skip label" href="#qs">Skip to the questions</a>
 <div id="live" class="sr" role="status" aria-live="polite" aria-atomic="true"></div>
 <header class="top">
-  <a href="../" class="label wm">MerchFrom</a>
+  <a href="../" class="label wm"><img src="../img/logo.png" alt="MerchFrom" width="240" height="225"></a>
   <span class="label clk" id="top-clock" aria-hidden="true"><span class="where">Barcelona</span><span class="v">--:--</span></span>
 </header>
 

@@ -92,6 +92,8 @@ input:focus-visible{outline:none}
 .top{position:absolute;z-index:30;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px var(--g) 0;pointer-events:none}
 .top>*{pointer-events:auto}
 .top .wm{padding:4px 0}
+.top .wm img{display:block;height:40px;width:auto}
+@media (max-width:700px){.top .wm img{height:34px}}
 .top-r{display:flex;align-items:center;gap:22px}
 .top .toppress{pointer-events:auto;display:inline-flex;align-items:center;gap:10px;white-space:nowrap}
 .top .toppress .u{text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px}
@@ -111,7 +113,7 @@ input:focus-visible{outline:none}
 .top .clk .where{color:var(--a5);margin-right:.6em}
 @media (max-width:420px){.top .clk .where{display:none}}
 
-.view{min-height:100vh;min-height:100dvh;padding:76px var(--g) 28px}
+.view{min-height:100vh;min-height:100dvh;padding:96px var(--g) 28px}
 
 /* ---------- THE DOOR ---------- */
 .door{display:flex;flex-direction:column}
@@ -203,6 +205,9 @@ input:focus-visible{outline:none}
 }
 
 /* ---------- APPLY (idea-4 flow + idea-6 preview) ---------- */
+/* Like the door: the content sits bottom-left and grows upward until it fills the screen. */
+.view.apply{display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:64px}
+@media (max-width:700px){.view.apply{padding-bottom:28px}}
 .apply .ap-head{max-width:820px}
 .apply .ap-head .label{display:flex;align-items:center;gap:10px;color:var(--a8)}
 .apply .ap-head .head{margin-top:14px}
@@ -441,7 +446,7 @@ input:focus-visible{outline:none}
 }
 
 @media (max-width:700px){
-  .view{padding-top:68px;padding-bottom:20px}
+  .view{padding-top:80px;padding-bottom:20px}
   :root{--tb:44px;--sg:44px}
   .slogan{font-size:19px;line-height:1.35}
   .door-act{padding:0 0 20px}
@@ -477,7 +482,7 @@ input:focus-visible{outline:none}
 <body>
 
 <header class="top">
-  <a href="./" class="label wm" id="wm" data-home>MerchFrom</a>
+  <a href="./" class="label wm" id="wm" data-home><img src="img/logo.png" alt="MerchFrom" width="240" height="225"></a>
   <div class="top-r">
     <a href="./" class="ulink" id="top-back" data-home hidden>Back</a>
     <span class="label clk" id="top-clock" aria-hidden="true" hidden><span class="where">Barcelona</span><span class="v">--:--</span></span>
