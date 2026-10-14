@@ -123,7 +123,7 @@ export function CataloguePage({ total, categories }: CataloguePageProps) {
   const results = useMemo(() => applyFilters(categoryItems, filters), [categoryItems, filters]);
   const filtered = hasActiveFilters(filters);
 
-  // 24 at a time; a change of category, filter, search or sort starts again.
+  // 25 at a time (5 full rows on a 14" laptop); a change of category, filter, search or sort starts again.
   const [visible, setVisible] = useState(PAGE_SIZE);
   const filtersKey = [filters.category, filters.fit, filters.audience, filters.weight, filters.colour, filters.q, filters.sort].join('|');
   const [pagedFor, setPagedFor] = useState(filtersKey);
@@ -153,7 +153,7 @@ export function CataloguePage({ total, categories }: CataloguePageProps) {
     clearFacets();
   };
 
-  // "Show 24 more": focus moves to the first new tile, so keyboard users carry on into it.
+  // "Show 25 more": focus moves to the first new tile, so keyboard users carry on into it.
   const focusTile = useRef<number | null>(null);
   const showMore = () => {
     focusTile.current = shown.length;

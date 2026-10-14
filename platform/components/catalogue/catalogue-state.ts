@@ -4,7 +4,7 @@ import { CATALOGUE_CATEGORIES } from '@/lib/catalog/categories';
 // Filtering, sorting and searching for the catalogue page. Pure functions on
 // the feed's items; nothing here touches React or the network.
 
-export const PAGE_SIZE = 24;
+export const PAGE_SIZE = 25;
 
 /** The tabs' first entry: every category. */
 export const ALL = 'All';
