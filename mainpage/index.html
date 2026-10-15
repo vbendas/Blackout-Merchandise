@@ -395,11 +395,10 @@ input:focus-visible{outline:none}
 .th .tag{position:absolute;left:6px;bottom:5px;white-space:nowrap;font-size:8px;font-weight:600;letter-spacing:.08em;color:#F2EFE9;background:rgba(0,0,0,.7);padding:2px 4px}
 .det p.s{font-size:17px;line-height:1.35;letter-spacing:-.01em;color:var(--a8);max-width:30em}
 @media (min-width:900px){.det p.s{font-size:20px}}
-.p-back{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin:56px var(--g) 0}
 .press .cfoot{margin-left:var(--g);margin-right:var(--g)}
 /* the footer closes the screen, as on the door, when the board is shorter than it */
 .view.press{display:flex;flex-direction:column}
-#press-foot{margin-top:auto}
+#press-foot{margin-top:auto;padding-top:56px}
 
 /* ---------- WATCH ---------- */
 .watch{position:fixed;inset:0;z-index:60;background:#000;display:grid;grid-template-rows:auto minmax(0,1fr);opacity:0;transition:opacity .5s var(--ease)}
@@ -623,9 +622,6 @@ input:focus-visible{outline:none}
       <div role="rowgroup" id="p-mine"></div>
       <div role="rowgroup" id="p-rows"></div>
     </div>
-  </div>
-  <div class="p-back">
-    <a href="./" class="ulink" data-home>Back to the door</a>
   </div>
   <div id="press-foot"></div>
 </section>
