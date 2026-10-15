@@ -184,3 +184,36 @@
     @apply font-sans;
   }
 }
+
+/* Scrollbars: a thin grey line on black, no arrows, same as the website.
+   Chrome and Safari use the ::-webkit rules; Firefox the standard pair
+   (Chrome ignores ::-webkit-scrollbar once scrollbar-color is set, hence
+   the @supports). Rows that hide their bar still win by specificity. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--signal) 24%, transparent);
+  border: 3px solid transparent;
+  border-radius: 2px;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--signal) 44%, transparent);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--signal) 24%, transparent) transparent;
+  }
+}
