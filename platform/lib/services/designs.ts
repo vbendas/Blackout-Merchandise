@@ -3,6 +3,11 @@
 // and from-scratch generation via fal (Nano Banana 2). See
 // Documentation/Dev/Platform-Plan.md §4 "Design" and
 // Documentation/05-Shared/Image-Generation-Architecture.md.
+//
+// Print prep adds two rules (Documentation/Dev/Print-Prep-Plan.md section 3):
+// every generated or edited design is a 1K draft, and finaliseDesignForPrint
+// renders its 4K final before approval; an edit works on the version the
+// artist is looking at and sends the instructions already applied.
 import { randomUUID } from 'crypto';
 import { desc, eq } from 'drizzle-orm';
 import sharp, { type Metadata } from 'sharp';
@@ -41,6 +46,81 @@ const PRINT_WIDTH_CM = 28;
 const PRINT_WIDTH_IN = PRINT_WIDTH_CM / 2.54;
 
 const SUPPORTED_FORMATS = new Set(['png', 'jpeg', 'jpg', 'webp', 'svg']);
+
+/** Art whose longest side is under this is a draft. Nano Banana's 1K output is
+ * about 1024 px and its 4K final about 4096, so the line sits well between. */
+const FINAL_MIN_EDGE_PX = 3000;
+
+// -- how a design was made --------------------------------------------------
+//
+// designs.generationParams records it. Every design made after print prep
+// carries a `mode`, the capsule it was styled with, and a `history`: what the
+// artwork has been through, oldest first. An edit sends that history to the
+// model, and the next edit extends it.
+
+export interface DesignHistoryEntry {
+  /** 'brief' is how a generated or composed design began; 'edit' is an instruction applied since */
+  kind: 'brief' | 'edit';
+  text: string;
+  /** ISO time */
+  at: string;
+}
+
+interface DesignParams {
+  mode?: 'generate' | 'compose' | 'edit' | 'clean';
+  brief?: string;
+  instruction?: string;
+  capsuleId?: string;
+  history?: unknown;
+  /** set by finaliseDesignForPrint: the draft the 4K final was rendered from */
+  finalRender?: { from: string; at: string };
+  /** set on a cleanup of a model's 1K draft: the draft it came from and the cleanups made since. The
+   * cleaned design is still a draft: its final is the draft's 4K render with these cleanups made again. */
+  draftOf?: { designId: string; ops: CleanOp[] };
+}
+
+function readParams(row: Pick<DesignRow, 'generationParams'>): DesignParams {
+  const raw = row.generationParams;
+  return raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as DesignParams) : {};
+}
+
+function isHistoryEntry(value: unknown): value is DesignHistoryEntry {
+  const entry = value as Partial<DesignHistoryEntry> | null;
+  return !!entry && (entry.kind === 'brief' || entry.kind === 'edit') && typeof entry.text === 'string';
+}
+
+/** What the artwork has been through. Rows made before histories were kept
+ * carry one instruction or brief at most, and that is all there is to send. */
+function historyOf(row: DesignRow): DesignHistoryEntry[] {
+  const params = readParams(row);
+  if (Array.isArray(params.history)) return params.history.filter(isHistoryEntry);
+  const at = row.createdAt.toISOString();
+  if (typeof params.instruction === 'string') return [{ kind: 'edit', text: params.instruction, at }];
+  if (typeof params.brief === 'string') return [{ kind: 'brief', text: params.brief, at }];
+  return [];
+}
+
+function briefEntry(brief: string): DesignHistoryEntry {
+  return { kind: 'brief', text: brief, at: new Date().toISOString() };
+}
+
+/** The artwork as it stands: the print file if there is one (a cleanup, or the 4K final), else the original. */
+function currentArtUrl(row: Pick<DesignRow, 'printUrl' | 'originalUrl'>): string | null {
+  return row.printUrl ?? row.originalUrl ?? null;
+}
+
+/** Made by Nano Banana, as opposed to an upload or a cleaned upload. Only
+ * these get a 4K re-render: an upload is the artist's own pixels and is never regenerated. */
+function madeByModel(source: DesignSource, params: DesignParams): boolean {
+  if (source === 'generated') return true;
+  if (source === 'edited') return params.mode === 'edit' || (params.mode === undefined && typeof params.instruction === 'string');
+  return false;
+}
+
+/** A model's 1K draft (or a cleanup of one) that has no print-size final yet. */
+function isDraftArt(source: DesignSource, params: DesignParams, widthPx: number | null | undefined, heightPx: number | null | undefined): boolean {
+  return (madeByModel(source, params) || Boolean(params.draftOf)) && Math.max(widthPx ?? 0, heightPx ?? 0) < FINAL_MIN_EDGE_PX;
+}
 
 function toSummary(row: DesignRow): DesignSummary {
   return {
@@ -81,6 +161,13 @@ function contentTypeForFormat(format: string | undefined): string {
   const normalised = format === 'jpg' ? 'jpeg' : format;
   return `image/${normalised}`;
 }
+
+/** What this module needs from outside the process, apart from fal (see
+ * falTransport in fal.ts), in one place so a test can stand in for it. */
+export const designIo = {
+  download: downloadBuffer,
+  store: putFile,
+};
 
 type BackgroundKind = 'transparent' | 'flat' | 'photo';
 
@@ -135,6 +222,8 @@ function computeReadiness(input: {
   background: BackgroundKind;
   meanBrightness: number | null;
   formatSupported: boolean;
+  /** a Nano Banana draft: its low resolution is expected, finaliseDesignForPrint renders the 4K print version */
+  draft?: boolean;
 }): { readiness: DesignReadiness; notes: string[] } {
   const notes: string[] = [];
 
@@ -144,28 +233,32 @@ function computeReadiness(input: {
   if (input.dpi === null) {
     return { readiness: 'blocked', notes: ['Could not determine image dimensions.'] };
   }
-  if (input.dpi < 100) {
+  if (input.draft) {
+    // Neither blocked nor sent to cleanup: upscaling a draft would only repaint it,
+    // and the full-size render is made from it when the design is prepared for print.
+    notes.push(`Draft preview (${input.dpi} dpi at a 28cm print width). The full-size print render is made when you prepare it for print.`);
+  } else if (input.dpi < 100) {
     notes.push(`Only ${input.dpi} dpi at a 28cm print width — too low to print cleanly (need at least 100 dpi).`);
     return { readiness: 'blocked', notes };
-  }
-  if (input.dpi < 150) {
+  } else if (input.dpi < 150) {
     notes.push(`${input.dpi} dpi at a 28cm print width is workable but soft; upscaling is recommended for a crisp print.`);
     return { readiness: 'needs_cleanup', notes };
+  } else {
+    notes.push(`${input.dpi} dpi at a 28cm print width — sharp enough to print.`);
   }
-
-  notes.push(`${input.dpi} dpi at a 28cm print width — sharp enough to print.`);
 
   if (input.background === 'photo') {
     notes.push('Background looks like a photo/busy scene — remove it before printing on a garment.');
     return { readiness: 'needs_cleanup', notes };
   }
+  const asIs = input.draft ? '.' : ' — ready to print as-is.';
   if (input.hasAlpha) {
-    notes.push('Transparent background — ready to print as-is.');
+    notes.push(`Transparent background${asIs}`);
     return { readiness: 'ready', notes };
   }
   const plainWhiteOrBlack = input.meanBrightness !== null && (input.meanBrightness > 240 || input.meanBrightness < 15);
   if (input.background === 'flat' && plainWhiteOrBlack) {
-    notes.push('Plain white/black background — ready to print as-is.');
+    notes.push(`Plain white/black background${asIs}`);
     return { readiness: 'ready', notes };
   }
   notes.push('Flat but coloured background — remove it so the garment colour shows through instead.');
@@ -234,7 +327,7 @@ interface FinalizeParams {
 /** Shared finalisation: download, read metadata + background, run optional
  * vision analysis, build the 900px preview, store everything, and insert the row. */
 async function finalizeDesignRow(params: FinalizeParams): Promise<DesignSummary> {
-  const buffer = await downloadBuffer(params.imageUrl);
+  const buffer = await designIo.download(params.imageUrl);
 
   let meta: Metadata;
   try {
@@ -266,7 +359,7 @@ async function finalizeDesignRow(params: FinalizeParams): Promise<DesignSummary>
   const contentType = contentTypeForFormat(format);
   const isVector = format === 'svg';
 
-  const stored = await putFile({
+  const stored = await designIo.store({
     data: buffer,
     contentType,
     filename: `design-${randomUUID()}.${format ?? 'bin'}`,
@@ -277,7 +370,7 @@ async function finalizeDesignRow(params: FinalizeParams): Promise<DesignSummary>
     .resize({ width: 900, withoutEnlargement: true })
     .png()
     .toBuffer();
-  const preview = await putFile({
+  const preview = await designIo.store({
     data: previewBuffer,
     contentType: 'image/png',
     filename: `design-${randomUUID()}-preview.png`,
@@ -301,12 +394,14 @@ async function finalizeDesignRow(params: FinalizeParams): Promise<DesignSummary>
   const vision = await analyzeWithVision(stored.url);
   const effectiveBackground = vision?.background ?? background.background;
 
+  const draft = isDraftArt(params.source, readParams({ generationParams: params.generationParams }), widthPx, heightPx);
   const { readiness, notes } = computeReadiness({
     dpi,
     hasAlpha,
     background: effectiveBackground,
     meanBrightness: background.meanBrightness,
     formatSupported,
+    draft,
   });
   if (vision?.notes) notes.push(vision.notes);
   if (vision?.hasText) notes.push('Contains text/lettering — check legibility at print size.');
@@ -363,7 +458,7 @@ export interface CreateDesignFromUploadInput {
 }
 
 export async function createDesignFromUpload(input: CreateDesignFromUploadInput): Promise<DesignSummary> {
-  const stored = await putFile({
+  const stored = await designIo.store({
     data: input.data,
     contentType: input.contentType,
     filename: input.filename,
@@ -372,15 +467,9 @@ export async function createDesignFromUpload(input: CreateDesignFromUploadInput)
   return finalizeDesignRow({ storeId: input.storeId, source: 'upload', parentDesignId: null, imageUrl: stored.url, slot: 'original' });
 }
 
-/** Re-runs the readiness assessment (including a fresh vision pass, when
- * configured) against the design's current artifact and persists it. */
-export async function analyzeDesign(id: string): Promise<DesignSummary> {
-  const row = await getDesign(id);
-  if (!row) throw new Error('design_not_found');
-  const imageUrl = row.printUrl ?? row.originalUrl;
-  if (!imageUrl) throw new Error('design_has_no_image');
-
-  const buffer = await downloadBuffer(imageUrl);
+/** Reads the artwork's metadata and background, runs the optional vision pass,
+ * and stores the verdict on the design's row. */
+async function assessDesign(row: DesignRow, imageUrl: string, buffer: Buffer): Promise<DesignRow> {
   let meta: Metadata;
   try {
     meta = await sharp(buffer, { density: 150 }).metadata();
@@ -388,9 +477,9 @@ export async function analyzeDesign(id: string): Promise<DesignSummary> {
     const [updated] = await db
       .update(schema.designs)
       .set({ readiness: 'blocked', readinessNotes: 'Unsupported or unreadable image file.' })
-      .where(eq(schema.designs.id, id))
+      .where(eq(schema.designs.id, row.id))
       .returning();
-    return toSummary(updated);
+    return updated;
   }
 
   const format = meta.format;
@@ -404,21 +493,23 @@ export async function analyzeDesign(id: string): Promise<DesignSummary> {
     const [updated] = await db
       .update(schema.designs)
       .set({ readiness: 'ready', readinessNotes: 'Vector artwork — scales cleanly to any print size.', widthPx, heightPx, hasAlpha })
-      .where(eq(schema.designs.id, id))
+      .where(eq(schema.designs.id, row.id))
       .returning();
-    return toSummary(updated);
+    return updated;
   }
 
   const background = await detectBackground(buffer, meta);
   const vision = await analyzeWithVision(imageUrl);
   const effectiveBackground = vision?.background ?? background.background;
 
+  const draft = isDraftArt(row.source, readParams(row), widthPx, heightPx);
   const { readiness, notes } = computeReadiness({
     dpi,
     hasAlpha,
     background: effectiveBackground,
     meanBrightness: background.meanBrightness,
     formatSupported,
+    draft,
   });
   if (vision?.notes) notes.push(vision.notes);
   if (vision?.hasText) notes.push('Contains text/lettering — check legibility at print size.');
@@ -426,15 +517,27 @@ export async function analyzeDesign(id: string): Promise<DesignSummary> {
   const [updated] = await db
     .update(schema.designs)
     .set({ readiness, readinessNotes: notes.join('\n'), widthPx, heightPx, dpiAtPrint: dpi, hasAlpha })
-    .where(eq(schema.designs.id, id))
+    .where(eq(schema.designs.id, row.id))
     .returning();
-  return toSummary(updated);
+  return updated;
+}
+
+/** Re-runs the readiness assessment (including a fresh vision pass, when
+ * configured) against the design's current artifact and persists it. */
+export async function analyzeDesign(id: string): Promise<DesignSummary> {
+  const row = await getDesign(id);
+  if (!row) throw new Error('design_not_found');
+  const imageUrl = currentArtUrl(row);
+  if (!imageUrl) throw new Error('design_has_no_image');
+
+  const buffer = await designIo.download(imageUrl);
+  return toSummary(await assessDesign(row, imageUrl, buffer));
 }
 
 export async function cleanDesign(id: string, ops: CleanOp[]): Promise<DesignSummary> {
   const parent = await getDesign(id);
   if (!parent) throw new Error('design_not_found');
-  let currentUrl = parent.printUrl ?? parent.originalUrl;
+  let currentUrl = currentArtUrl(parent);
   if (!currentUrl) throw new Error('design_has_no_image');
   const keepOriginalUrl = parent.originalUrl ?? parent.printUrl ?? null;
 
@@ -446,9 +549,9 @@ export async function cleanDesign(id: string, ops: CleanOp[]): Promise<DesignSum
       const result = await falService.upscale(currentUrl, 2);
       currentUrl = result.url;
     } else if (op === 'trim') {
-      const buffer = await downloadBuffer(currentUrl);
+      const buffer = await designIo.download(currentUrl);
       const trimmed = await sharp(buffer).trim().png().toBuffer();
-      const stored = await putFile({
+      const stored = await designIo.store({
         data: trimmed,
         contentType: 'image/png',
         filename: `design-${randomUUID()}-trim.png`,
@@ -458,41 +561,69 @@ export async function cleanDesign(id: string, ops: CleanOp[]): Promise<DesignSum
     }
   }
 
+  // A model's draft is still a draft once cleaned: its final is rendered from the draft at 4K and these
+  // cleanups are made again on it (finaliseDesignForPrint), instead of printing the 1K cleanup.
+  const parentParams = readParams(parent);
+  const draftOf = parentParams.draftOf
+    ? { designId: parentParams.draftOf.designId, ops: [...parentParams.draftOf.ops, ...ops] }
+    : needsFinalRender(parent)
+      ? { designId: parent.id, ops: [...ops] }
+      : undefined;
+
   return finalizeDesignRow({
     storeId: parent.storeId,
     source: 'edited',
     parentDesignId: parent.id,
-    generationParams: { ops },
+    // A cleanup changes no look worth recording, but what the artwork has been through still travels with it.
+    generationParams: { mode: 'clean', ops, capsuleId: parentParams.capsuleId, history: historyOf(parent), ...(draftOf ? { draftOf } : {}) },
     imageUrl: currentUrl,
     slot: 'print',
     keepOriginalUrl,
   });
 }
 
-/** Walks the parentDesignId chain to the root artifact, so edits always
- * re-anchor to the ORIGINAL base image rather than a chained intermediate
- * (Image-Generation-Architecture.md §4, ADR-004). */
-async function resolveBaseImageUrl(design: DesignRow): Promise<string> {
-  let current = design;
-  for (let depth = 0; depth < 20 && current.parentDesignId; depth += 1) {
-    const parent = await getDesign(current.parentDesignId);
-    if (!parent) break;
-    current = parent;
-  }
-  const url = current.originalUrl ?? current.printUrl ?? design.originalUrl ?? design.printUrl;
-  if (!url) throw new Error('design_has_no_image');
-  return url;
+/** How many earlier steps an edit sends, and how much of each. A long session
+ * keeps the recent ones; the image already carries the rest. */
+const HISTORY_SENT = 8;
+const ENTRY_CHARS = 280;
+
+function clip(text: string): string {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  return flat.length > ENTRY_CHARS ? `${flat.slice(0, ENTRY_CHARS - 1)}…` : flat;
 }
 
+/** The prompt for an edit. The last entry is the change to make; the entries
+ * before it are what the image already shows, sent so the model keeps them
+ * instead of undoing them. */
+function buildEditPrompt(history: DesignHistoryEntry[]): string {
+  const latest = history[history.length - 1];
+  const earlier = history.slice(0, -1).slice(-HISTORY_SENT);
+  const lines = [`Change the attached artwork like this: ${clip(latest.text)}.`];
+  if (earlier.length > 0) {
+    lines.push('Already done to it, oldest first. All of this is in the image now, so keep it:');
+    earlier.forEach((entry, index) => lines.push(`${index + 1}. ${entry.kind === 'brief' ? 'Made from the brief: ' : ''}${clip(entry.text)}`));
+  }
+  lines.push("Keep the artist's existing artwork intact except for what was asked.");
+  return lines.join('\n');
+}
+
+/**
+ * An instruction edit. It changes the artwork the artist is looking at: this
+ * design's own current art, not the root of its lineage. A composed design's
+ * parent is the logo and a reference-guided one's is its first reference, so
+ * walking up to the root would edit the wrong picture. The edit history
+ * (the brief it began with and every instruction since) is sent with the new
+ * instruction and extended on the new design.
+ */
 export async function editDesign(id: string, instruction: string): Promise<DesignSummary> {
   const design = await getDesign(id);
   if (!design) throw new Error('design_not_found');
-  const baseUrl = await resolveBaseImageUrl(design);
+  const anchorUrl = currentArtUrl(design);
+  if (!anchorUrl) throw new Error('design_has_no_image');
 
-  const result = await falService.edit({
-    imageUrl: baseUrl,
-    prompt: `${instruction}. Keep the artist's existing artwork intact except for what was asked.`,
-  });
+  const history: DesignHistoryEntry[] = [...historyOf(design), { kind: 'edit', text: instruction, at: new Date().toISOString() }];
+
+  const result = await falService.edit({ imageUrl: anchorUrl, prompt: buildEditPrompt(history), resolution: falService.DRAFT_RESOLUTION });
   const url = result.urls[0];
   if (!url) throw new Error('edit_produced_no_image');
 
@@ -500,7 +631,14 @@ export async function editDesign(id: string, instruction: string): Promise<Desig
     storeId: design.storeId,
     source: 'edited',
     parentDesignId: design.id,
-    generationParams: { instruction, reAnchoredTo: baseUrl },
+    generationParams: {
+      mode: 'edit',
+      instruction,
+      anchoredTo: anchorUrl,
+      capsuleId: readParams(design).capsuleId,
+      resolution: falService.DRAFT_RESOLUTION,
+      history,
+    },
     imageUrl: url,
     slot: 'original',
   });
@@ -517,6 +655,33 @@ function buildCapsulePrompt(capsule: StyleCapsule | null, brief: string, extra?:
   return parts.join(' ');
 }
 
+/** 'Image 2', 'Images 2-3': the model sees a list of pictures, so the prompt names them by position. */
+function imageRange(from: number, count: number): string {
+  return count === 1 ? `Image ${from}` : `Images ${from}-${from + count - 1}`;
+}
+
+/** Says what each attached picture is for. A picture is only mentioned when it
+ * is attached, and a style anchor is never called the artist's artwork or the
+ * other way round: style anchors lend their look, never their subject. */
+function referenceClause(input: { styleCount: number; artworkCount: number; firstIndex?: number }): string | undefined {
+  const parts: string[] = [];
+  let next = input.firstIndex ?? 1;
+  if (input.styleCount > 0) {
+    const one = input.styleCount === 1;
+    parts.push(
+      `${imageRange(next, input.styleCount)} ${one ? 'is a style reference' : 'are style references'}: take ${one ? 'its' : 'their'} linework, palette and finish only, never ${one ? 'its' : 'their'} subject or composition.`,
+    );
+    next += input.styleCount;
+  }
+  if (input.artworkCount > 0) {
+    const one = input.artworkCount === 1;
+    parts.push(
+      `${imageRange(next, input.artworkCount)} ${one ? "is the artist's own artwork" : "are the artist's own artwork"}: use ${one ? 'it as a visual reference' : 'them as visual references'} for what the brief asks for.`,
+    );
+  }
+  return parts.length > 0 ? parts.join(' ') : undefined;
+}
+
 export interface ComposeDesignInput {
   logoDesignId: string;
   brief: string;
@@ -530,22 +695,30 @@ export async function composeDesign(input: ComposeDesignInput): Promise<DesignSu
   if (!logoUrl) throw new Error('design_has_no_image');
 
   const capsule = input.capsuleId ? getStyleCapsule(input.capsuleId) : null;
-  const prompt = buildCapsulePrompt(
-    capsule,
-    input.brief,
-    'Incorporate the attached logo exactly as provided into the design as its centrepiece — preserve its shape and any lettering.',
-  );
-  const referenceUrls = [logoUrl, ...(capsule?.referenceUrls ?? [])];
+  const anchors = capsule?.referenceUrls ?? [];
+  // The logo goes first, then any style anchors the capsule carries.
+  const styleClause = referenceClause({ styleCount: anchors.length, artworkCount: 0, firstIndex: 2 });
+  const logoClause = "Image 1 is the artist's logo: incorporate it exactly as provided into the design as its centrepiece — preserve its shape and any lettering.";
+  const prompt = buildCapsulePrompt(capsule, input.brief, [logoClause, styleClause].filter(Boolean).join(' '));
+  const referenceUrls = [logoUrl, ...anchors];
 
-  const result = await falService.generate({ prompt, referenceUrls, resolution: '1K' });
+  const result = await falService.generate({ prompt, referenceUrls, resolution: falService.DRAFT_RESOLUTION });
   const url = result.urls[0];
   if (!url) throw new Error('composition_produced_no_image');
 
   return finalizeDesignRow({
     storeId: logo.storeId,
     source: 'generated',
+    // Lineage only: the logo is what this was made from. An edit works on this design's own art, never the logo's.
     parentDesignId: logo.id,
-    generationParams: { brief: input.brief, capsuleId: input.capsuleId, mode: 'compose' },
+    generationParams: {
+      mode: 'compose',
+      brief: input.brief,
+      capsuleId: input.capsuleId,
+      logoDesignId: logo.id,
+      resolution: falService.DRAFT_RESOLUTION,
+      history: [briefEntry(input.brief)],
+    },
     imageUrl: url,
     slot: 'original',
   });
@@ -562,33 +735,40 @@ export interface GenerateDesignInput {
  * and latency down — see Image-Generation-Architecture.md §8. */
 export async function generateDesign(input: GenerateDesignInput): Promise<DesignSummary[]> {
   const capsule = input.capsuleId ? getStyleCapsule(input.capsuleId) : null;
-  const prompt = buildCapsulePrompt(
-    capsule,
-    input.brief,
-    capsule ? 'Use the reference image for style only, not subject or composition.' : undefined,
-  );
 
-  let referenceUrls: string[] = [...(capsule?.referenceUrls ?? [])];
+  // NB2 edit accepts up to 14 reference images: the capsule's style anchors first, then the artist's own designs.
+  const anchors = (capsule?.referenceUrls ?? []).slice(0, 14);
+  const artwork: string[] = [];
   if (input.referenceDesignIds && input.referenceDesignIds.length > 0) {
     const refs = await Promise.all(input.referenceDesignIds.map((id) => getDesign(id)));
     for (const ref of refs) {
       const url = ref?.originalUrl ?? ref?.printUrl;
-      if (url) referenceUrls.push(url);
+      if (url && anchors.length + artwork.length < 14) artwork.push(url);
     }
   }
-  referenceUrls = referenceUrls.slice(0, 14); // NB2 edit accepts up to 14 reference images
+  const referenceUrls = [...anchors, ...artwork];
+
+  const prompt = buildCapsulePrompt(capsule, input.brief, referenceClause({ styleCount: anchors.length, artworkCount: artwork.length }));
 
   const result = await falService.generate({
     prompt,
     referenceUrls: referenceUrls.length > 0 ? referenceUrls : undefined,
-    resolution: '1K',
+    resolution: falService.DRAFT_RESOLUTION,
     numImages: 2,
   });
   const urls = result.urls.slice(0, 2);
   if (urls.length === 0) throw new Error('generation_produced_no_image');
 
+  // Lineage only, like compose: the first reference is what this was made from.
   const parentDesignId = input.referenceDesignIds?.[0] ?? null;
-  const generationParams = { brief: input.brief, capsuleId: input.capsuleId, referenceDesignIds: input.referenceDesignIds };
+  const generationParams = {
+    mode: 'generate',
+    brief: input.brief,
+    capsuleId: input.capsuleId,
+    referenceDesignIds: input.referenceDesignIds,
+    resolution: falService.DRAFT_RESOLUTION,
+    history: [briefEntry(input.brief)],
+  };
 
   const summaries: DesignSummary[] = [];
   for (const url of urls) {
@@ -603,6 +783,163 @@ export async function generateDesign(input: GenerateDesignInput): Promise<Design
     summaries.push(summary);
   }
   return summaries;
+}
+
+// -- print-resolution art -------------------------------------------------------
+
+export type ServiceResult<T> = { ok: true; value: T } | { ok: false; error: string };
+
+/** How the art came to be, as design_versions.source names it. 'final_4k' is a draft rendered at print size. */
+export type PrintArtSource = 'upload' | 'generated' | 'edited' | 'final_4k';
+
+/** The art print prep works from. Print prep pins it as a design_versions row
+ * itself (ensureDesignVersion in print-prep.ts), so nothing here writes one. */
+export interface PrintReadyArt {
+  designId: string;
+  /** public URL of the print-resolution art */
+  artUrl: string;
+  widthPx: number;
+  heightPx: number;
+  source: PrintArtSource;
+  /** true when this call rendered the 4K final; false when the art is kept as it is or the final already existed */
+  rendered: boolean;
+  /** the art's bytes, when this call already holds them (a fresh render); otherwise download artUrl */
+  bytes?: Buffer;
+}
+
+/** An NB2 draft (or a cleanup of one) that has not been rendered at print size yet. */
+function needsFinalRender(design: DesignRow): boolean {
+  return isDraftArt(design.source, readParams(design), design.widthPx, design.heightPx);
+}
+
+const finalising = new Map<string, Promise<ServiceResult<PrintReadyArt>>>();
+
+/**
+ * The art print prep works from, ready before the client approves.
+ *
+ * - Generated or edited designs (Nano Banana's 1K drafts) are re-rendered at
+ *   4K from the draft the artist chose, once. The 4K art becomes the design's
+ *   print file (designs.printUrl); the draft stays in originalUrl, and
+ *   generationParams.finalRender records where the final came from.
+ * - Uploads, and anything cleaned from an upload, are the artist's own pixels
+ *   and come back as they are: never regenerated, nothing written.
+ * - It is idempotent. A design that has its final, or never needed one,
+ *   returns its art without calling fal: nothing here may run after approval
+ *   to change a look the client already agreed to, and a design never gets a
+ *   second final. An edit makes a new design, which is finalised on its own.
+ *
+ * A 4K render is a long call (tens of seconds, up to the 2 minute fal timeout):
+ * call it from the print worker or a route with a long maxDuration, not from
+ * a short request. A failure returns a plain message and writes nothing.
+ */
+export function finaliseDesignForPrint(storeId: string, designId: string): Promise<ServiceResult<PrintReadyArt>> {
+  // One render at a time per design in this process: a double click or two
+  // parallel tool calls must not pay for two 4K renders.
+  const key = `${storeId}:${designId}`;
+  const running = finalising.get(key);
+  if (running) return running;
+  const job = renderPrintReadyArt(storeId, designId).finally(() => finalising.delete(key));
+  finalising.set(key, job);
+  return job;
+}
+
+async function renderPrintReadyArt(storeId: string, designId: string): Promise<ServiceResult<PrintReadyArt>> {
+  const design = await getDesign(designId);
+  if (!design || design.storeId !== storeId) return { ok: false, error: 'Design not found for this shop.' };
+  const draftUrl = currentArtUrl(design);
+  if (!draftUrl) return { ok: false, error: 'This design has no artwork yet.' };
+
+  const params = readParams(design);
+  if (!needsFinalRender(design)) {
+    // The artist's own art, or a final that is already made: as it stands.
+    if (!design.widthPx || !design.heightPx) return { ok: false, error: 'The artwork has no readable size.' };
+    return { ok: true, value: { designId: design.id, artUrl: draftUrl, widthPx: design.widthPx, heightPx: design.heightPx, source: params.finalRender ? 'final_4k' : design.source, rendered: false } };
+  }
+
+  if (params.draftOf) return renderCleanedFinal(storeId, design, params, params.draftOf);
+
+  let finalBuffer: Buffer;
+  let finalMeta: Metadata;
+  try {
+    const rendered = await falService.renderFinal({ imageUrl: draftUrl });
+    const url = rendered.urls[0];
+    if (!url) return { ok: false, error: 'The full-size render came back empty. Try again.' };
+    finalBuffer = await designIo.download(url);
+    finalMeta = await sharp(finalBuffer, { density: 150 }).metadata();
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : 'unknown error';
+    return { ok: false, error: `The full-size render did not finish: ${reason}` };
+  }
+  return keepFinal(storeId, design, params, finalBuffer, finalMeta, draftUrl);
+}
+
+/** A cleaned draft's final: the 4K render of the draft it was cleaned from (that design keeps it, so it is
+ * made once), with the same cleanups made again on it. Upscaling is what the render does, so it is not
+ * repeated. Before approval, like every render: the artist approves proofs made from this art. */
+async function renderCleanedFinal(storeId: string, design: DesignRow, params: DesignParams, draftOf: NonNullable<DesignParams['draftOf']>): Promise<ServiceResult<PrintReadyArt>> {
+  const base = await finaliseDesignForPrint(storeId, draftOf.designId);
+  if (!base.ok) return base;
+
+  let finalBuffer: Buffer;
+  let finalMeta: Metadata;
+  try {
+    let url = base.value.artUrl;
+    let buffer: Buffer | null = null;
+    for (const op of draftOf.ops) {
+      if (op === 'remove_bg') {
+        url = (await falService.removeBackground(url)).url;
+        buffer = null;
+      } else if (op === 'trim') {
+        buffer = await sharp(buffer ?? (await designIo.download(url)), { limitInputPixels: false }).trim().png().toBuffer();
+        url = (await designIo.store({ data: buffer, contentType: 'image/png', filename: `design-${randomUUID()}-final-trim.png`, folder: `designs/${storeId}` })).url;
+      }
+    }
+    finalBuffer = buffer ?? (await designIo.download(url));
+    finalMeta = await sharp(finalBuffer, { density: 150 }).metadata();
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : 'unknown error';
+    return { ok: false, error: `The full-size render did not finish: ${reason}` };
+  }
+  return keepFinal(storeId, design, params, finalBuffer, finalMeta, base.value.artUrl);
+}
+
+/** Keeps a final in our own storage and makes it the design's print file. */
+async function keepFinal(storeId: string, design: DesignRow, params: DesignParams, finalBuffer: Buffer, finalMeta: Metadata, from: string): Promise<ServiceResult<PrintReadyArt>> {
+  const widthPx = finalMeta.width ?? 0;
+  const heightPx = finalMeta.height ?? 0;
+  if (Math.max(widthPx, heightPx) < FINAL_MIN_EDGE_PX) {
+    return { ok: false, error: `The full-size render came back at ${widthPx} × ${heightPx} px, too small to print from. Try again.` };
+  }
+
+  // fal's URL is not ours to keep: the final goes to our own storage, with a preview to match.
+  const stored = await designIo.store({
+    data: finalBuffer,
+    contentType: contentTypeForFormat(finalMeta.format),
+    filename: `design-${randomUUID()}-final.${finalMeta.format ?? 'png'}`,
+    folder: `designs/${storeId}`,
+  });
+  const preview = await designIo.store({
+    data: await sharp(finalBuffer, { density: 150 }).resize({ width: 900, withoutEnlargement: true }).png().toBuffer(),
+    contentType: 'image/png',
+    filename: `design-${randomUUID()}-preview.png`,
+    folder: `designs/${storeId}`,
+  });
+
+  // The 4K art is what the design prints from; the draft stays as originalUrl.
+  const finalRender: NonNullable<DesignParams['finalRender']> = { from, at: new Date().toISOString() };
+  const [pointed] = await db
+    .update(schema.designs)
+    .set({ printUrl: stored.url, previewUrl: preview.url, widthPx, heightPx, generationParams: { ...params, finalRender } })
+    .where(eq(schema.designs.id, design.id))
+    .returning();
+  try {
+    await assessDesign(pointed, stored.url, finalBuffer);
+  } catch (err) {
+    // The readiness note is a convenience: the final exists, and the next call returns it.
+    console.error('[finaliseDesignForPrint] readiness check failed:', err instanceof Error ? err.message : err);
+  }
+
+  return { ok: true, value: { designId: design.id, artUrl: stored.url, widthPx, heightPx, source: 'final_4k', rendered: true, bytes: finalBuffer } };
 }
 
 export async function listDesignsForStore(storeId: string, limit = 20): Promise<DesignSummary[]> {

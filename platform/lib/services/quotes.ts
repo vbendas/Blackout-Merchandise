@@ -1,5 +1,6 @@
 import { and, asc, eq } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
+import type { PrintTechnique } from '@/lib/print/types';
 
 // Pricing over the seeded base_costs table: garment + print + margin per
 // blank x print service x quantity break. Artists never see the components —
@@ -64,13 +65,33 @@ export async function quoteFor(input: QuoteForInput): Promise<Quote | null> {
 export interface PrintServiceOption {
   code: string;
   name: string;
+  /** false for run-only methods (screen print): a shop product cannot use them */
+  availableInShop: boolean;
 }
 
 /** Print services offered on a given blank. */
 export async function printServicesFor(blankCode: string): Promise<PrintServiceOption[]> {
   return db
-    .select({ code: schema.printServices.code, name: schema.printServices.name })
+    .select({ code: schema.printServices.code, name: schema.printServices.name, availableInShop: schema.printServices.availableInShop })
     .from(schema.blankPrintServices)
     .innerJoin(schema.printServices, eq(schema.blankPrintServices.printServiceCode, schema.printServices.code))
     .where(eq(schema.blankPrintServices.blankCode, blankCode));
+}
+
+/** 'dtg (Direct-to-garment print), dtf (Direct-to-film print)': codes the model can pass back, with the names people read. */
+export function describeServices(services: PrintServiceOption[]): string {
+  return services.map((s) => `${s.code} (${s.name})`).join(', ');
+}
+
+/**
+ * The print technique a service belongs to, as print prep names it: screen
+ * print, or DTG/DTF. Embroidery is outside print prep and has none. A run
+ * line carries the service its artist chose at quote time, so production
+ * reads the technique from there, never from the shop product the run was
+ * quoted off.
+ */
+export function techniqueOfService(code: string): PrintTechnique | null {
+  if (code.startsWith('screen_')) return 'screen';
+  if (code === 'dtg' || code === 'dtf') return 'dtg_dtf';
+  return null;
 }

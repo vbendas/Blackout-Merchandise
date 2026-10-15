@@ -39,3 +39,6 @@ services/color-separation/print_pipeline_v2_spot/halftone/print_ready.psd
 .playwright-mcp/
 .mcp.json.lock
 graphify-out/cache/
+
+# Print-prep sample packs (platform/scripts/print-samples.ts), for opening in Photoshop and GTX Graphics Lab
+/print-prep-samples/

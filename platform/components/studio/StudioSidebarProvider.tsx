@@ -12,7 +12,10 @@ export interface StudioAccount {
   shopName: string | null;
   /** the shop's address segment, for its public link; null without a shop */
   shopSlug: string | null;
-  role: 'artist' | 'admin';
+  role: 'artist' | 'staff' | 'admin';
+  /** the admin pages this person may open (lib/admin/nav.ts, filtered by
+   * their access on the server); empty for artists */
+  adminLinks: { href: string; label: string }[];
   /** false under the dev auth bypass: no Clerk component or hook may render */
   showClerk: boolean;
 }

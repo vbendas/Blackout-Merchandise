@@ -21,6 +21,7 @@ export const APP_SEGMENTS: ReadonlySet<string> = new Set([
   'register',
   'sign-in',
   'sign-up',
+  'staff-invite',
   'studio',
   'terms',
   // reserved by registration only (/chat redirects to /studio in next.config.ts)
@@ -50,6 +51,10 @@ const PUBLIC_ROUTES = [
   '/api/orders/:token',
   // The website's Apply form.
   '/api/apply',
+  // Employees: the invite link answers a signed-out visitor itself, sending
+  // them to sign-in with the invited address filled in and the link to come
+  // back to. Accepting needs a session (app/staff-invite/actions.ts).
+  '/staff-invite',
   // Machines. Webhooks, crons and the ElevenLabs voice bridge never carry a
   // Clerk session; each of them checks its own signature or bearer secret.
   '/api/health',

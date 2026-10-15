@@ -30,18 +30,56 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
 };
 
 // MerchFrom's own print offering, mapped by garment family (the letter
-// after the ST prefix). Curate per product later if needed.
+// after the ST prefix). Curate per product later if needed. DTF is offered on
+// every garment, so a shop product can always print DTF; DTG only where it was
+// already offered (owner's decision; Print-Prep-Plan section 1).
 const TECHNIQUES: Record<string, string[]> = {
-  T: ['Screen print', 'DTG'],
-  S: ['Screen print', 'DTG', 'Embroidery'],
-  J: ['Embroidery', 'Heat transfer'],
-  P: ['Embroidery', 'DTG'],
-  A: ['Screen print', 'Embroidery'],
-  B: ['Screen print', 'Embroidery'],
-  W: ['Embroidery'],
-  K: ['Screen print', 'DTG'],
+  T: ['Screen print', 'DTG', 'DTF'],
+  S: ['Screen print', 'DTG', 'DTF', 'Embroidery'],
+  J: ['Embroidery', 'Heat transfer', 'DTF'],
+  P: ['Embroidery', 'DTG', 'DTF'],
+  A: ['Screen print', 'Embroidery', 'DTF'],
+  B: ['Screen print', 'Embroidery', 'DTF'],
+  W: ['Embroidery', 'DTF'],
+  K: ['Screen print', 'DTG', 'DTF'],
 };
 
+const DEFAULT_TECHNIQUES = ['Screen print', 'DTG', 'DTF'];
+
 export function printTechniquesFor(code: string): string[] {
-  return TECHNIQUES[code.slice(2, 3)] ?? ['Screen print', 'DTG'];
+  return TECHNIQUES[code.slice(2, 3)] ?? DEFAULT_TECHNIQUES;
 }
+
+// Print technique (catalog wording) -> the print_services this platform
+// actually offers. 'Heat transfer' has no matching print service in the
+// seeded catalog (screen print, DTG, DTF and embroidery only), so it is
+// dropped. The seed (scripts/seed.ts) reads this table, and so do the tests.
+export const PRINT_SERVICES_FOR_TECHNIQUE: Record<string, string[]> = {
+  'Screen print': ['screen_1c', 'screen_2c', 'screen_3c'],
+  DTG: ['dtg'],
+  DTF: ['dtf'],
+  Embroidery: ['embroidery'],
+};
+
+/** The print_services codes a blank is offered with, by its style code. */
+export function printServiceCodesFor(code: string): string[] {
+  const services = new Set<string>();
+  for (const technique of printTechniquesFor(code)) {
+    for (const service of PRINT_SERVICES_FOR_TECHNIQUE[technique] ?? []) services.add(service);
+  }
+  return [...services];
+}
+
+/**
+ * print_services.available_in_shop for the services the print-prep plan
+ * decides: shop products print DTG/DTF only, screen print is for runs
+ * (Print-Prep-Plan section 1). Embroidery is outside that plan, so it is
+ * deliberately absent: the seed leaves whatever it has.
+ */
+export const SHOP_PRINT_SERVICE_FLAGS: Record<string, boolean> = {
+  screen_1c: false,
+  screen_2c: false,
+  screen_3c: false,
+  dtg: true,
+  dtf: true,
+};

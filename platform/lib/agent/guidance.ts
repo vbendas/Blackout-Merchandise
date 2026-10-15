@@ -1,6 +1,7 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import type { SessionInfo } from '@/lib/auth';
+import { can, isTeamRole, type AccessHolder, type Actor, type Area, type Level } from '@/lib/auth/permissions';
 import type { ChecklistStep } from '@/lib/agent/protocol';
 import type { Chip } from '@/lib/ui-cards/schemas';
 import { getProjectCard } from '@/lib/services/conversations';
@@ -12,9 +13,18 @@ import { runLabel } from '@/lib/format/runs';
 // Drives the guided-chat empty state: a headline + status line, state-keyed
 // quick-action chips, the onboarding checklist, and the top-bar project
 // pill. Everything here is read-only and safe to call on every history/
-// suggest request.
+// suggest request. The owner and staff share the 'admin' state; what it
+// offers an employee follows their access (lib/auth/permissions.ts).
 
 export type GuidanceState = 'no_store' | 'no_products' | 'draft_products' | 'live' | 'admin';
+
+/** What guidance reads of a session. `actor` carries an employee's access;
+ * without it a staff session is offered nothing from the admin. */
+export type GuidanceSession = Pick<SessionInfo, 'user' | 'store' | 'role'> & { actor?: Actor };
+
+function accessOf(session: GuidanceSession): AccessHolder {
+  return session.actor ?? { role: session.role };
+}
 
 export interface GuidanceCounts {
   liveProducts: number;
@@ -22,7 +32,8 @@ export interface GuidanceCounts {
   stripeReady: boolean;
   unreadInbox: number;
   salesThisMonth: number;
-  /** admin only: pending waitlist entries + open support tickets */
+  /** owner and staff: pending waitlist entries + open support tickets, each
+   * counted only for those who can see that area */
   adminWaiting: number;
 }
 
@@ -34,22 +45,26 @@ async function countUnreadInbox(userId: string): Promise<number> {
   return rows.length;
 }
 
-async function countAdminWaiting(): Promise<number> {
+async function countAdminWaiting(access: AccessHolder): Promise<number> {
   const [waitlistRows, ticketRows] = await Promise.all([
-    db.select({ id: schema.waitlistSignups.id }).from(schema.waitlistSignups).where(eq(schema.waitlistSignups.status, 'pending')),
-    db.select({ id: schema.supportTickets.id }).from(schema.supportTickets).where(eq(schema.supportTickets.status, 'pending')),
+    can(access, 'applications', 'view')
+      ? db.select({ id: schema.waitlistSignups.id }).from(schema.waitlistSignups).where(eq(schema.waitlistSignups.status, 'pending'))
+      : Promise.resolve([]),
+    can(access, 'support', 'view')
+      ? db.select({ id: schema.supportTickets.id }).from(schema.supportTickets).where(eq(schema.supportTickets.status, 'pending'))
+      : Promise.resolve([]),
   ]);
   return waitlistRows.length + ticketRows.length;
 }
 
-export async function loadGuidanceCounts(session: SessionInfo): Promise<GuidanceCounts> {
+export async function loadGuidanceCounts(session: GuidanceSession): Promise<GuidanceCounts> {
   const storeId = session.store?.id ?? null;
 
   const [summary, unreadInbox, salesThisMonth, adminWaiting] = await Promise.all([
     storeId ? storeSummary(storeId) : Promise.resolve(null),
     countUnreadInbox(session.user.id),
     storeId ? getSalesThisMonth(storeId).then((sales) => sales.count) : Promise.resolve(0),
-    session.role === 'admin' ? countAdminWaiting() : Promise.resolve(0),
+    isTeamRole(session.role) ? countAdminWaiting(accessOf(session)) : Promise.resolve(0),
   ]);
 
   return {
@@ -62,8 +77,8 @@ export async function loadGuidanceCounts(session: SessionInfo): Promise<Guidance
   };
 }
 
-export function guidanceStateFor(session: SessionInfo, counts: GuidanceCounts): GuidanceState {
-  if (session.role === 'admin') return 'admin';
+export function guidanceStateFor(session: GuidanceSession, counts: GuidanceCounts): GuidanceState {
+  if (isTeamRole(session.role)) return 'admin';
   if (!session.store) return 'no_store';
   if (counts.liveProducts === 0 && counts.draftProducts === 0) return 'no_products';
   if (counts.liveProducts === 0) return 'draft_products';
@@ -71,14 +86,14 @@ export function guidanceStateFor(session: SessionInfo, counts: GuidanceCounts): 
 }
 
 /** Convenience for callers that just need the state (loads counts once). */
-export async function resolveGuidance(session: SessionInfo): Promise<{ state: GuidanceState; counts: GuidanceCounts }> {
+export async function resolveGuidance(session: GuidanceSession): Promise<{ state: GuidanceState; counts: GuidanceCounts }> {
   const counts = await loadGuidanceCounts(session);
   return { state: guidanceStateFor(session, counts), counts };
 }
 
 /** The artist's first name, or null when the account has no usable name
  * (the greeting then drops it instead of calling them something else). */
-function firstNameFor(session: SessionInfo): string | null {
+function firstNameFor(session: GuidanceSession): string | null {
   const name = session.user.displayName?.trim() ?? '';
   if (!name || name.includes('@')) return null;
   return name.split(/\s+/)[0] || null;
@@ -88,7 +103,7 @@ function plural(n: number, word: string): string {
   return `${n} ${word}${n === 1 ? '' : 's'}`;
 }
 
-async function lineFor(session: SessionInfo, state: GuidanceState, counts: GuidanceCounts): Promise<string> {
+async function lineFor(session: GuidanceSession, state: GuidanceState, counts: GuidanceCounts): Promise<string> {
   switch (state) {
     case 'no_store':
       return "You don't have a shop yet. Let's start one.";
@@ -98,7 +113,7 @@ async function lineFor(session: SessionInfo, state: GuidanceState, counts: Guida
       return `Your shop is a draft. ${plural(remaining, 'step')} to live.`;
     }
     case 'draft_products':
-      return `${plural(counts.draftProducts, 'draft')} waiting for a proof.`;
+      return `${plural(counts.draftProducts, 'draft')} waiting to go live.`;
     case 'live': {
       const shopName = session.store?.name?.trim() || 'Your shop';
       // Products can be live before the shop is published.
@@ -118,7 +133,7 @@ async function lineFor(session: SessionInfo, state: GuidanceState, counts: Guida
 }
 
 export async function greetingFor(
-  session: SessionInfo,
+  session: GuidanceSession,
   state: GuidanceState,
   counts?: GuidanceCounts,
 ): Promise<{ headline: string; line: string }> {
@@ -130,7 +145,26 @@ export async function greetingFor(
   };
 }
 
-export function quickActionsFor(state: GuidanceState): Chip[] {
+/** The owner's and staff home chips, each with the area and level its tool
+ * needs; quickActionsFor keeps the ones the caller may use. */
+const TEAM_QUICK_ACTIONS: { chip: Chip; area: Area; level: Level }[] = [
+  { chip: { label: "What's waiting", prompt: "What's waiting on me?", primary: true }, area: 'production', level: 'view' },
+  { chip: { label: 'Production queue', prompt: 'Show the production queue' }, area: 'production', level: 'view' },
+  { chip: { label: 'Waitlist', prompt: 'List the waitlist' }, area: 'applications', level: 'view' },
+  { chip: { label: 'Open tickets', prompt: 'Show open support tickets' }, area: 'support', level: 'view' },
+  { chip: { label: 'Payout anomalies', prompt: 'Show payout anomalies' }, area: 'money', level: 'view' },
+];
+
+/** `access` matters only in the 'admin' state: an employee sees the chips of
+ * their own areas (none without it). The owner keeps the original four. */
+export function quickActionsFor(state: GuidanceState, access?: AccessHolder): Chip[] {
+  if (state === 'admin') {
+    const holder = access ?? { role: 'staff' as const };
+    if (holder.role === 'admin') return TEAM_QUICK_ACTIONS.filter((a) => a.chip.label !== 'Open tickets').map((a) => a.chip);
+    const chips = TEAM_QUICK_ACTIONS.filter((a) => can(holder, a.area, a.level)).map((a) => a.chip);
+    // The first chip an employee sees leads, whichever it is.
+    return chips.map((chip, i) => ({ ...chip, primary: i === 0 ? true : undefined }));
+  }
   switch (state) {
     case 'no_store':
       return [
@@ -149,7 +183,7 @@ export function quickActionsFor(state: GuidanceState): Chip[] {
     case 'draft_products':
       return [
         { label: 'Continue my draft', prompt: 'Continue my draft', primary: true },
-        { label: 'Send a proof', prompt: 'Send a proof' },
+        { label: 'Publish a draft', prompt: 'Publish my draft' },
         { label: 'Browse blanks', prompt: 'Show me blanks' },
         { label: 'Shop status', prompt: 'Show my shop' },
       ];
@@ -162,18 +196,11 @@ export function quickActionsFor(state: GuidanceState): Chip[] {
         { label: 'Bulk order', prompt: 'Start a bulk order' },
         { label: 'Inbox', prompt: 'Check my inbox' },
       ];
-    case 'admin':
-      return [
-        { label: "What's waiting", prompt: "What's waiting on me?", primary: true },
-        { label: 'Production queue', prompt: 'Show the production queue' },
-        { label: 'Waitlist', prompt: 'List the waitlist' },
-        { label: 'Payout anomalies', prompt: 'Show payout anomalies' },
-      ];
   }
 }
 
-export async function checklistFor(session: SessionInfo): Promise<ChecklistStep[] | null> {
-  if (session.role === 'admin') return null;
+export async function checklistFor(session: GuidanceSession): Promise<ChecklistStep[] | null> {
+  if (isTeamRole(session.role)) return null;
   if (session.store?.isPublished) return null;
 
   const summary = session.store ? await storeSummary(session.store.id) : null;

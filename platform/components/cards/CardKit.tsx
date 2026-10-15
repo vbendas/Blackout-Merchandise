@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { blankDisplayName } from '@/lib/catalog/display-names';
+import { isSitePath, isWebUrl } from '@/components/cards/actions';
 import '@/components/cards/cards.css';
 
 // Card grammar (see cards.css): the website's run page as a card. Every card
@@ -166,7 +168,7 @@ export interface ActionItem {
   primary?: boolean;
   /** secondary link at 50% */
   quiet?: boolean;
-  /** opens in a new tab */
+  /** a web address opens in a new tab; a Studio page ('/studio/...') in the same tab */
   href?: string;
   onClick?: () => void;
   disabled?: boolean;
@@ -182,13 +184,17 @@ function ExternalIcon() {
   );
 }
 
-function isWebUrl(value: string): boolean {
-  return /^https?:\/\//i.test(value);
-}
-
 function ActionControl({ action }: { action: ActionItem }) {
   const className = action.primary ? 'mf-pill mf-pill-sm mf-pill-primary' : 'mfc-link';
   const quiet = action.quiet && !action.primary ? '' : undefined;
+
+  if (action.href && isSitePath(action.href)) {
+    return (
+      <Link href={action.href} className={className} data-quiet={quiet}>
+        {action.label}
+      </Link>
+    );
+  }
 
   if (action.href) {
     return (
@@ -214,9 +220,9 @@ function ActionControl({ action }: { action: ActionItem }) {
   );
 }
 
-/** Actions under a card's rows. Links are web addresses only. */
+/** Actions under a card's rows. Links are web addresses or Studio pages, nothing else. */
 export function ActionRow({ actions }: { actions: ActionItem[] }) {
-  const shown = actions.filter((action) => !action.href || isWebUrl(action.href));
+  const shown = actions.filter((action) => !action.href || isWebUrl(action.href) || isSitePath(action.href));
   if (shown.length === 0) return null;
   return (
     <div className="mfc-actions">

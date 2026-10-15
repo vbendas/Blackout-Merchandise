@@ -1,32 +1,20 @@
 import type { ReactNode } from 'react';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { requireUser } from '@/lib/auth';
+import { hasAnyAdminAccess } from '@/lib/auth/permissions';
+import { adminNavFor } from '@/lib/admin/nav';
+import { AdminShell } from '@/components/admin/AdminShell';
 
-// Admin surface: the morning queue lives in chat, but bulk tables (this
-// layout's children) are dedicated pages. Gated here so both pages inherit
-// the same check — role !== 'admin' bounces straight back to chat.
+// The admin frame: the sidebar of the pages this person may open (the
+// owner sees every one, an employee only their areas) around the page.
+// Anyone without admin access goes back to the Studio. This is not the gate
+// for the pages: each page and action checks its own area and level
+// (requireStaffPage, requireStaffAction in lib/auth.ts), because a layout
+// doesn't stop a page rendering on its own.
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const session = await requireUser();
-  if (session.role !== 'admin') redirect('/studio');
+  const { actor } = await requireUser();
+  if (!hasAnyAdminAccess(actor)) redirect('/studio');
 
-  return (
-    <div style={{ minHeight: '100dvh' }}>
-      <header className="mf-hairline-b flex items-center justify-between px-6 py-4">
-        <div className="mf-label">MerchFrom · Admin</div>
-        <nav className="flex items-center gap-5 text-[13px]">
-          <Link href="/studio" className="mf-dimmed hover:opacity-100">
-            Studio
-          </Link>
-          <Link href="/admin/production" className="mf-dimmed hover:opacity-100">
-            Production
-          </Link>
-          <Link href="/admin/supplier" className="mf-dimmed hover:opacity-100">
-            Supplier
-          </Link>
-        </nav>
-      </header>
-      <main className="px-6 py-8">{children}</main>
-    </div>
-  );
+  const links = adminNavFor(actor).map(({ href, label }) => ({ href, label }));
+  return <AdminShell links={links}>{children}</AdminShell>;
 }

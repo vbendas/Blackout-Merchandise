@@ -137,7 +137,7 @@ export const cleanDesignTool = defineTool({
 export const editDesignTool = defineTool({
   name: 'edit_design',
   description:
-    "Make an instruction-based change to a design's artwork — case 3 (file needing edits), e.g. 'make the skull bigger', 'add roses around it', 'make it darker'. Always re-anchors to the artist's original upload (not the last edited version) so repeated edits don't degrade quality, and keeps their artwork as-is beyond what was asked. Produces a new version alongside the original — never overwrites it.",
+    "Make an instruction-based change to a design's artwork — case 3 (file needing edits), e.g. 'make the skull bigger', 'add roses around it', 'make it darker'. It changes the design you pass, as the artist sees it now, so pass the id of the version they are looking at, not an older one. Earlier changes to that artwork are kept and sent along with the new instruction, and the rest of the artwork stays as it is. Produces a new version alongside the original — never overwrites it. The result is a draft preview: the full-size print render is made when the design is prepared for print.",
   input: z.object({ designId: z.string().min(1), instruction: z.string().min(3).max(600) }).strict(),
   scope: 'both',
   run: async (ctx, input): Promise<ToolResult> => {
@@ -154,7 +154,7 @@ export const editDesignTool = defineTool({
 export const composeDesignTool = defineTool({
   name: 'compose_design',
   description:
-    "Build a new design around an artist's own logo or mascot — case 4 (logo only, no other artwork). The logo is attached exactly as provided and never altered; a style capsule (see list_style_capsules) optionally guides the look built around it. Use when the artist has just a logo and wants a full design made from it, e.g. 'build a tee design around this logo'.",
+    "Build a new design around an artist's own logo or mascot — case 4 (logo only, no other artwork). The logo is attached exactly as provided and never altered; a style capsule (see list_style_capsules) optionally guides the look built around it. Use when the artist has just a logo and wants a full design made from it, e.g. 'build a tee design around this logo'. The result is a draft preview: the full-size print render is made when the design is prepared for print.",
   input: z
     .object({
       logoDesignId: z.string().min(1).describe('Design id of the uploaded logo/mascot to build around.'),
@@ -177,7 +177,7 @@ export const composeDesignTool = defineTool({
 export const generateDesignTool = defineTool({
   name: 'generate_design',
   description:
-    "Generate brand-new artwork from a text brief — case 5 (from scratch, no existing file). Optionally guided by a style capsule (call list_style_capsules first if the artist hasn't picked one) and/or a few existing designs as visual references. Produces two variants to compare, edit further, or use directly.",
+    "Generate brand-new artwork from a text brief — case 5 (from scratch, no existing file). Optionally guided by a style capsule (call list_style_capsules first if the artist hasn't picked one) and/or a few existing designs as visual references. Produces two draft variants to compare, edit further, or use directly. They are previews: the full-size print render is made when the chosen design is prepared for print.",
   input: z
     .object({
       brief: z.string().min(3).max(600),

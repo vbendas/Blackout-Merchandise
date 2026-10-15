@@ -22,6 +22,20 @@
       "when": 1791721953676,
       "tag": "0002_public_queen_noir",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792024624938,
+      "tag": "0003_print_prep_and_staff",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792064956490,
+      "tag": "0004_print_jobs_live_hash_and_shop_methods",
+      "breakpoints": true
     }
   ]
 }

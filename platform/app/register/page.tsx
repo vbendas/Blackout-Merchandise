@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { requireUser } from '@/lib/auth';
 import { checkRegistrationEligibility } from '@/lib/services/registration';
+import { hasPendingInvite } from '@/lib/services/team';
 import { Logo } from '@/components/Logo';
 import { RegisterMark } from '@/components/RegisterMark';
 import { siteHref } from '@/components/auth/door-links';
@@ -13,8 +14,14 @@ export const metadata: Metadata = { title: 'Register' };
 export default async function RegisterPage() {
   const session = await requireUser();
 
-  if (session.role === 'admin' || session.store) {
+  // The owner and staff work without a shop (lib/auth.ts requireRegistered).
+  if (session.role === 'admin' || session.role === 'staff' || session.store) {
     redirect('/studio');
+  }
+
+  // Someone the owner invited to the team accepts that instead of opening a shop.
+  if (session.user.email && (await hasPendingInvite(session.user.email))) {
+    redirect('/staff-invite');
   }
 
   // Platform-Plan §7: registration is invite-only. See

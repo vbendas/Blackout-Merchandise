@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { placeSupplierOrderAction, receiveSupplierOrderAction } from '@/app/(chat)/admin/actions';
+import { placeSupplierOrderAction, receiveSupplierOrderAction, type AdminActionResult } from '@/app/(chat)/admin/actions';
 import { StatusPill } from '@/components/cards/StatusPill';
 
 export interface SupplierLineRow {
@@ -29,26 +29,30 @@ export interface SupplierOrderRow {
 }
 
 function formatCents(cents: number): string {
-  return (cents / 100).toLocaleString(undefined, { style: 'currency', currency: 'EUR' });
+  return (cents / 100).toLocaleString('en-GB', { style: 'currency', currency: 'EUR' });
 }
 
 const RECEIVABLE = new Set(['placed', 'confirmed', 'shipped']);
+const BUTTON = 'mf-pill mf-pill-sm mf-pill-primary min-h-11';
 
-export function SupplierTable({ orders }: { orders: SupplierOrderRow[] }) {
+/** Supplier purchase orders. `canWork`: the person may place and receive
+ * them (Production, Work); without it the list is read only. */
+export function SupplierTable({ orders, canWork }: { orders: SupplierOrderRow[]; canWork: boolean }) {
   const router = useRouter();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  function run(id: string, action: (id: string) => Promise<void>) {
+  function run(id: string, action: (id: string) => Promise<AdminActionResult>) {
     setError(null);
     setPendingId(id);
     startTransition(async () => {
       try {
-        await action(id);
-        router.refresh();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Action failed.');
+        const result = await action(id);
+        if (result.error) setError(result.error);
+        else router.refresh();
+      } catch {
+        setError('That did not go through. Please try again.');
       } finally {
         setPendingId(null);
       }
@@ -56,61 +60,51 @@ export function SupplierTable({ orders }: { orders: SupplierOrderRow[] }) {
   }
 
   if (orders.length === 0) {
-    return <div className="mf-dimmed text-[13px]">No supplier orders yet.</div>;
+    return <p className="opacity-80">No supplier orders yet.</p>;
   }
 
   return (
     <div className="flex flex-col gap-4">
       {error ? (
-        <div className="mf-hairline rounded-lg px-3 py-2 text-[13px]" style={{ color: 'var(--danger)' }}>
+        <p role="alert" className="rounded-[2px] px-4 py-3 [border:var(--hairline-strong)]">
           {error}
-        </div>
+        </p>
       ) : null}
       {orders.map((order) => (
-        <div key={order.id} className="mf-card p-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <section key={order.id} aria-label={order.poNumber} className="rounded-[2px] p-4 [border:var(--hairline)]">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-[14px]">{order.poNumber}</div>
-              <div className="mf-dimmed text-[12px]">
+              <h2 className="font-mono text-[13px]">{order.poNumber}</h2>
+              <p className="text-[13px] opacity-50">
                 {order.supplier} · {order.totalUnits} units · {formatCents(order.totalCostCents)} · {order.forOrders.length} order{order.forOrders.length === 1 ? '' : 's'}
-              </div>
+              </p>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <StatusPill label={order.status} tone={order.status === 'received' ? 'positive' : order.status === 'cancelled' ? 'dim' : 'neutral'} />
-              {order.status === 'draft' && (
-                <button
-                  type="button"
-                  className="mf-pill mf-pill-sm mf-pill-primary"
-                  disabled={pendingId === order.id}
-                  onClick={() => run(order.id, placeSupplierOrderAction)}
-                >
-                  {pendingId === order.id ? '…' : 'Place'}
+              {canWork && order.status === 'draft' ? (
+                <button type="button" className={BUTTON} disabled={pendingId === order.id} onClick={() => run(order.id, placeSupplierOrderAction)}>
+                  {pendingId === order.id ? 'Saving' : 'Place'}
                 </button>
-              )}
-              {RECEIVABLE.has(order.status) && (
-                <button
-                  type="button"
-                  className="mf-pill mf-pill-sm mf-pill-primary"
-                  disabled={pendingId === order.id}
-                  onClick={() => run(order.id, receiveSupplierOrderAction)}
-                >
-                  {pendingId === order.id ? '…' : 'Receive'}
+              ) : null}
+              {canWork && RECEIVABLE.has(order.status) ? (
+                <button type="button" className={BUTTON} disabled={pendingId === order.id} onClick={() => run(order.id, receiveSupplierOrderAction)}>
+                  {pendingId === order.id ? 'Saving' : 'Receive'}
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
-          <div className="grid gap-1.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))' }}>
+          <ul className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))' }}>
             {order.lines.map((line) => (
-              <div key={`${line.blankCode}-${line.colourCode}-${line.size}`} className="mf-hairline rounded-lg px-2.5 py-2 text-[12px]">
+              <li key={`${line.blankCode}-${line.colourCode}-${line.size}`} className="rounded-[2px] px-3 py-2 text-[13px] [border:var(--hairline)]">
                 <div>{line.blankName}</div>
-                <div className="mf-dimmed">
+                <div className="opacity-50">
                   {line.colourName || line.colourCode} · {line.size}
                 </div>
                 <div>{line.qty} units</div>
-              </div>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </section>
       ))}
     </div>
   );

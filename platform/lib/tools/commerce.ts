@@ -1,13 +1,18 @@
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
+import { can } from '@/lib/auth/permissions';
 import { defineTool, type Tool, type ToolResult } from '@/lib/tools/types';
+import { jobSheetActions } from '@/lib/tools/job-sheet-actions';
 import { appBaseUrl, getStripeAccountStatus, startOnboarding, type StoreStripeStatus } from '@/lib/services/stripe';
-import { getOrder, listOrders, refundOrder, salesSummary, type OrderDetail, type OrderListItem, type SalesSummary } from '@/lib/services/orders';
+import { getOrder, getOrderForStaff, listOrders, refundOrder, salesSummary, type OrderDetail, type OrderListItem, type SalesSummary } from '@/lib/services/orders';
 import type { Card, CardAction } from '@/lib/ui-cards/schemas';
 
 // Money tools: Stripe Connect status/onboarding, and the artist-facing order
 // / sales read model. Every write here goes through lib/services/{stripe,
-// orders}.ts — nothing here touches the DB directly.
+// orders}.ts — nothing here touches the DB directly. The artist tools only
+// ever see the caller's own shop; get_order also opens any shop's order for
+// staff with Shop orders View, and refunds are a staff tool (Shop orders,
+// Manage) that may act on any shop's order.
 
 function noStore(): { data: { ok: false; error: string } } {
   return { data: { ok: false, error: 'No shop found for this account yet.' } };
@@ -45,7 +50,7 @@ function stripeOnboardingCard(status: StoreStripeStatus, onboardingUrl?: string)
   };
 }
 
-function orderCard(detail: OrderDetail): Card {
+function orderCard(detail: OrderDetail, actions?: CardAction[]): Card {
   return {
     id: `order_${detail.id}`,
     kind: 'order',
@@ -60,6 +65,7 @@ function orderCard(detail: OrderDetail): Card {
     lines: detail.lines,
     totals: detail.totals,
     tracking: detail.tracking ?? undefined,
+    ...(actions && actions.length > 0 ? { actions } : {}),
   };
 }
 
@@ -191,20 +197,25 @@ interface GetOrderData {
 
 export const getOrderTool = defineTool({
   name: 'get_order',
-  description: "Get full details for one order — lines, totals, status and tracking. Call this when the artist opens an order from list_orders or asks about a specific order.",
+  description:
+    "Get full details for one order — lines, totals, status and tracking. Call this when the artist opens an order from list_orders or asks about a specific order. Staff with Shop orders access can open any shop's order.",
   input: z.object({ orderId: z.string().uuid() }).strict(),
-  scope: 'artist',
+  scope: 'both',
   readOnly: true,
   run: async (ctx, input): Promise<ToolResult<GetOrderData>> => {
-    if (!ctx.storeId) return noStore();
+    const crossShop = can(ctx, 'shop_orders', 'view');
+    if (!ctx.storeId && !crossShop) return noStore();
 
-    const detail = await getOrder(ctx.storeId, input.orderId);
+    // The caller's own shop first; any shop's order only with Shop orders View.
+    const own = ctx.storeId ? await getOrder(ctx.storeId, input.orderId) : null;
+    const detail = own ?? (crossShop ? await getOrderForStaff(input.orderId) : null);
     if (!detail) {
-      const text = 'Order not found for this shop.';
+      const text = crossShop ? 'Order not found.' : 'Order not found for this shop.';
       return { data: { ok: false, error: text }, ui: { cards: [errorNotice(`get_order_err_${randomUUID()}`, text)] } };
     }
 
-    return { data: { ok: true, orderId: detail.id, status: detail.status }, ui: { cards: [orderCard(detail)] } };
+    // Staff who work on the files or the press get a link to each design's job sheet; artists don't.
+    return { data: { ok: true, orderId: detail.id, status: detail.status }, ui: { cards: [orderCard(detail, await jobSheetActions(ctx, detail.id))] } };
   },
 });
 
@@ -241,15 +252,19 @@ interface RefundOrderData {
 export const refundOrderTool = defineTool({
   name: 'refund_order',
   description:
-    "Refund an order, in full or for a specific amount, with a reason. Admin only. Sensitive action: shows a confirm card and only executes once an admin clicks confirm.",
+    "Refund an order, in full or for a specific amount, with a reason. Staff with Manage access to shop orders only. Sensitive action: shows a confirm card and only executes once a person clicks confirm.",
   input: z.object({ orderId: z.string().uuid(), amountCents: z.number().int().positive().optional(), reason: z.string().min(1).max(300) }).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'shop_orders', level: 'manage' },
   confirm: true,
   summarize: (input) => `Refund order ${input.orderId}${input.amountCents ? ` (€${(input.amountCents / 100).toFixed(2)})` : ' in full'} — ${input.reason}`,
   run: async (ctx, input): Promise<ToolResult<RefundOrderData>> => {
-    // Admin refunds can act on any store's order; an artist calling this
-    // (were it ever exposed to that scope) would be limited to their own.
-    const storeId = ctx.role === 'admin' ? undefined : (ctx.storeId ?? undefined);
+    // Shop orders Manage acts on any shop's order. Anyone else (were the tool
+    // ever handed to them) is held to their own shop, and without one to
+    // nothing: an empty filter would mean every shop.
+    const crossShop = can(ctx, 'shop_orders', 'manage');
+    if (!crossShop && !ctx.storeId) return noStore();
+    const storeId = crossShop ? undefined : (ctx.storeId ?? undefined);
     const result = await refundOrder(input.orderId, { storeId, amountCents: input.amountCents, reason: input.reason });
     if (!result.ok) {
       return { data: { ok: false, error: result.error }, ui: { cards: [errorNotice(`refund_err_${randomUUID()}`, result.error)] } };

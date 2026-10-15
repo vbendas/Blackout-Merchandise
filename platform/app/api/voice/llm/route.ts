@@ -17,19 +17,25 @@
  *    ElevenLabs calls this route server-to-server with no browser session.
  *    The value is set on the agent's `customLlm.requestHeaders.authorization`
  *    (see ensureAgent) and checked against `Authorization: Bearer <secret>`
- *    below.
+ *    below, in constant time.
  *
  * 3. *Which* MerchFrom user is talking is a separate problem from bridge
- *    auth: ElevenLabs forwards a `user_id` we configure as a dynamic
- *    variable on the conversation (set by the client starting the voice
- *    session, e.g. `conversation.startSession({ dynamicVariables: { user_id
- *    } })` via `@elevenlabs/react`/`@elevenlabs/client`), which shows up on
- *    this request either top-level as `user_id` or nested under
- *    `elevenlabs_extra_body.user_id` depending on how the agent's extra-body
- *    template is configured. `resolveVoiceCaller` (lib/services/voice.ts)
- *    tries both, matching against either our `users.id` or the Clerk id.
- *    Until a real agent exists there is nothing to forward this from, so in
- *    local dev (AUTH_DEV_BYPASS=1) it falls back to the same fixed
+ *    auth. The secret only proves the request came from ElevenLabs; the rest
+ *    of it was set by the browser that started the conversation, so a bare
+ *    `user_id` on it could be anyone's (the owner's included) and is never
+ *    read. Instead /api/voice/session, behind Clerk, mints a signed caller
+ *    token for the signed-in user (`mintVoiceCallerToken` in
+ *    lib/services/voice.ts: `v1.<userId>.<expiry>.<HMAC-SHA256>` keyed with
+ *    VOICE_BRIDGE_SECRET, good for about an hour). The client starts the
+ *    conversation with it as the `user_token` dynamic variable
+ *    (`startSession({ dynamicVariables: { user_token } })`,
+ *    components/chat/useVoice.ts), and it shows up on this request either
+ *    top-level as `user_token` or nested under
+ *    `elevenlabs_extra_body.user_token` depending on how the agent's
+ *    extra-body template is configured. `resolveVoiceCaller` acts only for a
+ *    token that verifies, looking its user up by `users.id`. Until a real
+ *    agent exists there is nothing to forward a token from, so in local dev
+ *    (AUTH_DEV_BYPASS=1) a request without one falls back to the same fixed
  *    dev-bypass user everything else in the app uses.
  *
  * 4. The bridge runs *our* agent loop (`runTurnForText`, wrapping
@@ -46,12 +52,13 @@
  *    the caller doesn't sit in silence — the real reply keeps streaming
  *    after it.
  */
-import { randomUUID } from 'crypto';
+import { randomUUID, timingSafeEqual } from 'crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { BaseAgentContext } from '@/lib/agent/loop';
 import { runTurnForText } from '@/lib/agent/run-turn';
 import { checkRateLimit } from '@/lib/agent/rate-limit';
 import { getOrCreateConversation } from '@/lib/services/conversations';
+import { loadActor } from '@/lib/services/team';
 import { resolveVoiceCaller } from '@/lib/services/voice';
 
 export const runtime = 'nodejs';
@@ -72,8 +79,19 @@ interface VoiceLlmRequestBody {
   messages?: ChatMessage[];
   model?: string;
   stream?: boolean;
-  user_id?: string;
-  elevenlabs_extra_body?: { user_id?: string; [key: string]: unknown };
+  /** the caller token from /api/voice/session (see point 3 above) */
+  user_token?: string;
+  elevenlabs_extra_body?: { user_token?: string; [key: string]: unknown };
+}
+
+/** Whether the Authorization header carries the bridge secret, compared in
+ * constant time (timingSafeEqual throws on lengths that differ, so the
+ * length is checked first). */
+function hasBridgeSecret(authHeader: string | null, secret: string): boolean {
+  if (!authHeader) return false;
+  const given = Buffer.from(authHeader);
+  const expected = Buffer.from(`Bearer ${secret}`);
+  return given.length === expected.length && timingSafeEqual(given, expected);
 }
 
 function textOfContent(content: ChatMessage['content']): string {
@@ -111,8 +129,7 @@ function sseChunk(id: string, model: string, created: number, content: string, f
 
 export async function POST(req: NextRequest): Promise<Response> {
   const secret = process.env.VOICE_BRIDGE_SECRET;
-  const authHeader = req.headers.get('authorization');
-  if (!secret || authHeader !== `Bearer ${secret}`) {
+  if (!secret || !hasBridgeSecret(req.headers.get('authorization'), secret)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
@@ -123,10 +140,16 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const userIdHint = body.user_id ?? body.elevenlabs_extra_body?.user_id ?? null;
-  const caller = await resolveVoiceCaller(userIdHint);
+  const callerToken = body.user_token ?? body.elevenlabs_extra_body?.user_token ?? null;
+  const caller = await resolveVoiceCaller(callerToken);
   if (!caller) {
     return NextResponse.json({ error: 'unknown_caller' }, { status: 401 });
+  }
+  // The same access as the web chat: an employee's areas as of this call,
+  // and nothing at all for a suspended one.
+  const actor = await loadActor(caller.userId, caller.role);
+  if (actor.role === 'staff' && actor.suspended) {
+    return NextResponse.json({ error: 'suspended' }, { status: 403 });
   }
 
   const rate = checkRateLimit(`voice-llm:${caller.userId}`);
@@ -142,14 +165,16 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'no_user_message' }, { status: 400 });
   }
 
-  const conversation = await getOrCreateConversation(caller.userId, caller.role);
+  const conversation = await getOrCreateConversation(caller.userId, actor.role);
   const base: BaseAgentContext = {
     userId: caller.userId,
     clerkId: caller.clerkId,
-    role: caller.role,
+    role: actor.role,
     storeId: caller.storeId,
     conversationId: conversation.id,
     locale: caller.locale,
+    permissions: actor.permissions ?? null,
+    suspended: actor.suspended ?? false,
   };
 
   const modelName = body.model || 'merchfrom-agent';

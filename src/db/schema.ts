@@ -1,11 +1,13 @@
-import { pgTable, text, boolean, integer, serial, jsonb, timestamp, uuid, pgEnum, index, primaryKey, unique } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, integer, serial, jsonb, timestamp, uuid, pgEnum, index, primaryKey, unique, uniqueIndex, real } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
 // ============================================================================
 // ENUMS
 // ============================================================================
 
-export const userRoleEnum = pgEnum('user_role', ['artist', 'admin']);
+// 'admin' is the owner (everything); 'staff' is an employee whose access is
+// set per area in staff_permissions (Print-Prep-Plan section 9).
+export const userRoleEnum = pgEnum('user_role', ['artist', 'staff', 'admin']);
 export const orderStatusEnum = pgEnum('order_status', ['pending', 'paid', 'processing', 'shipped', 'fulfilled', 'cancelled']);
 export const orderTypeEnum = pgEnum('order_type', ['pod', 'bulk']);
 export const productionStatusEnum = pgEnum('production_status', ['queued', 'printing', 'packed', 'shipped', 'delivered']);
@@ -57,6 +59,13 @@ export const bulkOrderStatusEnum = pgEnum('bulk_order_status', [
 ]);
 export const domainStatusEnum = pgEnum('domain_status', ['pending', 'verifying', 'active', 'error']);
 
+// Print prep Enums (Documentation/Dev/Print-Prep-Plan.md)
+export const printTechniqueEnum = pgEnum('print_technique', ['screen', 'dtg_dtf']);
+export const printJobStatusEnum = pgEnum('print_job_status', ['queued', 'running', 'done', 'failed']);
+export const packBuildStatusEnum = pgEnum('pack_build_status', ['building', 'ready', 'failed']);
+// idle: built, no order needs it yet; waiting: in the pre-press queue.
+export const packAuditStatusEnum = pgEnum('pack_audit_status', ['idle', 'waiting', 'being_fixed', 'approved', 'sent_back']);
+
 // Agent runtime Enums
 export const messageRoleEnum = pgEnum('message_role', ['user', 'assistant', 'tool']);
 export const notificationChannelEnum = pgEnum('notification_channel', ['email', 'discord', 'inapp']);
@@ -74,6 +83,8 @@ export const users = pgTable('users', {
     imageUrl: text('image_url'),
     discordUserId: text('discord_user_id'),
     locale: text('locale').default('en'),
+    staffTitle: text('staff_title'), // job title shown on /admin/team, staff only
+    suspendedAt: timestamp('suspended_at'), // set: a suspended staff account has no access
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -132,6 +143,8 @@ export const printServices = pgTable('print_services', {
     positions: jsonb('positions').default([]), // ['front', 'back', 'sleeve']
     setupCents: integer('setup_cents').default(0).notNull(),
     isActive: boolean('is_active').default(true).notNull(),
+    // Shop products print DTG/DTF only; screen print is for runs (owner, 15 Oct 2026).
+    availableInShop: boolean('available_in_shop').default(true).notNull(),
 });
 
 // Colours Table (supplier colourways)
@@ -370,6 +383,189 @@ export const proofs = pgTable('proofs', {
     approvedBy: uuid('approved_by').references(() => users.id),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+// ============================================================================
+// PRINT PREP (Documentation/Dev/Print-Prep-Plan.md)
+// ============================================================================
+
+// Design Versions Table (immutable art versions; approval and packs pin one)
+export const designVersions = pgTable('design_versions', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    designId: uuid('design_id').references(() => designs.id, { onDelete: 'cascade' }).notNull(),
+    version: integer('version').notNull(), // 1, 2, 3... per design
+    artUrl: text('art_url').notNull(),
+    artKey: text('art_key'), // print storage key when the art lives there
+    sha256: text('sha256').notNull(),
+    widthPx: integer('width_px').notNull(),
+    heightPx: integer('height_px').notNull(),
+    source: text('source').notNull(), // 'upload' | 'generated' | 'edited' | 'final_4k'
+    parentVersionId: uuid('parent_version_id'), // self-ref, left unconstrained like designs.parentDesignId
+    createdBy: uuid('created_by').references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+    unique('design_versions_design_version_unique').on(table.designId, table.version),
+    index('design_versions_design_id_idx').on(table.designId),
+]);
+
+// Print Recipes Table (overrides of the code defaults: per capsule or per design)
+export const printRecipes = pgTable('print_recipes', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    capsuleId: text('capsule_id'), // set for a capsule default override
+    designId: uuid('design_id').references(() => designs.id, { onDelete: 'cascade' }), // set for a design override
+    recipe: jsonb('recipe').notNull(), // Partial<PrintRecipe> (platform/lib/print/types.ts)
+    updatedBy: uuid('updated_by').references(() => users.id),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+    unique('print_recipes_capsule_unique').on(table.capsuleId),
+    unique('print_recipes_design_unique').on(table.designId),
+]);
+
+// Ink Systems Table (the shop's ink system profile; one active row)
+export const inkSystems = pgTable('ink_systems', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    name: text('name').notNull(), // 'MagnaPrint HB'
+    isActive: boolean('is_active').default(true).notNull(),
+    profile: jsonb('profile').notNull(), // InkSystemProfile (platform/lib/print/types.ts)
+    updatedBy: uuid('updated_by').references(() => users.id),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Pantone Library Table (house library: codes pre-press picked in MagnaMix for
+// a colour, plus measured prints later). Never Pantone's own colour table, and
+// never shown to clients (Print-Prep-Plan section 5).
+export const pantoneLibrary = pgTable('pantone_library', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    code: text('code').notNull(), // 'PANTONE 186 C'
+    labL: real('lab_l').notNull(), // CIE Lab (D50) of the colour the code was picked for
+    labA: real('lab_a').notNull(),
+    labB: real('lab_b').notNull(),
+    source: text('source').notNull(), // 'assigned' | 'measured'
+    substrate: text('substrate'), // measured only: 'white_cotton' | 'black_underbase'
+    createdBy: uuid('created_by').references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+    index('pantone_library_code_idx').on(table.code),
+]);
+
+// Print Jobs Table (engine runs; also the worker's queue, claimed with SKIP LOCKED)
+export const printJobs = pgTable('print_jobs', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    kind: text('kind').notNull(), // 'prepare' | 'rerun' | 'reupload'
+    designVersionId: uuid('design_version_id').references(() => designVersions.id, { onDelete: 'cascade' }).notNull(),
+    status: printJobStatusEnum('status').default('queued').notNull(),
+    input: jsonb('input').notNull(), // PrintJobInput (platform/lib/print/types.ts)
+    inputHash: text('input_hash').notNull(),
+    attempts: integer('attempts').default(0).notNull(),
+    maxAttempts: integer('max_attempts').default(3).notNull(),
+    runAfter: timestamp('run_after').defaultNow().notNull(),
+    lockedAt: timestamp('locked_at'),
+    lockedBy: text('locked_by'), // worker id
+    error: text('error'),
+    result: jsonb('result'), // PrintJobResult
+    createdBy: uuid('created_by').references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    startedAt: timestamp('started_at'),
+    finishedAt: timestamp('finished_at'),
+}, (table) => [
+    index('print_jobs_status_run_after_idx').on(table.status, table.runAfter),
+    index('print_jobs_design_version_id_idx').on(table.designVersionId),
+    // One live job per input: two enqueues of the same work at the same instant
+    // can't both insert (platform/lib/print/jobs.ts enqueuePrintJob).
+    uniqueIndex('print_jobs_active_hash_unique').on(table.inputHash, table.kind).where(sql`${table.status} in ('queued', 'running')`),
+]);
+
+// Production Packs Table (one per design version x placement x technique x screen set)
+export const productionPacks = pgTable('production_packs', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    designVersionId: uuid('design_version_id').references(() => designVersions.id, { onDelete: 'cascade' }).notNull(),
+    placement: jsonb('placement').notNull(), // PrintPlacement
+    technique: printTechniqueEnum('technique').notNull(),
+    screenSetKey: text('screen_set_key'), // 'darks' | 'lights' | ...; null for dtg_dtf
+    garmentCodes: jsonb('garment_codes').default([]).notNull(), // string[] colour codes
+    method: text('method'), // 'spot' | 'index' | 'sim_process' | 'dtg'
+    screenCount: integer('screen_count'), // whites included; null for dtg_dtf
+    files: jsonb('files'), // PackFile[]
+    manifest: jsonb('manifest'), // PackManifest
+    checks: jsonb('checks'), // CheckResult[]
+    inputHash: text('input_hash').notNull(),
+    buildStatus: packBuildStatusEnum('build_status').default('building').notNull(),
+    auditStatus: packAuditStatusEnum('audit_status').default('idle').notNull(),
+    neededFor: jsonb('needed_for').default([]).notNull(), // PackNeed[]
+    auditedBy: uuid('audited_by').references(() => users.id),
+    auditedAt: timestamp('audited_at'),
+    correctedFromPackId: uuid('corrected_from_pack_id'), // self-ref: the automatic pack a correction replaced
+    jobId: uuid('job_id').references(() => printJobs.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+    index('production_packs_design_version_id_idx').on(table.designVersionId),
+    index('production_packs_audit_status_idx').on(table.auditStatus),
+]);
+
+// Design Approvals Table (one approval per design covers both techniques)
+export const designApprovals = pgTable('design_approvals', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    designId: uuid('design_id').references(() => designs.id, { onDelete: 'cascade' }).notNull(),
+    designVersionId: uuid('design_version_id').references(() => designVersions.id, { onDelete: 'cascade' }).notNull(),
+    packHashes: jsonb('pack_hashes').notNull(), // Record<packId, sha256 of its proof inputs>
+    garmentCodes: jsonb('garment_codes').default([]).notNull(), // string[]
+    placements: jsonb('placements').default([]).notNull(), // PrintPlacement[]
+    recipe: jsonb('recipe'), // PrintRecipe snapshot
+    approvedBy: uuid('approved_by').references(() => users.id).notNull(),
+    approvedAt: timestamp('approved_at').defaultNow().notNull(),
+    invalidatedAt: timestamp('invalidated_at'),
+    invalidatedReason: text('invalidated_reason'),
+}, (table) => [
+    index('design_approvals_design_id_idx').on(table.designId),
+]);
+
+// ============================================================================
+// STAFF (Print-Prep-Plan section 9: per-employee access by area)
+// ============================================================================
+
+// Staff Permissions Table (one row per employee and area; no row = 'none')
+export const staffPermissions = pgTable('staff_permissions', {
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    area: text('area').notNull(), // Area (platform/lib/auth/permissions.ts)
+    level: text('level').notNull(), // 'none' | 'view' | 'work' | 'manage'
+    updatedBy: uuid('updated_by').references(() => users.id),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+    primaryKey({ columns: [table.userId, table.area] }),
+]);
+
+// Staff Invites Table (the owner adds an employee by email with their access)
+export const staffInvites = pgTable('staff_invites', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    email: text('email').notNull(),
+    title: text('title'),
+    permissions: jsonb('permissions').notNull(), // PermissionMap
+    tokenHash: text('token_hash').notNull().unique(), // sha256 of the invite token
+    invitedBy: uuid('invited_by').references(() => users.id).notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    acceptedAt: timestamp('accepted_at'),
+    acceptedBy: uuid('accepted_by').references(() => users.id),
+    revokedAt: timestamp('revoked_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+    index('staff_invites_email_idx').on(table.email),
+]);
+
+// Staff Activity Table (page actions by staff; assistant actions stay in tool_invocations)
+export const staffActivity = pgTable('staff_activity', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    actorId: uuid('actor_id').references(() => users.id).notNull(),
+    area: text('area').notNull(),
+    action: text('action').notNull(), // e.g. 'pack.approve', 'production.advance'
+    itemType: text('item_type'), // e.g. 'production_pack', 'order'
+    itemId: text('item_id'),
+    detail: jsonb('detail'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+    index('staff_activity_actor_id_idx').on(table.actorId),
+    index('staff_activity_item_idx').on(table.itemType, table.itemId),
+    index('staff_activity_created_at_idx').on(table.createdAt),
+]);
 
 // ============================================================================
 // MONEY
@@ -821,6 +1017,55 @@ export const designsRelations = relations(designs, ({ one, many }) => ({
         references: [artistStores.id],
     }),
     products: many(products),
+    versions: many(designVersions),
+    approvals: many(designApprovals),
+}));
+
+// Print prep relations
+export const designVersionsRelations = relations(designVersions, ({ one, many }) => ({
+    design: one(designs, {
+        fields: [designVersions.designId],
+        references: [designs.id],
+    }),
+    jobs: many(printJobs),
+    packs: many(productionPacks),
+}));
+
+export const printJobsRelations = relations(printJobs, ({ one }) => ({
+    designVersion: one(designVersions, {
+        fields: [printJobs.designVersionId],
+        references: [designVersions.id],
+    }),
+}));
+
+export const productionPacksRelations = relations(productionPacks, ({ one }) => ({
+    designVersion: one(designVersions, {
+        fields: [productionPacks.designVersionId],
+        references: [designVersions.id],
+    }),
+    job: one(printJobs, {
+        fields: [productionPacks.jobId],
+        references: [printJobs.id],
+    }),
+}));
+
+export const designApprovalsRelations = relations(designApprovals, ({ one }) => ({
+    design: one(designs, {
+        fields: [designApprovals.designId],
+        references: [designs.id],
+    }),
+    designVersion: one(designVersions, {
+        fields: [designApprovals.designVersionId],
+        references: [designVersions.id],
+    }),
+}));
+
+// Staff relations
+export const staffPermissionsRelations = relations(staffPermissions, ({ one }) => ({
+    user: one(users, {
+        fields: [staffPermissions.userId],
+        references: [users.id],
+    }),
 }));
 
 export const collectionsRelations = relations(collections, ({ one, many }) => ({
@@ -1098,4 +1343,14 @@ export type TicketMessage = typeof ticketMessages.$inferSelect;
 export type SupplierOrder = typeof supplierOrders.$inferSelect;
 export type SupplierOrderItem = typeof supplierOrderItems.$inferSelect;
 export type ProcessedWebhookEvent = typeof processedWebhookEvents.$inferSelect;
+export type DesignVersion = typeof designVersions.$inferSelect;
+export type PrintRecipeRow = typeof printRecipes.$inferSelect;
+export type InkSystemRow = typeof inkSystems.$inferSelect;
+export type PantoneLibraryEntry = typeof pantoneLibrary.$inferSelect;
+export type PrintJobRow = typeof printJobs.$inferSelect;
+export type ProductionPackRow = typeof productionPacks.$inferSelect;
+export type DesignApproval = typeof designApprovals.$inferSelect;
+export type StaffPermissionRow = typeof staffPermissions.$inferSelect;
+export type StaffInvite = typeof staffInvites.$inferSelect;
+export type StaffActivityEntry = typeof staffActivity.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;

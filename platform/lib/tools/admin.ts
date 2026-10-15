@@ -1,7 +1,9 @@
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
+import { can, type AccessHolder, type Area, type Level } from '@/lib/auth/permissions';
 import { defineTool, type Tool, type ToolResult } from '@/lib/tools/types';
-import { buildQueue } from '@/lib/services/admin-queue';
+import { jobSheetActions } from '@/lib/tools/job-sheet-actions';
+import { buildQueue, type QueueSection } from '@/lib/services/admin-queue';
 import {
   advance,
   listProduction,
@@ -12,7 +14,6 @@ import {
 } from '@/lib/services/production';
 import {
   draftSupplierOrder,
-  getSupplierOrder,
   listSupplierOrders,
   placeSupplierOrder,
   receiveSupplierOrder,
@@ -21,22 +22,30 @@ import {
 import { listAnomalies, reviewPayout } from '@/lib/services/payouts';
 import { setBaseCost, listBaseCosts, updateShippingZone } from '@/lib/services/pricing-admin';
 import { getOrder, type OrderDetail } from '@/lib/services/orders';
-import type { Card } from '@/lib/ui-cards/schemas';
+import type { Card, CardAction, Chip } from '@/lib/ui-cards/schemas';
 
 // Admin tools (Platform-Plan.md §4 "Admin"). Every write here goes through
 // lib/services/{production,supplier,payouts,pricing-admin}.ts — nothing here
-// touches the DB directly. Scope is 'admin' throughout; the registry hides
-// these from artist callers.
+// touches the DB directly. Every tool is a staff tool with the area and level
+// it needs (Print-Prep-Plan section 9): the registry hands it only to the
+// owner and the employees whose access reaches it, and the cards and chips a
+// tool returns offer only the next steps the caller may take.
 
 function errorNotice(id: string, text: string): Card {
   return { id, kind: 'notice', tone: 'warning', text };
+}
+
+/** Next-step chips, keeping only those the caller may act on. */
+function chipsFor(ctx: AccessHolder, chips: { chip: Chip; area: Area; level: Level }[]): Chip[] | undefined {
+  const allowed = chips.filter((c) => can(ctx, c.area, c.level)).map((c) => c.chip);
+  return allowed.length > 0 ? allowed : undefined;
 }
 
 // Duplicated from lib/tools/commerce.ts (not owned here) rather than
 // exporting a shared helper from it — keeps this file's dependency surface
 // limited to services, per the "services are the only writers, tools are
 // thin wrappers" rule.
-function orderCard(detail: OrderDetail): Card {
+function orderCard(detail: OrderDetail, actions?: CardAction[]): Card {
   return {
     id: `order_${detail.id}`,
     kind: 'order',
@@ -51,10 +60,13 @@ function orderCard(detail: OrderDetail): Card {
     lines: detail.lines,
     totals: detail.totals,
     tracking: detail.tracking ?? undefined,
+    ...(actions && actions.length > 0 ? { actions } : {}),
   };
 }
 
-function supplierOrderCard(detail: SupplierOrderDetail): Card {
+/** `canWork`: the caller may place and receive supplier orders, so the card
+ * offers those buttons. */
+function supplierOrderCard(detail: SupplierOrderDetail, canWork: boolean): Card {
   return {
     id: `supplier_order_${detail.id}`,
     kind: 'supplier_order',
@@ -66,8 +78,9 @@ function supplierOrderCard(detail: SupplierOrderDetail): Card {
     forOrders: detail.forOrders,
     totalUnits: detail.totalUnits,
     note: `${detail.forOrders.length} order${detail.forOrders.length === 1 ? '' : 's'} — €${(detail.totalCostCents / 100).toFixed(2)} total.`,
-    actions:
-      detail.status === 'draft'
+    actions: !canWork
+      ? undefined
+      : detail.status === 'draft'
         ? [{ label: 'Place order', prompt: `Place supplier order ${detail.id}`, variant: 'primary' }]
         : detail.status === 'placed' || detail.status === 'confirmed' || detail.status === 'shipped'
           ? [{ label: 'Mark received', prompt: `Receive supplier order ${detail.id}` }]
@@ -96,13 +109,37 @@ function productionOrdersTableCard(title: string, rows: ProductionListItem[]): C
 // ---------------------------------------------------------------------------
 // admin_queue
 
-function adminQueueCard(queue: Awaited<ReturnType<typeof buildQueue>>): Card {
+/** Which area each queue section belongs to, and the level its item prompts
+ * need (a prompt the caller can't act on is dropped, the item stays). A
+ * section missing here is shown to the owner only. */
+const QUEUE_SECTION_ACCESS: Record<string, { area: Area; promptLevel: Level }> = {
+  payout_anomalies: { area: 'money', promptLevel: 'manage' },
+  production: { area: 'production', promptLevel: 'view' },
+  bulk_awaiting_payment: { area: 'runs', promptLevel: 'view' },
+  supplier_drafts: { area: 'production', promptLevel: 'view' },
+  domains_stuck: { area: 'shops', promptLevel: 'work' },
+  waitlist: { area: 'applications', promptLevel: 'view' },
+  support: { area: 'support', promptLevel: 'view' },
+};
+
+/** The queue as this caller may see it: only the sections of their areas. */
+export function queueSectionsFor(ctx: AccessHolder, sections: QueueSection[]): QueueSection[] {
+  return sections.flatMap((section) => {
+    const access = QUEUE_SECTION_ACCESS[section.key];
+    if (!access) return ctx.role === 'admin' ? [section] : [];
+    if (!can(ctx, access.area, 'view')) return [];
+    if (can(ctx, access.area, access.promptLevel)) return [section];
+    return [{ ...section, items: section.items.map((item) => ({ id: item.id, text: item.text, meta: item.meta })) }];
+  });
+}
+
+function adminQueueCard(sections: QueueSection[], generatedAt: string): Card {
   return {
     id: `admin_queue_${randomUUID()}`,
     kind: 'admin_queue',
     title: "What's waiting",
-    sections: queue.sections,
-    generatedAt: queue.generatedAt,
+    sections,
+    generatedAt,
   };
 }
 
@@ -111,20 +148,22 @@ export const adminQueueTool = defineTool({
   description:
     "Show everything waiting on the admin: unreviewed payout anomalies, orders in production, bulk orders stuck awaiting payment, draft supplier orders, stuck domain verifications, pending waitlist entries and open support tickets. Call this when the admin asks what's waiting, for their queue, or greets admin chat with no other context.",
   input: z.object({}).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'production', level: 'view' },
   readOnly: true,
-  run: async (): Promise<ToolResult<{ ok: true; total: number }>> => {
+  run: async (ctx): Promise<ToolResult<{ ok: true; total: number }>> => {
     const queue = await buildQueue();
-    const total = queue.sections.reduce((sum, s) => sum + s.count, 0);
+    const sections = queueSectionsFor(ctx, queue.sections);
+    const total = sections.reduce((sum, s) => sum + s.count, 0);
     return {
       data: { ok: true, total },
       ui: {
-        cards: [adminQueueCard(queue)],
-        next: [
-          { label: 'Production queue', prompt: 'Show the production queue' },
-          { label: 'Payout anomalies', prompt: 'Show payout anomalies' },
-          { label: 'Draft supplier order', prompt: 'Draft a supplier order from queued orders' },
-        ],
+        cards: [adminQueueCard(sections, queue.generatedAt)],
+        next: chipsFor(ctx, [
+          { chip: { label: 'Production queue', prompt: 'Show the production queue' }, area: 'production', level: 'view' },
+          { chip: { label: 'Payout anomalies', prompt: 'Show payout anomalies' }, area: 'money', level: 'view' },
+          { chip: { label: 'Draft supplier order', prompt: 'Draft a supplier order from queued orders' }, area: 'production', level: 'work' },
+        ]),
       },
     };
   },
@@ -143,7 +182,8 @@ export const listProductionTool = defineTool({
   description:
     "List orders in production, optionally filtered by production status ('queued', 'printing', 'packed', 'shipped', 'delivered'). Defaults to the active pipeline (everything not yet delivered), oldest first.",
   input: z.object({ status: z.enum(PRODUCTION_STATUSES).optional() }).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'production', level: 'view' },
   readOnly: true,
   run: async (_ctx, input): Promise<ToolResult<ListProductionData>> => {
     const rows = await listProduction({ status: input.status });
@@ -177,17 +217,18 @@ export const advanceProductionTool = defineTool({
       tracking: z.object({ carrier: z.string().min(1).max(60), code: z.string().min(1).max(80), url: z.string().url().optional() }).optional(),
     })
     .strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'production', level: 'work' },
   // Shipping notifies the fan and the artist; a human confirms that step.
   confirmWhen: (input) => input.to === 'shipped',
   summarize: (input) => `Mark order ${input.orderId} as shipped${input.tracking ? ` (${input.tracking.carrier} ${input.tracking.code})` : ''}`,
-  run: async (_ctx, input): Promise<ToolResult<AdvanceProductionData>> => {
+  run: async (ctx, input): Promise<ToolResult<AdvanceProductionData>> => {
     const result = await advance(input.orderId, input.to, input.tracking);
     if (!result.ok) return { data: { ok: false, error: result.error }, ui: { cards: [errorNotice(`advance_err_${randomUUID()}`, result.error)] } };
 
     return {
       data: { ok: true, orderId: result.value.id, productionStatus: result.value.productionStatus ?? undefined },
-      ui: { cards: [orderCard(result.value)], next: [{ label: 'Production queue', prompt: 'Show the production queue' }] },
+      ui: { cards: [orderCard(result.value, await jobSheetActions(ctx, result.value.id))], next: [{ label: 'Production queue', prompt: 'Show the production queue' }] },
     };
   },
 });
@@ -203,15 +244,16 @@ export const setTrackingTool = defineTool({
   description:
     "Attach or update shipping tracking (carrier, code, optional URL) on an order without changing its production status. Call this before advancing to 'shipped', or to correct tracking on an order that's already shipped.",
   input: z.object({ orderId: z.string().uuid(), carrier: z.string().min(1).max(60), code: z.string().min(1).max(80), url: z.string().url().optional() }).strict(),
-  scope: 'admin',
-  run: async (_ctx, input): Promise<ToolResult<SetTrackingData>> => {
+  scope: 'staff',
+  access: { area: 'production', level: 'work' },
+  run: async (ctx, input): Promise<ToolResult<SetTrackingData>> => {
     const result = await setTracking(input.orderId, { carrier: input.carrier, code: input.code, url: input.url });
     if (!result.ok) return { data: { ok: false, error: result.error }, ui: { cards: [errorNotice(`set_tracking_err_${randomUUID()}`, result.error)] } };
 
     return {
       data: { ok: true, orderId: result.value.id },
       ui: {
-        cards: [orderCard(result.value)],
+        cards: [orderCard(result.value, await jobSheetActions(ctx, result.value.id))],
         next: result.value.productionStatus === 'packed' ? [{ label: 'Advance to shipped', prompt: `Advance order ${input.orderId} to shipped`, primary: true }] : undefined,
       },
     };
@@ -233,14 +275,15 @@ export const draftSupplierOrderTool = defineTool({
   description:
     "Draft a Stanley/Stella purchase order by grouping queued orders' items by blank, colour and size. Pass specific orderIds, or omit to draft from every currently queued order.",
   input: z.object({ orderIds: z.array(z.string().uuid()).optional() }).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'production', level: 'work' },
   run: async (_ctx, input): Promise<ToolResult<DraftSupplierOrderData>> => {
     const result = await draftSupplierOrder({ orderIds: input.orderIds });
     if (!result.ok) return { data: { ok: false, error: result.error }, ui: { cards: [errorNotice(`draft_supplier_err_${randomUUID()}`, result.error)] } };
 
     return {
       data: { ok: true, supplierOrderId: result.value.id, totalUnits: result.value.totalUnits },
-      ui: { cards: [supplierOrderCard(result.value)], next: [{ label: 'Place order', prompt: `Place supplier order ${result.value.id}`, primary: true }] },
+      ui: { cards: [supplierOrderCard(result.value, true)], next: [{ label: 'Place order', prompt: `Place supplier order ${result.value.id}`, primary: true }] },
     };
   },
 });
@@ -256,14 +299,15 @@ export const placeSupplierOrderTool = defineTool({
   name: 'place_supplier_order',
   description: "Place a draft supplier order with Stanley/Stella. Sensitive action: shows a confirm card and only executes once the admin clicks confirm.",
   input: z.object({ supplierOrderId: z.string().uuid() }).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'production', level: 'work' },
   confirm: true,
   summarize: (input) => `Place supplier order ${input.supplierOrderId}.`,
   run: async (_ctx, input): Promise<ToolResult<PlaceSupplierOrderData>> => {
     const result = await placeSupplierOrder(input.supplierOrderId);
     if (!result.ok) return { data: { ok: false, error: result.error }, ui: { cards: [errorNotice(`place_supplier_err_${randomUUID()}`, result.error)] } };
 
-    return { data: { ok: true, supplierOrderId: result.value.id, status: result.value.status }, ui: { cards: [supplierOrderCard(result.value)] } };
+    return { data: { ok: true, supplierOrderId: result.value.id, status: result.value.status }, ui: { cards: [supplierOrderCard(result.value, true)] } };
   },
 });
 
@@ -278,12 +322,13 @@ export const receiveSupplierOrderTool = defineTool({
   name: 'receive_supplier_order',
   description: "Mark a placed, confirmed or shipped supplier order as received.",
   input: z.object({ supplierOrderId: z.string().uuid() }).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'production', level: 'work' },
   run: async (_ctx, input): Promise<ToolResult<ReceiveSupplierOrderData>> => {
     const result = await receiveSupplierOrder(input.supplierOrderId);
     if (!result.ok) return { data: { ok: false, error: result.error }, ui: { cards: [errorNotice(`receive_supplier_err_${randomUUID()}`, result.error)] } };
 
-    return { data: { ok: true, supplierOrderId: result.value.id, status: result.value.status }, ui: { cards: [supplierOrderCard(result.value)] } };
+    return { data: { ok: true, supplierOrderId: result.value.id, status: result.value.status }, ui: { cards: [supplierOrderCard(result.value, true)] } };
   },
 });
 
@@ -296,13 +341,18 @@ export const listSupplierOrdersTool = defineTool({
   name: 'list_supplier_orders',
   description: "List supplier purchase orders, optionally filtered by status ('draft', 'placed', 'confirmed', 'shipped', 'received', 'cancelled'), newest first.",
   input: z.object({ status: z.enum(['draft', 'placed', 'confirmed', 'shipped', 'received', 'cancelled']).optional() }).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'production', level: 'view' },
   readOnly: true,
-  run: async (_ctx, input): Promise<ToolResult<ListSupplierOrdersData>> => {
+  run: async (ctx, input): Promise<ToolResult<ListSupplierOrdersData>> => {
     const rows = await listSupplierOrders(input.status);
+    const canWork = can(ctx, 'production', 'work');
     return {
       data: { ok: true, total: rows.length },
-      ui: { cards: rows.slice(0, 6).map(supplierOrderCard), next: [{ label: 'Draft from queued', prompt: 'Draft a supplier order from queued orders' }] },
+      ui: {
+        cards: rows.slice(0, 6).map((row) => supplierOrderCard(row, canWork)),
+        next: canWork ? [{ label: 'Draft from queued', prompt: 'Draft a supplier order from queued orders' }] : undefined,
+      },
     };
   },
 });
@@ -320,9 +370,11 @@ export const listPayoutAnomaliesTool = defineTool({
   description:
     "List payout ledger rows flagged with an anomaly (fee below cost, transfer mismatch, payouts disabled, refund after ship) that haven't been reviewed yet.",
   input: z.object({}).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'money', level: 'view' },
   readOnly: true,
-  run: async (): Promise<ToolResult<ListPayoutAnomaliesData>> => {
+  run: async (ctx): Promise<ToolResult<ListPayoutAnomaliesData>> => {
+    const canReview = can(ctx, 'money', 'manage');
     const ledgerRows = (await listAnomalies()).filter((r) => !r.reviewedAt);
     const rows = await Promise.all(
       ledgerRows.map(async (r) => {
@@ -334,7 +386,7 @@ export const listPayoutAnomaliesTool = defineTool({
           status: (r.anomalyFlags as string[] | null)?.join(', ') || 'flagged',
           grossCents: r.grossCents,
           transferCents: r.transferCents,
-          prompt: `Review payout ${r.id}`,
+          prompt: canReview ? `Review payout ${r.id}` : undefined,
         };
       }),
     );
@@ -349,7 +401,7 @@ export const listPayoutAnomaliesTool = defineTool({
 
     return {
       data: { ok: true, total: rows.length },
-      ui: { cards: [card], next: [{ label: "What's waiting", prompt: "What's waiting on me?" }] },
+      ui: { cards: [card], next: chipsFor(ctx, [{ chip: { label: "What's waiting", prompt: "What's waiting on me?" }, area: 'production', level: 'view' }]) },
     };
   },
 });
@@ -366,7 +418,8 @@ export const reviewPayoutTool = defineTool({
   description:
     "Record an admin verdict on a flagged payout ledger row: 'ok' clears it, 'hold' keeps it flagged for follow-up. Pass ledgerId from list_payout_anomalies.",
   input: z.object({ ledgerId: z.string().uuid(), verdict: z.enum(['ok', 'hold']), note: z.string().max(500).optional() }).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'money', level: 'manage' },
   run: async (_ctx, input): Promise<ToolResult<ReviewPayoutData>> => {
     const result = await reviewPayout(input.ledgerId, input.verdict);
     if (!result.ok) return { data: { ok: false, error: result.error }, ui: { cards: [errorNotice(`review_payout_err_${randomUUID()}`, result.error)] } };
@@ -410,7 +463,8 @@ export const setBaseCostTool = defineTool({
       marginCents: z.number().int().nonnegative(),
     })
     .strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'catalogue', level: 'manage' },
   confirm: true,
   summarize: (input) =>
     `Set base cost for ${input.blankCode} / ${input.printServiceCode} (qty ${input.qtyFrom ?? 1}+): garment €${(input.garmentCostCents / 100).toFixed(2)} + print €${(input.printCostCents / 100).toFixed(2)} + margin €${(input.marginCents / 100).toFixed(2)}.`,
@@ -456,7 +510,8 @@ export const updateShippingZoneTool = defineTool({
       isActive: z.boolean().optional(),
     })
     .strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'catalogue', level: 'manage' },
   confirm: true,
   summarize: (input) => `Update shipping zone ${input.id}${input.flatCents !== undefined ? ` — flat €${(input.flatCents / 100).toFixed(2)}` : ''}.`,
   run: async (_ctx, input): Promise<ToolResult<UpdateShippingZoneData>> => {
@@ -490,7 +545,8 @@ export const listBaseCostsTool = defineTool({
   name: 'list_base_costs',
   description: "List every quantity-break base cost row for a blank (totals only, by print service and qty break).",
   input: z.object({ blankCode: z.string().min(2).max(20) }).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'catalogue', level: 'view' },
   readOnly: true,
   run: async (_ctx, input): Promise<ToolResult<ListBaseCostsData>> => {
     const rows = await listBaseCosts(input.blankCode);

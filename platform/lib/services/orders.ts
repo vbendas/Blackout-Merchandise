@@ -5,6 +5,7 @@ import { getStripeGateway, type CheckoutSessionSnapshot } from '@/lib/services/s
 import { anomalyFlags, flagLedgerForOrder, setLedgerStatus } from '@/lib/services/payouts';
 import { notify, notifyFan } from '@/lib/services/notifications';
 import { fanProductName } from '@/lib/storefront/fan-names';
+import { markPacksNeededForOrder } from '@/lib/services/prepress';
 
 // Orders are created pending by checkout.ts and only ever move to 'paid'
 // here, in markPaid — the single place that touches order status, the
@@ -106,6 +107,14 @@ async function loadOrderDetail(orderId: string): Promise<OrderDetail | null> {
 export async function getOrder(storeId: string, orderId: string): Promise<OrderDetail | null> {
   const detail = await loadOrderDetail(orderId);
   return detail && detail.storeId === storeId ? detail : null;
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The same read for any shop's order, for staff views that already checked the
+ * caller's access (shop_orders). An id that is not a uuid is no order, not an error. */
+export async function getOrderForStaff(orderId: string): Promise<OrderDetail | null> {
+  return UUID.test(orderId) ? loadOrderDetail(orderId) : null;
 }
 
 /** Public read model for the fan storefront (GET /api/orders/[token], built
@@ -274,6 +283,10 @@ export async function markPaid(sessionId: string, session: CheckoutSessionSnapsh
     status: 'recorded',
     anomalyFlags: flags,
   });
+
+  // A shop sale always prints DTG/DTF: its pack joins the pre-press queue. Never throws, so
+  // a failure here can't undo the sale; production checks the pack again before it starts.
+  await markPacksNeededForOrder(updated.id);
 
   const detail = await loadOrderDetail(orderId);
   if (!detail) return { ok: false, error: 'Order not found after marking paid.' };

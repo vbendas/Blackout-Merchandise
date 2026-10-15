@@ -47,6 +47,8 @@ const PUBLIC_PATHS = [
   '/terms',
   // the website's Apply form
   '/api/apply',
+  // an employee's invite link (it sends a signed-out visitor to sign-in itself)
+  '/staff-invite',
   // machines with their own signature or bearer secret
   '/api/health',
   '/api/stripe/webhook',
@@ -71,6 +73,24 @@ const PROTECTED_PATHS = [
   '/admin',
   '/admin/production',
   '/admin/supplier',
+  '/admin/prepress',
+  '/admin/prepress/x',
+  '/admin/ink-system',
+  '/admin/team',
+  '/admin/team/x',
+  '/admin/team/activity',
+  '/admin/team/invite',
+  '/admin/team/invites',
+  // the Studio's print approval, and a paused employee's page
+  '/studio/approve/x',
+  '/staff-invite/paused',
+  // print files and pre-press uploads
+  '/api/print-files/print/x/v1/proof.webp',
+  '/api/prepress/x/status',
+  '/api/prepress/x/upload-url',
+  '/api/prepress/x/upload-done',
+  // the job sheet of a design
+  '/api/job-sheets/x',
   // artist APIs
   '/api/agent',
   '/api/agent/history',

@@ -18,13 +18,25 @@ export const cardActionSchema = z.object({
   label: z.string().min(1).max(32),
   /** message sent to the agent when clicked, e.g. 'Approve proof pr_123' */
   prompt: z.string().min(1).max(400).optional(),
-  /** open an external URL instead (Stripe onboarding, uploads, storefront) */
-  href: z.string().url().optional(),
+  /** open a link instead: a web address in a new tab (Stripe onboarding, uploads, storefront), or a Studio page
+   * ('/studio/approve/<designId>') in the same tab, so the conversation is still there when they come back */
+  href: z.union([z.string().url(), z.string().regex(/^\/(?!\/)/)]).optional(),
   /** confirm-gated tool call this button completes (see confirm card) */
   confirmToolCallId: z.string().optional(),
   variant: z.enum(['primary', 'secondary', 'danger']).optional(),
 });
 export type CardAction = z.infer<typeof cardActionSchema>;
+
+/** Where a product's artwork stands against publishing: a product goes live only when its design's approval
+ * covers its garment, colours and print position. Absent for a product that is live or archived. */
+export const printApprovalSchema = z.object({
+  covered: z.boolean(),
+  /** what is missing, in the artist's words (never a Pantone code): 'Approve the artwork for the Underwriter tee first.' */
+  sentence: z.string().optional(),
+  /** the next step: a link to the approval page (href), or a message for the assistant (prompt) */
+  action: z.object({ label: z.string(), href: z.string().optional(), prompt: z.string().optional() }).optional(),
+});
+export type PrintApprovalState = z.infer<typeof printApprovalSchema>;
 
 const base = {
   /** stable id so the client can replace a card in place on updates */
@@ -169,6 +181,7 @@ export const cardSchema = z.discriminatedUnion('kind', [
     retailPriceCents: z.number().optional(),
     marginCents: z.number().optional(),
     status: z.enum(['draft', 'proof_pending', 'live', 'archived']),
+    printApproval: printApprovalSchema.optional(),
   }),
   z.object({
     ...base,
@@ -314,6 +327,22 @@ export const cardSchema = z.discriminatedUnion('kind', [
     topProducts: z.array(z.object({ name: z.string(), qty: z.number(), grossCents: z.number() })).max(5),
     series: z.array(z.object({ day: z.string(), grossCents: z.number() })).max(31).optional(),
   }),
+  // --- print prep: the design's print proofs and the way to approve them ---
+  z.object({
+    ...base,
+    kind: z.literal('print_proof'),
+    designId: z.string(),
+    designName: z.string(),
+    versionNumber: z.number(),
+    status: z.enum(['preparing', 'ready', 'approved', 'failed']),
+    /** a few proofs to preview in the thread (the full set is on the approval page) */
+    proofs: z.array(z.object({ garmentName: z.string(), technique: z.enum(['dtg_dtf', 'screen']), url: z.string() })).max(4),
+    /** screens for runs, whites included; absent until the separations are ready */
+    screenCount: z.number().optional(),
+    /** /studio/approve/<designId> */
+    approveHref: z.string(),
+    note: z.string().optional(),
+  }),
 ]);
 export type Card = z.infer<typeof cardSchema>;
 export type CardKind = Card['kind'];
@@ -345,4 +374,6 @@ export interface ProductProjectState {
   marginCents?: number;
   status: 'draft' | 'proof_pending' | 'live' | 'archived';
   proofStatus?: 'pending' | 'approved' | 'changes_requested';
+  /** where its artwork stands against publishing; absent once it is live or archived */
+  printApproval?: PrintApprovalState;
 }

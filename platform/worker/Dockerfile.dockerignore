@@ -1,0 +1,16 @@
+# Picked up by `docker build -f platform/worker/Dockerfile .` (BuildKit reads
+# <Dockerfile>.dockerignore next to the Dockerfile). The context is the
+# repository root, which holds gigabytes of assets and models: send only the
+# platform sources and the shared schema.
+*
+!platform
+!src/db
+
+platform/node_modules
+platform/.next
+platform/.data
+platform/public
+platform/var
+platform/.env*
+platform/*.tsbuildinfo
+platform/scripts/fixtures

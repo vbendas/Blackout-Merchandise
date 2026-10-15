@@ -3,6 +3,9 @@ import { db, schema } from '@/lib/db';
 import { getOrder, type OrderDetail } from '@/lib/services/orders';
 import { getStore } from '@/lib/services/stores';
 import { notify, notifyFan } from '@/lib/services/notifications';
+import { assertPacksApprovedForOrder } from '@/lib/services/prepress';
+import { designsForOrders } from '@/lib/services/job-sheets';
+import type { JobSheetLink } from '@/lib/print/job-sheet-link';
 
 // Production state machine (Platform-Plan.md §6): queued -> printing ->
 // packed -> shipped -> delivered. This is the only module that writes
@@ -39,6 +42,8 @@ export interface ProductionListItem {
   itemsSummary: string;
   placedAt: string;
   grossCents: number;
+  /** the designs the order prints: each has one job sheet, which covers every garment that uses it */
+  designs: JobSheetLink[];
 }
 
 function reference(orderId: string): string {
@@ -103,6 +108,8 @@ export async function listProduction(opts: ListProductionOptions = {}): Promise<
     summaryByOrder.set(item.orderId, parts);
   }
 
+  const designs = await designsForOrders(rows.map((r) => r.id));
+
   return rows.map((r) => ({
     orderId: r.id,
     storeId: r.storeId,
@@ -113,6 +120,7 @@ export async function listProduction(opts: ListProductionOptions = {}): Promise<
     itemsSummary: (summaryByOrder.get(r.id) ?? []).join(', ') || '—',
     placedAt: r.createdAt.toISOString(),
     grossCents: r.totalAmount,
+    designs: designs.get(r.id) ?? [],
   }));
 }
 
@@ -188,17 +196,26 @@ async function transition(orderId: string, opts: { to?: ProductionStatus; tracki
 
 /** Advance one step. Omit `to` to move to the next step automatically;
  * passing it validates it matches that next step. Moving into 'shipped'
- * needs tracking, either passed here or already set via setTracking. */
+ * needs tracking, either passed here or already set via setTracking.
+ * Printing can't start until pre-press has approved the pack the order needs. */
 export async function advance(orderId: string, to?: ProductionStatus, tracking?: OrderTrackingInput): Promise<ServiceResult<OrderDetail>> {
-  if (!to) {
-    const order = await loadOrderRow(orderId);
-    if (!order) return { ok: false, error: 'Order not found.' };
-    const current = (order.productionStatus ?? 'queued') as ProductionStatus;
+  const order = await loadOrderRow(orderId);
+  if (!order) return { ok: false, error: 'Order not found.' };
+  const current = (order.productionStatus ?? 'queued') as ProductionStatus;
+
+  let target = to;
+  if (!target) {
     const next = NEXT_STATUS[current];
     if (!next) return { ok: false, error: `Order is already "${current}" — nothing further to advance.` };
-    return transition(orderId, { to: next, tracking });
+    target = next;
   }
-  return transition(orderId, { to, tracking });
+
+  // An order that isn't paid gets transition()'s own explanation instead.
+  if (order.status === 'paid' && current === 'queued' && target === 'printing') {
+    const gate = await assertPacksApprovedForOrder(orderId);
+    if (!gate.ok) return { ok: false, error: gate.error };
+  }
+  return transition(orderId, { to: target, tracking });
 }
 
 /** Attach or update tracking without changing production status. */

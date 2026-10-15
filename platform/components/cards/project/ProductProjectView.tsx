@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { humanStatus } from '@/lib/format/status';
-import { ActionRow, CardHead, Plate, Sizes, SpecRows, Swatches, blankLabel, formatMoney, placementWords, type SpecRowData } from '@/components/cards/CardKit';
+import { ActionRow, CardHead, Plate, Sizes, SpecRows, Swatches, blankLabel, formatMoney, placementWords, type ActionItem, type SpecRowData } from '@/components/cards/CardKit';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
 import type { CardActionContext } from '@/components/cards/actions';
 import type { ProductProjectState } from '@/components/cards/project/types';
@@ -39,6 +39,20 @@ export function ProductProjectView({ state, ctx }: { state: ProductProjectState;
   const activeColour = colours.find((colour) => colour.code === activeCode) ?? colours[0];
   const image = activeColour?.mockupUrl ?? state.imageUrl;
 
+  // Publishing waits on the artwork's approval (the design's, for this garment, these colours and this position).
+  const approval = state.printApproval;
+  const blocked = approval !== undefined && !approval.covered;
+  const approvalAction: ActionItem | null =
+    blocked && approval.action
+      ? {
+          key: 'approval',
+          label: approval.action.label,
+          primary: true,
+          href: approval.action.href,
+          onClick: approval.action.href ? undefined : () => ctx.onPrompt(approval.action?.prompt ?? approval.action?.label ?? ''),
+        }
+      : null;
+
   const rows: SpecRowData[] = [
     { key: 'print', label: 'Print', value: [state.printService, placementWords(state.placement)].filter(Boolean).join(' · ') },
     { key: 'base', label: 'Base cost', value: state.baseCostCents !== undefined ? formatMoney(state.baseCostCents) : '—', dim: true },
@@ -53,7 +67,9 @@ export function ProductProjectView({ state, ctx }: { state: ProductProjectState;
       <div className="flex flex-wrap items-center gap-1.5">
         <StatusPill label={statusLabel[state.status] ?? humanStatus(state.status)} tone={statusTone[state.status] ?? 'neutral'} />
         {state.proofStatus ? <StatusPill label={proofLabel[state.proofStatus] ?? humanStatus(state.proofStatus)} tone={proofTone[state.proofStatus] ?? 'neutral'} /> : null}
+        {approval ? <StatusPill label={approval.covered ? 'Artwork approved' : 'Artwork needs approval'} tone={approval.covered ? 'positive' : 'warning'} /> : null}
       </div>
+      {blocked && approval.sentence ? <p className="mfc-sentence">{approval.sentence}</p> : null}
       <Swatches
         colours={colours}
         activeCode={activeCode}
@@ -66,13 +82,17 @@ export function ProductProjectView({ state, ctx }: { state: ProductProjectState;
       <SpecRows rows={rows} variant="plain" />
       <ActionRow
         actions={[
+          // Blocked: the way to the approval leads, and Publish waits (the tool says the same if it is asked).
+          ...(approvalAction ? [approvalAction] : []),
           // The mock pricing tool needs a euro amount in the text (e.g. 'price
           // it at €35'), so this re-sends the current retail price, or a
           // sensible default the first time it's priced. The panel closes
           // after any message it sends (see ProjectPanel).
           { key: 'price', label: 'Price it', onClick: () => ctx.onPrompt(`Price it at €${Math.round((state.retailPriceCents ?? 3500) / 100)}`) },
-          { key: 'proof', label: 'Send the proof', onClick: () => ctx.onPrompt('Send the proof') },
-          { key: 'publish', label: 'Publish', primary: true, onClick: () => ctx.onPrompt('Publish') },
+          // A live or archived product has nothing left to publish.
+          ...(state.status === 'draft' || state.status === 'proof_pending'
+            ? [{ key: 'publish', label: 'Publish', primary: !blocked, disabled: blocked, onClick: () => ctx.onPrompt('Publish') }]
+            : []),
         ]}
       />
     </div>

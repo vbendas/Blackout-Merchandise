@@ -2,8 +2,8 @@ import type { CardAction } from '@/lib/ui-cards/schemas';
 import { ActionRow, type ActionItem } from '@/components/cards/CardKit';
 import { runCardAction, type CardActionContext } from '@/components/cards/actions';
 
-/** A card's own actions as ActionRow items: web links open in a new tab, the
- * rest run through the shared action handler (prompt, confirm). */
+/** A card's own actions as ActionRow items: web links open in a new tab, a Studio
+ * page in the same one, the rest run through the shared action handler (prompt, confirm). */
 export function cardActionItems(actions: CardAction[] | undefined, ctx: CardActionContext): ActionItem[] {
   return (actions ?? []).map((action, index) => {
     const isLink = Boolean(action.href) && !action.confirmToolCallId;

@@ -1,0 +1,380 @@
+/* /admin/team: the people, their access grid, invites and activity. Drawn
+   like the approved admin mocks (Documentation/Dev/print-prep-mocks):
+   black, white-alpha greys, 16% hairlines, mono labels, 2px radius. States
+   read through fill, weight and borders, never hue. Identity classes
+   (.mf-pill, .mf-field, hairlines) come from components/chat/tokens.css and
+   components/studio/studio.css; this file places things. It sits in
+   @layer components, so a Tailwind utility on the same element still wins. */
+@layer properties, theme, base, components, utilities, overrides;
+
+@layer components {
+  .tm {
+    --tm-dim: color-mix(in srgb, var(--signal) 50%, transparent);
+    --tm-soft: color-mix(in srgb, var(--signal) 80%, transparent);
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1280px;
+    padding: 24px 16px 56px;
+  }
+
+  @media (min-width: 768px) {
+    .tm {
+      padding-inline: 32px;
+    }
+  }
+
+  :where(.tm) :where(h2, p, dl, dd, ul, ol) {
+    margin: 0;
+  }
+
+  .tm-intro {
+    max-width: 760px;
+    color: var(--tm-soft);
+  }
+
+  .tm-mono {
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
+  }
+
+  .tm-dim {
+    color: var(--tm-dim);
+  }
+
+  /* Section heading: 12px, uppercase, like the mock's "Films in press order". */
+  .tm-h {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .tm-section {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Horizontal tabs under the page header (links, one per sub-page). */
+  .tm-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 28px;
+    padding: 0 16px;
+    border-bottom: var(--hairline);
+  }
+
+  @media (min-width: 768px) {
+    .tm-tabs {
+      padding: 0 32px;
+    }
+  }
+
+  .tm-tab {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 4px;
+    border-bottom: 2px solid transparent;
+    color: var(--tm-dim);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .tm-tab:hover {
+    color: var(--signal);
+  }
+
+  .tm-tab[aria-current='page'] {
+    border-bottom-color: var(--signal);
+    color: var(--signal);
+  }
+
+  /* Tables: mono column heads, a hairline over every row. */
+  .tm-table-wrap {
+    overflow-x: auto;
+    border-top: var(--hairline);
+  }
+
+  .tm-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .tm-table th {
+    padding: 12px;
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.16em;
+    text-align: left;
+    text-transform: uppercase;
+    color: var(--tm-dim);
+  }
+
+  .tm-table td {
+    padding: 12px;
+    vertical-align: top;
+    border-top: var(--hairline);
+  }
+
+  .tm-table :is(th, td):first-child {
+    padding-left: 0;
+  }
+
+  .tm-table :is(th, td):last-child {
+    padding-right: 0;
+    text-align: right;
+  }
+
+  /* A link or button with the mock's outlined look, at least 44px tall. */
+  .tm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: var(--hairline-strong);
+    border-radius: 2px;
+    background: none;
+    color: var(--signal);
+    font: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .tm-btn:hover:not(:disabled) {
+    background: var(--tint-8);
+  }
+
+  .tm-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .tm-btn-primary {
+    border-color: var(--signal);
+    background: var(--signal);
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .tm-btn-primary:hover:not(:disabled) {
+    background: var(--signal);
+    opacity: 0.88;
+  }
+
+  .tm-btn-quiet {
+    border-color: transparent;
+  }
+
+  .tm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* A notice after an action: a hairline box, white for what matters. */
+  .tm-notice {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border: var(--hairline-strong);
+    border-radius: 2px;
+  }
+
+  .tm-notice[data-tone='strong'] {
+    border-color: var(--signal);
+  }
+
+  .tm-link-box {
+    padding: 10px 12px;
+    border: var(--hairline);
+    border-radius: 2px;
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  /* Form fields stacked with their labels. */
+  .tm-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    max-width: 760px;
+  }
+
+  @media (min-width: 640px) {
+    .tm-fields {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+
+  .tm-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tm-field .mf-field {
+    height: 44px;
+  }
+
+  /* The access grid: one row per area, a segmented control of its levels. */
+  .tm-grid {
+    display: flex;
+    flex-direction: column;
+    border-top: var(--hairline);
+  }
+
+  .tm-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px 24px;
+    padding: 14px 0;
+    border-bottom: var(--hairline);
+  }
+
+  @media (min-width: 900px) {
+    .tm-row {
+      grid-template-columns: 200px minmax(0, 360px) minmax(0, 1fr);
+      align-items: center;
+    }
+  }
+
+  .tm-area {
+    font-weight: 500;
+  }
+
+  .tm-help {
+    color: var(--tm-dim);
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .tm-seg {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    border: var(--hairline);
+    border-radius: 2px;
+  }
+
+  .tm-seg-opt {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 8px;
+    color: var(--tm-soft);
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .tm-seg-opt + .tm-seg-opt {
+    border-left: var(--hairline);
+  }
+
+  .tm-seg-opt input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .tm-seg-opt:hover {
+    background: var(--tint-4);
+    color: var(--signal);
+  }
+
+  .tm-seg-opt:has(input:checked) {
+    background: var(--signal);
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .tm-seg-opt:has(input:focus-visible) {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
+  }
+
+  .tm-seg-opt:has(input:disabled) {
+    cursor: default;
+    opacity: 0.5;
+  }
+
+  /* Presets: a row of outlined buttons; the one the grid matches is filled. */
+  .tm-presets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .tm-presets .tm-btn[aria-pressed='true'] {
+    border-color: var(--signal);
+    background: var(--tint-14);
+    font-weight: 600;
+  }
+
+  /* Activity: time, who, what; one per line between hairlines. */
+  .tm-log {
+    list-style: none;
+    padding: 0;
+    border-top: var(--hairline);
+  }
+
+  .tm-log li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px 16px;
+    padding: 10px 0;
+    border-bottom: var(--hairline);
+  }
+
+  @media (min-width: 768px) {
+    .tm-log li {
+      grid-template-columns: 132px minmax(0, 1fr) auto;
+      align-items: baseline;
+    }
+  }
+
+  .tm-tag {
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--tm-dim);
+    white-space: nowrap;
+  }
+
+  /* Person page: facts in two columns, like the mock's engine choices. */
+  .tm-facts {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 10px 16px;
+    padding-top: 12px;
+    border-top: var(--hairline);
+  }
+
+  .tm-facts dt {
+    color: var(--tm-dim);
+  }
+
+  .tm-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+  }
+}

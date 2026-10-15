@@ -3,20 +3,37 @@ import { db, schema } from '@/lib/db';
 import type { Role } from '@/lib/tools/types';
 import type { Suggestion, SuggestionArea } from '@/lib/agent/protocol';
 import { type GuidanceState, quickActionsFor } from '@/lib/agent/guidance';
+import { can, type Area, type Level, type PermissionMap } from '@/lib/auth/permissions';
 
 // Ranked prompt suggestions for the composer autocomplete. Combines a
 // curated static catalogue with dynamic entries derived from the blank
 // catalogue (types, supplier names, colours), loaded once per server
-// instance.
+// instance. Admin suggestions name the access their tool needs, so an
+// employee is only offered what their access allows.
 
 export interface SuggestContext {
   role: Role;
   state: GuidanceState;
+  /** staff only: their access by area; without it a staff caller gets no
+   * admin suggestions */
+  permissions?: PermissionMap | null;
+  suspended?: boolean;
 }
 
 interface Template {
   text: string;
   area: SuggestionArea;
+  /** admin templates: the area and level the tool behind them needs */
+  access?: { area: Area; level: Level };
+}
+
+/** A template is offered only to those its tools serve: artists get
+ * everything but the admin; the owner and staff get the catalogue (tools
+ * shared with everyone) and the admin prompts their access reaches. */
+function allowed(template: Template, ctx: SuggestContext): boolean {
+  if (template.area !== 'Admin') return ctx.role === 'artist' || template.area === 'Catalog';
+  if (!template.access) return ctx.role === 'admin';
+  return can(ctx, template.access.area, template.access.level);
 }
 
 const CATALOGUE_TEMPLATES: Template[] = [
@@ -35,14 +52,13 @@ const CATALOGUE_TEMPLATES: Template[] = [
   { text: 'Hoodie in bottle green, sizes S–2XL', area: 'Product' },
   { text: 'Add a new product', area: 'Product' },
   { text: 'Continue my draft', area: 'Product' },
-  { text: 'Send a proof', area: 'Product' },
+  { text: 'Prepare the print files', area: 'Product' },
   { text: 'Price my product', area: 'Product' },
   { text: 'Show my products', area: 'Product' },
   { text: 'Create a hoodie with my design', area: 'Product' },
   { text: 'Price it at €35', area: 'Product' },
-  { text: 'Send the proof', area: 'Product' },
-  { text: 'Approve the proof', area: 'Product' },
-  { text: 'Request changes to the proof', area: 'Product' },
+  { text: 'Show me the print proofs', area: 'Product' },
+  { text: 'Approve the artwork', area: 'Product' },
   { text: 'Publish the product', area: 'Product' },
   { text: 'Archive this product', area: 'Product' },
   { text: "What's my margin at €40?", area: 'Product' },
@@ -70,18 +86,20 @@ const CATALOGUE_TEMPLATES: Template[] = [
   { text: 'Bulk order status', area: 'Bulk' },
   { text: 'What does 25 hoodies cost?', area: 'Bulk' },
   { text: 'Quote a run of 50', area: 'Bulk' },
+  { text: 'Send the proof for my run', area: 'Bulk' },
+  { text: 'Approve the proof for my run', area: 'Bulk' },
   // Orders
   { text: 'Show my orders', area: 'Orders' },
   { text: 'Where is my last order?', area: 'Orders' },
   { text: 'Order tracking', area: 'Orders' },
   { text: 'Show pending orders', area: 'Orders' },
   // Admin
-  { text: 'Show the admin queue', area: 'Admin' },
-  { text: 'List the waitlist', area: 'Admin' },
-  { text: 'Show open support tickets', area: 'Admin' },
-  { text: 'Show payout anomalies', area: 'Admin' },
-  { text: 'Show the production queue', area: 'Admin' },
-  { text: 'Approve waitlist entries', area: 'Admin' },
+  { text: 'Show the admin queue', area: 'Admin', access: { area: 'production', level: 'view' } },
+  { text: 'List the waitlist', area: 'Admin', access: { area: 'applications', level: 'view' } },
+  { text: 'Show open support tickets', area: 'Admin', access: { area: 'support', level: 'view' } },
+  { text: 'Show payout anomalies', area: 'Admin', access: { area: 'money', level: 'view' } },
+  { text: 'Show the production queue', area: 'Admin', access: { area: 'production', level: 'view' } },
+  { text: 'Approve waitlist entries', area: 'Admin', access: { area: 'applications', level: 'work' } },
 ];
 
 const STARTER_PICKS: Template[] = [
@@ -201,12 +219,12 @@ function areaForPrompt(prompt: string): SuggestionArea {
 }
 
 function defaultSuggestions(ctx: SuggestContext): Suggestion[] {
-  const quick: Ranked[] = quickActionsFor(ctx.state).map((chip, i) => ({
+  const quick: Ranked[] = quickActionsFor(ctx.state, ctx).map((chip, i) => ({
     text: chip.prompt ?? chip.label,
     area: areaForPrompt(chip.prompt ?? chip.label),
     rank: i,
   }));
-  const picks: Ranked[] = STARTER_PICKS.filter((p) => p.area !== 'Admin' || ctx.role === 'admin').map((p, i) => ({
+  const picks: Ranked[] = STARTER_PICKS.filter((p) => allowed(p, ctx)).map((p, i) => ({
     ...p,
     rank: 100 + i,
   }));
@@ -221,7 +239,7 @@ export async function suggestFor(q: string, ctx: SuggestContext): Promise<Sugges
   const candidates: Ranked[] = [];
 
   for (const template of CATALOGUE_TEMPLATES) {
-    if (template.area === 'Admin' && ctx.role !== 'admin') continue;
+    if (!allowed(template, ctx)) continue;
     const rank = matchRank(template.text, trimmed);
     if (rank !== null) candidates.push({ text: template.text, area: template.area, rank });
   }

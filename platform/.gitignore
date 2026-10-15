@@ -42,3 +42,6 @@ next-env.d.ts
 
 # dev email outbox (rendered notification emails, RESEND_API_KEY unset)
 /var/
+
+# local print storage (PRINT_STORAGE_DRIVER=local): PSDs, PNGs and proofs
+/.data/

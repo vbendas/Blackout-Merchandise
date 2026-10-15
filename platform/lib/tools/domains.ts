@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
+import { can } from '@/lib/auth/permissions';
 import { defineTool, type ToolContext, type ToolResult } from '@/lib/tools/types';
 import { addCustomDomain, checkDomain, listDomains, normaliseHostname, removeCustomDomain, type DnsRecord, type DomainStatus } from '@/lib/services/domains';
 import type { Card } from '@/lib/ui-cards/schemas';
@@ -23,6 +24,14 @@ function domainCard(hostname: string, status: DomainStatus, records: DnsRecord[]
 
 function noticeCard(id: string, tone: 'info' | 'success' | 'warning' | 'error', text: string): Card {
   return { id, kind: 'notice', tone, text };
+}
+
+/** Whose domains a call may touch: any shop's with Shops and artists Work
+ * (staff helping with domains), otherwise only the caller's own shop. Null
+ * when the caller has neither, so the lookup never runs unfiltered. */
+function domainScope(ctx: ToolContext): { storeId?: string } | null {
+  if (can(ctx, 'shops', 'work')) return {};
+  return ctx.storeId ? { storeId: ctx.storeId } : null;
 }
 
 /** Resolves the hostname a hostname-optional tool should act on: the one
@@ -81,7 +90,8 @@ export const checkDomainTool = defineTool({
       return { data: { ok: false, error: 'no_domain' }, ui: { cards: [noticeCard(`domain_none_${randomUUID()}`, 'info', 'No custom domain connected yet.')] } };
     }
 
-    const outcome = await checkDomain(hostname, ctx.role === 'admin' ? {} : { storeId: ctx.storeId ?? undefined });
+    const scope = domainScope(ctx);
+    const outcome = scope ? await checkDomain(hostname, scope) : ({ ok: false, error: 'not_found' } as const);
     if (!outcome.ok) {
       return { data: { ok: false, error: 'not_found' }, ui: { cards: [noticeCard(`domain_404_${randomUUID()}`, 'warning', `${hostname} isn't connected to this shop.`)] } };
     }
@@ -110,7 +120,8 @@ export const removeDomainTool = defineTool({
     const hostname = await resolveHostname(ctx, input.hostname);
     if (!hostname) return { data: { ok: false, error: 'no_domain' } };
 
-    const result = await removeCustomDomain(hostname, ctx.role === 'admin' ? {} : { storeId: ctx.storeId ?? undefined });
+    const scope = domainScope(ctx);
+    const result = scope ? await removeCustomDomain(hostname, scope) : ({ ok: false, error: 'not_found' } as const);
     if (!result.ok) {
       return { data: { ok: false, error: result.error }, ui: { cards: [noticeCard(`domain_rm_err_${randomUUID()}`, 'warning', `${hostname} isn't connected to this shop.`)] } };
     }

@@ -1,0 +1,651 @@
+/* The artwork approval page (/studio/approve/<designId>), a page of the Studio
+   (components/studio/approve/): the Studio's top bar (components/studio/
+   PageTopBar.tsx), a row of two tabs (shop products, runs), then the proof on
+   the ecru plate beside what the chosen print method does and the approval
+   box. Black ground, white type, white at 80/50/46% for the greys, 16%
+   hairlines, 2px corners; the garment photo, the garment buttons' swatches and
+   the ink swatches are the only colour. Identity classes (.mf-label,
+   .mf-mono-note, .mf-plate, .mf-skel) come from components/chat/tokens.css;
+   everything here is prefixed ap-. It sits in @layer components, so a
+   Tailwind utility on the same element still wins; the layer order is declared
+   again so it holds whichever stylesheet loads first. Focus rules are
+   unlayered, at the end, like the other area stylesheets. */
+@layer properties, theme, base, components, utilities, overrides;
+
+@layer components {
+  /* The page answers to the width of its own column (the sidebar takes 272px
+     of the screen), not to the viewport: below about 720px the top bar gives
+     its design line and its link to a row under it (@container ap below). */
+  .ap {
+    container: ap / inline-size;
+    --ap-a8: color-mix(in srgb, var(--signal) 80%, transparent);
+    --ap-a5: color-mix(in srgb, var(--signal) 50%, transparent);
+    --ap-a35: color-mix(in srgb, var(--signal) 35%, transparent);
+    --ap-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    /* the page's side padding: the top bar's */
+    --ap-pad: 20px;
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    color: var(--signal);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  @media (min-width: 768px) {
+    .ap {
+      --ap-pad: 32px;
+    }
+  }
+
+  .ap-a8 {
+    color: var(--ap-a8);
+  }
+
+  .ap-dim {
+    color: var(--ap-a5);
+  }
+
+  /* ---------- top bar ---------- */
+
+  /* The way back, before the title: 44px to tap, the chevron at 80%. */
+  .ap-back {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 2px;
+    color: var(--ap-a8);
+    transition: background-color 200ms var(--ease-settle), color 200ms var(--ease-settle);
+  }
+
+  .ap-back:hover {
+    background: var(--tint-8);
+    color: var(--signal);
+  }
+
+  /* The design line after the title is a mono tag; PageTopBar sets its own
+     weight, so this puts it back. A long design name is cut short and the
+     version and position after it stay; if the whole line still does not fit
+     it gives way at its end (see the overrides layer below). */
+  .ap-barmeta {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 400;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ap-barname {
+    display: inline-block;
+    max-width: 22ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+    white-space: nowrap;
+  }
+
+  /* The row that carries the design line and "Ask for changes" when the top
+     bar has no room for them. */
+  .ap-subhead {
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    padding: 12px var(--ap-pad);
+    border-bottom: var(--hairline);
+  }
+
+  /* Two classes deep, so these beat .ap-subhead and .ap-btn wherever those sit. */
+  @container ap (max-width: 720px) {
+    .ap .mf-meta:has(> .ap-barmeta),
+    .ap .ap-bar-ask {
+      display: none;
+    }
+
+    .ap .ap-subhead {
+      display: flex;
+    }
+  }
+
+  /* ---------- buttons ---------- */
+
+  /* The page's action: 44px, 14px sentence-case type, a 50% border (the
+     approved mock's). The primary is the white one. */
+  .ap-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--ap-a5);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--signal);
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.2;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 300ms var(--ease-settle), border-color 300ms var(--ease-settle), opacity 300ms var(--ease-settle);
+  }
+
+  .ap-btn:hover:not(:disabled) {
+    background: var(--tint-8);
+    border-color: var(--signal);
+  }
+
+  .ap-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .ap-btn-primary {
+    min-height: 48px;
+    padding: 0 20px;
+    border-color: var(--signal);
+    background: var(--signal);
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .ap-btn-primary:hover:not(:disabled) {
+    background: var(--signal);
+    opacity: 0.88;
+  }
+
+  .ap-start {
+    align-self: flex-start;
+  }
+
+  /* ---------- tabs ---------- */
+
+  /* One row across the page under the top bar, a hairline under it. Each tab
+     is 48px tall with 8px of room either side of its label, so the first label
+     lines up with the page's padding; the open tab has a 2px white bar along
+     the bottom, above the row's hairline. The row scrolls sideways on the
+     narrowest phones rather than wrapping. */
+  .ap-tabsrow {
+    border-bottom: var(--hairline);
+  }
+
+  .ap-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 calc(var(--ap-pad) - 8px);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .ap-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .ap-tabs {
+      gap: 20px;
+    }
+  }
+
+  .ap-tab {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 8px;
+    border: 0;
+    background: transparent;
+    color: var(--ap-a5);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 200ms var(--ease-settle);
+  }
+
+  .ap-tab::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    bottom: 0;
+    left: 8px;
+    height: 2px;
+    background: var(--signal);
+    opacity: 0;
+    transition: opacity 200ms var(--ease-settle);
+  }
+
+  .ap-tab:hover {
+    color: var(--ap-a8);
+  }
+
+  .ap-tab[aria-selected='true'] {
+    color: var(--signal);
+  }
+
+  .ap-tab[aria-selected='true']::after {
+    opacity: 1;
+  }
+
+  /* ---------- body: the proof beside the details ---------- */
+
+  /* Two columns while there is room for both (the proof's 560px and the
+     details' 340px, with the gap and padding), one under the other below that. */
+  .ap-body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 32px;
+    padding: 24px var(--ap-pad) 56px;
+  }
+
+  .ap-proof {
+    /* the loupe answers to this column's width (@container apc below) */
+    container: apc / inline-size;
+    display: flex;
+    flex: 3 1 560px;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .ap-aside {
+    display: flex;
+    flex: 2 1 340px;
+    flex-direction: column;
+    gap: 28px;
+    min-width: 0;
+    max-width: 500px;
+  }
+
+  /* ---------- the proof column ---------- */
+
+  .ap-colours {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ap-colour-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* A garment colour: its swatch and name; the chosen one has a white border
+     and an 8% fill. */
+  .ap-colour {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: var(--hairline);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--signal);
+    font: inherit;
+    cursor: pointer;
+    transition: background-color 200ms var(--ease-settle), border-color 200ms var(--ease-settle);
+  }
+
+  .ap-colour:hover {
+    border-color: var(--ap-a5);
+  }
+
+  .ap-colour[aria-pressed='true'] {
+    border-color: var(--signal);
+    background: var(--tint-8);
+  }
+
+  .ap-swatch {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--ap-a35);
+    border-radius: 2px;
+  }
+
+  /* 'Front · 28 × 33.6 cm' */
+  .ap-place {
+    margin-left: auto;
+    font-family: var(--ap-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ap-a5);
+  }
+
+  /* The proof sits on the ecru plate, up to 860px wide (the proofs are about
+     1000px). The loupe lies over its bottom right corner. */
+  .ap-stage {
+    position: relative;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  .ap .ap-plate {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .ap-plate img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* No proof for this colour, or it did not load: the plate keeps its shape,
+     with a line of dark type and a button on it. The button's white-on-black
+     look would vanish on the ecru, so here it is black on ecru. */
+  .ap-plate-note {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    padding: 24px;
+    color: color-mix(in srgb, var(--paper) 72%, transparent);
+    text-align: center;
+  }
+
+  .ap-plate-note .ap-btn {
+    border-color: color-mix(in srgb, var(--paper) 50%, transparent);
+    color: var(--paper);
+  }
+
+  .ap-plate-note .ap-btn:hover:not(:disabled) {
+    border-color: var(--paper);
+    background: color-mix(in srgb, var(--paper) 8%, transparent);
+  }
+
+  /* True size: a crop at print resolution, 300px square, with its caption in
+     the mono tag type. */
+  .ap-loupe {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    width: 300px;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--ap-a5);
+    border-radius: 2px;
+    background: var(--paper);
+  }
+
+  .ap-loupe img {
+    display: block;
+    width: 300px;
+    height: 300px;
+    object-fit: cover;
+  }
+
+  .ap-loupe figcaption {
+    padding: 8px 12px;
+    font-family: var(--ap-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ap-a8);
+  }
+
+  /* Under 560px of proof column the loupe would cover most of the proof, so
+     it sits under the plate instead. */
+  @container apc (max-width: 559px) {
+    .ap-loupe {
+      position: static;
+      width: 100%;
+      max-width: 300px;
+      margin-top: 12px;
+    }
+
+    .ap-loupe img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+    }
+  }
+
+  .ap-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .ap-note {
+    min-width: 0;
+    color: var(--ap-a8);
+  }
+
+  /* ---------- the details column ---------- */
+
+  .ap-block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ap-block-tight {
+    gap: 10px;
+  }
+
+  .ap-headline {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  /* Bulleted facts: what the method does, what is worth a look. Tailwind's
+     base removes list markers, so they are put back. */
+  .ap-facts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 0 0 18px;
+    list-style: disc outside;
+    color: var(--ap-a8);
+  }
+
+  /* The inks in press order: a number, a swatch, the plain colour name, and
+     under it, for the whites, what they are for. */
+  .ap-inks {
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--hairline);
+  }
+
+  .ap-ink {
+    display: grid;
+    grid-template-columns: 28px 22px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: var(--hairline);
+  }
+
+  .ap-ink-n {
+    font-family: var(--ap-mono);
+    font-size: 12px;
+    color: var(--ap-a5);
+  }
+
+  .ap-ink-sw {
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--ap-a35);
+    border-radius: 2px;
+  }
+
+  .ap-ink-name {
+    min-width: 0;
+  }
+
+  .ap-ink-name > span {
+    display: block;
+  }
+
+  .ap-ink-name > span:first-child {
+    font-weight: 500;
+  }
+
+  .ap-ink-detail {
+    font-family: var(--ap-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--ap-a5);
+  }
+
+  /* ---------- the approval box ---------- */
+
+  .ap-approval {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    border: 1px solid var(--ap-a5);
+    border-radius: 2px;
+  }
+
+  .ap-approval-lead {
+    font-weight: 500;
+  }
+
+  /* Focus is moved here when a step changes, for screen readers; it is not
+     something to press, so it draws no ring. */
+  .ap-approval-lead:focus-visible {
+    outline: none;
+  }
+
+  .ap-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-self: flex-start;
+    gap: 12px;
+  }
+
+  /* A failed approval, under its buttons: full white, a bar at the left (the
+     identity shows states by weight and borders, never by hue). */
+  .ap-err {
+    padding-left: 10px;
+    border-left: 2px solid var(--signal);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* ---------- while the proofs render, and when they failed ---------- */
+
+  .ap-wait {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    max-width: 600px;
+    padding: 40px var(--ap-pad) 56px;
+  }
+
+  /* An unending line: a white stretch slides along a 16% rule. With reduced
+     motion it holds still at half length. */
+  .ap-progress {
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+    height: 2px;
+    margin: 8px 0 12px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--signal) 16%, transparent);
+  }
+
+  .ap-progress::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 35%;
+    background: var(--signal);
+    animation: ap-slide 1600ms var(--ease-settle) infinite;
+  }
+
+  @keyframes ap-slide {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(290%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ap-progress::after {
+      width: 50%;
+      animation: none;
+    }
+  }
+
+  /* ---------- loading skeleton ---------- */
+
+  .ap-skel-tab {
+    width: 150px;
+    height: 16px;
+    margin: 16px 8px;
+  }
+
+  .ap-skel-colour {
+    width: 96px;
+    height: 44px;
+  }
+
+  .ap-skel-plate {
+    aspect-ratio: 4 / 5;
+    width: 100%;
+  }
+
+  .ap-skel-line {
+    display: block;
+    height: 14px;
+  }
+
+  .ap-skel-title {
+    display: block;
+    width: 94%;
+    height: 56px;
+  }
+
+  .ap-skel-box {
+    height: 168px;
+  }
+}
+
+/* PageTopBar keeps its meta from shrinking (a shrink-0 utility). Here a long
+   design line gives way instead of pushing the bar wider than the page; the
+   overrides layer sits above utilities. */
+@layer overrides {
+  .ap .mf-meta:has(> .ap-barmeta) {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+}
+
+/* Focus, unlayered so it always wins (app/globals.css draws the default ring:
+   1px white outline, 4px out). The tabs sit in a row that scrolls, which would
+   cut a ring drawn outside them, so theirs is inside. */
+.ap-tab:focus-visible {
+  outline-offset: -1px;
+}

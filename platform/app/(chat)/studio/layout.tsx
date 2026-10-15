@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { DEV_BYPASS, requireRegistered } from '@/lib/auth';
+import { adminNavFor } from '@/lib/admin/nav';
 import { StudioSidebarProvider, type StudioAccount } from '@/components/studio/StudioSidebarProvider';
 import { StudioSidebar } from '@/components/studio/StudioSidebar';
 import { CatalogueProvider } from '@/components/catalogue/CatalogueProvider';
@@ -9,13 +10,15 @@ import { CatalogueProvider } from '@/components/catalogue/CatalogueProvider';
  * own top bar (the chat's TopBar, or PageTopBar for Catalogue, Settings and
  * Billing), so the shell has none. */
 export default async function StudioLayout({ children }: { children: ReactNode }) {
-  const { user, store, role } = await requireRegistered();
+  const { user, store, role, actor } = await requireRegistered();
   const account: StudioAccount = {
     displayName: user.displayName?.trim() || store?.name || user.email,
     imageUrl: user.imageUrl ?? null,
     shopName: store?.name ?? null,
     shopSlug: store?.slug ?? null,
     role,
+    // Only the admin pages this person's access opens.
+    adminLinks: adminNavFor(actor).map(({ href, label }) => ({ href, label })),
     showClerk: !DEV_BYPASS,
   };
 

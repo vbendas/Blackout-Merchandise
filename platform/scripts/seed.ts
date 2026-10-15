@@ -23,7 +23,7 @@ import { sql as rawSql } from 'drizzle-orm';
 import * as schema from '../../src/db/schema';
 
 import { PRODUCTS } from '../lib/catalog/products';
-import { PRODUCT_DETAILS, printTechniquesFor } from '../lib/catalog/product-details';
+import { PRODUCT_DETAILS, SHOP_PRINT_SERVICE_FLAGS, printServiceCodesFor } from '../lib/catalog/product-details';
 import {
     BASE_COLOUR,
     BASE_SWATCH,
@@ -56,6 +56,7 @@ const db = drizzle(sqlConnection, { schema });
 // that cross-package type identity mismatch; every row's *shape* is still
 // checked against the real inline types declared below (e.g. the explicit
 // `{ blankCode: string; colourCode: string; ... }[]` array types).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const S = schema as unknown as Record<string, any>;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -66,23 +67,11 @@ function chunk<T>(items: T[], size: number): T[][] {
     return out;
 }
 
-// Print technique (catalog wording) -> the print_services this platform
-// actually offers. 'Heat transfer' has no matching print service in the
-// seeded catalog (only screen print / DTG / embroidery), so it is dropped —
-// noted in the handoff report, not an omission by accident.
-const TECHNIQUE_TO_SERVICES: Record<string, string[]> = {
-    'Screen print': ['screen_1c', 'screen_2c', 'screen_3c'],
-    'DTG': ['dtg'],
-    'Embroidery': ['embroidery'],
-};
-
-function printServiceCodesFor(code: string): string[] {
-    const services = new Set<string>();
-    for (const technique of printTechniquesFor(code)) {
-        for (const service of TECHNIQUE_TO_SERVICES[technique] ?? []) services.add(service);
-    }
-    return [...services];
-}
+// Which blank is offered with which print service comes from
+// lib/catalog/product-details.ts (printServiceCodesFor): the catalogue's
+// technique wording mapped to the print_services below. DTF is on every blank,
+// and `dtf` is flagged available in the shop like `dtg`. 'Heat transfer' has no
+// matching print service in the seeded catalog, so it is dropped.
 
 // Placeholder garment cost by canonical type (cents). Victor will replace
 // these with the real cost sheet.
@@ -97,12 +86,14 @@ const GARMENT_COST_CENTS_BY_TYPE: Record<string, number> = {
     'Kids & Baby': 600,
 };
 
-// Placeholder print cost by print service (cents).
+// Placeholder print cost by print service (cents). DTF starts at the DTG
+// figure until the owner sets its own.
 const PRINT_COST_CENTS_BY_SERVICE: Record<string, number> = {
     screen_1c: 350,
     screen_2c: 520,
     screen_3c: 690,
     dtg: 600,
+    dtf: 600,
     embroidery: 850,
 };
 
@@ -120,6 +111,7 @@ const EU_MINUS_ES_PT = [
     'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'RO', 'SK', 'SI', 'SE',
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function countRows(table: any): Promise<number> {
     const result = await db.select({ count: rawSql<number>`count(*)::int` }).from(table);
     return result[0].count;
@@ -288,10 +280,12 @@ async function seedPrintServices(): Promise<void> {
         { code: 'screen_2c', name: 'Screen print (2 colours)', maxColours: 2 },
         { code: 'screen_3c', name: 'Screen print (3 colours)', maxColours: 3 },
         { code: 'dtg', name: 'Direct-to-garment print', maxColours: null },
+        { code: 'dtf', name: 'Direct-to-film print', maxColours: null },
         { code: 'embroidery', name: 'Embroidery', maxColours: null },
     ].map((row) => ({
         ...row,
-        positions: ['front', 'back', 'sleeve'],
+        // No sleeve: nothing in the packshots isolates one, so it is refused, not offered (lib/mockups/placements.ts).
+        positions: ['front', 'back'],
         setupCents: 0,
         isActive: true,
     }));
@@ -306,6 +300,13 @@ async function seedPrintServices(): Promise<void> {
             isActive: rawSql`excluded.is_active`,
         },
     });
+
+    // Shop products print DTG/DTF only; screen print is for runs (Print-Prep-Plan
+    // section 1). Set apart from the upsert above so embroidery, which is outside
+    // that plan, keeps whatever available_in_shop it has on every re-run.
+    for (const [code, availableInShop] of Object.entries(SHOP_PRINT_SERVICE_FLAGS)) {
+        await db.update(S.printServices).set({ availableInShop }).where(rawSql`${S.printServices.code} = ${code}`);
+    }
 }
 
 async function seedBlankPrintServices(): Promise<void> {
@@ -446,6 +447,7 @@ async function main() {
     console.log('shipping_zones seeded');
 
     console.log('\nRow counts:');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tables: [string, any][] = [
         ['colours', S.colours],
         ['blanks', S.blanks],

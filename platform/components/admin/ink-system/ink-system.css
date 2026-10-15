@@ -1,0 +1,96 @@
+/* The ink system page: the profile as groups of labelled rows, to read or to
+   edit. Buttons, fields, the page frame and the type come from
+   components/admin/prepress/prepress.css (the page imports both). It sits in
+   @layer components, so a Tailwind utility on the same element still wins. */
+@layer properties, theme, base, components, utilities, overrides;
+
+@layer components {
+  .isy {
+    max-width: 960px;
+  }
+
+  .isy-form {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  /* A fieldset as a plain block: no frame, the legend is the group's heading. */
+  .isy-group {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .isy-group > legend {
+    margin-bottom: 12px;
+    padding: 0;
+  }
+
+  .isy-group > p {
+    margin: 0 0 12px;
+  }
+
+  .isy-rows {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    border-top: var(--hairline);
+  }
+
+  .isy-row {
+    display: grid;
+    grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+    align-items: start;
+    gap: 6px 24px;
+    padding: 12px 0;
+    border-bottom: var(--hairline);
+  }
+
+  .isy-k {
+    color: var(--pp-soft);
+  }
+
+  .isy-hint {
+    display: block;
+    color: var(--pp-dim);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .isy-v {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .isy-input {
+    width: 100%;
+    max-width: 260px;
+  }
+
+  .isy-num {
+    max-width: 140px;
+  }
+
+  .isy-error {
+    flex-basis: 100%;
+  }
+
+  .isy-foot {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  @media (max-width: 640px) {
+    .isy-row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}

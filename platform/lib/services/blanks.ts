@@ -121,7 +121,11 @@ export interface BlankDetail {
   videoUrl: string | null;
   colours: { code: string; name: string; hex: string }[];
   sizes: string[];
+  /** print service names, for people (the blank card) */
   printServices: string[];
+  /** the same services with the codes the tools take; shop products use only
+   * those available in the shop (DTG, DTF), screen print is for runs */
+  printServiceOptions: { code: string; name: string; availableInShop: boolean }[];
   sizeGuide: { unit: string | null; columns: string[]; rows: unknown[] } | null;
   fromPriceCents: number | null;
 }
@@ -145,7 +149,7 @@ export async function getBlank(code: string): Promise<BlankDetail | null> {
       .orderBy(asc(schema.blankSizes.displayOrder)),
     db.select().from(schema.sizeGuides).where(eq(schema.sizeGuides.blankCode, code)).limit(1),
     db
-      .select({ name: schema.printServices.name })
+      .select({ code: schema.printServices.code, name: schema.printServices.name, availableInShop: schema.printServices.availableInShop })
       .from(schema.blankPrintServices)
       .innerJoin(schema.printServices, eq(schema.blankPrintServices.printServiceCode, schema.printServices.code))
       .where(eq(schema.blankPrintServices.blankCode, code)),
@@ -173,6 +177,7 @@ export async function getBlank(code: string): Promise<BlankDetail | null> {
     colours: colourRows.map((c) => ({ code: c.code, name: c.name, hex: c.hex ?? '#000000' })),
     sizes: sizeRows.map((s) => s.size),
     printServices: printServiceRows.map((p) => p.name),
+    printServiceOptions: printServiceRows.map((p) => ({ code: p.code, name: p.name, availableInShop: p.availableInShop })),
     sizeGuide: guide
       ? { unit: guide.unit, columns: (guide.columns as string[]) ?? [], rows: (guide.rows as unknown[]) ?? [] }
       : null,

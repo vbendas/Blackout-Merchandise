@@ -23,8 +23,8 @@ config({ path: '.env.local', quiet: true });
 process.env.AGENT_MOCK = process.env.AGENT_MOCK ?? '1';
 process.env.STRIPE_MOCK = process.env.STRIPE_MOCK ?? '1';
 
-const HOODIE_BLANK = 'STSU177'; // 'Cruiser 2.0' — screen_1c, C002, sizes S-XXL in the seed
-const PRINT_SERVICE = 'screen_1c';
+const HOODIE_BLANK = 'STSU177'; // 'Cruiser 2.0' — dtg, C002, sizes S-XXL in the seed
+const PRINT_SERVICE = 'dtg'; // shop products print DTG/DTF only (screen print is for runs)
 const COLOUR = 'C002';
 const FAN_EMAIL = 'admin-smoke-fan@merchfrom.test';
 
@@ -44,8 +44,7 @@ function assert(condition: unknown, message: string): asserts condition {
 async function main() {
   const { eq, and, desc } = await import('drizzle-orm');
   const { db, schema } = await import('../lib/db');
-  const { createProduct, setPrice, publishProduct } = await import('../lib/services/products');
-  const { submitProof, approveProof } = await import('../lib/services/proofs');
+  const { createProduct, getProduct, setPrice } = await import('../lib/services/products');
   const { startOnboarding, completeMockOnboarding, syncStripeAccountStatus } = await import('../lib/services/stripe');
   const { buildCheckout } = await import('../lib/services/checkout');
   const { markPaid, getOrder } = await import('../lib/services/orders');
@@ -111,14 +110,13 @@ async function main() {
   const priced = await setPrice(store.id, product.id, 3500);
   if (!priced.ok) throw new Error(`setPrice failed: ${priced.error}`);
 
-  const proof = await submitProof(store.id, product.id);
-  if (!proof.ok) throw new Error(`submitProof failed: ${proof.error}`);
-  const approved = await approveProof(store.id, proof.value.id, artist.id);
-  if (!approved.ok) throw new Error(`approveProof failed: ${approved.error}`);
-
-  const published = await publishProduct(store.id, product.id);
-  if (!published.ok) throw new Error(`publishProduct failed: ${published.error}`);
-  product = published.value;
+  // Publishing waits on the design's approval (Print-Prep-Plan section 7), which needs the print worker and real
+  // artwork; a shop product has no proof of its own. This smoke is about production, supplier orders and payouts,
+  // so the product goes live directly.
+  await db.update(schema.products).set({ status: 'live', updatedAt: new Date() }).where(eq(schema.products.id, product.id));
+  const live = await getProduct(store.id, product.id);
+  if (!live) throw new Error('the smoke product disappeared after going live');
+  product = live;
 
   const ctx = { userId: artist.id, clerkId: artist.clerkId, role: 'artist' as const, storeId: store.id, conversationId: 'admin-smoke', idempotencyKey: 'admin-smoke-publish', locale: 'en' };
   const publishResult = await publishStoreTool.run(ctx, {});

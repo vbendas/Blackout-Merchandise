@@ -29,6 +29,7 @@ import { BulkQuoteCard } from '@/components/cards/BulkQuoteCard';
 import { RunCard } from '@/components/cards/RunCard';
 import { TicketCard } from '@/components/cards/TicketCard';
 import { WaitlistTableCard } from '@/components/cards/WaitlistTableCard';
+import { PrintProofCard } from '@/components/cards/PrintProofCard';
 
 export interface CardSwitchProps {
   card: Card;
@@ -88,6 +89,8 @@ function renderBody(card: Card, ctx: CardActionContext, confirmResolution?: 'app
       return <TicketCard card={card} ctx={ctx} />;
     case 'waitlist_table':
       return <WaitlistTableCard card={card} ctx={ctx} />;
+    case 'print_proof':
+      return <PrintProofCard card={card} ctx={ctx} />;
     default:
       return null;
   }

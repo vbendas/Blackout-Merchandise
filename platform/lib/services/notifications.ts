@@ -20,6 +20,10 @@ import {
   type OrderShippedFanPayload,
   payoutPaidEmail,
   type PayoutPaidPayload,
+  printReapprovalEmail,
+  type PrintReapprovalPayload,
+  printSentBackEmail,
+  type PrintSentBackPayload,
   proofReadyEmail,
   type ProofReadyPayload,
   saleNewEmail,
@@ -42,7 +46,9 @@ export type NotificationEvent =
   | 'payout.paid'
   | 'domain.active'
   | 'admin.queue_item'
-  | 'support.reply';
+  | 'support.reply'
+  | 'print.sent_back'
+  | 'print.reapproval';
 
 export interface NotifyInput {
   userId: string;
@@ -83,6 +89,10 @@ function renderEventEmail(event: NotificationEvent, payload: Record<string, unkn
       return adminQueueItemEmail(payload as AdminQueueItemPayload);
     case 'support.reply':
       return supportReplyEmail(payload as SupportReplyPayload);
+    case 'print.sent_back':
+      return printSentBackEmail(payload as PrintSentBackPayload);
+    case 'print.reapproval':
+      return printReapprovalEmail(payload as PrintReapprovalPayload);
   }
 }
 

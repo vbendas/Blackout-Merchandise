@@ -27,6 +27,11 @@ export interface PrintArea {
   widthCm: number;
   /** which packshot image this box is measured against */
   image: 'front' | 'back';
+  /** How far below the collar seam the top of the print sits at the standard position (this box), in cm,
+   * measured on a real garment. Unset until someone has measured it: nothing is guessed, and the job sheet
+   * says "Standard position" instead of a distance. A product's `offsetYcm` moves the print from here
+   * (positive = lower), so the real distance below the collar is this plus the offset. */
+  collarDistanceCm?: number;
 }
 
 export interface TypePlacement {
@@ -45,7 +50,9 @@ export const HOODIE_POCKET_LINE_FRAC = 0.6041;
 // Sleeve is intentionally not offered: none of our packshots isolate a
 // sleeve region from the rest of the garment silhouette (the alpha bbox
 // covers the whole garment, arms included), so there is no reliable box to
-// hand back — "skip sleeve if no reasonable box" per the wave 1 brief.
+// hand back. Asking for one is refused with an error that names the
+// positions the blank does take (resolvePrintArea, checkPlacementPosition);
+// it is never moved to the default spot (Print-Prep-Plan section 13).
 
 export const PLACEMENTS: Record<string, TypePlacement> = {
   'T-shirts': {
@@ -125,24 +132,156 @@ export const PLACEMENTS: Record<string, TypePlacement> = {
   },
 };
 
-export function getTypePlacement(blankType: string): TypePlacement | undefined {
-  return PLACEMENTS[blankType];
+// hasOwn, not a bare index: a blank type of 'constructor' has no table.
+function tableFor(blankType: string): TypePlacement | undefined {
+  return Object.hasOwn(PLACEMENTS, blankType) ? PLACEMENTS[blankType] : undefined;
 }
 
+export function getTypePlacement(blankType: string): TypePlacement | undefined {
+  return tableFor(blankType);
+}
+
+/** The positions a blank type can print at, in the order the table lists them. */
+export function availablePositions(blankType: string): PrintPosition[] {
+  const table = tableFor(blankType);
+  return table ? (Object.keys(table.positions) as PrintPosition[]) : [];
+}
+
+function unknownPositionMessage(blankType: string, position: string, available: PrintPosition[]): string {
+  const why = /sleeve/i.test(position) ? 'Sleeve prints are not supported yet' : `"${position}" is not a print position for ${blankType}`;
+  return `${why}. ${blankType} take: ${available.join(', ')}.`;
+}
+
+/** Thrown for a position the blank type has no calibrated box for. The caller
+ * is never handed the default spot instead: a print that quietly lands
+ * somewhere the artist did not ask for is worse than an error. */
+export class UnknownPositionError extends Error {
+  readonly code = 'unknown_position';
+  constructor(
+    readonly blankType: string,
+    readonly position: string,
+    readonly available: PrintPosition[],
+  ) {
+    super(unknownPositionMessage(blankType, position, available));
+    this.name = 'UnknownPositionError';
+  }
+}
+
+/** The box for a position, or undefined when the blank type has no table at
+ * all (callers decide what to show). A position the table lacks throws
+ * UnknownPositionError; it never falls back to the type's default. */
 export function resolvePrintArea(blankType: string, position: string): { area: PrintArea; position: PrintPosition } | undefined {
-  const table = PLACEMENTS[blankType];
+  const table = tableFor(blankType);
   if (!table) return undefined;
-  const key = (position in table.positions ? position : table.defaultPosition) as PrintPosition;
+  // hasOwn, not `in`: 'constructor' and 'toString' are not positions.
+  if (!Object.hasOwn(table.positions, position)) {
+    throw new UnknownPositionError(blankType, position, availablePositions(blankType));
+  }
+  const key = position as PrintPosition;
   const area = table.positions[key];
-  if (!area) return undefined;
+  if (!area) throw new UnknownPositionError(blankType, position, availablePositions(blankType));
   return { area, position: key };
 }
 
-export function getDefaultPosition(blankType: string): PrintPosition {
-  return PLACEMENTS[blankType]?.defaultPosition ?? 'front_chest';
+export type PositionCheck = { ok: true; position: string } | { ok: false; error: string; positions: PrintPosition[] };
+
+/** The non-throwing form of resolvePrintArea, for the services and tools that
+ * take a position from the artist or the model and must answer in words.
+ * A blank type with no table passes: there is nothing to check it against. */
+export function checkPlacementPosition(blankType: string, position: string): PositionCheck {
+  try {
+    resolvePrintArea(blankType, position);
+    return { ok: true, position };
+  } catch (err) {
+    if (err instanceof UnknownPositionError) return { ok: false, error: err.message, positions: err.available };
+    throw err;
+  }
 }
+
+export function getDefaultPosition(blankType: string): PrintPosition {
+  return tableFor(blankType)?.defaultPosition ?? 'front_chest';
+}
+
+/** The blank type's usual spot at its usual width, for callers that were not
+ * given a placement. Not a fallback for a position that was refused. */
+export function defaultPlacementFor(blankType: string): { position: PrintPosition; widthCm: number } {
+  const position = getDefaultPosition(blankType);
+  return { position, widthCm: tableFor(blankType)?.positions[position]?.widthCm ?? 28 };
+}
+
+/** The standard collar distance of a blank type's print position, in cm: how far below the collar seam
+ * the top of the print sits at the standard position. Undefined when it isn't set (not measured yet),
+ * and for a blank type or position that has no box, which is not an error here. */
+export function standardCollarDistanceCm(blankType: string | undefined, position: string): number | undefined {
+  const table = blankType === undefined ? undefined : tableFor(blankType);
+  if (!table || !Object.hasOwn(table.positions, position)) return undefined;
+  return table.positions[position as PrintPosition]?.collarDistanceCm;
+}
+
+/** What a sheet says about how high a print sits. */
+export interface PrintHeight {
+  /** '8.5 cm below the collar', or 'Standard position, 2 cm lower' */
+  text: string;
+  /** false when the standard collar distance isn't set, so the text is the offset and not a distance */
+  collarKnown: boolean;
+}
+
+/** The standard position is where a position's box sits; a product's offset moves the print from it
+ * (positive = lower). With the standard collar distance known the sheet gives the real distance below
+ * the collar (standard plus offset). Without it, it says "Standard position", then the offset
+ * ("2 cm lower", "2 cm higher"; nothing at 0): a printer must not be told a distance nobody measured. */
+export function describePrintHeight(standardCm: number | undefined, offsetCm: number | undefined): PrintHeight {
+  const tenths = (n: number) => Math.round(n * 10) / 10;
+  const offset = tenths(typeof offsetCm === 'number' && Number.isFinite(offsetCm) ? offsetCm : 0);
+  if (standardCm !== undefined) {
+    const below = tenths(standardCm + offset);
+    return { text: below >= 0 ? `${below} cm below the collar` : `${-below} cm above the collar`, collarKnown: true };
+  }
+  if (offset === 0) return { text: 'Standard position', collarKnown: false };
+  return { text: `Standard position, ${Math.abs(offset)} cm ${offset > 0 ? 'lower' : 'higher'}`, collarKnown: false };
+}
+
+/** The line under a sheet's garments when some row could only say "Standard position". */
+export const COLLAR_DISTANCE_UNSET_NOTE =
+  "Standard position is the usual place for that garment and position. The standard collar distance isn't set yet, so these rows give the offset from it, not a distance below the collar.";
 
 /** Pixels-per-cm implied by a print area measured against an image of the given width. */
 export function pxPerCm(area: PrintArea, imageWidthPx: number): number {
   return (area.w * imageWidthPx) / area.widthCm;
+}
+
+// Where a print lands on a packshot is worked out by the mockup (lib/services/mockups.ts) and by the
+// proof's print box (printBoxFor in lib/print/pipeline.ts) from the three rules below, so a print that a
+// product moved sits at the same height in both. Only the print is placed here: a mockup also shrinks a
+// print to clear a hoodie's pocket (a picture can), a proof never does (it shows the print as made).
+
+/** Every packshot we have is this size, and the boxes above are fractions of it. For a caller with no
+ * photo to measure (a stand-in in a test). */
+export const STANDARD_PACKSHOT = { widthPx: 1200, heightPx: 1500 } as const;
+
+/** How far a product's vertical offset moves a print, in packshot pixels (positive = lower). A cm on the
+ * photo is `pxPerCm` px: the box is `widthCm` wide and spans `w` of the photo's width. The offset is from
+ * the box's own top, the standard position; it is not a distance from the collar. */
+export function printOffsetPx(area: PrintArea, imageWidthPx: number, offsetYcm: number | undefined): number {
+  return (offsetYcm ?? 0) * pxPerCm(area, imageWidthPx);
+}
+
+/** Holds a print on the photo: its left edge within [0, photo width - print width], its top within
+ * [0, photo height - print height]. Any one unit, so long as all three arguments use it: pixels for a
+ * mockup (the design's size), fractions of the photo for a proof's box (the usable area's size). */
+export function keepOnPhoto(
+  at: { left: number; top: number },
+  print: { width: number; height: number },
+  photo: { width: number; height: number },
+): { left: number; top: number } {
+  return {
+    left: Math.min(Math.max(at.left, 0), Math.max(0, photo.width - print.width)),
+    top: Math.min(Math.max(at.top, 0), Math.max(0, photo.height - print.height)),
+  };
+}
+
+/** Where a hoodie's kangaroo pocket starts, as a fraction of the photo's height, for a print on the
+ * front of a hoodie; undefined for every other garment and for the back. */
+export function pocketLineFraction(blankType: string, area: PrintArea): number | undefined {
+  return blankType === 'Sweats & Hoodies' && area.image === 'front' ? HOODIE_POCKET_LINE_FRAC : undefined;
 }

@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, or } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import type { SessionStore } from '@/lib/auth';
 import { blankDisplayName } from '@/lib/catalog/display-names';
@@ -81,51 +81,26 @@ export async function getSalesThisMonth(storeId: string): Promise<{ count: numbe
 
 interface PendingProof {
   id: string;
-  productName: string | null;
-  bulkOrderId: string | null;
+  bulkOrderId: string;
 }
 
-/** Proofs waiting for the artist's OK, newest first. */
+/** Run proofs waiting for the artist's OK, newest first. A shop product has no proof of its own any more (its
+ * design's approval replaces it), so a pending proof a product still has from before is not asked for here. */
 async function pendingProofs(storeId: string): Promise<PendingProof[]> {
   const rows = await db
-    .select({
-      id: schema.proofs.id,
-      productId: schema.proofs.productId,
-      productName: schema.products.name,
-      blankCode: schema.blanks.code,
-      blankName: schema.blanks.name,
-      blankSupplierName: schema.blanks.supplierName,
-      bulkOrderId: schema.proofs.bulkOrderId,
-    })
+    .select({ id: schema.proofs.id, bulkOrderId: schema.proofs.bulkOrderId })
     .from(schema.proofs)
-    .leftJoin(schema.products, eq(schema.proofs.productId, schema.products.id))
-    .leftJoin(schema.blanks, eq(schema.products.blankCode, schema.blanks.code))
-    .leftJoin(schema.bulkOrders, eq(schema.proofs.bulkOrderId, schema.bulkOrders.id))
-    .where(
-      and(
-        eq(schema.proofs.status, 'pending'),
-        or(
-          // A product proof only counts while the product waits on it (not archived since).
-          and(eq(schema.products.storeId, storeId), eq(schema.products.status, 'proof_pending')),
-          eq(schema.bulkOrders.storeId, storeId),
-        ),
-      ),
-    )
+    .innerJoin(schema.bulkOrders, eq(schema.proofs.bulkOrderId, schema.bulkOrders.id))
+    .where(and(eq(schema.proofs.status, 'pending'), eq(schema.bulkOrders.storeId, storeId)))
     .orderBy(desc(schema.proofs.createdAt));
 
-  // One row per product or run: the newest proof is the one that counts.
+  // One row per run: the newest proof is the one that counts.
   const seen = new Set<string>();
   const out: PendingProof[] = [];
   for (const row of rows) {
-    const subject = row.bulkOrderId ?? row.productId;
-    if (!subject || seen.has(subject)) continue;
-    seen.add(subject);
-    // A product named after its blank's model reads as the blank's display name.
-    const productName =
-      row.productName && row.blankCode && row.blankName
-        ? fanProductName(row.productName, { code: row.blankCode, name: row.blankName, supplierName: row.blankSupplierName })
-        : row.productName;
-    out.push({ id: row.id, productName, bulkOrderId: row.bulkOrderId });
+    if (!row.bulkOrderId || seen.has(row.bulkOrderId)) continue;
+    seen.add(row.bulkOrderId);
+    out.push({ id: row.id, bulkOrderId: row.bulkOrderId });
   }
   return out;
 }
@@ -240,26 +215,16 @@ export async function getStudioHome(store: SessionStore | null): Promise<StudioH
   const items: NeedsYouItem[] = [];
 
   for (const proof of proofs) {
-    if (proof.bulkOrderId) {
-      // A run's proof only counts while the run is waiting on it.
-      const run = runById.get(proof.bulkOrderId);
-      if (!run || run.status !== 'proof_pending') continue;
-      items.push({
-        id: `proof-${proof.id}`,
-        kind: 'proof',
-        title: runTitle(run),
-        state: STAGE_WORDS.proof,
-        action: { label: 'Review', prompt: `Show me the proof for ${run.label}` },
-      });
-    } else if (proof.productName) {
-      items.push({
-        id: `proof-${proof.id}`,
-        kind: 'proof',
-        title: `${proof.productName} proof`,
-        state: STAGE_WORDS.proof,
-        action: { label: 'Review', prompt: `Show me the proof for ${proof.productName}` },
-      });
-    }
+    // A run's proof only counts while the run is waiting on it.
+    const run = runById.get(proof.bulkOrderId);
+    if (!run || run.status !== 'proof_pending') continue;
+    items.push({
+      id: `proof-${proof.id}`,
+      kind: 'proof',
+      title: runTitle(run),
+      state: STAGE_WORDS.proof,
+      action: { label: 'Review', prompt: `Show me the proof for ${run.label}` },
+    });
   }
 
   for (const run of runs) {

@@ -27,6 +27,8 @@ export async function submitRegistration(
   input: RegistrationInput,
 ): Promise<RegistrationResult | undefined> {
   const session = await requireUser();
+  // Staff accounts are kept apart from shops; the owner has no shop either.
+  if (session.role !== 'artist') return { error: 'Team accounts work without a shop.' };
 
   const displayName = input.displayName.trim();
   const storeName = input.storeName.trim();

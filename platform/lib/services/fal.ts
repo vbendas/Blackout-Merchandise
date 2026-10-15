@@ -12,6 +12,19 @@ function ensureConfigured(): void {
   configured = true;
 }
 
+type FalInput = Record<string, unknown>;
+
+/** The one place that talks to fal's queue. Every wrapper below goes through
+ * it, so a test replaces `subscribe` and no call ever reaches the network (or
+ * costs money). Nothing else in the app should touch it. */
+export const falTransport: { subscribe: (endpoint: string, input: FalInput) => Promise<{ data: unknown }> } = {
+  subscribe: (endpoint, input) => {
+    ensureConfigured();
+    const subscribe = fal.subscribe as unknown as (id: string, options: { input: FalInput }) => Promise<{ data: unknown }>;
+    return subscribe.call(fal, endpoint, { input });
+  },
+};
+
 const TIMEOUT_MS = 120_000;
 
 async function withTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
@@ -57,6 +70,13 @@ export const FAL_ENDPOINTS = {
 } as const;
 
 export type Resolution = '0.5K' | '1K' | '2K' | '4K';
+
+/** Drafts, the variations an artist browses and edits, render at 1K: about 93 ppi
+ * at the 28 cm reference width, cheap and quick. Too small to print from. */
+export const DRAFT_RESOLUTION: Resolution = '1K';
+/** The final render before approval is 4K, about 372 ppi at 28 cm, so print prep
+ * works from real pixels. See renderFinal. */
+export const FINAL_RESOLUTION: Resolution = '4K';
 export type AspectRatio = 'auto' | '1:1' | '16:9' | '9:16' | '4:3' | '3:4' | '4:5' | '5:4' | '2:3' | '3:2';
 
 type NanoBananaOutput = OutputType<typeof FAL_ENDPOINTS.GENERATE>;
@@ -72,10 +92,9 @@ export interface RemoveBackgroundResult {
 }
 
 export async function removeBackground(imageUrl: string): Promise<RemoveBackgroundResult> {
-  ensureConfigured();
   try {
     const { data } = (await withTimeout(
-      fal.subscribe(FAL_ENDPOINTS.REMOVE_BACKGROUND, { input: { image_url: imageUrl } }),
+      falTransport.subscribe(FAL_ENDPOINTS.REMOVE_BACKGROUND, { image_url: imageUrl }),
       'remove_background',
     )) as { data: RemoveBackgroundApiOutput };
     return { url: data.image.url, contentType: data.image.content_type ?? null };
@@ -92,14 +111,11 @@ export interface UpscaleResult {
 
 /** Only intended for the beyond-4K edge case — NB2's native 4K render covers most print sizes. */
 export async function upscale(imageUrl: string, factor: number): Promise<UpscaleResult> {
-  ensureConfigured();
   try {
-    const { data }: { data: UpscalerOutput } = await withTimeout(
-      fal.subscribe(FAL_ENDPOINTS.UPSCALER, {
-        input: { image_url: imageUrl, upscale_factor: Math.min(Math.max(factor, 1), 4) },
-      }),
+    const { data } = (await withTimeout(
+      falTransport.subscribe(FAL_ENDPOINTS.UPSCALER, { image_url: imageUrl, upscale_factor: Math.min(Math.max(factor, 1), 4) }),
       'upscale',
-    );
+    )) as { data: UpscalerOutput };
     return { url: data.image.url, width: data.image.width ?? null, height: data.image.height ?? null };
   } catch (err) {
     throw toFalError(err, 'upscale');
@@ -124,26 +140,21 @@ export interface GenerateResult {
 }
 
 export async function generate(input: GenerateInput): Promise<GenerateResult> {
-  ensureConfigured();
   try {
     const aspect_ratio = input.aspect ?? 'auto';
-    const resolution = input.resolution ?? '1K';
+    const resolution = input.resolution ?? DRAFT_RESOLUTION;
     const num_images = Math.min(Math.max(input.numImages ?? 1, 1), 4);
     let data: NanoBananaOutput;
     if (input.referenceUrls && input.referenceUrls.length > 0) {
-      ({ data } = await withTimeout(
-        fal.subscribe(FAL_ENDPOINTS.EDIT, {
-          input: { prompt: input.prompt, image_urls: input.referenceUrls, aspect_ratio, resolution, output_format: 'png', num_images },
-        }),
+      ({ data } = (await withTimeout(
+        falTransport.subscribe(FAL_ENDPOINTS.EDIT, { prompt: input.prompt, image_urls: input.referenceUrls, aspect_ratio, resolution, output_format: 'png', num_images }),
         'generate',
-      ));
+      )) as { data: NanoBananaOutput });
     } else {
-      ({ data } = await withTimeout(
-        fal.subscribe(FAL_ENDPOINTS.GENERATE, {
-          input: { prompt: input.prompt, aspect_ratio, resolution, output_format: 'png', num_images },
-        }),
+      ({ data } = (await withTimeout(
+        falTransport.subscribe(FAL_ENDPOINTS.GENERATE, { prompt: input.prompt, aspect_ratio, resolution, output_format: 'png', num_images }),
         'generate',
-      ));
+      )) as { data: NanoBananaOutput });
     }
     return { urls: data.images.map((i) => i.url), description: data.description };
   } catch (err) {
@@ -152,10 +163,12 @@ export async function generate(input: GenerateInput): Promise<GenerateResult> {
 }
 
 export interface EditInput {
+  /** the image to change: the version the artist is looking at, never an older one */
   imageUrl: string;
   prompt: string;
   /** Extra reference images beyond the base (e.g. a logo to compose in). */
   referenceUrls?: string[];
+  /** Defaults to the draft resolution; only renderFinal asks for more. */
   resolution?: Resolution;
 }
 
@@ -164,21 +177,44 @@ export interface EditResult {
   description: string;
 }
 
-/** Always routes through nano-banana-2/edit, re-anchored to imageUrl (the caller
- * is responsible for passing the ORIGINAL base image, not a chained intermediate —
- * see Image-Generation-Architecture.md §4, ADR-004). */
-export async function edit(input: EditInput): Promise<EditResult> {
-  ensureConfigured();
+async function runEdit(input: EditInput, step: string): Promise<EditResult> {
   try {
     const imageUrls = [input.imageUrl, ...(input.referenceUrls ?? [])];
-    const { data } = await withTimeout(
-      fal.subscribe(FAL_ENDPOINTS.EDIT, {
-        input: { prompt: input.prompt, image_urls: imageUrls, resolution: input.resolution ?? '1K', output_format: 'png' },
+    const { data } = (await withTimeout(
+      falTransport.subscribe(FAL_ENDPOINTS.EDIT, {
+        prompt: input.prompt,
+        image_urls: imageUrls,
+        resolution: input.resolution ?? DRAFT_RESOLUTION,
+        output_format: 'png',
       }),
-      'edit',
-    );
+      step,
+    )) as { data: NanoBananaOutput };
     return { urls: data.images.map((i) => i.url), description: data.description };
   } catch (err) {
-    throw toFalError(err, 'edit');
+    throw toFalError(err, step);
   }
+}
+
+/** Always routes through nano-banana-2/edit with imageUrl first. The caller
+ * passes the image that should change, which is the artwork's current version:
+ * what the artist sees is what gets edited, and the instructions already
+ * applied travel in the prompt (see buildEditPrompt in designs.ts). */
+export async function edit(input: EditInput): Promise<EditResult> {
+  return runEdit(input, 'edit');
+}
+
+/** What a print-size render of finished art is told to do: the same picture
+ * with more pixels. The model sees the draft as its input image. */
+export const FINAL_RENDER_PROMPT =
+  'Reproduce the attached artwork exactly, at the highest resolution you can. Do not change, add, remove or restyle anything: same composition, shapes, lettering, colours and background. Keep every edge sharp and clean.';
+
+/**
+ * The final render: the draft the artist chose, redone at 4K for print prep.
+ * It runs before approval, never after: the client approves the final, and
+ * nothing that can change the look of the art runs once they have
+ * (Print-Prep-Plan section 3). Only for art Nano Banana made. An upload is
+ * never sent here, because a regeneration would repaint the artist's own work.
+ */
+export async function renderFinal(input: { imageUrl: string }): Promise<EditResult> {
+  return runEdit({ imageUrl: input.imageUrl, prompt: FINAL_RENDER_PROMPT, resolution: FINAL_RESOLUTION }, 'render_final');
 }

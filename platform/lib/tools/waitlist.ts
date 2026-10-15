@@ -1,18 +1,22 @@
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
+import { can } from '@/lib/auth/permissions';
 import { defineTool, type Tool, type ToolResult } from '@/lib/tools/types';
 import { approveWaitlist, listWaitlist, rejectWaitlist, type WaitlistSignup } from '@/lib/services/waitlist';
 import type { Card } from '@/lib/ui-cards/schemas';
 
-// Admin-only: waitlist approval -> invite (Platform-Plan §7). Every write
-// here is confirm-gated — approving/rejecting someone's application is
-// sensitive enough to need a human click, not just a model's say-so.
+// Staff tools in the Applications area: waitlist approval -> invite
+// (Platform-Plan §7). Reading the list needs View, approving or rejecting
+// needs Work. Every write here is confirm-gated — approving/rejecting
+// someone's application is sensitive enough to need a human click, not just
+// a model's say-so.
 
 function noticeCard(id: string, tone: 'info' | 'success' | 'warning' | 'error', text: string): Card {
   return { id, kind: 'notice', tone, text };
 }
 
-function waitlistTableCard(rows: WaitlistSignup[]): Card {
+/** `canDecide`: the caller may approve, so pending rows offer it. */
+function waitlistTableCard(rows: WaitlistSignup[], canDecide: boolean): Card {
   return {
     id: `waitlist_${randomUUID()}`,
     kind: 'waitlist_table',
@@ -23,7 +27,7 @@ function waitlistTableCard(rows: WaitlistSignup[]): Card {
       project: row.product ?? undefined,
       at: (row.createdAt ?? new Date()).toISOString(),
       status: row.status,
-      prompt: row.status === 'pending' ? `Approve waitlist ${row.id}` : undefined,
+      prompt: canDecide && row.status === 'pending' ? `Approve waitlist ${row.id}` : undefined,
     })),
     total: rows.length,
   };
@@ -38,11 +42,12 @@ export const listWaitlistTool = defineTool({
   description:
     "Show the platform waitlist (people who signed up on the public waitlist page, source of truth for who can register a shop). Filter by status ('pending' | 'approved' | 'rejected' | 'registered'); omit for everything, most recent first. Call this when the admin asks to see, check, or review the waitlist.",
   input: z.object({ status: z.enum(['pending', 'approved', 'rejected', 'registered']).optional() }).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'applications', level: 'view' },
   readOnly: true,
-  run: async (_ctx, input): Promise<ToolResult<ListWaitlistData>> => {
+  run: async (ctx, input): Promise<ToolResult<ListWaitlistData>> => {
     const rows = await listWaitlist({ status: input.status });
-    return { data: { count: rows.length }, ui: { cards: [waitlistTableCard(rows)] } };
+    return { data: { count: rows.length }, ui: { cards: [waitlistTableCard(rows, can(ctx, 'applications', 'work'))] } };
   },
 });
 
@@ -56,7 +61,8 @@ export const approveWaitlistTool = defineTool({
   description:
     "Approve a pending waitlist signup, generating (or reusing) their invite link and emailing it to them so they can register a shop. Sensitive action: shows a confirm card and only executes once the human clicks confirm. Always pass email (read it off the waitlist row) so the confirmation reads clearly, e.g. 'Approve waitlist someone@example.com'.",
   input: z.object({ id: z.coerce.number().int().positive(), email: z.string().max(200).optional() }).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'applications', level: 'work' },
   confirm: true,
   summarize: (input) => `Approve waitlist signup ${input.email ?? `#${input.id}`}.`,
   run: async (ctx, input): Promise<ToolResult<ApproveWaitlistData>> => {
@@ -85,7 +91,8 @@ export const rejectWaitlistTool = defineTool({
   description:
     "Reject a waitlist signup, closing it out with an optional internal note (never emailed to them). Sensitive action: shows a confirm card and only executes once the human clicks confirm. Always pass email (read it off the waitlist row) so the confirmation reads clearly.",
   input: z.object({ id: z.coerce.number().int().positive(), note: z.string().max(500).optional(), email: z.string().max(200).optional() }).strict(),
-  scope: 'admin',
+  scope: 'staff',
+  access: { area: 'applications', level: 'work' },
   confirm: true,
   summarize: (input) => `Reject waitlist signup ${input.email ?? `#${input.id}`}.`,
   run: async (_ctx, input): Promise<ToolResult<RejectWaitlistData>> => {

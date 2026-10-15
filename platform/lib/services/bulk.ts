@@ -5,11 +5,13 @@ import { runNumberFor } from '@/lib/services/runs';
 import { db, schema } from '@/lib/db';
 import { createProduct, getProduct, type Placement } from '@/lib/services/products';
 import { createBulkProof, setBulkProofStatus, type ProofDetail, type ProofSpecLine } from '@/lib/services/proofs';
-import { printServicesFor, quoteFor } from '@/lib/services/quotes';
+import { describeServices, printServicesFor, quoteFor } from '@/lib/services/quotes';
 import { zoneForCountry } from '@/lib/services/shipping';
 import { getStore } from '@/lib/services/stores';
 import { claimWebhookEvent } from '@/lib/services/orders';
 import { notify } from '@/lib/services/notifications';
+import { markPacksNeededForOrder } from '@/lib/services/prepress';
+import { checkPlacementPosition, defaultPlacementFor } from '@/lib/mockups/placements';
 import type { CheckoutSessionSnapshot } from '@/lib/services/stripe';
 
 // Bulk orders (service path B, Platform-Plan.md §6): an artist orders a run
@@ -21,6 +23,20 @@ import type { CheckoutSessionSnapshot } from '@/lib/services/stripe';
 // transition here), payment, and cancellation. checkout.ts calls into this
 // file for the Checkout Session (getBulkOrder, recordBulkCheckoutSession);
 // the Stripe webhook and the mock-checkout action call markBulkPaid.
+//
+// A run chooses its own print method when it is quoted: screen print or
+// DTG/DTF, whatever the blank offers. A run of a shop product does not inherit
+// the product's method (shop products are DTG/DTF only), so a run of a DTG
+// product can be screen printed. Each line carries the service its artist
+// chose; production reads it from there (getRunLinesForOrder).
+
+/** What a paid run sets in motion outside this module. Tests swap these for
+ * stubs; the wrappers look the functions up when called, so an import cycle
+ * with prepress.ts cannot leave one undefined. */
+export const runHooks = {
+  notify: (input: Parameters<typeof notify>[0]) => notify(input),
+  markPacksNeededForOrder: (orderId: string) => markPacksNeededForOrder(orderId),
+};
 
 export type ServiceResult<T> = { ok: true; value: T } | { ok: false; error: string };
 
@@ -125,6 +141,19 @@ export async function getBulkOrder(storeId: string, bulkOrderId: string): Promis
   return row ? toBulkOrderDetail(row) : null;
 }
 
+/**
+ * The lines of the run that became an order, each with the print service its
+ * artist chose when it was quoted (techniqueOfService in quotes.ts turns that
+ * into screen or DTG/DTF). Production and the pre-press queue read the method
+ * here: an order item points at a shop product, whose own method can differ
+ * from the run's. Null when the order did not come from a run.
+ */
+export async function getRunLinesForOrder(orderId: string): Promise<{ bulkOrderId: string; storeId: string; lines: BulkQuoteLine[] } | null> {
+  const rows = await db.select().from(schema.bulkOrders).where(eq(schema.bulkOrders.orderId, orderId)).limit(1);
+  const row = rows[0];
+  return row ? { bulkOrderId: row.id, storeId: row.storeId, lines: toBulkOrderDetail(row).lines } : null;
+}
+
 export interface BulkOrderListItem {
   id: string;
   status: BulkOrderStatus;
@@ -208,6 +237,12 @@ function normaliseShipTo(input: BulkShipTo | undefined): BulkShipTo | null {
 
 type LineResult = { ok: true; value: BulkQuoteLine } | { ok: false; error: string };
 
+/** True when the design belongs to this shop: a run only ever prints its own shop's art. */
+async function designInShop(storeId: string, designId: string): Promise<boolean> {
+  const [design] = await db.select({ storeId: schema.designs.storeId }).from(schema.designs).where(eq(schema.designs.id, designId)).limit(1);
+  return design?.storeId === storeId;
+}
+
 async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput): Promise<LineResult> {
   const sizeEntries = Object.entries(input.sizes ?? {}).filter(([, qty]) => qty > 0);
   if (sizeEntries.length === 0) return { ok: false, error: 'At least one size with a quantity greater than zero is required.' };
@@ -230,12 +265,26 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput): Pr
     const product = await getProduct(storeId, input.productId);
     if (!product) return { ok: false, error: 'Product not found for this shop.' };
     productId = product.id;
-    designId = product.designId ?? designId;
+    // The product's own design wins; a design named on the line is taken only from this shop.
+    if (product.designId) designId = product.designId;
+    else if (designId && !(await designInShop(storeId, designId))) return { ok: false, error: 'Design not found for this shop.' };
     blankCode = product.blankCode;
     blankName = product.blankName;
-    printServiceCode = product.printServiceCode;
-    printServiceName = product.printServiceName;
     placement = product.placement;
+
+    // The run picks its own method. Left out, it prints the way the product does.
+    if (input.printServiceCode && input.printServiceCode !== product.printServiceCode) {
+      const services = await printServicesFor(product.blankCode);
+      const service = services.find((s) => s.code === input.printServiceCode);
+      if (!service) {
+        return { ok: false, error: `"${input.printServiceCode}" isn't offered on ${blankName} (${product.blankCode}). Choose one of: ${describeServices(services)}.` };
+      }
+      printServiceCode = service.code;
+      printServiceName = service.name;
+    } else {
+      printServiceCode = product.printServiceCode;
+      printServiceName = product.printServiceName;
+    }
 
     const colour = product.colours.find((c) => c.code === input.colourCode);
     if (!colour) return { ok: false, error: `"${input.colourCode}" is not an enabled colour on ${product.name}.` };
@@ -249,15 +298,7 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput): Pr
       return { ok: false, error: 'Provide either a productId, or a blankCode, printServiceCode and placement.' };
     }
 
-    if (designId) {
-      const designRows = await db
-        .select({ id: schema.designs.id, storeId: schema.designs.storeId })
-        .from(schema.designs)
-        .where(eq(schema.designs.id, designId))
-        .limit(1);
-      const design = designRows[0];
-      if (!design || design.storeId !== storeId) return { ok: false, error: 'Design not found for this shop.' };
-    }
+    if (designId && !(await designInShop(storeId, designId))) return { ok: false, error: 'Design not found for this shop.' };
 
     const blankRows = await db.select().from(schema.blanks).where(eq(schema.blanks.code, input.blankCode)).limit(1);
     const blank = blankRows[0];
@@ -268,9 +309,12 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput): Pr
 
     const services = await printServicesFor(input.blankCode);
     const service = services.find((s) => s.code === input.printServiceCode);
-    if (!service) return { ok: false, error: `"${input.printServiceCode}" isn't offered on ${blankName} (${input.blankCode}).` };
+    if (!service) return { ok: false, error: `"${input.printServiceCode}" isn't offered on ${blankName} (${input.blankCode}). Choose one of: ${describeServices(services)}.` };
     printServiceCode = service.code;
     printServiceName = service.name;
+
+    const position = checkPlacementPosition(blank.type, input.placement.position);
+    if (!position.ok) return { ok: false, error: position.error };
 
     const colourRows = await db
       .select({ code: schema.colours.code, name: schema.colours.name, frontImageUrl: schema.blankColours.frontImageUrl })
@@ -361,8 +405,11 @@ export async function createBulkQuote(input: CreateBulkQuoteInput): Promise<Serv
 // -- proof round-trip -------------------------------------------------------
 
 function buildBulkSpec(detail: BulkOrderDetail): ProofSpecLine[] {
+  const methods = [...new Set(detail.lines.map((l) => l.printServiceName))];
   return [
     ...detail.lines.map((l) => ({ label: l.label, value: `€${(l.unitCents / 100).toFixed(2)} / unit` })),
+    // The artist chose the method at quote time, so the proof says which one they are approving.
+    { label: 'Print method', value: methods.join(', ') },
     { label: 'Setup', value: `€${(detail.setupCents / 100).toFixed(2)}` },
     { label: 'Shipping', value: `€${(detail.shippingCents / 100).toFixed(2)}` },
     { label: 'Total', value: `€${(detail.totalCents / 100).toFixed(2)}` },
@@ -436,15 +483,21 @@ export async function recordBulkCheckoutSession(storeId: string, bulkOrderId: st
 async function ensureLineProduct(storeId: string, line: BulkQuoteLine): Promise<string> {
   if (line.productId) return line.productId;
 
+  // The backing product carries the method the run chose, screen print
+  // included (forRun), and never reaches the shop with it (see transition in
+  // products.ts). A line with no placement gets its blank's usual spot, not a
+  // chest print on a pair of trousers.
+  const blankRows = await db.select({ type: schema.blanks.type }).from(schema.blanks).where(eq(schema.blanks.code, line.blankCode)).limit(1);
   const created = await createProduct({
     storeId,
     designId: line.designId ?? undefined,
     blankCode: line.blankCode,
     printServiceCode: line.printServiceCode,
-    placement: line.placement ?? { position: 'front_chest', widthCm: 28 },
+    placement: line.placement ?? defaultPlacementFor(blankRows[0]?.type ?? ''),
     colours: [line.colourCode],
     sizes: Object.keys(line.sizes),
     name: `Bulk run — ${line.blankName} (${line.colourName})`,
+    forRun: true,
   });
   if (!created.ok) throw new Error(`Could not create a backing product for bulk line "${line.label}": ${created.error}`);
   return created.value.id;
@@ -532,10 +585,20 @@ export async function markBulkPaid(sessionId: string, session: CheckoutSessionSn
     .where(eq(schema.bulkOrders.id, bulkOrderId))
     .returning();
 
+  // Print prep: the packs this run needs enter the pre-press queue. Best-effort,
+  // like the notifications below: a failure never undoes the sale. Called once
+  // the order exists and the bulk order points at it, so the queue can find the
+  // run's lines (getRunLinesForOrder).
+  try {
+    await runHooks.markPacksNeededForOrder(order.id);
+  } catch (err) {
+    console.error('[markBulkPaid] markPacksNeededForOrder failed:', err instanceof Error ? err.message : err);
+  }
+
   // Notifications are best-effort — never let a failure here undo the sale.
   const runNumber = await runNumberFor(bulkOrderId).catch(() => null);
   try {
-    await notify({
+    await runHooks.notify({
       userId: store.artistId,
       event: 'sale.new',
       text: runNumber !== null ? `${runLabel(runNumber)} is paid and going into production` : 'Your run is paid and going into production',
@@ -546,7 +609,7 @@ export async function markBulkPaid(sessionId: string, session: CheckoutSessionSn
     console.error('[markBulkPaid] notify(sale.new) failed:', err instanceof Error ? err.message : err);
   }
   try {
-    await notify({
+    await runHooks.notify({
       userId: store.artistId,
       event: 'admin.queue_item',
       text: `Bulk order ready for production — ${detail.lines.length} line(s), €${(grossCents / 100).toFixed(2)}`,

@@ -351,10 +351,11 @@ export function useVoice({ audioRef, sendText, onAssistantDone }: UseVoiceOption
     let cancelled = false;
     fetchVoiceSession().then((session) => {
       if (cancelled) return;
-      if (session.mode === 'conversational' && session.signedUrl) {
+      // Without its caller token the bridge would not know who is talking.
+      if (session.mode === 'conversational' && session.signedUrl && session.callerToken) {
         engineRef.current = 'conversational';
         setEngine('conversational');
-        startSession({ signedUrl: session.signedUrl });
+        startSession({ signedUrl: session.signedUrl, dynamicVariables: { user_token: session.callerToken } });
       } else {
         engineRef.current = 'fallback';
         setEngine('fallback');

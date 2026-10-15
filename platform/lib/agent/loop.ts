@@ -1,14 +1,14 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import { STUDIO_PROBLEM, type AgentEvent } from '@/lib/agent/protocol';
 import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
-import type { ToolContext } from '@/lib/tools/types';
+import type { ToolContext, ToolResult } from '@/lib/tools/types';
 import { AGENT_MAX_TOKENS, AGENT_MODEL, MAX_LOOP_ITERATIONS, runModelTurn } from '@/lib/agent/model';
 import { routeTurn, type RouteDecision } from '@/lib/agent/model-router';
 import { buildSystemBlocks } from '@/lib/agent/system-prompt';
 import { buildApiMessages, storedArtistText } from '@/lib/agent/history';
 import { pickModelText } from '@/lib/agent/pick-server';
 import type { ChatPick } from '@/lib/agent/pick';
-import { toolsForRole } from '@/lib/tools/registry';
+import { canUseTool, getTool, toolsFor } from '@/lib/tools/registry';
 import { toAnthropicTools } from '@/lib/tools/to-anthropic';
 import { confirmLabels, toolProgressLabel } from '@/lib/tools/labels';
 import {
@@ -31,7 +31,6 @@ import {
   recordInvocation,
   type ToolInvocationRow,
 } from '@/lib/services/tools-audit';
-import { getTool } from '@/lib/tools/registry';
 import { getDesignSummary, listDesignsForStore } from '@/lib/services/designs';
 
 export type BaseAgentContext = Omit<ToolContext, 'idempotencyKey'>;
@@ -67,6 +66,11 @@ function storedResult(toolUseId: string, row: ToolInvocationRow | undefined): An
 }
 
 const ALREADY_HANDLED = 'This step was already handled.';
+/** a call outside the caller's tools: the model only ever sees its own list,
+ * so this is a made-up or injected call, refused like an unknown one */
+const NOT_AVAILABLE = 'That tool is not available to you.';
+/** a waiting step whose tool the caller's access no longer covers */
+const NO_ACCESS = "You don't have access to this step any more, so it did not run.";
 const TOO_MANY_STEPS = 'That needed too many steps at once. Try a smaller request.';
 /** what the model is told about a confirm-gated call it made alongside another */
 const ONE_STEP_AT_A_TIME = 'Only one step can wait for approval at a time. Ask again after this one.';
@@ -112,9 +116,32 @@ type ExecOutcome =
   | { kind: 'done'; result: Anthropic.ToolResultBlockParam; ui?: ToolUi }
   | { kind: 'confirm'; pending: PendingConfirm };
 
-async function executeToolCall(block: Anthropic.ToolUseBlock, base: BaseAgentContext, messageId: string, emit: Emit): Promise<ExecOutcome> {
+/** Runs (or holds for confirmation) one tool call of the model's. Exported
+ * for lib/agent/loop.test.ts. */
+export async function executeToolCall(block: Anthropic.ToolUseBlock, base: BaseAgentContext, messageId: string, emit: Emit): Promise<ExecOutcome> {
   const idempotencyKey = block.id;
   const tool = getTool(block.name);
+
+  if (tool && !canUseTool(base, tool)) {
+    // Checked again here, not only when the tool list was built: nothing the
+    // model sends runs past the caller's access. Recorded, so the owner can
+    // see the attempt in the audit log.
+    await recordInvocation({
+      conversationId: base.conversationId,
+      messageId,
+      toolName: tool.name,
+      input: block.input,
+      idempotencyKey,
+      status: 'error',
+      error: 'forbidden',
+    });
+    emit({ type: 'tool_start', toolCallId: block.id, name: block.name, label: toolProgressLabel(block.name) });
+    emit({ type: 'tool_end', toolCallId: block.id, name: block.name, ok: false });
+    return {
+      kind: 'done',
+      result: { type: 'tool_result', tool_use_id: block.id, content: JSON.stringify({ error: NOT_AVAILABLE }), is_error: true },
+    };
+  }
 
   if (!tool) {
     emit({ type: 'tool_start', toolCallId: block.id, name: block.name, label: toolProgressLabel(block.name) });
@@ -149,6 +176,33 @@ async function executeToolCall(block: Anthropic.ToolUseBlock, base: BaseAgentCon
   }
 
   if (tool.confirm || tool.confirmWhen?.(parsed.data)) {
+    // A step that would be refused whatever the artist says never asks them to confirm: the refusal is its
+    // outcome, shown like a tool that ran. A look that fails changes nothing: the confirm card shows as usual,
+    // and the tool decides again when it is confirmed.
+    let refused: ToolResult | null = null;
+    try {
+      refused = tool.preflight ? await tool.preflight({ ...base, idempotencyKey }, parsed.data) : null;
+    } catch {
+      refused = null;
+    }
+    if (refused) {
+      await recordInvocation({
+        conversationId: base.conversationId,
+        messageId,
+        toolName: tool.name,
+        input: parsed.data,
+        idempotencyKey,
+        status: 'ok',
+        output: refused.data,
+        durationMs: 0,
+      });
+      emit({ type: 'tool_end', toolCallId: block.id, name: tool.name, ok: true, ui: refused.ui });
+      return {
+        kind: 'done',
+        result: { type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(refused.data ?? null) },
+        ui: refused.ui,
+      };
+    }
     await recordInvocation({
       conversationId: base.conversationId,
       messageId,
@@ -222,6 +276,7 @@ async function currentSystemBlocks(base: BaseAgentContext): Promise<Anthropic.Te
   ]);
   return buildSystemBlocks({
     role: base.role,
+    permissions: base.permissions ?? null,
     store,
     project: projectCard ? { kind: projectCard.kind, refId: projectCard.refId, state: projectCard.state } : null,
     locale: base.locale,
@@ -244,7 +299,8 @@ async function runIterations(
   signal?: AbortSignal,
 ): Promise<void> {
   let messages = initialMessages;
-  const tools = toolsForRole(base.role);
+  // Only the tools this caller's role and access allow (lib/tools/registry.ts).
+  const tools = toolsFor(base);
   const anthropicTools = toAnthropicTools(tools);
 
   let turnHadText = false;
@@ -427,7 +483,9 @@ export async function startAgentTurn(params: StartAgentTurnParams): Promise<void
       if (attachment.kind === 'image') blocks.push({ type: 'image', source: { type: 'url', url: attachment.url } });
       if (attachment.designId) {
         const summary = await getDesignSummary(attachment.designId);
-        if (summary) {
+        // The id comes from the request, so only the caller's own shop's
+        // design is described: another shop's would leak its size and state.
+        if (summary && base.storeId && summary.storeId === base.storeId) {
           const dims = summary.widthPx && summary.heightPx ? `${summary.widthPx}×${summary.heightPx}` : 'unknown size';
           blocks.push({ type: 'text', text: `Attached design ${attachment.designId} (${dims}, ${summary.readiness}).` });
         }
@@ -458,6 +516,26 @@ export async function startAgentTurn(params: StartAgentTurnParams): Promise<void
   await runIterations(base, messages, emit, route.model, signal);
 }
 
+/** A waiting step the caller may no longer run (access changed after the
+ * card was shown): declined as theirs, its turn's tool results stored so the
+ * history stays whole, and the turn ends there without another model call. */
+async function refuseWaitingStep(base: BaseAgentContext, messageId: string, toolCallId: string, toolName: string, emit: Emit): Promise<void> {
+  const output = { declined: true, message: NO_ACCESS };
+  const declined = await declinePendingInvocation(toolCallId, base.conversationId, { output, confirmedBy: base.userId });
+  if (!declined) {
+    emit({ type: 'error', message: ALREADY_HANDLED });
+    return;
+  }
+  const resultBlock: Anthropic.ToolResultBlockParam = { type: 'tool_result', tool_use_id: toolCallId, content: JSON.stringify(output) };
+  const assistantMessage = await getMessageById(messageId);
+  const orderedResults = assistantMessage
+    ? await storedResultsFor(assistantMessage, new Map([[toolCallId, resultBlock]]))
+    : [resultBlock];
+  await appendMessage(base.conversationId, 'tool', { blocks: orderedResults, ui: null });
+  emit({ type: 'tool_end', toolCallId, name: toolName, ok: false });
+  emit({ type: 'error', message: NO_ACCESS });
+}
+
 export interface ResumeAgentTurnParams {
   base: BaseAgentContext;
   toolCallId: string;
@@ -479,6 +557,11 @@ export async function resumeAgentTurn(params: ResumeAgentTurnParams): Promise<vo
   if (!tool) {
     console.error(`[agent] confirm for unknown tool ${invocation.toolName}`);
     emit({ type: 'error', message: STUDIO_PROBLEM });
+    return;
+  }
+
+  if (approve && !canUseTool(base, tool)) {
+    await refuseWaitingStep(base, invocation.messageId, toolCallId, tool.name, emit);
     return;
   }
 

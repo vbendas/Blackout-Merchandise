@@ -118,6 +118,6 @@ export function pickModelText(pick: ChatPick): string {
     'The artist picked these blanks in the catalogue for one design:',
     ...lines,
     design,
-    'Make one product per blank with that design and exactly these colours (one create_product call each), use the same placement on all unless a garment needs another, ask once if placement or print method is unclear, then show the mockups together.',
+    'Make one product per blank with that design and exactly these colours (one create_product call each), use the same placement on all unless a garment needs another, print them DTG, or DTF where the blank has no DTG (shop products never screen print; that is for runs), ask once if placement is unclear, then show the mockups together.',
   ].join('\n');
 }

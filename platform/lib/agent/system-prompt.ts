@@ -1,6 +1,8 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { Role } from '@/lib/tools/types';
 import type { StoreSummary } from '@/lib/services/stores';
+import { AREA_LABELS, AREA_LEVEL_HELP, LEVEL_LABELS, STAFF_AREAS, can, normalisePermissions, type PermissionMap } from '@/lib/auth/permissions';
+import { ARTIST_PRINT_GUIDANCE, STAFF_PRINT_GUIDANCE } from '@/lib/agent/print-guidance';
 
 // Stable, cacheable core. Never interpolate anything dynamic in here — see
 // prompt-caching.md: a single byte change invalidates the whole cache tier.
@@ -24,16 +26,40 @@ A message that begins "Use one design on these", "Put <design> on these" or "Quo
 
 Design intake: when artwork is attached or referenced, assess its print readiness first (analyze_design) before doing anything else with it. Offer cleanup (clean_design) when it needs one — never promise a design will print well below 150 dpi at a 28cm print width; say so plainly and offer to upscale instead. Keep the artist's own artwork exactly as they made it unless they ask for a change: edits, cleanups and compositions always produce a new version alongside the original, never overwrite it.`;
 
-const ADMIN_ADDENDUM = `
+const OWNER_ADDENDUM = `
 
-You are talking to a MerchFrom admin, not an artist. Admin tools (queue, waitlist, production, supplier orders, payouts, tickets) are available in addition to the read-only catalogue tools. Store-management tools (get_my_store, update_store, publish_store, remember) are not available to admins and must not be called.`;
+You are talking to the MerchFrom owner, not an artist. The owner has every admin area: the queue, pre-press, production, supplier orders, runs, support tickets, the waitlist, shops, the catalogue and pricing, money and payouts, and the team. Store-management tools (get_my_store, update_store, publish_store, remember) are not available here and must not be called.`;
 
-export function stableSystemText(role: Role): string {
-  return role === 'admin' ? STABLE_CORE + ADMIN_ADDENDUM : STABLE_CORE;
+/** The words for an employee: their areas and levels, written out once per
+ * access map (still stable between requests, so the prompt cache holds). */
+function staffAddendum(permissions: PermissionMap | null | undefined): string {
+  const clean = normalisePermissions(permissions);
+  const lines = STAFF_AREAS.filter((area) => clean[area]).map((area) => {
+    const level = clean[area]!;
+    const help = level === 'work' ? ` (${AREA_LEVEL_HELP[area].work})` : level === 'manage' ? ` (${AREA_LEVEL_HELP[area].work}; also ${AREA_LEVEL_HELP[area].manage})` : '';
+    return `- ${AREA_LABELS[area]}: ${LEVEL_LABELS[level]}${help}`;
+  });
+  const access = lines.length > 0 ? `Their access, by area:\n${lines.join('\n')}` : 'They have no admin areas yet.';
+  return `
+
+You are talking to a MerchFrom employee (staff), not an artist and not the owner. ${access}
+View means they can look; Work adds the daily tasks; Manage adds settings and the costly or irreversible steps. You only have the tools their access allows. Never offer, suggest or describe anything outside it, including in next-step chips; if they ask for it, say it needs more access from the owner. The team and its access belong to the owner alone. Store-management tools are not available here and must not be called.`;
+}
+
+export function stableSystemText(role: Role, permissions?: PermissionMap | null): string {
+  if (role === 'admin') return STABLE_CORE + OWNER_ADDENDUM + STAFF_PRINT_GUIDANCE;
+  if (role === 'staff') {
+    // The pre-press guidance only for those who can see pre-press.
+    const prepress = can({ role, permissions }, 'prepress', 'view') ? STAFF_PRINT_GUIDANCE : '';
+    return STABLE_CORE + staffAddendum(permissions) + prepress;
+  }
+  return STABLE_CORE + ARTIST_PRINT_GUIDANCE;
 }
 
 export interface VolatileContext {
   role: Role;
+  /** staff only: their access by area, for the stable prompt above */
+  permissions?: PermissionMap | null;
   store: StoreSummary | null;
   project: { kind: string; refId: string | null; state: unknown } | null;
   locale: string;
@@ -55,7 +81,7 @@ function describeStore(store: StoreSummary | null): string {
 export function volatileSystemText(ctx: VolatileContext): string {
   const lines = [
     `Today's date: ${new Date().toISOString().slice(0, 10)}.`,
-    `Caller role: ${ctx.role}.`,
+    `Caller role: ${ctx.role === 'admin' ? 'owner' : ctx.role}.`,
     `Locale: ${ctx.locale}.`,
     describeStore(ctx.store),
   ];
@@ -70,7 +96,7 @@ export function volatileSystemText(ctx: VolatileContext): string {
 
 export function buildSystemBlocks(ctx: VolatileContext): Anthropic.TextBlockParam[] {
   return [
-    { type: 'text', text: stableSystemText(ctx.role), cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: stableSystemText(ctx.role, ctx.permissions), cache_control: { type: 'ephemeral' } },
     { type: 'text', text: volatileSystemText(ctx) },
   ];
 }

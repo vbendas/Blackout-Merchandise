@@ -106,7 +106,9 @@ interface GetBlankData {
   fromPriceCents?: number | null;
   colours?: string[];
   sizes?: string[];
-  printServices?: string[];
+  /** the codes create_product and create_bulk_quote take; `shop` marks the
+   * ones a shop product may use (DTG, DTF), the rest are for runs */
+  printServices?: { code: string; name: string; shop: boolean }[];
   /** set when a name fits more than one blank */
   matches?: { code: string; name: string }[];
 }
@@ -114,7 +116,7 @@ interface GetBlankData {
 export const getBlankTool = defineTool({
   name: 'get_blank',
   description:
-    "Get full specs for one blank garment (colours, sizes, size guide availability, print services, starting price) by its code (e.g. 'STTU169') or by its name (e.g. 'Heavy hoodie'). Call this when the artist names a specific blank or picks one from a list_blanks result. Don't guess: call list_blanks first if you have neither a code nor a name. Talk about the blank by its `name`, never by the code or a supplier's model name.",
+    "Get full specs for one blank garment (colours, sizes, size guide availability, print services with their codes, starting price) by its code (e.g. 'STTU169') or by its name (e.g. 'Heavy hoodie'). A shop product takes only a print service marked `shop` (DTG or DTF); screen print is for runs. Call this when the artist names a specific blank or picks one from a list_blanks result. Don't guess: call list_blanks first if you have neither a code nor a name. Talk about the blank by its `name`, never by the code or a supplier's model name.",
   input: z.object({ code: z.string().min(2).max(60).describe("Blank code, e.g. STTU169, or the blank's name, e.g. 'Heavy hoodie'.") }).strict(),
   scope: 'both',
   readOnly: true,
@@ -168,7 +170,7 @@ export const getBlankTool = defineTool({
         fromPriceCents: blank.fromPriceCents,
         colours: blank.colours.map((c) => c.code),
         sizes: blank.sizes,
-        printServices: blank.printServices,
+        printServices: blank.printServiceOptions.map((p) => ({ code: p.code, name: p.name, shop: p.availableInShop })),
       },
       ui: { cards: [card] },
     };

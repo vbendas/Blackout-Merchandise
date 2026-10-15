@@ -1,12 +1,14 @@
 // Support tickets in chat (Platform-Plan §3 wave). Both roles read/write
 // through here; tools in lib/tools/support.ts are thin wrappers.
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { notify } from '@/lib/services/notifications';
 
 export type SupportTicket = typeof schema.supportTickets.$inferSelect;
 export type TicketMessage = typeof schema.ticketMessages.$inferSelect;
 export type TicketStatus = SupportTicket['status'];
+/** Which side a reply comes from: the person who opened the ticket, or
+ * MerchFrom (the owner or a staff member who handles support). */
 export type ReplyRole = 'artist' | 'admin';
 
 export interface TicketWithMessages {
@@ -45,19 +47,44 @@ async function firstAdminUserId(): Promise<string | null> {
   return oldest?.id ?? null;
 }
 
+/** Employees who answer tickets (Support, Work or Manage) and aren't paused:
+ * they hear about tickets alongside the owner. */
+async function supportStaffIds(): Promise<string[]> {
+  const rows = await db
+    .select({ id: schema.users.id })
+    .from(schema.users)
+    .innerJoin(schema.staffPermissions, eq(schema.staffPermissions.userId, schema.users.id))
+    .where(
+      and(
+        eq(schema.users.role, 'staff'),
+        isNull(schema.users.suspendedAt),
+        eq(schema.staffPermissions.area, 'support'),
+        inArray(schema.staffPermissions.level, ['work', 'manage']),
+      ),
+    );
+  return rows.map((row) => row.id);
+}
+
 async function notifyAdmin(text: string, ticketId: string, summary: string): Promise<void> {
   const adminId = await firstAdminUserId();
-  if (!adminId) return;
+  const recipients = new Set<string>(adminId ? [adminId] : []);
   try {
-    await notify({
-      userId: adminId,
-      event: 'admin.queue_item',
-      text,
-      payload: { kind: 'support_ticket', summary, ticketId },
-      prompt: `Open ticket ${ticketId}`,
-    });
+    for (const id of await supportStaffIds()) recipients.add(id);
   } catch (err) {
-    console.error('[support] notify(admin.queue_item) failed:', err instanceof Error ? err.message : err);
+    console.error('[support] support staff lookup failed:', err instanceof Error ? err.message : err);
+  }
+  for (const userId of recipients) {
+    try {
+      await notify({
+        userId,
+        event: 'admin.queue_item',
+        text,
+        payload: { kind: 'support_ticket', summary, ticketId },
+        prompt: `Open ticket ${ticketId}`,
+      });
+    } catch (err) {
+      console.error('[support] notify(admin.queue_item) failed:', err instanceof Error ? err.message : err);
+    }
   }
 }
 

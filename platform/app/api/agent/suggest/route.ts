@@ -12,7 +12,13 @@ export async function GET(req: NextRequest): Promise<NextResponse<SuggestRespons
 
   const counts = await loadGuidanceCounts(session);
   const state = guidanceStateFor(session, counts);
-  const suggestions = await suggestFor(q, { role: session.role, state });
+  // Staff get only the admin suggestions their access allows (suggest.ts).
+  const suggestions = await suggestFor(q, {
+    role: session.role,
+    state,
+    permissions: session.actor.permissions,
+    suspended: session.actor.suspended,
+  });
 
   return NextResponse.json({ suggestions });
 }

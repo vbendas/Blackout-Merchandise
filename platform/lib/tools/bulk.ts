@@ -359,17 +359,28 @@ const bulkSizesSchema = z.record(z.string().min(1).max(6), z.number().int().min(
 });
 
 const bulkPlacementSchema = z.object({
-  position: z.string().min(1).max(40).describe("e.g. 'front_chest', 'front_full', 'back', 'sleeve', 'centre'."),
+  position: z
+    .string()
+    .min(1)
+    .max(40)
+    .describe("One the garment takes: 'front_chest', 'front_full', 'front_left_chest', 'back', 'centre' or 'front_leg' (trousers). There is no sleeve print yet; it is refused, not moved."),
   widthCm: z.number().positive().max(200).describe('Print width in cm on the garment.'),
   offsetYcm: z.number().optional(),
 });
 
 const bulkLineSchema = z
   .object({
-    productId: z.string().uuid().optional().describe('Reuse an existing shop product for this line (its blank, print service and placement).'),
+    productId: z.string().uuid().optional().describe("Reuse an existing shop product for this line (its blank and placement). Its print method too, unless printServiceCode says otherwise."),
     designId: z.string().uuid().optional().describe('Design to print, when this line is brand-new artwork rather than an existing product.'),
     blankCode: z.string().min(2).max(20).optional().describe('Required with printServiceCode + placement when productId is omitted.'),
-    printServiceCode: z.string().min(2).max(40).optional(),
+    printServiceCode: z
+      .string()
+      .min(2)
+      .max(40)
+      .optional()
+      .describe(
+        "How this line prints: 'screen_1c', 'screen_2c' or 'screen_3c' (screen print, by number of colours) or 'dtg' / 'dtf'. A run chooses its own method: it can screen print a product the shop sells as DTG. Required without productId; with one, leave it out to print the way the product does.",
+      ),
     placement: bulkPlacementSchema.optional(),
     colourCode: z.string().min(1).max(10),
     sizes: bulkSizesSchema.describe('Size code -> quantity, e.g. { "S": 8, "M": 8, "L": 8, "XL": 8, "XXL": 8 }.'),
@@ -402,14 +413,16 @@ interface RunData {
 export const createBulkQuoteTool = defineTool({
   name: 'create_bulk_quote',
   description:
-    'Quote a run: a batch of printed pieces the artist orders for themselves (also called a bulk order), shipped to their own address and paid 100% up front, no Stripe split. Each line is either an existing shop product (productId) or new artwork on a blank (blankCode + printServiceCode + placement, optionally designId), plus a colour and a size -> quantity map. Pricing uses quantity breaks at 25/50/100 units per line, a one-time setup fee per distinct print service, and flat-zone shipping scaled to the total unit count. Numbers the run ("Run 3" in the result) and shows its quote, and sets it as the conversation\'s active run, so later tools (submit_bulk_proof, approve_bulk_proof, pay_bulk_order, ...) can omit runNumber. Call it by its number when you talk to the artist; never say "bulk order" and never show an id.',
+    'Quote a run: a batch of printed pieces the artist orders for themselves (also called a bulk order), shipped to their own address and paid 100% up front, no Stripe split. Each line is either an existing shop product (productId) or new artwork on a blank (blankCode + printServiceCode + placement, optionally designId), plus a colour and a size -> quantity map. A run chooses its print method when it is quoted, screen print or DTG/DTF, so set printServiceCode on each line to the method that suits the quantity and the look (screen print for a bigger run of flat art, DTG/DTF for a small one or a detailed image), even for a product the shop sells as DTG. Pricing uses quantity breaks at 25/50/100 units per line, a one-time setup fee per distinct print service, and flat-zone shipping scaled to the total unit count. Numbers the run ("Run 3" in the result) and shows its quote, and sets it as the conversation\'s active run, so later tools (submit_bulk_proof, approve_bulk_proof, pay_bulk_order, ...) can omit runNumber. Call it by its number when you talk to the artist; never say "bulk order" and never show an id.',
   input: z.object({ lines: z.array(bulkLineSchema).min(1), shipTo: bulkShipToSchema }).strict(),
   scope: 'artist',
   run: async (ctx, input): Promise<ToolResult<RunData>> => {
     if (!ctx.storeId) return noStore();
 
+    // A line that names neither product nor blank gets the open product, or the demo blank. What the
+    // line does say (its method, its placement) wins: the run chose it, the default must not undo that.
     const lines = await Promise.all(
-      input.lines.map(async (line) => (line.productId || line.blankCode ? line : { ...line, ...(await resolveDefaultLineSpec(ctx)) })),
+      input.lines.map(async (line) => (line.productId || line.blankCode ? line : { ...(await resolveDefaultLineSpec(ctx)), ...line })),
     );
 
     const result = await createBulkQuote({ storeId: ctx.storeId, lines, shipTo: input.shipTo });

@@ -11,7 +11,9 @@ import { getConversation, getOrCreateConversation } from '@/lib/services/convers
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
-  const { user, store, role } = await requireUser();
+  // Suspended staff never get past requireUser; the actor carries an
+  // employee's access as of this request, for the tools they're offered.
+  const { user, store, role, actor } = await requireUser();
 
   const rate = checkRateLimit(user.id);
   if (!rate.allowed) {
@@ -51,6 +53,8 @@ export async function POST(req: NextRequest) {
     storeId: store?.id ?? null,
     conversationId: conversation.id,
     locale: user.locale ?? 'en',
+    permissions: actor.permissions ?? null,
+    suspended: actor.suspended ?? false,
   };
 
   const stream = createAgentSseStream((emit, signal) =>

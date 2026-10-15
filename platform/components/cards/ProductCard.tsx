@@ -29,12 +29,15 @@ export function ProductCard({ card, ctx }: { card: ProductCardType; ctx: CardAct
   const activeColour = card.colours.find((colour) => colour.code === activeCode) ?? card.colours[0];
   const image = activeColour?.mockupUrl ?? card.imageUrl;
 
+  const approval = card.printApproval;
   const rows: SpecRowData[] = [
     { key: 'print', label: 'Print', value: [card.printService, placementWords(card.placement)].filter(Boolean).join(' · ') },
     { key: 'base', label: 'Base cost', value: card.baseCostCents !== undefined ? formatMoney(card.baseCostCents) : '—', dim: true },
     { key: 'retail', label: 'Retail', value: card.retailPriceCents !== undefined ? formatMoney(card.retailPriceCents) : '—' },
     { key: 'margin', label: 'Margin', value: card.marginCents !== undefined ? formatMoney(card.marginCents) : '—', strong: true },
   ];
+  // Publishing waits on the artwork's approval: say where it stands, and (blocked) what to do about it.
+  if (approval) rows.push({ key: 'artwork', label: 'Artwork', value: approval.covered ? 'Approved' : 'Needs approval', state: approval.covered ? undefined : 'current' });
 
   return (
     <CardFrame media={image} mediaAlt={card.name}>
@@ -54,6 +57,7 @@ export function ProductCard({ card, ctx }: { card: ProductCardType; ctx: CardAct
       />
       <Sizes sizes={card.sizes} />
       <SpecRows rows={rows} variant="plain" />
+      {approval && !approval.covered && approval.sentence ? <p className="mfc-sentence">{approval.sentence}</p> : null}
       <CardActions actions={card.actions} ctx={ctx} />
     </CardFrame>
   );

@@ -1,0 +1,1007 @@
+/* Pre-press pages: the queue, a pack, and the pieces /admin/ink-system shares
+   (buttons, fields, the page frame). Identity classes (.mf-label, the hairline
+   and tint tokens) come from components/chat/tokens.css; this file places things
+   and sets the pages' own type. Monochrome like the rest of the app: states read
+   through weight, borders and fill, never hue. It sits in @layer components, so
+   a Tailwind utility on the same element still wins. The layer order is declared
+   again so it holds whichever stylesheet loads first. */
+@layer properties, theme, base, components, utilities, overrides;
+
+@layer components {
+  :root {
+    --pp-dim: color-mix(in srgb, var(--signal) 50%, transparent);
+    --pp-soft: color-mix(in srgb, var(--signal) 80%, transparent);
+    --pp-line: color-mix(in srgb, var(--signal) 16%, transparent);
+    /* the hairline round a colour swatch: stronger than a rule so a dark ink shows on black */
+    --pp-edge: color-mix(in srgb, var(--signal) 35%, transparent);
+    --pp-mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
+    /* the sides of everything under the top bar, as the bar's own padding */
+    --pp-gutter: 16px;
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --pp-gutter: 32px;
+    }
+  }
+
+  /* Everything under the top bar: tabs, banners, the page body. */
+  .pp-page {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Zero specificity, so the gaps and margins set on the classes below still apply. */
+  :where(.pp-page, .pp-notices) :where(h2, h3, p, dl, dd, ul, ol, figure) {
+    margin: 0;
+  }
+
+  .pp {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    padding: 24px var(--pp-gutter) 56px;
+  }
+
+  /* A pack's body: sections 36px apart. */
+  .pp-stack {
+    gap: 36px;
+  }
+
+  .pp-lede {
+    max-width: 760px;
+    color: var(--pp-soft);
+  }
+
+  .pp-dim {
+    color: var(--pp-dim);
+  }
+
+  .pp-soft {
+    color: var(--pp-soft);
+  }
+
+  .pp-mono {
+    font-family: var(--pp-mono);
+  }
+
+  /* ----- Buttons and links that look like them ----- */
+
+  .pp-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: var(--hairline-strong);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--signal);
+    font: inherit;
+    line-height: 1.3;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 200ms var(--ease-settle), border-color 200ms var(--ease-settle), opacity 200ms var(--ease-settle);
+  }
+
+  .pp-btn:hover:not(:disabled, [aria-disabled='true']) {
+    background: var(--tint-8);
+  }
+
+  .pp-btn:disabled,
+  .pp-btn[aria-disabled='true'] {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* The one action that moves the work on: solid white. */
+  .pp-btn-primary {
+    padding: 0 18px;
+    border-color: var(--signal);
+    background: var(--signal);
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .pp-btn-primary:hover:not(:disabled, [aria-disabled='true']) {
+    background: var(--signal);
+    opacity: 0.88;
+  }
+
+  /* A white outline for the second-strongest action ("Run again"). */
+  .pp-btn-strong {
+    padding: 0 18px;
+    border-color: var(--signal);
+    font-weight: 600;
+  }
+
+  /* Smaller buttons keep the 44px target: the box is 40 or 36px, an invisible
+     extension of the hit area makes up the rest. */
+  .pp-btn-sm {
+    min-height: 40px;
+  }
+
+  .pp-btn-xs {
+    min-height: 36px;
+    padding: 0 12px;
+  }
+
+  .pp-btn-sm::after,
+  .pp-btn-xs::after {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+  }
+
+  .pp-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--signal);
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+  }
+
+  .pp-link:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .pp-back {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 2px;
+    color: var(--signal);
+    transition: background-color 200ms var(--ease-settle);
+  }
+
+  .pp-back:hover {
+    background: var(--tint-8);
+  }
+
+  /* ----- Fields ----- */
+
+  .pp-fieldwrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .pp-field {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 10px;
+    border: var(--hairline);
+    border-radius: 2px;
+    background: var(--paper);
+    color: var(--signal);
+    color-scheme: dark;
+    font: inherit;
+    transition: border-color 200ms var(--ease-settle);
+  }
+
+  textarea.pp-field {
+    min-height: 96px;
+    padding: 10px;
+    resize: vertical;
+  }
+
+  .pp-field:hover:not(:disabled) {
+    border-color: var(--pp-dim);
+  }
+
+  .pp-field::placeholder {
+    color: var(--pp-dim);
+  }
+
+  /* An error reads as a full-white border and a full-white message, not a colour. */
+  .pp-field[aria-invalid='true'] {
+    border-color: var(--signal);
+  }
+
+  .pp-error {
+    color: var(--danger);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .pp-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  .pp-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pp-search .pp-field {
+    width: 260px;
+    max-width: 60vw;
+  }
+
+  /* ----- Tabs: the queue's four states, a pack's production files ----- */
+
+  .pp-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 28px;
+    padding: 0 var(--pp-gutter);
+    border-bottom: var(--hairline);
+  }
+
+  .pp-tabs-spaced {
+    margin-top: 8px;
+  }
+
+  /* Links, not buttons: each tab is a page of its own, so Back works and a tab can be shared. */
+  .pp-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 4px;
+    border-bottom: 2px solid transparent;
+    color: var(--pp-dim);
+    font-weight: 500;
+    white-space: nowrap;
+    transition: color 200ms var(--ease-settle);
+  }
+
+  .pp-tab:hover {
+    color: var(--pp-soft);
+  }
+
+  .pp-tab[aria-current='page'] {
+    border-bottom-color: var(--signal);
+    color: var(--signal);
+  }
+
+  /* ----- Tables: they scroll sideways rather than squeeze ----- */
+
+  /* A wide table scrolls inside this box. It is also the containing block for
+     the table's visually hidden text (.sr-only is absolutely positioned): left to
+     the page, a one-pixel span in the last column would sit 980px out and give the
+     whole page a sideways scroll on a phone. */
+  .pp-scroll {
+    position: relative;
+    overflow-x: auto;
+    border-top: var(--hairline);
+  }
+
+  .pp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .pp-table-queue {
+    min-width: 980px;
+  }
+
+  .pp-table-inks {
+    min-width: 760px;
+  }
+
+  .pp-table th {
+    padding: 12px;
+    font-family: var(--pp-mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.16em;
+    text-align: left;
+    text-transform: uppercase;
+    color: var(--pp-dim);
+  }
+
+  .pp-table td {
+    padding: 12px;
+  }
+
+  .pp-table-inks th,
+  .pp-table-inks td {
+    padding-block: 10px;
+  }
+
+  .pp-table tbody tr {
+    border-top: var(--hairline);
+  }
+
+  .pp-table :is(th, td):first-child {
+    padding-left: 0;
+  }
+
+  .pp-table :is(th, td):last-child {
+    padding-right: 0;
+    text-align: right;
+  }
+
+  .pp-design {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .pp-thumb {
+    flex: none;
+    display: block;
+    width: 48px;
+    height: 60px;
+    border-radius: 2px;
+    background: #ece5da;
+    object-fit: cover;
+    object-position: 50% 45%;
+  }
+
+  .pp-thumb-initials {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--paper);
+    font-family: var(--pp-mono);
+    font-size: 12px;
+  }
+
+  .pp-name {
+    display: block;
+    font-weight: 500;
+  }
+
+  .pp-sub {
+    display: block;
+    color: var(--pp-dim);
+  }
+
+  .pp-file {
+    display: block;
+    font-family: var(--pp-mono);
+    font-size: 11px;
+    color: var(--pp-dim);
+    overflow-wrap: anywhere;
+  }
+
+  .pp-shop {
+    display: block;
+    font-family: var(--pp-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--pp-dim);
+  }
+
+  /* The check summary: a filled dot is passed, a ring needs a look, a struck ring failed. */
+  .pp-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pp-dot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--signal);
+    border-radius: 50%;
+    background: transparent;
+  }
+
+  .pp-dot[data-state='passed'] {
+    background: var(--signal);
+  }
+
+  .pp-dot[data-state='failed'] {
+    background: linear-gradient(135deg, transparent 38%, var(--signal) 38%, var(--signal) 62%, transparent 62%);
+  }
+
+  .pp-empty {
+    padding: 28px 0;
+    border-top: var(--hairline);
+    color: var(--pp-soft);
+  }
+
+  /* ----- Banners and the notices under the top bar ----- */
+
+  .pp-banners {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px var(--pp-gutter) 0;
+  }
+
+  /* Nothing to say, no gap: the upload notice is drawn after the page loads. */
+  .pp-banners:empty {
+    display: none;
+  }
+
+  .pp-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border: var(--hairline-strong);
+    border-radius: 2px;
+  }
+
+  .pp-banner[data-tone='strong'] {
+    border-color: var(--signal);
+  }
+
+  .pp-banner-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .pp-banner-body {
+    display: flex;
+    flex: 1 1 320px;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .pp-banner-title {
+    font-weight: 500;
+  }
+
+  .pp-banner-text {
+    color: var(--pp-soft);
+  }
+
+  .pp-banner ul {
+    margin: 4px 0 0;
+    padding-left: 18px;
+    list-style: disc;
+    color: var(--pp-soft);
+  }
+
+  .pp-notices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px var(--pp-gutter) 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .pp-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 10px 14px;
+    border: var(--hairline);
+    border-radius: 2px;
+  }
+
+  .pp-status[data-tone='error'] {
+    border-color: var(--signal);
+    font-weight: 500;
+  }
+
+  .pp-progress {
+    appearance: none;
+    flex: 1 1 200px;
+    height: 2px;
+    border: 0;
+    background: var(--pp-line);
+  }
+
+  .pp-progress::-webkit-progress-bar {
+    background: var(--pp-line);
+  }
+
+  .pp-progress::-webkit-progress-value {
+    background: var(--signal);
+  }
+
+  .pp-progress::-moz-progress-bar {
+    background: var(--signal);
+  }
+
+  .pp-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 640px;
+    padding: 16px;
+    border: var(--hairline-strong);
+    border-radius: 2px;
+  }
+
+  .pp-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* ----- A pack's sections ----- */
+
+  .pp-section {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .pp-section-tight {
+    gap: 12px;
+  }
+
+  .pp-sechead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .pp-films {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .pp-film {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid var(--pp-line);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--signal);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 200ms var(--ease-settle), border-color 200ms var(--ease-settle);
+  }
+
+  .pp-film:hover {
+    border-color: var(--pp-dim);
+  }
+
+  .pp-film[aria-pressed='true'] {
+    border-color: var(--signal);
+    background: var(--tint-8);
+  }
+
+  .pp-film img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 2px;
+    background: #fff;
+  }
+
+  .pp-film-pos {
+    font-family: var(--pp-mono);
+    font-size: 11px;
+    color: var(--pp-dim);
+  }
+
+  .pp-film-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+
+  .pp-sw {
+    display: inline-block;
+    flex: none;
+    width: 12px;
+    height: 12px;
+    border: 1px solid var(--pp-edge);
+    border-radius: 2px;
+  }
+
+  .pp-sw-lg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .pp-split {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 32px;
+  }
+
+  .pp-col {
+    display: flex;
+    flex: 1 1 380px;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .pp-film-big {
+    display: block;
+    width: 100%;
+    max-width: 520px;
+    height: auto;
+    border-radius: 2px;
+    background: #fff;
+  }
+
+  .pp-dl {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 6px 16px;
+  }
+
+  .pp-dl dt {
+    color: var(--pp-dim);
+  }
+
+  .pp-dl-wide {
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 10px 16px;
+    padding-top: 12px;
+    border-top: var(--hairline);
+  }
+
+  .pp-crop,
+  .pp-loupe {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .pp-crop {
+    margin-top: 8px;
+  }
+
+  .pp-crop img {
+    display: block;
+    width: 300px;
+    max-width: 100%;
+    height: 300px;
+    border-radius: 2px;
+    object-fit: cover;
+  }
+
+  .pp-loupe {
+    flex: 0 1 320px;
+  }
+
+  .pp-loupe img {
+    display: block;
+    width: 320px;
+    max-width: 100%;
+    height: auto;
+    border-radius: 2px;
+  }
+
+  .pp-cap {
+    font-family: var(--pp-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--pp-dim);
+  }
+
+  .pp-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .pp-chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--pp-line);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--signal);
+    font: inherit;
+    cursor: pointer;
+    transition: background-color 200ms var(--ease-settle), border-color 200ms var(--ease-settle);
+  }
+
+  .pp-chip::after {
+    content: '';
+    position: absolute;
+    inset: -2px 0;
+  }
+
+  .pp-chip:hover {
+    border-color: var(--pp-dim);
+  }
+
+  .pp-chip[aria-pressed='true'] {
+    border-color: var(--signal);
+    background: var(--tint-8);
+  }
+
+  /* The garment's ecru plate, as in the catalogue: a dark blank reads against black. */
+  .pp-plate {
+    overflow: hidden;
+    border-radius: 2px;
+    background: #ece5da;
+  }
+
+  .pp-plate img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .pp-checks {
+    padding: 0;
+    list-style: none;
+    border-top: var(--hairline);
+  }
+
+  .pp-check {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: var(--hairline);
+  }
+
+  .pp-check-state {
+    font-family: var(--pp-mono);
+    font-size: 11px;
+    line-height: 21px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .pp-check[data-state='passed'] .pp-check-state {
+    color: var(--pp-dim);
+    font-weight: 400;
+  }
+
+  .pp-check[data-state='review'] .pp-check-state {
+    color: var(--signal);
+    font-weight: 600;
+  }
+
+  /* A failed check is the only inverted label on the page. */
+  .pp-check[data-state='failed'] .pp-check-state {
+    align-self: start;
+    justify-self: start;
+    padding: 0 6px;
+    background: var(--signal);
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .pp-check-title {
+    display: block;
+    font-weight: 500;
+  }
+
+  .pp-check-detail {
+    display: block;
+    color: var(--pp-soft);
+  }
+
+  .pp-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    border: var(--hairline);
+    border-radius: 2px;
+  }
+
+  .pp-boxhead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .pp-history {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0;
+    list-style: none;
+    color: var(--pp-soft);
+  }
+
+  .pp-time {
+    margin-right: 8px;
+    font-family: var(--pp-mono);
+    color: var(--pp-dim);
+  }
+
+  .pp-dtg {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .pp-dtg figure {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pp-dtg figcaption {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  /* The download links line up along the bottom, however long each note runs. */
+  .pp-dtg .pp-link {
+    align-self: flex-start;
+    margin-top: auto;
+    padding-top: 4px;
+  }
+
+  /* An ink with no Pantone code yet: what the house library suggests, and a box to type it. */
+  .pp-code {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    font-weight: 400;
+  }
+
+  .pp-code-need {
+    font-weight: 600;
+  }
+
+  .pp-code-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pp-code-row .pp-field {
+    width: 200px;
+  }
+
+  .pp-inkname {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+  }
+
+  /* "Change ink" opens under its row, across the whole table. */
+  .pp-table .pp-change td {
+    padding-top: 0;
+    text-align: left;
+  }
+
+  .pp-change-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px 16px;
+    padding: 12px 0 14px;
+  }
+
+  .pp-change-form .pp-fieldwrap {
+    width: auto;
+  }
+
+  .pp-change-form .pp-code-row {
+    flex-wrap: nowrap;
+  }
+
+  .pp-change-form .pp-code-row .pp-field {
+    width: 140px;
+  }
+
+  .pp-swatch-input {
+    width: 44px;
+    height: 44px;
+    padding: 2px;
+    border: var(--hairline);
+    border-radius: 2px;
+    background: var(--paper);
+    color-scheme: dark;
+    cursor: pointer;
+  }
+
+  /* The explanation comes first, across the row; the controls follow. */
+  .pp-change-note {
+    flex: 1 1 100%;
+    min-width: 0;
+    color: var(--pp-dim);
+  }
+
+  /* Where a file's image should be and the service has no link for it. */
+  .pp-noimg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    border-radius: 2px;
+    background: var(--tint-8);
+    color: var(--pp-dim);
+    font-family: var(--pp-mono);
+    font-size: 11px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .pp-film .pp-noimg {
+    width: 100%;
+  }
+
+  /* On the ecru plate the grey would vanish: the box turns dark ink on paper. */
+  .pp-plate .pp-noimg {
+    background: transparent;
+    color: color-mix(in srgb, #000 55%, transparent);
+  }
+
+  .pp-thumb.pp-noimg {
+    aspect-ratio: auto;
+    font-size: 9px;
+  }
+
+  /* ----- Loading ----- */
+
+  .pp-skel {
+    height: 20px;
+    margin-bottom: 14px;
+  }
+
+  .pp-skel-wide {
+    width: 70%;
+  }
+
+  .pp-skel-short {
+    width: 40%;
+  }
+
+  /* A line of its own inside a wrapping row (an error or a "queued" under a form). */
+  .pp-full {
+    flex-basis: 100%;
+  }
+
+  /* On a phone the search box runs the width of the page, as wide as the top bar's
+     padding allows (the bar sizes its right-hand side to its content, so a
+     percentage would not widen it). */
+  @media (max-width: 767px) {
+    .pp-search .pp-field {
+      width: calc(100vw - 2 * var(--pp-gutter));
+      max-width: none;
+    }
+  }
+}
+
+/* Focus, unlayered so it always shows (app/globals.css draws the default ring,
+   1px white, 4px out). Inside a scrolling table that ring is cut off at the
+   edge, so it moves in. */
+.pp-scroll :focus-visible {
+  outline-offset: -2px;
+}
+
+.pp-field:focus-visible {
+  outline-offset: 2px;
+}

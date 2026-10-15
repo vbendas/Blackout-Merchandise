@@ -1,8 +1,9 @@
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { db, schema } from '@/lib/db';
 import { DEV_BYPASS, DEV_DISPLAY_NAME } from '@/lib/auth';
-import { getOrCreateUserFromClerk } from '@/lib/services/users';
+import { getOrCreateUserFromClerk, parseUserRole } from '@/lib/services/users';
 import type { Role } from '@/lib/tools/types';
 
 // Scribe for STT; Flash for TTS latency (voice replies are short and
@@ -85,6 +86,49 @@ export async function getSignedUrl(): Promise<SignedVoiceSession | null> {
   return { signedUrl: res.signedUrl, agentId };
 }
 
+// Who is talking. The bridge secret only proves a custom-LLM request came
+// from ElevenLabs; everything else on it was put there by the browser that
+// started the session, so a bare user id there could be anyone's. The person
+// travels instead as a caller token only this server can make:
+// /api/voice/session (behind Clerk) signs the signed-in user's id with
+// VOICE_BRIDGE_SECRET, and the bridge acts only for the user a verified token names.
+
+/** Longer than any voice session (the overlay asks for a new token each time
+ * it opens), short enough that a token copied out of a browser soon dies. */
+const CALLER_TOKEN_TTL_SECONDS = 60 * 60;
+const CALLER_TOKEN_VERSION = 'v1';
+
+function callerTokenSignature(payload: string, secret: string): string {
+  return createHmac('sha256', secret).update(payload).digest('base64url');
+}
+
+/** `v1.<userId>.<expiry, epoch seconds>.<HMAC-SHA256 of the rest>`, good for
+ * about an hour. Throws without VOICE_BRIDGE_SECRET: /api/voice/session checks
+ * for it first and offers the fallback engine instead. */
+export function mintVoiceCallerToken(userId: string, nowMs: number = Date.now()): string {
+  const secret = process.env.VOICE_BRIDGE_SECRET;
+  if (!secret) throw new Error('VOICE_BRIDGE_SECRET is not set.');
+  const payload = `${CALLER_TOKEN_VERSION}.${userId}.${Math.floor(nowMs / 1000) + CALLER_TOKEN_TTL_SECONDS}`;
+  return `${payload}.${callerTokenSignature(payload, secret)}`;
+}
+
+/** The user id a caller token was minted for, or null when it is malformed,
+ * altered, expired or signed with another secret, and when no secret is set. */
+export function verifyVoiceCallerToken(token: string | null | undefined, nowMs: number = Date.now()): string | null {
+  const secret = process.env.VOICE_BRIDGE_SECRET;
+  // a request body can hold anything, whatever its type says
+  if (!secret || typeof token !== 'string' || token.length > 512) return null;
+  const parts = token.split('.');
+  if (parts.length !== 4) return null;
+  const [version, userId, expires, signature] = parts;
+  if (version !== CALLER_TOKEN_VERSION || !userId || !/^\d{1,12}$/.test(expires)) return null;
+  const given = Buffer.from(signature);
+  const expected = Buffer.from(callerTokenSignature(`${version}.${userId}.${expires}`, secret));
+  // timingSafeEqual throws on buffers of different lengths
+  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null;
+  return Number(expires) * 1000 > nowMs ? userId : null;
+}
+
 export interface VoiceCaller {
   userId: string;
   clerkId: string;
@@ -105,22 +149,21 @@ async function callerFromUserRow(user: typeof schema.users.$inferSelect): Promis
 /**
  * Maps the custom-LLM bridge's caller to one of our users. ElevenLabs has no
  * Clerk session to hand us, so the bridge is authenticated with a shared
- * `VOICE_BRIDGE_SECRET` (checked by the route) and the *person* is carried
- * as a `user_id` value the agent forwards per call — either top-level on the
- * OpenAI-shaped body (`user_id`) or nested under `elevenlabs_extra_body`
- * (ElevenLabs' place for extra per-conversation data configured on the
- * agent / dynamic variables; see docs on Custom LLM + dynamic variables).
- * `userIdHint` may be our `users.id` or the Clerk id — both are tried.
+ * `VOICE_BRIDGE_SECRET` (checked by the route) and the *person* by the caller
+ * token /api/voice/session minted for them (mintVoiceCallerToken; the route's
+ * header says how it travels). Only a token that verifies counts, and its
+ * user is looked up by `users.id` alone; a raw id is never trusted.
  *
  * In local dev (AUTH_DEV_BYPASS=1) there is no real ElevenLabs agent wired
- * up yet to forward a user_id at all, so this falls back to the same fixed
- * dev-bypass user the rest of the app uses when bypass is on.
+ * up yet to forward a token at all, so a request without one falls back to
+ * the same fixed dev-bypass user the rest of the app uses when bypass is on.
  */
-export async function resolveVoiceCaller(userIdHint?: string | null): Promise<VoiceCaller | null> {
-  if (userIdHint) {
-    const byId = await db.select().from(schema.users).where(eq(schema.users.id, userIdHint)).limit(1);
-    const user = byId[0] ?? (await db.select().from(schema.users).where(eq(schema.users.clerkId, userIdHint)).limit(1))[0];
-    if (user) return callerFromUserRow(user);
+export async function resolveVoiceCaller(callerToken?: string | null): Promise<VoiceCaller | null> {
+  if (callerToken) {
+    const userId = verifyVoiceCallerToken(callerToken);
+    if (!userId) return null;
+    const rows = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+    return rows[0] ? callerFromUserRow(rows[0]) : null;
   }
   if (DEV_BYPASS) {
     const user = await getOrCreateUserFromClerk({
@@ -128,7 +171,8 @@ export async function resolveVoiceCaller(userIdHint?: string | null): Promise<Vo
       email: process.env.AUTH_DEV_EMAIL ?? 'dev@merchfrom.test',
       displayName: DEV_DISPLAY_NAME,
       imageUrl: null,
-      publicMetadataRole: process.env.AUTH_DEV_ROLE ?? null,
+      // the same role the rest of the app gives the dev user (lib/auth.ts)
+      devRole: parseUserRole(process.env.AUTH_DEV_ROLE),
     });
     return callerFromUserRow(user);
   }

@@ -14,11 +14,6 @@ import './studio.css';
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])';
 
-const ADMIN_LINKS = [
-  { label: 'Production', href: '/admin/production' },
-  { label: 'Supplier', href: '/admin/supplier' },
-];
-
 export function activeSessionId(pathname: string): string | null {
   const match = /^\/studio\/s\/([^/?#]+)/.exec(pathname);
   return match ? decodeURIComponent(match[1]) : null;
@@ -64,8 +59,9 @@ function SkeletonRows() {
 }
 
 /** The Studio's left column: New session, the Shop block, Drops (each
- * holding its sessions), ungrouped Sessions, admin links and the account
- * footer. Fixed at 272px on desktop; an off-canvas drawer below 768px. */
+ * holding its sessions), ungrouped Sessions, the admin pages this person may
+ * open and the account footer. Fixed at 272px on desktop; an off-canvas
+ * drawer below 768px. */
 export function StudioSidebar() {
   const pathname = usePathname();
   const { account, data, loading, loadError, refresh, createCollection, drawerOpen, setDrawerOpen, newSession } =
@@ -74,7 +70,8 @@ export function StudioSidebar() {
   const [createError, setCreateError] = useState<string | null>(null);
   const asideRef = useRef<HTMLElement>(null);
   const activeId = activeSessionId(pathname);
-  const showCollections = account.role !== 'admin' && Boolean(account.shopName);
+  // Drops belong to a shop: the owner and staff have none.
+  const showCollections = account.role === 'artist' && Boolean(account.shopName);
 
   // Drawer (phones): focus moves in on open and stays inside while it is open,
   // the page behind goes inert (no focus, no taps, hidden from screen
@@ -276,14 +273,14 @@ export function StudioSidebar() {
           </nav>
         </div>
 
-        {account.role === 'admin' ? (
-          <div className="mf-hairline-t flex shrink-0 gap-5 px-5 py-3">
-            {ADMIN_LINKS.map((link) => (
+        {account.adminLinks.length > 0 ? (
+          <nav aria-label="Admin" className="mf-hairline-t flex shrink-0 flex-wrap gap-x-5 gap-y-1 px-5 py-3">
+            {account.adminLinks.map((link) => (
               <Link key={link.href} href={link.href} className="mf-ulink">
                 {link.label}
               </Link>
             ))}
-          </div>
+          </nav>
         ) : null}
 
         <div className="mf-hairline-t shrink-0 px-2 pt-2 pb-[max(8px,env(safe-area-inset-bottom))]">

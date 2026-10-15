@@ -18,8 +18,8 @@ config({ path: '.env.local', quiet: true });
 process.env.AGENT_MOCK = process.env.AGENT_MOCK ?? '1';
 process.env.STRIPE_MOCK = process.env.STRIPE_MOCK ?? '1';
 
-const HOODIE_BLANK = 'STSU177'; // 'Cruiser 2.0' — has screen_1c, C002, sizes S-XXL in the seed
-const PRINT_SERVICE = 'screen_1c';
+const HOODIE_BLANK = 'STSU177'; // 'Cruiser 2.0' — has dtg, C002, sizes S-XXL in the seed
+const PRINT_SERVICE = 'dtg'; // shop products print DTG/DTF only (screen print is for runs)
 const COLOUR = 'C002'; // Black
 
 function eur(cents: number | null | undefined): string {
@@ -38,8 +38,7 @@ function assert(condition: unknown, message: string): asserts condition {
 async function main() {
   const { eq } = await import('drizzle-orm');
   const { db, schema } = await import('../lib/db');
-  const { createProduct, setPrice, publishProduct } = await import('../lib/services/products');
-  const { submitProof, approveProof } = await import('../lib/services/proofs');
+  const { createProduct, getProduct, setPrice } = await import('../lib/services/products');
   const {
     startOnboarding,
     getStripeAccountStatus,
@@ -98,7 +97,7 @@ async function main() {
   if (!statusAfter) throw new Error('syncStripeAccountStatus returned null unexpectedly');
   assert(statusAfter.chargesEnabled && statusAfter.payoutsEnabled, 'chargesEnabled and payoutsEnabled after completeMockOnboarding + sync');
 
-  // -- 2. product: create -> price -> proof -> approve -> publish -----------
+  // -- 2. product: create -> price -> live ------------------------------------
   console.log('\n=== product ===');
   const created = await createProduct({
     storeId: store.id,
@@ -117,15 +116,14 @@ async function main() {
   if (!priced.ok) throw new Error(`setPrice failed: ${priced.error}`);
   console.log(`retailPriceCents=${priced.value.retailPriceCents} (${eur(priced.value.retailPriceCents)})`);
 
-  const proof = await submitProof(store.id, product.id);
-  if (!proof.ok) throw new Error(`submitProof failed: ${proof.error}`);
-  const approved = await approveProof(store.id, proof.value.id, user.id);
-  if (!approved.ok) throw new Error(`approveProof failed: ${approved.error}`);
-
-  const published = await publishProduct(store.id, product.id);
-  if (!published.ok) throw new Error(`publishProduct failed: ${published.error}`);
-  assert(published.value.status === 'live', 'product status is live');
-  product = published.value;
+  // Publishing waits on the design's approval (Print-Prep-Plan section 7), which needs the print worker and real
+  // artwork; a shop product has no proof of its own. This smoke is about checkout and payouts, so the product
+  // goes live directly.
+  await db.update(schema.products).set({ status: 'live', updatedAt: new Date() }).where(eq(schema.products.id, product.id));
+  const live = await getProduct(store.id, product.id);
+  if (!live) throw new Error('the smoke product disappeared after going live');
+  assert(live.status === 'live', 'product status is live');
+  product = live;
 
   // -- 3. publish_store (real gate, via the tool) ----------------------------
   console.log('\n=== publish_store ===');

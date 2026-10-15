@@ -3,7 +3,7 @@ import type { User as ClerkBackendUser, UserJSON } from '@clerk/backend';
 import { db, schema } from '@/lib/db';
 import { linkWaitlistSignupToUser } from '@/lib/services/waitlist';
 
-export type UserRole = 'artist' | 'admin';
+export type UserRole = 'artist' | 'staff' | 'admin';
 
 export interface ClerkUserInput {
   clerkId: string;
@@ -11,6 +11,13 @@ export interface ClerkUserInput {
   displayName: string | null;
   imageUrl: string | null;
   publicMetadataRole?: string | null;
+  /** AUTH_DEV_BYPASS only (lib/auth.ts): the fixed dev user's role from
+   * AUTH_DEV_ROLE, applied as it is on every sync. Never set from Clerk. */
+  devRole?: UserRole | null;
+}
+
+export function parseUserRole(value: string | null | undefined): UserRole | null {
+  return value === 'artist' || value === 'staff' || value === 'admin' ? value : null;
 }
 
 function adminEmailList(): string[] {
@@ -20,11 +27,23 @@ function adminEmailList(): string[] {
     .filter(Boolean);
 }
 
-function resolveRole(input: ClerkUserInput, existingRole?: UserRole): UserRole {
-  const isAdmin =
+async function ownerExists(): Promise<boolean> {
+  const rows = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.role, 'admin')).limit(1);
+  return rows.length > 0;
+}
+
+/** The role a sync gives a Clerk identity. Roles are the team's to change
+ * (lib/services/team.ts: invites, owner and staff changes, removal), so a
+ * sync keeps the role a person has. ADMIN_EMAILS (or Clerk metadata saying
+ * 'admin') only bootstraps the first owner: it promotes while the platform
+ * has no owner at all, and never again after that. */
+async function resolveRole(input: ClerkUserInput, existingRole?: UserRole): Promise<UserRole> {
+  if (input.devRole) return input.devRole;
+  if (existingRole && existingRole !== 'artist') return existingRole;
+  const named =
     (!!input.email && adminEmailList().includes(input.email.toLowerCase())) ||
     input.publicMetadataRole === 'admin';
-  if (isAdmin) return 'admin';
+  if (named && !(await ownerExists())) return 'admin';
   return existingRole ?? 'artist';
 }
 
@@ -69,10 +88,11 @@ export async function getUserByClerkId(clerkId: string) {
   return rows[0] ?? null;
 }
 
-/** Upserts the users row for a Clerk identity; role is promoted, never demoted here. */
+/** Upserts the users row for a Clerk identity. The role only changes here to
+ * bootstrap the first owner (resolveRole). */
 export async function getOrCreateUserFromClerk(input: ClerkUserInput) {
   const existing = await getUserByClerkId(input.clerkId);
-  const role = resolveRole(input, existing?.role as UserRole | undefined);
+  const role = await resolveRole(input, existing?.role as UserRole | undefined);
   const email = input.email ?? existing?.email ?? '';
 
   if (!existing) {
@@ -110,7 +130,9 @@ export async function getOrCreateUserFromClerk(input: ClerkUserInput) {
       // Settings), so a sync never overwrites an edited name.
       displayName: existing.displayName ?? input.displayName,
       imageUrl: input.imageUrl ?? existing.imageUrl,
-      role,
+      // Written only when this sync changes it: a sync running while the
+      // owner removes or changes someone must not write the old role back.
+      ...(role !== existing.role ? { role } : {}),
     })
     .where(eq(schema.users.clerkId, input.clerkId))
     .returning();

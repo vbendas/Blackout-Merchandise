@@ -158,4 +158,7 @@ export interface VoiceSessionResponse {
   mode: 'conversational' | 'fallback';
   signedUrl?: string;
   agentId?: string;
+  /** conversational only: the signed token that tells the voice bridge who
+   * is talking (mintVoiceCallerToken, lib/services/voice.ts) */
+  callerToken?: string;
 }

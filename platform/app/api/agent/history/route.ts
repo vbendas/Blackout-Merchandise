@@ -12,6 +12,7 @@ import { confirmOutcomeOf, findByIdempotencyKeys } from '@/lib/services/tools-au
 import type { HistoryMessage, HistoryPage, HistoryResponse } from '@/lib/agent/protocol';
 import { openOnArtist, transcriptOf } from '@/lib/agent/history';
 import { checklistFor, greetingFor, guidanceStateFor, loadGuidanceCounts, projectPillFor, quickActionsFor } from '@/lib/agent/guidance';
+import { withFreshApproval } from '@/lib/tools/print';
 
 export const runtime = 'nodejs';
 
@@ -93,6 +94,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     fresh ? latestConversationWithMessages(user.id, conversation.id) : Promise.resolve(null),
   ]);
   const previousPill = previous ? await projectPillFor(previous.id) : null;
+  // A product's panel says where its artwork stands: read again, as it may have been approved on its own page since.
+  const projectState = projectCard
+    ? await withFreshApproval(session.store?.id ?? null, conversation.id, {
+        kind: projectCard.kind,
+        refId: projectCard.refId ?? null,
+        state: (projectCard.state ?? {}) as Record<string, unknown>,
+      }).catch(() => (projectCard.state ?? {}) as Record<string, unknown>)
+    : null;
   const resume = previous
     ? {
         conversationId: previous.id,
@@ -106,11 +115,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     messages,
     earlierCursor: page.earlierCursor,
     chips: transcript.chips,
-    project: projectCard
-      ? { kind: projectCard.kind, refId: projectCard.refId ?? undefined, state: (projectCard.state ?? {}) as Record<string, unknown> }
-      : null,
+    project: projectCard && projectState ? { kind: projectCard.kind, refId: projectCard.refId ?? undefined, state: projectState } : null,
     greeting,
-    quickActions: quickActionsFor(state),
+    quickActions: quickActionsFor(state, session.actor),
     checklist,
     projectPill,
     resume,

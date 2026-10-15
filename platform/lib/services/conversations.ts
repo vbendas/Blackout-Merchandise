@@ -43,7 +43,7 @@ async function hasMessages(conversationId: string): Promise<boolean> {
 /** A blank conversation for a new Studio session. Reuses the user's latest
  * conversation when nothing was ever said in it, so reloading the Studio
  * doesn't pile up empty rows. */
-export async function startFreshConversation(userId: string, role: 'artist' | 'admin'): Promise<Conversation> {
+export async function startFreshConversation(userId: string, role: 'artist' | 'staff' | 'admin'): Promise<Conversation> {
   const rows = await db
     .select()
     .from(schema.conversations)
@@ -75,7 +75,7 @@ export async function latestConversationWithMessages(userId: string, excludeId: 
 }
 
 /** The user's most recent conversation, or a freshly created one. */
-export async function getOrCreateConversation(userId: string, role: 'artist' | 'admin'): Promise<Conversation> {
+export async function getOrCreateConversation(userId: string, role: 'artist' | 'staff' | 'admin'): Promise<Conversation> {
   const rows = await db
     .select()
     .from(schema.conversations)

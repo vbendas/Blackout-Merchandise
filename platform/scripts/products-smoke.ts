@@ -16,8 +16,8 @@ import { config } from 'dotenv';
 config({ path: '.env.local', quiet: true });
 process.env.AGENT_MOCK = process.env.AGENT_MOCK ?? '1';
 
-const HOODIE_BLANK = 'STSU177'; // 'Cruiser 2.0' — has screen_1c, C002, sizes S-XXL in the seed
-const PRINT_SERVICE = 'screen_1c';
+const HOODIE_BLANK = 'STSU177'; // 'Cruiser 2.0' — has dtg, C002, sizes S-XXL in the seed
+const PRINT_SERVICE = 'dtg'; // shop products print DTG/DTF only (screen print is for runs)
 const COLOUR = 'C002'; // Black
 const SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
 
@@ -30,7 +30,6 @@ async function main() {
   const { db, schema } = await import('../lib/db');
   const { createProduct, getProduct, setPrice, publishProduct, archiveProduct } = await import('../lib/services/products');
   const { quoteFor } = await import('../lib/services/quotes');
-  const { submitProof, approveProof } = await import('../lib/services/proofs');
 
   async function ensureSmokeUser() {
     const clerkId = 'smoke-test';
@@ -103,30 +102,17 @@ async function main() {
   if (!priced.ok) throw new Error(`set_price failed: ${priced.error}`);
   console.log(`retailPriceCents=${priced.value.retailPriceCents} (${eur(priced.value.retailPriceCents)}), marginCents=${priced.value.marginCents} (${eur(priced.value.marginCents)})`);
 
-  // -- proof --------------------------------------------------------------------
-  console.log('\n=== submit_proof ===');
-  const proof = await submitProof(store.id, product.id);
-  if (!proof.ok) throw new Error(`submit_proof failed: ${proof.error}`);
-  console.log(`proof ${proof.value.id} v${proof.value.version} status=${proof.value.status}`);
-  console.log(`spec=${JSON.stringify(proof.value.spec)}`);
-
+  // A shop product has no proof of its own: its design's approval replaces it (Print-Prep-Plan section 7), and it
+  // goes from draft straight to live.
   product = (await getProduct(store.id, product.id))!;
-  console.log(`product status after submit_proof: ${product.status}`);
+  console.log(`product status (a draft: no proof step): ${product.status}`);
 
-  console.log('\n=== approve_proof ===');
-  const approved = await approveProof(store.id, proof.value.id, user.id);
-  if (!approved.ok) throw new Error(`approve_proof failed: ${approved.error}`);
-  console.log(`proof status=${approved.value.status}, approvedBy=${approved.value.approvedBy}`);
-
-  product = (await getProduct(store.id, product.id))!;
-  console.log(`product status after approve_proof (should still be proof_pending until publish): ${product.status}`);
-
-  // -- publish (expect the Stripe fail-closed message) -------------------------
-  console.log('\n=== publish_product (expect Stripe fail-closed) ===');
+  // -- publish (expect it to fail closed: the design has no approval, and there is no Stripe account) ------
+  console.log('\n=== publish_product (expect it to fail closed) ===');
   const publishAttempt = await publishProduct(store.id, product.id);
   console.log(`publish -> ok=${publishAttempt.ok}${publishAttempt.ok ? '' : `, error="${publishAttempt.error}"`}`);
   if (publishAttempt.ok) {
-    console.error('FAILED: expected publish to fail closed without a stripe_accounts row.');
+    console.error('FAILED: expected publish to fail closed without an approved design and a stripe_accounts row.');
     process.exitCode = 1;
   }
 

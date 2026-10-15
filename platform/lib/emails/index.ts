@@ -11,3 +11,6 @@ export { orderConfirmedFanEmail, type OrderConfirmedFanPayload } from '@/lib/ema
 export { orderShippedFanEmail, type OrderShippedFanPayload } from '@/lib/emails/orderShippedFan';
 export { waitlistApprovedEmail, type WaitlistApprovedPayload } from '@/lib/emails/waitlist-approved';
 export { supportReplyEmail, type SupportReplyPayload } from '@/lib/emails/supportReply';
+export { staffInviteEmail, type StaffInvitePayload } from '@/lib/emails/staffInvite';
+export { printSentBackEmail, type PrintSentBackPayload } from '@/lib/emails/printSentBack';
+export { printReapprovalEmail, type PrintReapprovalPayload } from '@/lib/emails/printReapproval';

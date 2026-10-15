@@ -16,6 +16,7 @@ export const RESERVED_SLUGS = new Set([
   'register',
   'sign-in',
   'sign-up',
+  'staff-invite',
   'studio',
   'terms',
   // kept for the app (/chat redirects to /studio in next.config.ts)
@@ -41,7 +42,7 @@ export interface RegistrationEligibilityInput {
   email: string | null;
   /** the `mf-invite` cookie value, if any (see proxy.ts) */
   inviteToken: string | null;
-  role: 'artist' | 'admin';
+  role: 'artist' | 'staff' | 'admin';
 }
 
 export type RegistrationEligibility =
@@ -50,8 +51,10 @@ export type RegistrationEligibility =
 
 /** Platform-Plan §7: an artist may register only if (a) their invite token
  * is valid, (b) their Clerk email matches an approved/registered waitlist
- * row, (c) AUTH_DEV_BYPASS, or (d) they are an admin. */
+ * row, (c) AUTH_DEV_BYPASS, or (d) they are an admin. Staff never register
+ * a shop: staff accounts are kept apart from shops (Print-Prep-Plan §9). */
 export async function checkRegistrationEligibility(input: RegistrationEligibilityInput): Promise<RegistrationEligibility> {
+  if (input.role === 'staff') return { eligible: false };
   if (DEV_BYPASS || input.role === 'admin') return { eligible: true, invite: null };
 
   if (input.inviteToken) {

@@ -1,9 +1,12 @@
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { revalidateStore } from '@/lib/storefront/revalidate';
-import { printServicesFor, quoteFor } from '@/lib/services/quotes';
+import { describeServices, printServicesFor, quoteFor } from '@/lib/services/quotes';
 import { renderProductMockups } from '@/lib/services/mockups';
 import { blankDisplayName } from '@/lib/catalog/display-names';
+import { checkPlacementPosition } from '@/lib/mockups/placements';
+import { checkProductApproval, productColourCodes, productPrintPlacement, type ProductApproval, type StoredPlacement } from '@/lib/services/print-prep';
+import { samePlacement } from '@/lib/print/pipeline';
 
 // Products are an artist's design printed on a blank, for sale in their
 // shop. All ownership is scoped by storeId — every read/write here takes it
@@ -12,6 +15,10 @@ import { blankDisplayName } from '@/lib/catalog/display-names';
 export type ProductStatus = 'draft' | 'proof_pending' | 'live' | 'archived';
 
 export type ServiceResult<T> = { ok: true; value: T } | { ok: false; error: string };
+
+/** A refusal that comes with where the product's artwork stands, when that is why: the sentence in `error`
+ * says what is missing, and `approval` carries the step it points to (the tools build the link from it). */
+export type GatedResult<T> = { ok: true; value: T } | { ok: false; error: string; approval?: ProductApproval };
 
 export interface Placement {
   position: string;
@@ -50,13 +57,35 @@ export interface ProductDetail {
 
 // -- state machine ------------------------------------------------------
 
-/** The only place product status transitions are decided. */
+/** The only place product status transitions are decided. A shop product has no proof of its own now: the
+ * design's approval replaces it (Print-Prep-Plan section 7), so a product goes straight from draft to live.
+ * proof_pending is no longer entered; products already there can still go live, back to draft or away. */
 const ALLOWED_TRANSITIONS: Record<ProductStatus, ProductStatus[]> = {
-  draft: ['proof_pending', 'archived'],
+  draft: ['live', 'archived'],
   proof_pending: ['draft', 'live', 'archived'],
   live: ['archived'],
   archived: [],
 };
+
+/** The statuses that put a product in front of fans (proof_pending is the one from before the proof was retired). */
+const SHOP_STATUSES: ProductStatus[] = ['proof_pending', 'live'];
+
+/**
+ * Why a product cannot go in front of fans, when its print method is for runs
+ * only, else null. A run's backing product can carry screen print; it must
+ * never reach the shop with it, so publishing asks before it acts.
+ */
+export async function shopMethodError(productId: string): Promise<string | null> {
+  const rows = await db
+    .select({ name: schema.printServices.name, availableInShop: schema.printServices.availableInShop })
+    .from(schema.products)
+    .innerJoin(schema.printServices, eq(schema.products.printServiceCode, schema.printServices.code))
+    .where(eq(schema.products.id, productId))
+    .limit(1);
+  const method = rows[0];
+  if (!method || method.availableInShop) return null;
+  return `${method.name} is for runs, so this product can't go to your shop. Shop products print DTG or DTF.`;
+}
 
 export async function transition(productId: string, to: ProductStatus, from?: ProductStatus): Promise<ServiceResult<ProductStatus>> {
   const current =
@@ -66,6 +95,10 @@ export async function transition(productId: string, to: ProductStatus, from?: Pr
   if (current === to) return { ok: true, value: to };
   if (!ALLOWED_TRANSITIONS[current].includes(to)) {
     return { ok: false, error: `Can't move a product from "${current}" to "${to}".` };
+  }
+  if (SHOP_STATUSES.includes(to)) {
+    const blocked = await shopMethodError(productId);
+    if (blocked) return { ok: false, error: blocked };
   }
   await db.update(schema.products).set({ status: to, updatedAt: new Date() }).where(eq(schema.products.id, productId));
   return { ok: true, value: to };
@@ -87,7 +120,9 @@ async function validColours(blankCode: string): Promise<Map<string, { name: stri
   return new Map(rows.map((r) => [r.code, { name: r.name, hex: r.hex ?? '#000000' }]));
 }
 
-async function getOwnedProductRow(storeId: string, productId: string) {
+type ProductRow = typeof schema.products.$inferSelect;
+
+async function getOwnedProductRow(storeId: string, productId: string): Promise<ProductRow | null> {
   const rows = await db
     .select()
     .from(schema.products)
@@ -211,6 +246,11 @@ export interface CreateProductInput {
   colours: string[];
   sizes: string[];
   name?: string;
+  /** a run's backing product (bulk.ts), never offered by a tool: it may carry
+   * a run-only method such as screen print, and transition() keeps it out of
+   * the shop. Its placement was checked when the run was quoted, so it is not
+   * checked again at payment, when refusing would leave a paid order half made. */
+  forRun?: boolean;
 }
 
 async function applyMockups(productId: string): Promise<void> {
@@ -246,13 +286,26 @@ export async function createProduct(input: CreateProductInput): Promise<ServiceR
     printServicesFor(input.blankCode),
   ]);
 
-  if (!printServices.some((p) => p.code === input.printServiceCode)) {
-    return { ok: false, error: `That print method isn't offered on the ${blankDisplayName(blank.code, blank.name)}.` };
+  // Shop products print DTG or DTF; screen print is for runs (Print-Prep-Plan section 1).
+  // Whatever else the blank offers (embroidery) is outside that plan and stays as it was.
+  const offered = input.forRun ? printServices : printServices.filter((p) => p.availableInShop);
+  const service = printServices.find((p) => p.code === input.printServiceCode);
+  if (!service) {
+    const choices = offered.length > 0 ? ` Use one of: ${describeServices(offered)}.` : '';
+    return { ok: false, error: `That print method isn't offered on the ${blankDisplayName(blank.code, blank.name)}.${choices}` };
+  }
+  if (!input.forRun && !service.availableInShop) {
+    const choices = offered.length > 0 ? ` Shop products print with: ${describeServices(offered)}.` : '';
+    return { ok: false, error: `${service.name} is for runs, not shop products.${choices}` };
   }
   const badColours = input.colours.filter((c) => !colours.has(c));
   if (badColours.length > 0) return { ok: false, error: `Colour(s) not available on this blank: ${badColours.join(', ')}.` };
   const badSizes = input.sizes.filter((s) => !sizes.has(s));
   if (badSizes.length > 0) return { ok: false, error: `Size(s) not available on this blank: ${badSizes.join(', ')}.` };
+  if (!input.forRun) {
+    const position = checkPlacementPosition(blank.type, input.placement.position);
+    if (!position.ok) return { ok: false, error: position.error };
+  }
 
   if (input.designId) {
     const designRows = await db
@@ -303,7 +356,22 @@ export interface UpdateProductPatch {
   collectionId?: string | null;
 }
 
-export async function updateProduct(storeId: string, productId: string, patch: UpdateProductPatch): Promise<ServiceResult<ProductDetail>> {
+/** A live product stays live whatever happens to its approval, but what it newly puts in front of fans needs
+ * the design's approval like a first publish does: a colour it didn't have, or another print position or
+ * width (every colour then prints there). Null when the edit adds nothing, or is covered. */
+async function liveEditApproval(product: ProductRow, patch: UpdateProductPatch): Promise<ProductApproval | null> {
+  if (product.status !== 'live' || (!patch.colours && !patch.placement)) return null;
+  const current = await productColourCodes(product.id);
+  const next = patch.colours ?? current;
+  const placement = patch.placement ?? (product.placement as StoredPlacement | null);
+  const moved = Boolean(patch.placement) && !samePlacement(productPrintPlacement(patch.placement), productPrintPlacement(product.placement as StoredPlacement | null));
+  const toCover = moved ? next : next.filter((code) => !current.includes(code));
+  if (toCover.length === 0) return null;
+  const approval = await checkProductApproval(product, { colours: toCover, placement, nameColours: !moved });
+  return approval.covered ? null : approval;
+}
+
+export async function updateProduct(storeId: string, productId: string, patch: UpdateProductPatch): Promise<GatedResult<ProductDetail>> {
   const product = await getOwnedProductRow(storeId, productId);
   if (!product) return { ok: false, error: 'Product not found for this shop.' };
   if (product.status === 'archived') return { ok: false, error: 'This product is archived and can no longer be edited.' };
@@ -315,6 +383,12 @@ export async function updateProduct(storeId: string, productId: string, patch: U
       .where(and(eq(schema.collections.id, patch.collectionId), eq(schema.collections.storeId, storeId)))
       .limit(1);
     if (collectionRows.length === 0) return { ok: false, error: 'Collection not found for this shop.' };
+  }
+
+  if (patch.placement) {
+    const blankRows = await db.select({ type: schema.blanks.type }).from(schema.blanks).where(eq(schema.blanks.code, product.blankCode)).limit(1);
+    const position = checkPlacementPosition(blankRows[0]?.type ?? '', patch.placement.position);
+    if (!position.ok) return { ok: false, error: position.error };
   }
 
   if (patch.colours) {
@@ -329,6 +403,10 @@ export async function updateProduct(storeId: string, productId: string, patch: U
     const bad = patch.sizes.filter((s) => !sizes.has(s));
     if (bad.length > 0) return { ok: false, error: `Size(s) not available on this blank: ${bad.join(', ')}.` };
   }
+
+  // Nothing is written before this: a refused edit leaves the live product as it was.
+  const uncovered = await liveEditApproval(product, patch);
+  if (uncovered) return { ok: false, error: uncovered.sentence ?? 'Approve the artwork first.', approval: uncovered };
 
   await db
     .update(schema.products)
@@ -391,25 +469,32 @@ export async function archiveProduct(storeId: string, productId: string): Promis
   return { ok: true, value: detail };
 }
 
-export async function publishProduct(storeId: string, productId: string): Promise<ServiceResult<ProductDetail>> {
+export type PublishCheck = { ok: true; product: ProductRow } | { ok: false; error: string; approval?: ProductApproval };
+
+/** Everything a publish asks of a product, in order, without publishing it (so the assistant can refuse before
+ * it shows a confirm card). The design's approval is the gate: a product goes live only when its design's
+ * current version has an approval covering its blank, every enabled colour and its print position and width
+ * (print-prep.ts approvalCoverage). That one approval replaces the per-product proof (Print-Prep-Plan section 7),
+ * so a draft is published with no proof at all, and a proof a product happens to have (from before the proof
+ * was retired) is neither asked nor read. The artwork comes right after the status and the print method, before
+ * the price and payouts: it is the step an artist can't skip, so it is the one to say first. A product already
+ * live is never taken down by it: only a publish, and adding a colour or position to a live product, ask. */
+export async function checkPublishable(storeId: string, productId: string): Promise<PublishCheck> {
   const product = await getOwnedProductRow(storeId, productId);
   if (!product) return { ok: false, error: 'Product not found for this shop.' };
-  if (product.status !== 'proof_pending') {
-    return { ok: false, error: 'A product can only be published after a proof has been submitted and approved.' };
-  }
+  if (product.status === 'live') return { ok: false, error: 'This product is already live.' };
+  if (product.status === 'archived') return { ok: false, error: 'This product is archived and can no longer be published.' };
+
+  // A run's backing product can carry screen print; it never reaches the shop with it.
+  const blocked = await shopMethodError(productId);
+  if (blocked) return { ok: false, error: blocked };
+
+  const approval = await checkProductApproval(product, { colours: await productColourCodes(productId), placement: product.placement as StoredPlacement | null });
+  if (!approval.covered) return { ok: false, error: approval.sentence ?? 'Approve the artwork first.', approval };
+
   // Fans must never see a product without a retail price.
   if (!product.retailPriceCents || product.retailPriceCents < (product.baseCostCents ?? 0) + 100) {
     return { ok: false, error: 'Set a retail price (at least €1 above the base cost) before publishing.' };
-  }
-
-  const latestProofRows = await db
-    .select({ status: schema.proofs.status })
-    .from(schema.proofs)
-    .where(eq(schema.proofs.productId, productId))
-    .orderBy(desc(schema.proofs.version))
-    .limit(1);
-  if (latestProofRows[0]?.status !== 'approved') {
-    return { ok: false, error: 'The latest proof for this product has not been approved yet.' };
   }
 
   const stripeRows = await db.select().from(schema.stripeAccounts).where(eq(schema.stripeAccounts.storeId, storeId)).limit(1);
@@ -420,8 +505,15 @@ export async function publishProduct(storeId: string, productId: string): Promis
       error: 'Publishing is blocked until Stripe payouts are connected and both charges and payouts are enabled for your shop.',
     };
   }
+  return { ok: true, product };
+}
 
-  const result = await transition(productId, 'live', product.status);
+/** The only way a product goes live: transition() is never asked for it anywhere else. */
+export async function publishProduct(storeId: string, productId: string): Promise<GatedResult<ProductDetail>> {
+  const checked = await checkPublishable(storeId, productId);
+  if (!checked.ok) return checked;
+
+  const result = await transition(productId, 'live', checked.product.status);
   if (!result.ok) return result;
 
   const detail = await getProduct(storeId, productId);
