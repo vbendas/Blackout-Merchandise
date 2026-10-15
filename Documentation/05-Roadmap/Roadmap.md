@@ -1,7 +1,7 @@
 # MerchFrom Master Roadmap
 
-> **Document Version:** 4.0 — RESTRUCTURED  
-> **Last Updated:** May 13, 2026  
+> **Document Version:** 4.1 — PRINT PREP ADDED  
+> **Last Updated:** October 15, 2026  
 > **Status:** P0 Demo Hardening — Week 1 COMPLETE, Week 2 IN PROGRESS  
 > **Branch:** `feat/crowdfunding-demo`  
 > **Campaign Launch:** June 30, 2026 (Indiegogo)
@@ -27,15 +27,16 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 ## Table of Contents
 
 1. [Completed Phases (Summary)](#completed-phases-summary)
-2. [Active: P0 — Demo Hardening](#active-p0--demo-hardening-may-9--june-8)
+2. [Print Prep (Oct 2026)](#print-prep-oct-2026)
+3. [Active: P0 — Demo Hardening](#active-p0--demo-hardening-may-9--june-8)
    - [Week 1: AI Chat Core](#week-1-may-9-15-ai-chat-core)
    - [Week 2: Voice + Design Gen](#week-2-may-16-22-voice--design-gen--dataset-start)
    - [Week 3: Storefront](#week-3-may-23-29-storefront--dataset-completion)
    - [Week 4: LoRA + Polish](#week-4-may-30-june-5-lora-integration--essential-polish)
    - [Week 5: Final Polish](#week-5-june-6-8-final-polish)
-3. [Future: P1-P7 — Crowdfunding Campaign](#future-p1-p7--crowdfunding-campaign-june--oct-2026)
-4. [Future: Phase 7-10 — Platform Scale](#future-phase-7-10--platform-scale-late-2026--2028)
-5. [Appendix](#appendix)
+4. [Future: P1-P7 — Crowdfunding Campaign](#future-p1-p7--crowdfunding-campaign-june--oct-2026)
+5. [Future: Phase 7-10 — Platform Scale](#future-phase-7-10--platform-scale-late-2026--2028)
+6. [Appendix](#appendix)
 
 ---
 
@@ -128,6 +129,45 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 - Order management dashboard
 - Artist payouts (manual for MVP)
 - **Remaining:** Automated payouts (Stripe Connect), advanced analytics
+
+---
+
+## Print Prep (Oct 2026)
+
+> **Plan:** [`Documentation/Dev/Print-Prep-Plan.md`](../Dev/Print-Prep-Plan.md). Branch `feat/print-prep`. The phase numbers below are print prep's own, not the project phases above.
+
+### Print Prep Phase 0: Prerequisites — BUILT (Oct 2026)
+- Ink system profile seeded from the MagnaPrint HB data sheet
+- Schema and migration `0003` (not applied to Neon yet)
+- Print storage, job queue and worker skeleton (R2 not set up yet)
+- Test fixtures for print prep
+
+### Print Prep Phase 1: Both outputs for flat art, end to end — BUILT, PENDING OWNER CHECKS (Oct 2026)
+- Engine: colour, units, clean, knockout, halftone, marks and proofs
+- Spot separations with traps, underbase, highlight white and screen sets
+- DTG/DTF branch with PNG export; DTF offered on every blank
+- Screen PSD (one layer per ink), DTG/DTF PSD, PSD reader for corrected uploads, job sheet, manifest and automatic checks
+- Studio: 4K finals before approval, edit anchoring, capsule recipes, one approval per design
+- Pre-press: audit queue, pack detail, ink system page, corrected PSD upload
+- Pantone codes in admin only; clients see plain colour names
+- Staff roles (owner, staff, artist) and per-area levels (none, view, work, manage)
+- **Owner checks:** open the screen PSD in Photoshop and print the films one by one; open the PNG in GTX Graphics Lab and print it on black and white blanks; sign off a test print against the proof
+- **Not live yet:** migration `0003` on Neon, R2, and the worker host
+
+### Print Prep Phase 2: Any art up to 15 screens — NEXT
+- Index separations (3 to 4 working days)
+- Simulated process separations, using a print-model lookup table (6 to 10 working days)
+- Dot-gain calibration from a printed test chart (2 to 3 working days)
+- Screen-count pricing with the 9 to 15 screen surcharge (2 working days)
+- Estimates are rough working days, for ordering only
+
+### Print Prep Phase 3: Later
+- Distress and texture library from our own scans
+- DTF gang sheets
+- Vectorising flat art
+- RIP hot folders
+- Multi-placement products
+- Embroidery prep: only solid designs in solid colours can be embroidered, so it needs its own checks and conversion
 
 ---
 
@@ -809,6 +849,7 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 ### Related Documents
 
 - **PRD:** [`/Documentation/PRD.md`](../PRD.md) — Product vision and features
+- **Print Prep:** [`/Documentation/Dev/Print-Prep-Plan.md`](../Dev/Print-Prep-Plan.md) — Print prep plan, decisions and phases
 - **AI Stack:** [`/Documentation/02-Architecture/AI-Stack.md`](../02-Architecture/AI-Stack.md) — All AI model routing
 - **Image Generation:** [`/Documentation/05-Shared/Image-Generation-Architecture.md`](../05-Shared/Image-Generation-Architecture.md) — fal.ai pipeline, LoRA strategy
 - **Design System:** [`/Documentation/05-Shared/Design-System.md`](../05-Shared/Design-System.md) — Colors, typography, components
@@ -820,9 +861,10 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 ---
 
 **Roadmap Owner:** Victor Bendas  
-**Last Updated:** May 13, 2026  
+**Last Updated:** October 15, 2026  
 **Next Review:** Daily during P0 Demo Hardening sprint  
 **Version History:**
+- v4.1 (Oct 15, 2026): Print prep phases added (Phase 0 and 1 built, pending owner checks; Phase 2 next; Phase 3 later)
 - v4.0 (May 13, 2026): Restructured — P0 at top, chronological order, completed phases summarized, full task detail for active/future phases
 - v3.0 (May 13, 2026): Consolidated — merged Roadmap-Crowdfunding, Sprint-Plan, Research-Gaps, Unified-Wave-Voice
 - v2.0 (Feb 2026): Added crowdfunding sprint phases

@@ -1,0 +1,166 @@
+{
+  "design": "Assets/test_design.png",
+  "printWidthCm": 28,
+  "nativePpiAtPrint": 98,
+  "canvas300": {
+    "width": 3307,
+    "height": 3968
+  },
+  "artBounds300": {
+    "x0": 188,
+    "y0": 51,
+    "x1": 3140,
+    "y1": 3860
+  },
+  "screen": {
+    "lpi": 55,
+    "angle": 22.5,
+    "dot": "round (Euclidean)",
+    "minDot": 0.05,
+    "maxDotToSolid": 0.9,
+    "underbaseChokeMm": 0.17,
+    "note": "300 ppi renders (films and proofs), 600 ppi loupe; production target 600 ppi"
+  },
+  "sets": {
+    "darks": {
+      "garments": [
+        "Black",
+        "French Navy"
+      ],
+      "screens": [
+        {
+          "index": 1,
+          "role": "underbase",
+          "hex": "#F2F2F0",
+          "lstar": 95.4,
+          "coveragePct": 14.7,
+          "base": "Aquaflex V2 White (flash)",
+          "film": "film-darks-1.png"
+        },
+        {
+          "index": 2,
+          "role": "ink",
+          "hex": "#ED90DC",
+          "lstar": 71.6,
+          "coveragePct": 9.9,
+          "base": "HB Opaque",
+          "film": "film-darks-2.png"
+        },
+        {
+          "index": 3,
+          "role": "ink",
+          "hex": "#C363DA",
+          "lstar": 57.6,
+          "coveragePct": 6.3,
+          "base": "HB Opaque",
+          "film": "film-darks-3.png"
+        },
+        {
+          "index": 4,
+          "role": "ink",
+          "hex": "#5456AC",
+          "lstar": 40.4,
+          "coveragePct": 9,
+          "base": "HB Opaque",
+          "film": "film-darks-4.png"
+        },
+        {
+          "index": 5,
+          "role": "ink",
+          "hex": "#3E0E61",
+          "lstar": 16.4,
+          "coveragePct": 5.5,
+          "base": "HB Opaque",
+          "film": "film-darks-5.png"
+        },
+        {
+          "index": 6,
+          "role": "highlight",
+          "hex": "#F2F2F0",
+          "lstar": 95.4,
+          "coveragePct": 1.5,
+          "base": "Aquaflex V2 White",
+          "film": "film-darks-6.png"
+        }
+      ]
+    },
+    "lights": {
+      "garments": [
+        "White"
+      ],
+      "screens": [
+        {
+          "index": 1,
+          "role": "ink",
+          "hex": "#ED90DC",
+          "lstar": 71.6,
+          "coveragePct": 10.5,
+          "base": "HB Neutral",
+          "film": "film-lights-1.png"
+        },
+        {
+          "index": 2,
+          "role": "ink",
+          "hex": "#C363DA",
+          "lstar": 57.6,
+          "coveragePct": 7,
+          "base": "HB Neutral",
+          "film": "film-lights-2.png"
+        },
+        {
+          "index": 3,
+          "role": "ink",
+          "hex": "#5456AC",
+          "lstar": 40.4,
+          "coveragePct": 15.5,
+          "base": "HB Neutral",
+          "film": "film-lights-3.png"
+        },
+        {
+          "index": 4,
+          "role": "ink",
+          "hex": "#3E0E61",
+          "lstar": 16.4,
+          "coveragePct": 10.9,
+          "base": "HB Neutral",
+          "film": "film-lights-4.png"
+        },
+        {
+          "index": 5,
+          "role": "black",
+          "hex": "#18181A",
+          "lstar": 8.3,
+          "coveragePct": 45.5,
+          "base": "HB Opaque",
+          "film": "film-lights-5.png"
+        }
+      ]
+    }
+  },
+  "dtg": {
+    "black": {
+      "widthPx": 3307,
+      "heightPx": 3968,
+      "ppi": 300,
+      "fadeLpi": 45,
+      "printedPctOfCanvas": 28.3,
+      "fadeAreaPctOfPrinted": 62
+    },
+    "navy": {
+      "widthPx": 3307,
+      "heightPx": 3968,
+      "ppi": 300,
+      "fadeLpi": 45,
+      "printedPctOfCanvas": 25.8,
+      "fadeAreaPctOfPrinted": 64.5
+    },
+    "white": {
+      "widthPx": 3307,
+      "heightPx": 3968,
+      "ppi": 300,
+      "fadeLpi": 45,
+      "printedPctOfCanvas": 60,
+      "fadeAreaPctOfPrinted": 0.5
+    }
+  }
+}

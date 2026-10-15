@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pre-press pack</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#fff}a:hover{color:#cccccc}
+button,input,select{font:inherit}
+</style>
+</helmet>
+<div style="min-height: 1760px; background: #000000; color: #ffffff; font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.5; display: flex; flex-wrap: wrap">
+  <nav aria-label="Admin" style="flex: 1 1 220px; max-width: 272px; box-sizing: border-box; border-right: 1px solid rgba(255,255,255,0.16); padding: 20px 16px; display: flex; flex-direction: column; gap: 4px">
+    <div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px; font-weight: 500; letter-spacing: 0.2em; padding: 6px 10px 18px">MERCHFROM</div>
+    <div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.2em; color: rgba(255,255,255,0.5); padding: 4px 10px 6px">ADMIN</div>
+    <a href="#" style="text-decoration: none; padding: 8px 10px; border-radius: 2px; color: rgba(255,255,255,0.8)">Needs you</a>
+    <a href="Prepress.dc.html" aria-current="page" style="text-decoration: none; padding: 8px 10px; border-radius: 2px; background: rgba(255,255,255,0.08); display: flex; justify-content: space-between"><span>Pre-press</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: rgba(255,255,255,0.8)">5</span></a>
+    <a href="#" style="text-decoration: none; padding: 8px 10px; border-radius: 2px; color: rgba(255,255,255,0.8)">Production</a>
+    <a href="#" style="text-decoration: none; padding: 8px 10px; border-radius: 2px; color: rgba(255,255,255,0.8)">Bulk runs</a>
+    <a href="#" style="text-decoration: none; padding: 8px 10px; border-radius: 2px; color: rgba(255,255,255,0.8)">Ink system</a>
+    <a href="#" style="text-decoration: none; padding: 8px 10px; border-radius: 2px; color: rgba(255,255,255,0.8)">Waitlist</a>
+    <a href="#" style="text-decoration: none; padding: 8px 10px; border-radius: 2px; color: rgba(255,255,255,0.8)">Support</a>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="min-height: 64px; box-sizing: border-box; padding: 10px 32px; border-bottom: 1px solid rgba(255,255,255,0.16); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-width: 0">
+        <a href="Prepress.dc.html" aria-label="Back to Pre-press" style="display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; border-radius: 2px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+        </a>
+        <h1 style="margin: 0; font-size: 15px; line-height: 20px; font-weight: 500; letter-spacing: -0.01em">Underwriter · v3 · Front</h1>
+        <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.2em; color: rgba(255,255,255,0.5)">RUN 2 · 120 + 40 PIECES</span>
+      </div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap">
+        <a href="#" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid rgba(255,255,255,0.5); border-radius: 2px; text-decoration: none">{{downloadLabel}}</a>
+        <button onClick="{{upload}}" style="min-height: 44px; padding: 0 14px; border: 1px solid rgba(255,255,255,0.5); border-radius: 2px; background: none; color: #ffffff; cursor: pointer">Upload corrected PSD</button>
+        <a href="#" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid rgba(255,255,255,0.5); border-radius: 2px; text-decoration: none">Send back to artist</a>
+        <button onClick="{{approve}}" style="min-height: 44px; padding: 0 18px; border: 1px solid #ffffff; border-radius: 2px; background: #ffffff; color: #000000; font-weight: 600; cursor: pointer">{{approveLabel}}</button>
+      </div>
+    </header>
+
+    <sc-if value="{{approved}}" hint-placeholder-val="{{ false }}">
+      <div role="status" style="margin: 16px 32px 0; padding: 14px 16px; border: 1px solid #ffffff; border-radius: 2px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between">
+        <span style="font-weight: 500">Pack approved. Run 2 can go to production with these files.</span>
+        <button onClick="{{unapprove}}" style="min-height: 40px; padding: 0 14px; border: 1px solid rgba(255,255,255,0.5); border-radius: 2px; background: none; color: #ffffff; cursor: pointer">Undo</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{uploaded}}" hint-placeholder-val="{{ false }}">
+      <div role="status" style="margin: 16px 32px 0; padding: 14px 16px; border: 1px solid rgba(255,255,255,0.5); border-radius: 2px; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-weight: 500">Corrected PSD received: MF-UNDERWRITER-v3-FRONT-DARKS.psd</span>
+        <span style="color: rgba(255,255,255,0.8)">Films, proof and job sheet were rebuilt from it and every check ran again. The change doesn’t alter the proof, so the artist isn’t asked to approve again. The before and after are saved as a training pair.</span>
+      </div>
+    </sc-if>
+
+    <div role="tablist" aria-label="Production file" style="display: flex; gap: 28px; padding: 0 32px; margin-top: 8px; border-bottom: 1px solid rgba(255,255,255,0.16); flex-wrap: wrap">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+        <button role="tab" aria-selected="{{t.selected}}" onClick="{{t.pick}}" style="min-height: 48px; padding: 0 4px; background: none; border: none; border-bottom: 2px solid {{t.line}}; color: {{t.color}}; font-weight: 500; cursor: pointer">{{t.label}}</button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{isScreen}}" hint-placeholder-val="{{ true }}">
+      <div style="padding: 24px 32px 56px; display: flex; flex-direction: column; gap: 36px">
+        <section aria-labelledby="films-h" style="display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between">
+            <h2 id="films-h" style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Films in press order</h2>
+            <span style="color: rgba(255,255,255,0.5)">{{set.sharedNote}}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px">
+            <sc-for list="{{films}}" as="f" hint-placeholder-count="6">
+              <button onClick="{{f.pick}}" aria-pressed="{{f.pressed}}" style="display: flex; flex-direction: column; gap: 8px; padding: 8px; border: 1px solid {{f.border}}; border-radius: 2px; background: {{f.bg}}; color: #ffffff; text-align: left; cursor: pointer">
+                <img src="{{f.img}}" alt="{{f.alt}}" style="width: 100%; height: auto; display: block; background: #ffffff; border-radius: 2px">
+                <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: rgba(255,255,255,0.5)">{{f.pos}}</span>
+                <span style="display: flex; align-items: center; gap: 8px; font-weight: 500"><span aria-hidden="true" style="width: 12px; height: 12px; flex-shrink: 0; border-radius: 2px; border: 1px solid rgba(255,255,255,0.35); background: {{f.hex}}"></span>{{f.name}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </section>
+
+        <section aria-label="Selected film and proof" style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+          <div style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+            <h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Film {{film.pos}}</h2>
+            <img src="{{film.img}}" alt="{{film.alt}}" style="width: 100%; max-width: 520px; height: auto; display: block; background: #ffffff; border-radius: 2px">
+            <dl style="margin: 0; display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 6px 16px">
+              <dt style="color: rgba(255,255,255,0.5)">Ink</dt><dd style="margin: 0">{{film.name}}</dd>
+              <dt style="color: rgba(255,255,255,0.5)">Client sees</dt><dd style="margin: 0">{{film.client}}</dd>
+              <dt style="color: rgba(255,255,255,0.5)">Base</dt><dd style="margin: 0">{{film.base}}</dd>
+              <dt style="color: rgba(255,255,255,0.5)">Art colour</dt><dd style="margin: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace">{{film.hex}}</dd>
+              <dt style="color: rgba(255,255,255,0.5)">Coverage</dt><dd style="margin: 0">{{film.coverage}} of the print area</dd>
+              <dt style="color: rgba(255,255,255,0.5)">Halftone</dt><dd style="margin: 0">55 lpi · 22.5° · round dot · 600 ppi</dd>
+              <dt style="color: rgba(255,255,255,0.5)">Mesh</dt><dd style="margin: 0">{{film.mesh}} (suggested)</dd>
+            </dl>
+            <sc-if value="{{film.hasCrop}}" hint-placeholder-val="{{ false }}">
+              <figure style="margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px">
+                <img src="{{film.crop}}" alt="True-size detail of film 2 showing halftone dots" style="width: 300px; height: 300px; object-fit: cover; display: block; border-radius: 2px">
+                <figcaption style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: rgba(255,255,255,0.5)">TRUE SIZE · 600 PPI · 1 INCH</figcaption>
+              </figure>
+            </sc-if>
+          </div>
+          <div style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between">
+              <h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Proof from these films</h2>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap">
+                <sc-for list="{{garments}}" as="g" hint-placeholder-count="2">
+                  <button onClick="{{g.pick}}" aria-pressed="{{g.pressed}}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 2px; border: 1px solid {{g.border}}; background: {{g.bg}}; color: #ffffff; cursor: pointer"><span aria-hidden="true" style="width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(255,255,255,0.35); background: {{g.hex}}"></span>{{g.name}}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background: #ECE5DA; border-radius: 2px; overflow: hidden">
+              <img src="{{proofUrl}}" alt="{{proofAlt}}" style="width: 100%; height: auto; display: block">
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="inks-h" style="display: flex; flex-direction: column; gap: 12px">
+          <h2 id="inks-h" style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Inks</h2>
+          <div style="overflow-x: auto; border-top: 1px solid rgba(255,255,255,0.16)">
+            <table style="width: 100%; min-width: 760px; border-collapse: collapse">
+              <thead>
+                <tr style="text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.16em; color: rgba(255,255,255,0.5)">
+                  <th scope="col" style="padding: 10px 12px 10px 0; font-weight: 400">#</th>
+                  <th scope="col" style="padding: 10px 12px; font-weight: 400">INK · MAGNAMIX</th>
+                  <th scope="col" style="padding: 10px 12px; font-weight: 400">CLIENT SEES</th>
+                  <th scope="col" style="padding: 10px 12px; font-weight: 400">ART COLOUR</th>
+                  <th scope="col" style="padding: 10px 12px; font-weight: 400">BASE</th>
+                  <th scope="col" style="padding: 10px 12px; font-weight: 400">COVERAGE</th>
+                  <th scope="col" style="padding: 10px 12px; font-weight: 400">MESH</th>
+                  <th scope="col" style="padding: 10px 0 10px 12px; font-weight: 400"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Change</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{films}}" as="f" hint-placeholder-count="6">
+                  <tr style="border-top: 1px solid rgba(255,255,255,0.16)">
+                    <td style="padding: 10px 12px 10px 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; color: rgba(255,255,255,0.5)">{{f.n}}</td>
+                    <td style="padding: 10px 12px"><span style="display: inline-flex; align-items: center; gap: 10px; font-weight: 500"><span aria-hidden="true" style="width: 16px; height: 16px; border-radius: 2px; border: 1px solid rgba(255,255,255,0.35); background: {{f.hex}}"></span>{{f.name}}</span></td>
+                    <td style="padding: 10px 12px">{{f.client}}</td>
+                    <td style="padding: 10px 12px; font-family: 'IBM Plex Mono', ui-monospace, monospace">{{f.hex}}</td>
+                    <td style="padding: 10px 12px">{{f.base}}</td>
+                    <td style="padding: 10px 12px; font-family: 'IBM Plex Mono', ui-monospace, monospace">{{f.coverage}}</td>
+                    <td style="padding: 10px 12px; font-family: 'IBM Plex Mono', ui-monospace, monospace">{{f.mesh}}</td>
+                    <td style="padding: 10px 0 10px 12px; text-align: right"><button style="min-height: 36px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.5); border-radius: 2px; background: none; color: #ffffff; cursor: pointer">Change ink</button></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+          <section aria-labelledby="choices-h" style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+            <h2 id="choices-h" style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">What the engine chose</h2>
+            <dl style="margin: 0; display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 10px 16px; border-top: 1px solid rgba(255,255,255,0.16); padding-top: 12px">
+              <dt style="color: rgba(255,255,255,0.5)">Method</dt><dd style="margin: 0">Simulated process. Soft shading runs through most of the art, so solid spot shapes would lose it.</dd>
+              <dt style="color: rgba(255,255,255,0.5)">Screens</dt><dd style="margin: 0">{{set.screensWhy}}</dd>
+              <dt style="color: rgba(255,255,255,0.5)">Underbase</dt><dd style="margin: 0">{{set.underbase}}</dd>
+              <dt style="color: rgba(255,255,255,0.5)">Print order</dt><dd style="margin: 0">{{set.order}}</dd>
+              <dt style="color: rgba(255,255,255,0.5)">Screen sets</dt><dd style="margin: 0">Black and French Navy share one set. White has its own.</dd>
+            </dl>
+          </section>
+
+          <section aria-labelledby="checks-h" style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+            <h2 id="checks-h" style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Checks</h2>
+            <ul style="list-style: none; margin: 0; padding: 0; border-top: 1px solid rgba(255,255,255,0.16)">
+              <sc-for list="{{checks}}" as="c" hint-placeholder-count="7">
+                <li style="display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.16)">
+                  <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.12em; font-weight: {{c.weight}}; color: {{c.color}}">{{c.state}}</span>
+                  <span><span style="display: block; font-weight: 500">{{c.title}}</span><span style="display: block; color: rgba(255,255,255,0.8)">{{c.detail}}</span></span>
+                </li>
+              </sc-for>
+            </ul>
+          </section>
+        </div>
+
+        <section aria-labelledby="rerun-h" style="display: flex; flex-direction: column; gap: 12px; border: 1px solid rgba(255,255,255,0.16); border-radius: 2px; padding: 20px">
+          <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between">
+            <h2 id="rerun-h" style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Run again with changes</h2>
+            <button onClick="{{toggleRerun}}" aria-expanded="{{rerunExpanded}}" style="min-height: 40px; padding: 0 14px; border: 1px solid rgba(255,255,255,0.5); border-radius: 2px; background: none; color: #ffffff; cursor: pointer">{{rerunLabel}}</button>
+          </div>
+          <sc-if value="{{rerunOpen}}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px">
+              <label style="display: flex; flex-direction: column; gap: 6px"><span style="color: rgba(255,255,255,0.5)">Method</span>
+                <select style="min-height: 40px; padding: 0 10px; border: 1px solid rgba(255,255,255,0.16); border-radius: 2px; background: #000000; color: #ffffff"><option>Simulated process</option><option>Spot</option><option>Index</option></select>
+              </label>
+              <label style="display: flex; flex-direction: column; gap: 6px"><span style="color: rgba(255,255,255,0.5)">Screens (up to 15)</span>
+                <input type="number" value="6" min="1" max="15" style="min-height: 40px; box-sizing: border-box; padding: 0 10px; border: 1px solid rgba(255,255,255,0.16); border-radius: 2px; background: #000000; color: #ffffff">
+              </label>
+              <label style="display: flex; flex-direction: column; gap: 6px"><span style="color: rgba(255,255,255,0.5)">Lines per inch</span>
+                <input type="number" value="55" style="min-height: 40px; box-sizing: border-box; padding: 0 10px; border: 1px solid rgba(255,255,255,0.16); border-radius: 2px; background: #000000; color: #ffffff">
+              </label>
+              <label style="display: flex; flex-direction: column; gap: 6px"><span style="color: rgba(255,255,255,0.5)">Angle (°)</span>
+                <input type="number" value="22.5" step="0.5" style="min-height: 40px; box-sizing: border-box; padding: 0 10px; border: 1px solid rgba(255,255,255,0.16); border-radius: 2px; background: #000000; color: #ffffff">
+              </label>
+              <label style="display: flex; flex-direction: column; gap: 6px"><span style="color: rgba(255,255,255,0.5)">Underbase choke (mm)</span>
+                <input type="number" value="0.17" step="0.01" style="min-height: 40px; box-sizing: border-box; padding: 0 10px; border: 1px solid rgba(255,255,255,0.16); border-radius: 2px; background: #000000; color: #ffffff">
+              </label>
+              <label style="display: flex; flex-direction: column; gap: 6px"><span style="color: rgba(255,255,255,0.5)">Trap (mm)</span>
+                <input type="number" value="0.25" step="0.05" style="min-height: 40px; box-sizing: border-box; padding: 0 10px; border: 1px solid rgba(255,255,255,0.16); border-radius: 2px; background: #000000; color: #ffffff">
+              </label>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+              <button style="min-height: 44px; padding: 0 18px; border: 1px solid #ffffff; border-radius: 2px; background: none; color: #ffffff; font-weight: 600; cursor: pointer">Run again</button>
+              <span style="color: rgba(255,255,255,0.5)">On a run, each screen above 8 adds €1 per piece. The artist is asked again only if the proof changes.</span>
+            </div>
+          </sc-if>
+        </section>
+
+        <section aria-labelledby="log-h" style="display: flex; flex-direction: column; gap: 10px">
+          <h2 id="log-h" style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">History</h2>
+          <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; color: rgba(255,255,255,0.8)">
+            <li><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; color: rgba(255,255,255,0.5)">13:40</span>  Artist approved version 3 (screen print and DTG, three garment colours).</li>
+            <li><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; color: rgba(255,255,255,0.5)">13:46</span>  Pack generated: 2 screen sets, 3 DTG files.</li>
+            <li><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; color: rgba(255,255,255,0.5)">15:02</span>  Run 2 ordered: 120 on Black and French Navy, 40 on White.</li>
+          </ol>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isDtg}}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 24px 32px 56px; display: flex; flex-direction: column; gap: 36px">
+        <section aria-labelledby="dtg-h" style="display: flex; flex-direction: column; gap: 14px">
+          <h2 id="dtg-h" style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">One file per garment colour</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px">
+            <sc-for list="{{dtgFiles}}" as="d" hint-placeholder-count="3">
+              <figure style="margin: 0; display: flex; flex-direction: column; gap: 8px">
+                <div style="background: #ECE5DA; border-radius: 2px; overflow: hidden"><img src="{{d.img}}" alt="{{d.alt}}" style="width: 100%; height: auto; display: block"></div>
+                <figcaption style="display: flex; flex-direction: column"><span style="font-weight: 500">{{d.name}}</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: rgba(255,255,255,0.5)">{{d.file}}</span><span style="color: rgba(255,255,255,0.8)">{{d.note}}</span></figcaption>
+              </figure>
+            </sc-for>
+          </div>
+        </section>
+        <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+          <figure style="flex: 0 1 320px; margin: 0; display: flex; flex-direction: column; gap: 6px">
+            <img src="/_blob/ad802c49c23b24f3f34ee347237c0170" alt="True-size detail of the DTG file showing 45 lpi dots in the fades" style="width: 320px; max-width: 100%; height: auto; display: block; border-radius: 2px">
+            <figcaption style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: rgba(255,255,255,0.5)">TRUE SIZE · FADES AS 45 LPI DOTS · ON BLACK</figcaption>
+          </figure>
+          <section aria-labelledby="dtg-checks-h" style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+            <h2 id="dtg-checks-h" style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Checks</h2>
+            <ul style="list-style: none; margin: 0; padding: 0; border-top: 1px solid rgba(255,255,255,0.16)">
+              <sc-for list="{{dtgChecks}}" as="c" hint-placeholder-count="5">
+                <li style="display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.16)">
+                  <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.12em; font-weight: {{c.weight}}; color: {{c.color}}">{{c.state}}</span>
+                  <span><span style="display: block; font-weight: 500">{{c.title}}</span><span style="display: block; color: rgba(255,255,255,0.8)">{{c.detail}}</span></span>
+                </li>
+              </sc-for>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var s = this.state || {};
+    var self = this;
+    var tab = s.tab || 'darks';
+    var filmIdx = s.film || {};
+    var garment = s.garment || 'black';
+
+    var PROOF = {
+      black: '/_blob/afdf42f6c1166a9e43609854b28cc446',
+      navy: '/_blob/a41e4a58e9ed28b9f17ddaa3ff7611fa',
+      white: '/_blob/f1a17ae0124d0cecce2397b3abb5caa3'
+    };
+
+    var SETS = {
+      darks: {
+        label: 'Screen · Darks · 6',
+        sharedNote: 'Black and French Navy print from these 6 screens.',
+        screensWhy: '6 of 8: underbase, 4 colours, highlight white. No surcharge.',
+        underbase: 'Aquaflex V2 White, choked 0.17 mm, then flash.',
+        order: 'Underbase, flash, colours from light to dark, highlight white last.',
+        garments: [
+          { id: 'black', name: 'Black', hex: '#1b1c1e' },
+          { id: 'navy', name: 'French Navy', hex: '#222a3d' }
+        ],
+        films: [
+          { n: '1', name: 'Underbase', base: 'Aquaflex V2 White · flash', hex: '#F2F2F0', coverage: '14.7%', mesh: '200', img: '/_blob/01244e8a1d58333de0cad4822e263657' },
+          { n: '2', name: 'PANTONE 237 C', base: 'HB Opaque', hex: '#ED90DC', coverage: '9.9%', mesh: '230', img: '/_blob/35e291e8546645c50d08200edd7d8018', crop: '/_blob/6634c9d5d261232434d51eaaf75439e6' },
+          { n: '3', name: 'PANTONE 2582 C', base: 'HB Opaque', hex: '#C363DA', coverage: '6.3%', mesh: '230', img: '/_blob/1fe123b404d71c2f73fcb6e020c26a99' },
+          { n: '4', name: 'PANTONE 2726 C', base: 'HB Opaque', hex: '#5456AC', coverage: '9.0%', mesh: '230', img: '/_blob/4e4e5b7418fb01b15090de969c5c91e9' },
+          { n: '5', name: 'PANTONE 2685 C', base: 'HB Opaque', hex: '#3E0E61', coverage: '5.5%', mesh: '230', img: '/_blob/7d8132261d379fc8c85906fff66b1edd' },
+          { n: '6', name: 'Highlight white', base: 'Aquaflex V2 White', hex: '#F2F2F0', coverage: '1.5%', mesh: '200', img: '/_blob/24d2cb734403c772bf774d8e7c9c13b1' }
+        ]
+      },
+      lights: {
+        label: 'Screen · Lights · 5',
+        sharedNote: 'White prints from these 5 screens, with no underbase.',
+        screensWhy: '5 of 8: 4 colours and black. No surcharge.',
+        underbase: 'None on white. The colours print in HB Neutral straight on the shirt.',
+        order: 'Colours from light to dark, black last.',
+        garments: [
+          { id: 'white', name: 'White', hex: '#f3f3f1' }
+        ],
+        films: [
+          { n: '1', name: 'PANTONE 237 C', base: 'HB Neutral', hex: '#ED90DC', coverage: '10.5%', mesh: '230', img: '/_blob/6ed6ee1b9ef99d96606d1f7272a373ab' },
+          { n: '2', name: 'PANTONE 2582 C', base: 'HB Neutral', hex: '#C363DA', coverage: '7.0%', mesh: '230', img: '/_blob/4adbfb6236c44b9571445e89848fe55d' },
+          { n: '3', name: 'PANTONE 2726 C', base: 'HB Neutral', hex: '#5456AC', coverage: '15.5%', mesh: '230', img: '/_blob/40c2a57cc598950dbc07058a782258c5' },
+          { n: '4', name: 'PANTONE 2685 C', base: 'HB Neutral', hex: '#3E0E61', coverage: '10.9%', mesh: '230', img: '/_blob/71d4befaf88e04b123d094466b8381c7' },
+          { n: '5', name: 'PANTONE Black 6 C', base: 'HB Opaque', hex: '#18181A', coverage: '45.5%', mesh: '230', img: '/_blob/2ae2006bc8536ba4d57c9e8082122e83' }
+        ]
+      }
+    };
+
+    var isScreen = tab !== 'dtg';
+    var set = SETS[isScreen ? tab : 'darks'];
+    var sel = filmIdx[tab] != null ? filmIdx[tab] : 1;
+    if (sel >= set.films.length) sel = 0;
+    var total = set.films.length;
+
+    var CLIENT = {
+      'Underbase': 'White underbase', 'Highlight white': 'Highlight white',
+      'PANTONE 237 C': 'Orchid pink', 'PANTONE 2582 C': 'Violet', 'PANTONE 2726 C': 'Indigo',
+      'PANTONE 2685 C': 'Deep purple', 'PANTONE Black 6 C': 'Black'
+    };
+    var films = set.films.map(function (f, i) {
+      var on = i === sel;
+      return {
+        n: f.n, name: f.name, base: f.base, hex: f.hex, coverage: f.coverage, mesh: f.mesh, img: f.img,
+        client: CLIENT[f.name] || f.name,
+        pos: f.n + '/' + total,
+        alt: 'Film ' + f.n + ' of ' + total + ': ' + f.name,
+        pressed: on ? 'true' : 'false',
+        border: on ? '#ffffff' : 'rgba(255,255,255,0.16)',
+        bg: on ? 'rgba(255,255,255,0.08)' : 'transparent',
+        pick: function () { var m = {}; for (var k in filmIdx) m[k] = filmIdx[k]; m[tab] = i; self.setState({ film: m }); }
+      };
+    });
+    var cur = set.films[sel];
+    var film = {
+      pos: cur.n + ' of ' + total, img: cur.img, alt: 'Film ' + cur.n + ' of ' + total + ': ' + cur.name,
+      name: cur.name, base: cur.base, hex: cur.hex, coverage: cur.coverage, mesh: cur.mesh,
+      client: CLIENT[cur.name] || cur.name,
+      hasCrop: !!cur.crop, crop: cur.crop || ''
+    };
+
+    var gId = set.garments.filter(function (g) { return g.id === garment; }).length ? garment : set.garments[0].id;
+    var garments = set.garments.map(function (g) {
+      var on = g.id === gId;
+      return {
+        name: g.name, hex: g.hex, pressed: on ? 'true' : 'false',
+        border: on ? '#ffffff' : 'rgba(255,255,255,0.16)', bg: on ? 'rgba(255,255,255,0.08)' : 'transparent',
+        pick: function () { self.setState({ garment: g.id }); }
+      };
+    });
+    var gName = set.garments.filter(function (g) { return g.id === gId; })[0].name;
+
+    function tabVals(id, label) {
+      var on = tab === id;
+      return { label: label, selected: on ? 'true' : 'false', line: on ? '#ffffff' : 'transparent', color: on ? '#ffffff' : 'rgba(255,255,255,0.5)', pick: function () { self.setState({ tab: id }); } };
+    }
+
+    function check(state, title, detail) {
+      var pass = state === 'PASSED';
+      return { state: state, title: title, detail: detail, weight: pass ? '400' : '600', color: pass ? 'rgba(255,255,255,0.5)' : '#ffffff' };
+    }
+
+    var checks = [
+      check('PASSED', 'Size', '7,795 × 9,118 px at 600 ppi: a 28 × 33.6 cm print plus a 25 mm margin.'),
+      check('PASSED', 'Films', total + ' films, every one pure black and white, none empty or solid.'),
+      check('PASSED', 'Marks', 'Identical registration marks on every film, 15 mm clear of the art.'),
+      check('PASSED', 'Screens', total + ' of 8, so no surcharge.'),
+      check('REVIEW', 'Fine lines', 'Some lines in the lashes and vines are under 0.3 mm and may close up.'),
+      check('REVIEW', 'Inks not measured', 'The proof uses each ink’s target colour until the inks are measured on our blanks.'),
+      check('PASSED', 'Proof', 'Matches the proof the artist approved.')
+    ];
+
+    var dtgChecks = [
+      check('PASSED', 'Transparency', 'Every pixel is fully opaque or fully transparent, so no white halos.'),
+      check('PASSED', 'Knockout', 'No shirt-coloured pixels left in the knocked-out areas.'),
+      check('PASSED', 'Whites', 'The White file has no pure white left, so it prints no white ink.'),
+      check('PASSED', 'Size', '3,307 × 3,968 px, 300 ppi set in the file, sRGB.'),
+      check('PASSED', 'Proof', 'Matches the proof the artist approved.')
+    ];
+
+    var dtgFiles = [
+      { name: 'On Black', file: 'UNDERWRITER-v3-FRONT-on-black.png', note: 'Black left out, the shirt shows through. Whites print white.', img: '/_blob/d3e0000bb2c5111a4a7dd8cee1f95014', alt: 'DTG proof on a Black T-shirt' },
+      { name: 'On French Navy', file: 'UNDERWRITER-v3-FRONT-on-navy.png', note: 'Same art, knocked out against navy.', img: '/_blob/3286c7a29bb7c134a69a547fe1941216', alt: 'DTG proof on a French Navy T-shirt' },
+      { name: 'On White', file: 'UNDERWRITER-v3-FRONT-on-white.png', note: 'Background removed, black linework prints. No white ink.', img: '/_blob/3213e0ecc8013f1790f5f45951aa5990', alt: 'DTG proof on a White T-shirt' }
+    ];
+
+    var rerunOpen = !!s.rerun;
+    return {
+      tabs: [tabVals('darks', 'Screen · Darks · 6'), tabVals('lights', 'Screen · Lights · 5'), tabVals('dtg', 'DTG/DTF · 3 files')],
+      isScreen: isScreen,
+      isDtg: !isScreen,
+      set: set,
+      films: films,
+      film: film,
+      garments: garments,
+      proofUrl: PROOF[gId],
+      proofAlt: 'Screen print proof on a ' + gName + ' T-shirt, drawn from the films',
+      checks: checks,
+      dtgChecks: dtgChecks,
+      dtgFiles: dtgFiles,
+      downloadLabel: isScreen ? 'Download PSD' : 'Download PNGs',
+      approved: !!s.approved,
+      approveLabel: s.approved ? 'Approved' : 'Approve pack',
+      approve: function () { self.setState({ approved: true }); },
+      unapprove: function () { self.setState({ approved: false }); },
+      uploaded: !!s.uploaded,
+      upload: function () { self.setState({ uploaded: true }); },
+      rerunOpen: rerunOpen,
+      rerunExpanded: rerunOpen ? 'true' : 'false',
+      rerunLabel: rerunOpen ? 'Hide' : 'Show settings',
+      toggleRerun: function () { self.setState({ rerun: !rerunOpen }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

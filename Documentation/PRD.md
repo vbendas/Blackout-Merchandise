@@ -1,7 +1,7 @@
 # Merch From: Product Requirements Document
 
-> **Version**: v3.4  
-> **Last Updated**: August 24, 2026  
+> **Version**: v3.5  
+> **Last Updated**: October 15, 2026  
 > **Status**: Active
 
 ---
@@ -52,6 +52,19 @@ This is the **master navigation document** for the Merch From Product Requiremen
 
 ---
 
+## Print Prep and Staff Access (Oct 2026)
+
+The owner decided these on 15 October 2026. Full detail is in [[Dev/Print-Prep-Plan]].
+
+- **One engine.** Print prep is one engine, in physical units (mm, lpi, ppi, degrees). Every design gets a DTG/DTF version and a screen-print version.
+- **Channels.** Shop products always print DTG/DTF. Screen print is for runs (bulk orders) only.
+- **Separations.** Automatic, at 1 to 8 screens as standard. The count includes the white underbase and the highlight white. A screen-printed run can go to 15 screens, at €1 per piece for each screen above 8. A person audits every production pack before production.
+- **Inks.** Screen inks are Pantone colours. The shop mixes them from Magna pigments and matches them in MagnaMix. Pantone codes appear only in admin. Clients see plain colour names.
+- **Screen PSD.** One layer per ink. The films print one by one from that file.
+- **Staff roles.** Three roles: owner, staff and artist. The owner sets each staff member's level for each admin area: none, view, work or manage. Each level includes the ones before it.
+
+---
+
 ## Full Historical Record
 
 The complete v3.2 PRD (7,000+ lines, all update summaries from v1.0 → v3.2) is preserved in [[99-Archive/PRD-v3.2-Full-Historical]].
@@ -59,6 +72,8 @@ The complete v3.2 PRD (7,000+ lines, all update summaries from v1.0 → v3.2) is
 **v3.3 (Aug 24, 2026)**: [[05-Shared/Image-Generation-Architecture]] bumped to v1.1 after verification against current fal.ai/BFL docs. Architecture confirmed sound (FLUX.2 Dev + fal trainer + LoRA inference). Flagged: fal endpoint names drifted (`fal-ai/flux-2/lora`, `fal-ai/flux-2/lora/edit`); LoRA-aware editing now possible and should be prototyped for the edit loop; ADR-001 fallback upgradeable to a BFL klein warm standby with pre-uploaded LoRAs. No PRD-level architecture changes.
 
 **v3.4 (Aug 24, 2026)**: Same-day strategy pivot away from custom-trained style LoRAs. A quality failure in LoRA output plus head-to-head model tests showed off-the-shelf reference-guided generation matches or beats trained styles without the training overhead. New primary model: Nano Banana 2 (Google, via fal.ai), with Seedream 5.0 Pro (ByteDance, via fal.ai) as fallback. Styles are now "Style Capsules" — prompt templates plus curated reference images, surfaced through a Netflix-style pick-grid personalization flow, with attributes extracted to structured JSON by Claude Sonnet 5 via OpenRouter (Gemini 3.7 Flash fallback). Typography-in-designs is back in scope (Nano Banana 2 renders text reliably, reversing the earlier no-typography call). The upscaler step is removed — Nano Banana 2 renders native 4K finals directly. Estimated per-design cost ~$0.57. LoRA training is re-scoped to a post-MVP artist-signature-pack feature. Full detail in [[05-Shared/Image-Generation-Architecture]] v2.0.
+
+**v3.5 (Oct 15, 2026)**: Print prep and staff access decided (see the section above and [[Dev/Print-Prep-Plan]]). [[05-Shared/Image-Generation-Architecture]] bumped to v2.1: the final 4K render now runs before approval, and nothing regenerative runs after it.
 
 ---
 

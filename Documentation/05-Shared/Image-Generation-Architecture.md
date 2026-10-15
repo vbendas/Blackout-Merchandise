@@ -1,7 +1,7 @@
 # Image Generation Architecture
 
-> **Version**: 2.0
-> **Last Updated**: August 24, 2026
+> **Version**: 2.1
+> **Last Updated**: October 15, 2026
 > **Status**: Active — replaces the LoRA-first v1.x architecture
 > **Vendor**: fal.ai (single API key, commercial license included)
 > **Strategy**: Reference-guided generation on off-the-shelf frontier models (Nano Banana 2 primary, Seedream 5.0 Pro fallback). Custom-trained style LoRAs are re-scoped to post-MVP artist-signature packs — see [Section 7](#7-lora-re-scope-post-mvp-artist-packs).
@@ -123,13 +123,19 @@ Phase 2: ITERATION (repeats 2-10 times)
   → Sharp auto-sharpen after each edit round
   → Store all intermediates
 
-Phase 3: FINALIZATION
-  Artist approves design
+Phase 3: FINALIZATION (before approval)
   → fal-ai/ideogram/remove-background (if needed)
-  → Native 4K render is already print-ready — no upscale step in the common path
+  → Final render at native 4K (nano-banana-2, 4K tier) for generated or edited designs. Drafts stay at 1K.
+    Uploaded art is used as it is.
   → (edge case) clarity-upscaler if print size exceeds 4K
-  → Sharp final sharpen + color correction
-  → Enter color separation / halftone pipeline (OpenCV)
+  → Sharp final sharpen + colour correction
+  → Artist approves design
+
+After approval: deterministic steps only
+  → No regenerative model runs after approval: no NB2 re-render, no upscaler, no background removal.
+    A regeneration can change details the client has already approved.
+  → Print prep (colour separations, halftones, traps, production files) is deterministic.
+    See `Documentation/Dev/Print-Prep-Plan.md`, sections 3 and 4.
 
 Phase 4: MOCKUP
   → Cloudinary composites design onto garment photo
@@ -578,13 +584,14 @@ export async function POST(req: Request) {
 }
 ```
 
-### Finalize Design API Route
+### Finalize Design API Route (before approval)
 
 ```typescript
 // app/src/app/api/finalize-design/route.ts
 import { falClient, FAL_ENDPOINTS } from '@/lib/ai/falClient';
 
 export async function POST(req: Request) {
+  // Runs before approval. Approval only records the returned image as the approved version.
   const { imageUrl, needsUpscale = false } = await req.json();
 
   // Remove background first (most designs need this)
@@ -781,6 +788,7 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=xxxxxxxx
 | 1.3 | Aug 24, 2026 | Phase 3 BFL warm-standby check: ruled out — fal-trained FLUX.2 dev LoRAs architecturally incompatible with BFL klein finetune endpoints. ADR-001 mitigation reverted to plain non-LoRA generation fallback |
 | 1.4 | Aug 24, 2026 | Phase 2 LoRA-aware edit prototype: not adopted — no sustained degradation advantage at ~75% higher cost; degradation traced to sequential edit chaining (re-encoding noise), not style drift; follow-up idea recorded: re-anchor edits to base image with accumulated prompts |
 | **2.0** | **Aug 24, 2026** | **Major strategy pivot**: dropped custom-trained style LoRAs as the MVP mechanism after `american-traditional-v1` produced unusable output; adopted reference-guided generation on Nano Banana 2 (primary) / Seedream 5.0 Pro (fallback) via fal.ai, validated by an Aug 24 image-to-image head-to-head showing production-ready results vs. failed text-to-image and failed LoRA output. Deleted the upscaler from the critical finalization path (NB2 native 4K covers most print sizes); dropped Ideogram from the plan and reversed ADR-005 (NB2 handles in-design typography). Replaced the LoRA Strategy section with the Style Capsule system: prompt template + curated reference library, Netflix-style pick-grid personalization, Claude Sonnet 5 (OpenRouter) attribute extraction with Gemini 3.7 Flash fallback (bake-off evidence in §12), centroid-anchor selection, two reference lanes (style vs. content), user-upload "Artist Visual Identity" pipeline. Re-anchor-to-base is now the always-on edit default (ADR-004 amended); ADR-002's fast/max tier split formally superseded — no tier split exists anywhere in the pipeline. Added ADR-006 (off-the-shelf frontier models over custom LoRAs) and ADR-007 (reference-guided Style Capsules). LoRA training re-scoped, not deleted — post-MVP artist-signature packs on partner-artist flash with written permission; existing trained artifacts ($12.80 spent) preserved as baseline evidence and their dataset repurposed as the Style Capsule reference library. Updated `styles`/`style_preferences` database schema (§9) and `app/src/lib/ai/falClient.ts` endpoint constants (§10) to match. |
+| 2.1 | Oct 15, 2026 | Finalisation moved before approval (§3, Phase 3). The final 4K render for generated or edited designs, and any edge-case upscale, now run before the client approves. Nothing regenerative runs after approval, because a regeneration can change details the client approved, so the post-approval 4K re-render is dropped. Print prep after approval is deterministic (`Documentation/Dev/Print-Prep-Plan.md`). The §10 finalise route runs before approval; approval only records its output. |
 
 ---
 
