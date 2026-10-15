@@ -302,13 +302,14 @@
   {
     "id": "mcp",
     "q": "Can I use my own AI agent?",
-    "a": "That is the plan. The tools behind Merch Studio open up as an MCP server, so Claude, ChatGPT, Cursor and other MCP clients can work with them. Members only, with your member email and key. It is not open yet. The agents page has the endpoint, the setup steps and the full list of tools.",
+    "a": "That is the plan. The tools behind Merch Studio open up as an MCP server, so Claude, ChatGPT, Gemini, Grok and other MCP clients can work with them. Members only, with your member email and key. It is not open yet. The agents page has the endpoint, the setup steps and the full list of tools.",
     "keywords": [
       "mcp",
       "agents",
       "claude",
       "chatgpt",
-      "cursor",
+      "gemini",
+      "grok",
       "connect",
       "connector",
       "own",

@@ -231,15 +231,16 @@ pre.code .k{color:var(--a5)}
       <div class="label k"><span class="no" aria-hidden="true">02</span><h2 id="s2">Connect</h2><span class="tag">Not live yet</span></div>
       <div class="c">
         <div class="blk">
-          <div class="blk-h"><span class="label">Claude Code</span><button type="button" class="cp" data-copy="claude mcp add --transport http merchfrom https://mcp.merchfrom.com" aria-label="Copy the Claude Code command">Copy</button></div>
-          <pre class="code"><span class="p">$ </span>claude mcp add --transport http merchfrom https://mcp.merchfrom.com</pre>
-          <p class="note">Then run /mcp inside Claude Code to check the connection.</p>
-        </div>
-        <div class="blk">
-          <div class="blk-h"><span class="label">Claude desktop and claude.ai</span><button type="button" class="cp" data-copy="https://mcp.merchfrom.com" aria-label="Copy the connector URL for Claude">Copy URL</button></div>
+          <div class="blk-h"><span class="label">Claude</span><button type="button" class="cp" data-copy="https://mcp.merchfrom.com" aria-label="Copy the connector URL for Claude">Copy URL</button></div>
           <pre class="code"><span class="k">Settings &rsaquo; Connectors &rsaquo; Add custom connector</span>
 Name  MerchFrom
 URL   https://mcp.merchfrom.com</pre>
+          <p class="note">On claude.ai and in the Claude desktop app.</p>
+        </div>
+        <div class="blk">
+          <div class="blk-h"><span class="label">Claude Code</span><button type="button" class="cp" data-copy="claude mcp add --transport http merchfrom https://mcp.merchfrom.com" aria-label="Copy the Claude Code command">Copy</button></div>
+          <pre class="code"><span class="p">$ </span>claude mcp add --transport http merchfrom https://mcp.merchfrom.com</pre>
+          <p class="note">Then run /mcp inside Claude Code to check the connection.</p>
         </div>
         <div class="blk">
           <div class="blk-h"><span class="label">ChatGPT</span><button type="button" class="cp" data-copy="https://mcp.merchfrom.com" aria-label="Copy the connector URL for ChatGPT">Copy URL</button></div>
@@ -249,23 +250,25 @@ URL   https://mcp.merchfrom.com</pre>
           <p class="note">Developer mode is needed, where your plan offers it.</p>
         </div>
         <div class="blk">
-          <div class="blk-h"><span class="label">Cursor</span><button type="button" class="cp" data-copy="{&quot;mcpServers&quot;:{&quot;merchfrom&quot;:{&quot;url&quot;:&quot;https://mcp.merchfrom.com&quot;}}}" aria-label="Copy the Cursor mcp.json snippet">Copy</button></div>
-          <pre class="code"><span class="k">~/.cursor/mcp.json</span>
-{
+          <div class="blk-h"><span class="label">Gemini</span><button type="button" class="cp" data-copy="gemini mcp add --transport http merchfrom https://mcp.merchfrom.com" aria-label="Copy the Gemini CLI command">Copy</button></div>
+          <pre class="code"><span class="p">$ </span>gemini mcp add --transport http merchfrom https://mcp.merchfrom.com</pre>
+          <p class="note">In the Gemini CLI. Add -s user to keep it for every project, then run /mcp to check the connection.</p>
+        </div>
+        <div class="blk">
+          <div class="blk-h"><span class="label">Grok</span><button type="button" class="cp" data-copy="https://mcp.merchfrom.com" aria-label="Copy the connector URL for Grok">Copy URL</button></div>
+          <pre class="code"><span class="k">grok.com &rsaquo; Connectors &rsaquo; New connector &rsaquo; Custom</span>
+Name  MerchFrom
+URL   https://mcp.merchfrom.com</pre>
+          <p class="note">Where your plan offers custom connectors.</p>
+        </div>
+        <div class="blk">
+          <div class="blk-h"><span class="label">Any other MCP client</span><button type="button" class="cp" data-copy="{&quot;mcpServers&quot;:{&quot;merchfrom&quot;:{&quot;url&quot;:&quot;https://mcp.merchfrom.com&quot;}}}" aria-label="Copy the MCP config snippet">Copy</button></div>
+          <pre class="code">{
   "mcpServers": {
     "merchfrom": { "url": "https://mcp.merchfrom.com" }
   }
 }</pre>
-          <p class="note">Or .cursor/mcp.json inside a single project.</p>
-        </div>
-        <div class="blk">
-          <div class="blk-h"><span class="label">Any MCP client</span><button type="button" class="cp" data-copy="{&quot;name&quot;:&quot;merchfrom&quot;,&quot;url&quot;:&quot;https://mcp.merchfrom.com&quot;,&quot;transport&quot;:&quot;http&quot;}" aria-label="Copy the generic client JSON">Copy</button></div>
-          <pre class="code">{
-  "name": "merchfrom",
-  "url": "https://mcp.merchfrom.com",
-  "transport": "http"
-}</pre>
-          <p class="note">On first use, sign in with your member email and key.</p>
+          <p class="note">Look for remote servers, connectors or custom tools in the client&rsquo;s settings. Add the URL above as a remote server over Streamable HTTP; clients that take a config file use the snippet. On first use, sign in with your member email and key.</p>
         </div>
       </div>
     </section>
