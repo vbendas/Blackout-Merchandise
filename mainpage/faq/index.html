@@ -64,6 +64,8 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
 .clk .s{color:var(--a4)}
 .top .clk .where{color:var(--a5);margin-right:.6em}
 @media (max-width:420px){.top .clk .where{display:none}}
+.top-r{display:flex;align-items:center;gap:22px}
+@media (max-width:420px){.top-r{gap:14px}.top .xesc{display:none}}
 
 .view{min-height:100vh;min-height:100dvh;padding:132px var(--g) 28px;display:flex;flex-direction:column}
 /* the content fills the screen, so the footer always closes it, as on the door */
@@ -139,6 +141,8 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
   .ans-b p{font-size:17px}
 }
 @media (pointer:coarse){
+  /* no keyboard: the "Esc" hint means nothing */
+  .xesc{display:none}
   .skip,.ulink,.flink,.fcopy,.top .wm{display:inline-flex;align-items:center;min-height:44px}
   .qb{min-height:44px}
 }
@@ -154,7 +158,10 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
 <div id="live" class="sr" role="status" aria-live="polite" aria-atomic="true"></div>
 <header class="top">
   <a href="../" class="label wm"><img src="../img/logo.png" alt="MerchFrom" width="360" height="271"></a>
-  <span class="label clk" id="top-clock" aria-hidden="true"><span class="where">Barcelona</span><span class="v">--:--</span></span>
+  <div class="top-r">
+    <span class="label clk" id="top-clock" aria-hidden="true"><span class="where">Barcelona</span><span class="v">--:--</span></span>
+    <a href="../" class="ulink" id="top-close">Close<span class="xesc"> &middot; Esc</span></a>
+  </div>
 </header>
 
 <div class="view">
@@ -428,6 +435,12 @@ button{font:inherit;color:inherit;background:none;border:0;border-radius:0;lette
     }
   });
 })();
+/* Esc closes the page, like Close: back to the door */
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Escape'||e.metaKey||e.ctrlKey||e.altKey) return;
+  var t=e.target; if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+  e.preventDefault(); location.href='../';
+});
 </script>
 </body>
 </html>

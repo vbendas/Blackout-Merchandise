@@ -189,6 +189,7 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .play{min-width:64px;text-align:left}
 
 @media (pointer:coarse){
+  .xesc{display:none}
   .ulink{display:inline-flex;align-items:center;min-height:44px}
 }
 
@@ -280,7 +281,7 @@ html.rm *,html.rm *::before,html.rm *::after{animation:none!important;transition
       <p class="label b">Run 2844 &middot; Grave Lanterns</p>
     </div>
     <div class="r">
-      <a class="ulink" id="close" href="../" target="_top">Close</a>
+      <a class="ulink" id="close" href="../" target="_top">Close<span class="xesc"> &middot; Esc</span></a>
     </div>
   </header>
 
@@ -608,7 +609,7 @@ document.addEventListener("keydown",function(e){
   else if(k==="ArrowRight"){e.preventDefault();goto(Math.min(N-1,Math.max(cur,0)+1))}
   else if(k==="ArrowLeft"){e.preventDefault();var l=t-starts[Math.max(cur,0)];goto(l>2?cur:Math.max(0,cur-1))}
   else if(k==="Home"){e.preventDefault();goto(0)}
-  else if(k==="Escape"&&window.parent!==window){try{window.parent.postMessage({type:"merchfrom:watch",action:"close"},"*")}catch(_){}}
+  else if(k==="Escape"){if(window.parent!==window){try{window.parent.postMessage({type:"merchfrom:watch",action:"close"},"*")}catch(_){}}else location.href="../"}
 });
 filmEl.addEventListener("click",function(e){
   if(e.target.closest("button,a"))return;
