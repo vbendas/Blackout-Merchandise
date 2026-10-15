@@ -11,16 +11,22 @@
  * Idempotent: every insert upserts on its natural key, so re-running this
  * script is always safe.
  *
- * Run with: `npm run seed` (from `platform/`).
+ * Run with: `npm run seed` (from `platform/`). Writes to whatever
+ * DATABASE_URL points at, so check it first. With LOCAL_DB_DIR set (local demo
+ * mode, lib/dev/local-demo.ts) it seeds that local PGlite database instead and
+ * never connects to Neon. The seeding itself is `seedCatalogue(db)`, which
+ * takes any database, so `npm run demo:local` and the tests can run it on
+ * PGlite. The connection is made in main(), so importing this file connects to
+ * nothing.
  */
 
 import { config } from 'dotenv';
-config({ path: '.env.local', quiet: true });
-
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { sql as rawSql } from 'drizzle-orm';
 import * as schema from '../../src/db/schema';
+import type { SeedDb } from './seed-print';
+import { localDemoDir } from '../lib/dev/local-demo';
 
 import { PRODUCTS } from '../lib/catalog/products';
 import { PRODUCT_DETAILS, SHOP_PRINT_SERVICE_FLAGS, printServiceCodesFor } from '../lib/catalog/product-details';
@@ -39,13 +45,6 @@ import { colourName } from '../lib/catalog/colour-names';
 import { SIZE_GUIDES } from '../lib/catalog/size-guides';
 import { typeFor, fitFor } from '../lib/catalog/catalog-filters';
 import { PRODUCT_VIDEOS } from '../lib/catalog/product-videos';
-
-if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not defined (expected in platform/.env.local)');
-}
-
-const sqlConnection = neon(process.env.DATABASE_URL);
-const db = drizzle(sqlConnection, { schema });
 
 // This repo has two installed copies of drizzle-orm — the root uses 0.45.1
 // (bun), `platform/` uses ^0.45.2 (npm) — so `schema`'s PgTable/PgColumn
@@ -112,14 +111,14 @@ const EU_MINUS_ES_PT = [
 ];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function countRows(table: any): Promise<number> {
+async function countRows(db: SeedDb, table: any): Promise<number> {
     const result = await db.select({ count: rawSql<number>`count(*)::int` }).from(table);
     return result[0].count;
 }
 
 // ─── Seeders ────────────────────────────────────────────────────────────────
 
-async function seedColours(): Promise<void> {
+async function seedColours(db: SeedDb): Promise<void> {
     const rows = [
         {
             code: BASE_COLOUR,
@@ -150,7 +149,7 @@ async function seedColours(): Promise<void> {
     }
 }
 
-async function seedBlanks(): Promise<void> {
+async function seedBlanks(db: SeedDb): Promise<void> {
     const rows = PRODUCTS.map((p, i) => {
         const details = PRODUCT_DETAILS[p.code];
         return {
@@ -195,7 +194,7 @@ async function seedBlanks(): Promise<void> {
     }
 }
 
-async function seedBlankColours(): Promise<void> {
+async function seedBlankColours(db: SeedDb): Promise<void> {
     const rows: {
         blankCode: string;
         colourCode: string;
@@ -234,7 +233,7 @@ async function seedBlankColours(): Promise<void> {
     }
 }
 
-async function seedBlankSizes(): Promise<void> {
+async function seedBlankSizes(db: SeedDb): Promise<void> {
     const rows: { blankCode: string; size: string; displayOrder: number }[] = [];
 
     for (const p of PRODUCTS) {
@@ -251,7 +250,7 @@ async function seedBlankSizes(): Promise<void> {
     }
 }
 
-async function seedSizeGuides(): Promise<void> {
+async function seedSizeGuides(db: SeedDb): Promise<void> {
     const rows = PRODUCTS.map((p) => {
         const guide = SIZE_GUIDES[p.code];
         return {
@@ -274,7 +273,7 @@ async function seedSizeGuides(): Promise<void> {
     }
 }
 
-async function seedPrintServices(): Promise<void> {
+async function seedPrintServices(db: SeedDb): Promise<void> {
     const rows = [
         { code: 'screen_1c', name: 'Screen print (1 colour)', maxColours: 1 },
         { code: 'screen_2c', name: 'Screen print (2 colours)', maxColours: 2 },
@@ -309,7 +308,7 @@ async function seedPrintServices(): Promise<void> {
     }
 }
 
-async function seedBlankPrintServices(): Promise<void> {
+async function seedBlankPrintServices(db: SeedDb): Promise<void> {
     const rows: { blankCode: string; printServiceCode: string }[] = [];
     for (const p of PRODUCTS) {
         for (const serviceCode of printServiceCodesFor(p.code)) {
@@ -324,7 +323,7 @@ async function seedBlankPrintServices(): Promise<void> {
     }
 }
 
-async function seedBaseCosts(): Promise<void> {
+async function seedBaseCosts(db: SeedDb): Promise<void> {
     const rows: {
         blankCode: string;
         printServiceCode: string;
@@ -373,7 +372,7 @@ async function seedBaseCosts(): Promise<void> {
     }
 }
 
-async function seedShippingZones(): Promise<void> {
+async function seedShippingZones(db: SeedDb): Promise<void> {
     const zones = [
         { name: 'Spain', countries: ['ES'], flatCents: 450, freeOverCents: null as number | null },
         { name: 'Portugal', countries: ['PT'], flatCents: 590, freeOverCents: null as number | null },
@@ -416,37 +415,37 @@ async function seedShippingZones(): Promise<void> {
 
 // ─── Main ───────────────────────────────────────────────────────────────────
 
-async function main() {
-    console.log('Seeding platform catalog from lib/catalog...\n');
+/** Seeds the whole catalogue into `db` and returns the row count of each table. */
+export async function seedCatalogue(db: SeedDb, log: (line: string) => void = console.log): Promise<Record<string, number>> {
+    log('Seeding platform catalog from lib/catalog...\n');
 
-    await seedColours();
-    console.log('colours seeded');
+    await seedColours(db);
+    log('colours seeded');
 
-    await seedBlanks();
-    console.log('blanks seeded');
+    await seedBlanks(db);
+    log('blanks seeded');
 
-    await seedBlankColours();
-    console.log('blank_colours seeded');
+    await seedBlankColours(db);
+    log('blank_colours seeded');
 
-    await seedBlankSizes();
-    console.log('blank_sizes seeded');
+    await seedBlankSizes(db);
+    log('blank_sizes seeded');
 
-    await seedSizeGuides();
-    console.log('size_guides seeded');
+    await seedSizeGuides(db);
+    log('size_guides seeded');
 
-    await seedPrintServices();
-    console.log('print_services seeded');
+    await seedPrintServices(db);
+    log('print_services seeded');
 
-    await seedBlankPrintServices();
-    console.log('blank_print_services seeded');
+    await seedBlankPrintServices(db);
+    log('blank_print_services seeded');
 
-    await seedBaseCosts();
-    console.log('base_costs seeded');
+    await seedBaseCosts(db);
+    log('base_costs seeded');
 
-    await seedShippingZones();
-    console.log('shipping_zones seeded');
+    await seedShippingZones(db);
+    log('shipping_zones seeded');
 
-    console.log('\nRow counts:');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tables: [string, any][] = [
         ['colours', S.colours],
@@ -459,17 +458,47 @@ async function main() {
         ['base_costs', S.baseCosts],
         ['shipping_zones', S.shippingZones],
     ];
+    const counts: Record<string, number> = {};
+    log('\nRow counts:');
     for (const [name, table] of tables) {
-        console.log(`  ${name}: ${await countRows(table)}`);
+        counts[name] = await countRows(db, table);
+        log(`  ${name}: ${counts[name]}`);
+    }
+    return counts;
+}
+
+async function main() {
+    let db: SeedDb;
+    let close: (() => Promise<void>) | null = null;
+    if (localDemoDir()) {
+        // Local demo mode: the local PGlite database, with its migrations applied. Neon is never opened.
+        const { openDemoDatabase } = await import('./local-demo-db');
+        const demo = await openDemoDatabase();
+        db = demo.db;
+        close = demo.close;
+        console.log('Seeding the local demo database (LOCAL_DB_DIR), not Neon.\n');
+    } else {
+        config({ path: '.env.local', quiet: true });
+        if (!process.env.DATABASE_URL) {
+            throw new Error('DATABASE_URL is not defined (expected in platform/.env.local)');
+        }
+        db = drizzle(neon(process.env.DATABASE_URL), { schema });
+    }
+    try {
+        await seedCatalogue(db);
+    } finally {
+        await close?.();
     }
 }
 
-main()
-    .then(() => {
-        console.log('\nSeed complete.');
-        process.exit(0);
-    })
-    .catch((err) => {
-        console.error('Seed failed:', err);
-        process.exit(1);
-    });
+if (require.main === module) {
+    main()
+        .then(() => {
+            console.log('\nSeed complete.');
+            process.exit(0);
+        })
+        .catch((err) => {
+            console.error('Seed failed:', err);
+            process.exit(1);
+        });
+}

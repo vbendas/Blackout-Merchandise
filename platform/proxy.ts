@@ -16,6 +16,8 @@ import { isPlatformHost, resolveStoreSlugForHost } from '@/lib/services/domains'
 export const APP_SEGMENTS: ReadonlySet<string> = new Set([
   'admin',
   'api',
+  // the local demo's identity page: a 404 unless AUTH_DEV_BYPASS is on (app/dev)
+  'dev',
   'mock-checkout',
   'privacy',
   'register',

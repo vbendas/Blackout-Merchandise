@@ -236,6 +236,43 @@ Owner decision: a product can't be published until its design is approved for it
 - `PRINT_MOCK=1` answers covered, like the other mocked approval calls.
 - `scripts/commerce-smoke.ts` and `scripts/admin-smoke.ts` made products live through the proof and `publishProduct` with no design. They now set the status directly, and `scripts/products-smoke.ts` has no proof step. Edited, not run.
 
+## Local demo (15 Oct, dev only)
+
+Neon doesn't have migrations 0003 and 0004 and nothing here may touch it, so the build can run on a local database: a persistent PGlite (Postgres in WebAssembly) in a gitignored folder, filled by the real engine. `LOCAL_DB_DIR` switches it on. Production never uses it, and a `LOCAL_DB_DIR` found in a production environment is an error (`lib/dev/local-demo.ts`).
+
+**Build** (from `platform/`; about 2 minutes, 3 to 4 GB of memory; the dev server must be stopped, the database takes one process):
+
+```
+npm run demo:local               # makes platform/.local-demo/ (db about 45 MB, print files about 450 MB)
+npm run demo:local -- --reset    # wipes it and builds again
+```
+
+**Run:**
+
+```
+cd /Users/victorbendas/Documents/GitHub/Merch-From-print-prep/platform
+LOCAL_DB_DIR=$PWD/.local-demo/db PRINT_STORAGE_DRIVER=local PRINT_STORAGE_DIR=$PWD/.local-demo/print-storage \
+  AUTH_DEV_BYPASS=1 NEXT_PUBLIC_APP_URL=http://localhost:3030 npx next dev --webpack -p 3030
+```
+
+Open http://localhost:3030 (it goes to `/dev`). `NEXT_PUBLIC_APP_URL` makes the shop links and the mock checkout's return page point here, not at the port in `.env.local`.
+
+**People** (`lib/dev/identities.ts`; `/dev` lists them and its links sign in as the right one first, through the `mf_dev_as` cookie; the account menu and the admin sidebar have "Switch identity (dev)"): Owner (`dev@merchfrom.test`, the fixed dev user), Artist (Nova Halo, the Underwriter shop), and employees on the Pre-press (Ines Vidal), Production (Marc Soler) and Support (Laia Ferrer) presets. No cookie, an unknown key or a user the demo never made is the fixed dev user.
+
+**What the build leaves** (two designs, T-shirt on black, French Navy and white, front chest 28 cm, through the real pipeline and services):
+- *Underwriter* (`test_design.png`): approved by the artist, every pack approved by pre-press with Pantone codes, two live shop products with the engine's proofs as their pictures, a shipped shop order, a queued one, a screen-printed run on the press, and its job sheet.
+- *Sunset star* (`flat-logo-3c.png`): ready for the artist to approve, one draft product (the publishing gate refuses it), a paid screen run on black whose Darks pack waits in pre-press with two inks coded and one not (the entry box shows).
+
+**Works in the demo:** every page above, for each person; the fan shop and the mock checkout (pay, order status, the pack joins the queue); the Studio with the scripted assistant and the real tools ("Products", "Runs"); and the print worker, which runs inside the dev server (`instrumentation-node.ts`, the same loop and handler as `npm run worker`), so Run again, Pantone codes (the files are rewritten), Upload corrected PSD and a build that an order starts really run. Checked in a browser: a code typed and the pack approved, Run again, a corrected PSD uploaded, the artist's approval, a fan's checkout.
+
+**Does not:**
+- While a job runs the server is slow to answer (one process, the engine holds it): a full front takes about a minute.
+- The assistant is the scripted mock, so `prepare_print` can't be asked for; builds start from the build script, a re-run, or an order that needs an unprepared colour.
+- Image generation, uploads (fal), Clerk, Discord, ElevenLabs and Resend are off: emails are written to `platform/var/outbox/`. Stripe is the mock, its in-memory state resets on a restart (the shop's payouts stay "ready" from a database row).
+- Stop the server with Ctrl-C or kill it: a hard kill recovers on the next start, and the lock file (`.local-demo/db.lock`) of a dead process is taken over.
+
+**Guards:** every demo path asks `localDemoOn()` (not production, `LOCAL_DB_DIR` set). `lib/db.ts` opens PGlite on the first query, loads it with Node's own require, and points `DATABASE_URL` at an unresolvable address, the print storage at disk and `PRINT_MOCK` off, for the whole process. `/dev` and `/dev/as/<key>` are a 404 without `AUTH_DEV_BYPASS`, `next` only takes a path on this site, and `npm run seed` and `seed:print` seed the local database when `LOCAL_DB_DIR` is set.
+
 ## Owner actions before going live
 
 1. **Neon:** apply `platform/drizzle/0003` and `0004` (`npm run db:migrate` from `platform/`). Then run `npm run seed`.

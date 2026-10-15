@@ -45,3 +45,6 @@ next-env.d.ts
 
 # local print storage (PRINT_STORAGE_DRIVER=local): PSDs, PNGs and proofs
 /.data/
+
+# local demo (npm run demo:local): the PGlite database and its print files
+/.local-demo/

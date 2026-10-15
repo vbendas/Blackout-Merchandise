@@ -1,0 +1,450 @@
+/**
+ * Local demo: builds a persistent local database of the print-prep build, with real data from the real
+ * engine, so the Studio and admin pages can be opened in a browser without Neon (whose shared database
+ * doesn't have the new tables). Development only, and it never touches Neon, R2, fal or any other
+ * service.
+ *
+ * What it makes, at LOCAL_DB_DIR (a PGlite database) and PRINT_STORAGE_DIR (the print files):
+ *   - every migration applied, the whole blank catalogue (scripts/seed.ts) and the ink system (seed-print.ts);
+ *   - the people (lib/dev/identities.ts): the owner, an artist with the Underwriter shop, and three employees
+ *     on the Pre-press, Production and Support presets;
+ *   - two designs run through the real pipeline (engine, pack writers, checks, the job queue) on black, French
+ *     Navy and white T-shirts, front chest 28 cm: the Underwriter (scripts/fixtures/print/test_design.png) and
+ *     a flat three-colour logo (flat-logo-3c.png), left in these states:
+ *       Underwriter     approved by the artist, every pack approved by pre-press (with Pantone codes), two
+ *                       live shop products, a queued shop order, a shipped one, a screen-printed run on the
+ *                       press, and its job sheet;
+ *       Sunset star     ready for the artist to approve, a screen run paid and waiting for pre-press: that
+ *                       pack has two inks with Pantone codes and one without (the entry box shows), and
+ *                       one draft product that can't be published until the artwork is approved.
+ *
+ * Orders, products, runs and approvals go through the real services (checkout and the mock Stripe,
+ * quotes and proofs, the publishing gate), the same calls the app makes. Running it takes a few minutes
+ * and a few GB of memory and disk.
+ *
+ * From platform/:
+ *   npm run demo:local                 build (does nothing if a demo is already built there)
+ *   npm run demo:local -- --reset      wipe both folders and build again
+ * Folders: LOCAL_DB_DIR and PRINT_STORAGE_DIR, default platform/.local-demo/db and .../print-storage
+ * (gitignored). --reset only deletes folders it made (a .local-demo path, or a marker it wrote).
+ *
+ * Then, with the build finished (the database takes one process at a time, so the build must not run
+ * beside the dev server):
+ *   LOCAL_DB_DIR=<db> PRINT_STORAGE_DRIVER=local PRINT_STORAGE_DIR=<print files> AUTH_DEV_BYPASS=1 \
+ *     NEXT_PUBLIC_APP_URL=http://localhost:3030 npx next dev --webpack -p 3030
+ * and open http://localhost:3030/dev.
+ */
+import { randomUUID } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { assignSampleCodes, drainPrintQueue, type LeaveOut } from './print-run-helpers';
+
+const PLATFORM = path.resolve(__dirname, '..');
+const ROOT = path.join(PLATFORM, '.local-demo');
+const MARKER = '.local-demo-folder';
+
+const BLANK = 'STTU169'; // T-shirt, "Creator 2.0"
+const PLACEMENT = { position: 'front_chest', widthCm: 28 };
+const BLACK = 'C002';
+const NAVY = 'C727';
+const WHITE = 'C001';
+const GARMENTS = [BLACK, NAVY, WHITE];
+const SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
+
+const SHIP_TO = { name: 'Underwriter', line1: 'Carrer de Provença 288', city: 'Barcelona', postcode: '08008', country: 'ES' };
+
+type Result<T> = { ok: true; value: T } | { ok: false; error: string };
+
+function must<T>(result: Result<T>, what: string): T {
+  if (!result.ok) throw new Error(`${what}: ${result.error}`);
+  return result.value;
+}
+
+const started = Date.now();
+function log(line: string): void {
+  console.log(`[demo ${((Date.now() - started) / 1000).toFixed(0).padStart(4)} s] ${line}`);
+}
+
+// ---------------------------------------------------------------------------
+// Folders and environment
+
+interface Folders {
+  db: string;
+  storage: string;
+}
+
+function folders(): Folders {
+  return {
+    db: path.resolve(process.env.LOCAL_DB_DIR?.trim() || path.join(ROOT, 'db')),
+    storage: path.resolve(process.env.PRINT_STORAGE_DIR?.trim() || path.join(ROOT, 'print-storage')),
+  };
+}
+
+async function isEmptyOrMissing(dir: string): Promise<boolean> {
+  try {
+    return (await readdir(dir)).length === 0;
+  } catch {
+    return true;
+  }
+}
+
+/** A folder this script may delete: it holds nothing, is under a .local-demo folder, or carries the marker
+ * a previous build wrote beside it. Anything else is somebody's folder and is left alone. */
+async function mayWipe(dir: string): Promise<boolean> {
+  if (await isEmptyOrMissing(dir)) return true;
+  if (dir.split(path.sep).includes('.local-demo')) return true;
+  return existsSync(`${dir}${MARKER}`);
+}
+
+/** Everything the build runs on is local. The script loads no .env file; what the shell exports for real
+ * services is blanked as well, so a stray key can't reach anything. */
+function pinEnvironment({ db, storage }: Folders): void {
+  if (process.env.NODE_ENV === 'production') throw new Error('The local demo is for development: NODE_ENV is production.');
+  process.env.LOCAL_DB_DIR = db;
+  process.env.PRINT_STORAGE_DRIVER = 'local';
+  process.env.PRINT_STORAGE_DIR = storage;
+  for (const name of [
+    'DATABASE_URL',
+    'FAL_API_KEY',
+    'ANTHROPIC_API_KEY',
+    'ELEVENLABS_API_KEY',
+    'RESEND_API_KEY',
+    'DISCORD_BOT_TOKEN',
+    'VERCEL_TOKEN',
+    'STRIPE_SECRET_KEY',
+    'CLERK_SECRET_KEY',
+    'R2_ACCESS_KEY_ID',
+    'R2_SECRET_ACCESS_KEY',
+  ]) {
+    process.env[name] = '';
+  }
+  process.env.STRIPE_MOCK = '1';
+  process.env.AGENT_MOCK = '1';
+  delete process.env.PRINT_MOCK;
+  delete process.env.PACKSHOT_BASE_URL;
+}
+
+// ---------------------------------------------------------------------------
+// The build
+
+interface ArtSpec {
+  key: 'underwriter' | 'sunset-star';
+  file: string;
+}
+
+async function main(): Promise<void> {
+  const args = process.argv.slice(2);
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log('npm run demo:local [-- --reset]   builds the local demo database; --reset wipes and rebuilds it. See the top of scripts/local-demo.ts.');
+    return;
+  }
+  const reset = args.includes('--reset');
+  const dirs = folders();
+  const builtFile = path.join(path.dirname(dirs.db), 'built.json');
+
+  // The database takes one process at a time: not while the dev server (or another build) has it open, and
+  // above all not before a --reset deletes it from under that process.
+  const { assertNotLockedByAnother, lockFileFor } = await import('../lib/dev/local-db');
+  assertNotLockedByAnother(lockFileFor(dirs.db));
+
+  if (reset) {
+    for (const dir of [dirs.db, dirs.storage]) {
+      if (!(await mayWipe(dir))) throw new Error(`${dir} is not empty and isn't a demo folder (no .local-demo in its path, no marker): not deleting it. Empty it yourself, or point LOCAL_DB_DIR and PRINT_STORAGE_DIR at demo folders.`);
+    }
+    await rm(dirs.db, { recursive: true, force: true });
+    await rm(`${dirs.db}.lock`, { force: true });
+    await rm(dirs.storage, { recursive: true, force: true });
+    await rm(builtFile, { force: true });
+    log('wiped the demo folders');
+  } else if (existsSync(builtFile)) {
+    console.log(`A demo is already built at ${dirs.db} (${builtFile}). Run with --reset to wipe it and build again.`);
+    return;
+  } else if (!(await isEmptyOrMissing(dirs.db)) || !(await isEmptyOrMissing(dirs.storage))) {
+    throw new Error(`${dirs.db} or ${dirs.storage} already holds files, but no finished build is recorded: a build did not finish. Run with --reset.`);
+  }
+
+  pinEnvironment(dirs);
+  await mkdir(path.dirname(dirs.db), { recursive: true });
+  await mkdir(dirs.storage, { recursive: true });
+  // The marker a later --reset needs to be sure these folders are ours.
+  await writeFile(`${dirs.db}${MARKER}`, 'made by npm run demo:local\n');
+  await writeFile(`${dirs.storage}${MARKER}`, 'made by npm run demo:local\n');
+
+  const { openDemoDatabase } = await import('./local-demo-db');
+  const demo = await openDemoDatabase();
+  try {
+    log(`database ready at ${demo.dir}`);
+    const summary = await build(demo.db);
+    await writeFile(builtFile, JSON.stringify({ builtAt: new Date().toISOString(), ...summary }, null, 2));
+    log('done');
+    console.log('\nBuilt. Start the dev server (stop it before building again):');
+    console.log(
+      `  cd ${PLATFORM} && LOCAL_DB_DIR=${dirs.db} PRINT_STORAGE_DRIVER=local PRINT_STORAGE_DIR=${dirs.storage} AUTH_DEV_BYPASS=1 NEXT_PUBLIC_APP_URL=http://localhost:3030 npx next dev --webpack -p 3030`,
+    );
+    console.log('Then open http://localhost:3030/dev');
+  } finally {
+    await demo.close();
+  }
+}
+
+async function build(db: import('./seed-print').SeedDb): Promise<Record<string, unknown>> {
+  const { eq, and } = await import('drizzle-orm');
+  const sharp = (await import('sharp')).default;
+  const { schema } = await import('../lib/db');
+  const { seedCatalogue } = await import('./seed');
+  const { seedInkSystem } = await import('./seed-print');
+  const { DEV_IDENTITIES } = await import('../lib/dev/identities');
+  const { PRESETS, normalisePermissions } = await import('../lib/auth/permissions');
+  const storage = await import('../lib/services/print-storage');
+  const { loadActor, recordStaffActivity } = await import('../lib/services/team');
+  const pipeline = await import('../lib/print/pipeline');
+  const printPrep = await import('../lib/services/print-prep');
+  const prepress = await import('../lib/services/prepress');
+  const products = await import('../lib/services/products');
+  const bulk = await import('../lib/services/bulk');
+  const { buildCheckout, buildBulkCheckout } = await import('../lib/services/checkout');
+  const { getStripeGateway } = await import('../lib/services/stripe');
+  const orders = await import('../lib/services/orders');
+  const production = await import('../lib/services/production');
+  const jobSheets = await import('../lib/services/job-sheets');
+
+  // -- the catalogue and the ink system ------------------------------------
+  const counts = await seedCatalogue(db, () => undefined);
+  log(`catalogue seeded: ${counts.blanks} blanks, ${counts.colours} colours, ${counts.base_costs} base costs`);
+  const ink = await seedInkSystem(db);
+  log(`ink system ${ink.action}`);
+
+  // -- the people -----------------------------------------------------------
+  const userIds = new Map<string, string>();
+  for (const identity of DEV_IDENTITIES) {
+    const [row] = await db
+      .insert(schema.users)
+      .values({ clerkId: identity.clerkId, email: identity.email, displayName: identity.displayName, role: identity.role, staffTitle: identity.title ?? null })
+      .returning({ id: schema.users.id });
+    userIds.set(identity.key, row.id);
+    if (identity.preset) {
+      const permissions = normalisePermissions(PRESETS[identity.preset].permissions);
+      await db.insert(schema.staffPermissions).values(Object.entries(permissions).map(([area, level]) => ({ userId: row.id, area, level: level as string, updatedBy: userIds.get('owner') ?? null })));
+    }
+  }
+  const idOf = (key: string): string => {
+    const id = userIds.get(key);
+    if (!id) throw new Error(`No ${key} user.`);
+    return id;
+  };
+  const owner = await loadActor(idOf('owner'), 'admin');
+  const ines = await loadActor(idOf('prepress'), 'staff');
+  const marc = await loadActor(idOf('production'), 'staff');
+  log('people made: owner, artist, pre-press, production, support');
+
+  // -- the artist's shop ------------------------------------------------------
+  const [store] = await db
+    .insert(schema.artistStores)
+    .values({
+      artistId: idOf('artist'),
+      slug: 'underwriter',
+      name: 'Underwriter',
+      isPublished: true,
+      publishedAt: new Date(),
+      country: 'ES',
+      currency: 'EUR',
+      about: 'Underwriter: heavy music from Barcelona. Every piece is printed in Barcelona on organic cotton.',
+    })
+    .returning();
+  // A connected Stripe account for the mock gateway: payouts show as ready, and products can be published.
+  await db.insert(schema.stripeAccounts).values({ storeId: store.id, accountId: 'acct_demo_local', chargesEnabled: true, payoutsEnabled: true, requirements: [], lastSyncedAt: new Date() });
+  const artistId = idOf('artist');
+
+  const blankSizes = (await db.select({ size: schema.blankSizes.size }).from(schema.blankSizes).where(eq(schema.blankSizes.blankCode, BLANK))).map((r) => r.size);
+  const sizes = SIZES.filter((s) => blankSizes.includes(s));
+  if (sizes.length === 0) throw new Error(`The ${BLANK} has none of the sizes ${SIZES.join(', ')} in the catalogue.`);
+
+  // -- the designs: art in print storage, named by the route that serves it ----------
+  async function addDesign(spec: ArtSpec): Promise<string> {
+    const bytes = await readFile(path.join(__dirname, 'fixtures', 'print', spec.file));
+    const meta = await sharp(bytes).metadata();
+    const id = randomUUID();
+    const key = `print/${id}/source/original.png`;
+    await storage.putObject({ key, data: bytes, contentType: 'image/png', visibility: 'public' });
+    const url = storage.routeUrl(key);
+    const widthPx = meta.width ?? 0;
+    await db.insert(schema.designs).values({
+      id,
+      storeId: store.id,
+      source: 'upload',
+      originalUrl: url,
+      printUrl: url,
+      previewUrl: url,
+      widthPx,
+      heightPx: meta.height ?? 0,
+      dpiAtPrint: Math.round(widthPx / (PLACEMENT.widthCm / 2.54)),
+      hasAlpha: Boolean(meta.hasAlpha),
+      readiness: 'ready',
+    });
+    return id;
+  }
+  const underwriter = await addDesign({ key: 'underwriter', file: 'test_design.png' });
+  const sunset = await addDesign({ key: 'sunset-star', file: 'flat-logo-3c.png' });
+  log('designs added');
+
+  // Products first: a design is named after its first product, and the packs carry that name.
+  async function addProduct(designId: string, name: string, colours: string[], priceCents: number): Promise<string> {
+    const product = must(
+      await products.createProduct({ storeId: store.id, designId, blankCode: BLANK, printServiceCode: 'dtg', placement: PLACEMENT, colours, sizes, name }),
+      `create "${name}"`,
+    );
+    must(await products.setPrice(store.id, product.id, priceCents), `price "${name}"`);
+    return product.id;
+  }
+  const tee = await addProduct(underwriter, 'Underwriter tee', [BLACK, NAVY], 3400);
+  const teeWhite = await addProduct(underwriter, 'Underwriter tee (white)', [WHITE], 3400);
+  // A draft: its artwork isn't approved, so the publishing gate won't let it go live yet.
+  const sunsetTee = await addProduct(sunset, 'Sunset star tee', GARMENTS, 3200);
+
+  const placements = [{ position: PLACEMENT.position, widthMm: PLACEMENT.widthCm * 10 }];
+  async function prepare(designId: string, name: string): Promise<void> {
+    must(await printPrep.preparePrint({ storeId: store.id, userId: artistId, designId, blankCode: BLANK, garmentCodes: GARMENTS, placements }), `prepare ${name}`);
+    log(`${name}: the engine is running...`);
+    await drainPrintQueue('local-demo', (line) => log(`${name}: ${line}`));
+  }
+
+  /** Pre-press types a Pantone code for each colour ink of these packs (all but those `leaveOut` picks), runs the
+   * file rewrites that queues, and returns how many inks have a code now. */
+  async function typeCodes(packs: { id: string }[], leaveOut?: LeaveOut, offset = 0): Promise<number> {
+    const { assigned } = await assignSampleCodes(ines, packs, { leaveOut, offset });
+    await drainPrintQueue('local-demo', (line) => log(`pantone: ${line}`));
+    return assigned.length;
+  }
+
+  // =========================================================================
+  // Underwriter: approved by the artist, every pack approved by pre-press
+  // =========================================================================
+  await prepare(underwriter, 'Underwriter');
+  const viewA = await printPrep.getApprovalView({ storeId: store.id, designId: underwriter });
+  if (!viewA?.canApprove) throw new Error('The Underwriter is not ready for the artist to approve.');
+  must(await printPrep.approveDesign({ storeId: store.id, userId: artistId, designId: underwriter, versionId: viewA.versionId }), 'the artist approves the Underwriter');
+  log('Underwriter: approved by the artist');
+
+  const versionA = viewA.versionId;
+  const coded = await typeCodes(await pipeline.loadCurrentPacks(versionA));
+  log(`Underwriter: ${coded} inks have a Pantone code`);
+  for (const pack of await pipeline.loadCurrentPacks(versionA)) must(await prepress.approvePack(ines, pack.id), `pre-press approves pack ${pack.id}`);
+  log('Underwriter: every pack approved by pre-press');
+
+  // Live products: through the real publishing gate, which the artist's approval now opens.
+  for (const productId of [tee, teeWhite]) must(await products.publishProduct(store.id, productId), 'publish a product');
+  // Each colour's picture is the DTG proof of the design on that garment, from the engine.
+  const approved = await printPrep.getApprovalView({ storeId: store.id, designId: underwriter });
+  for (const proof of (approved?.proofs ?? []).filter((p) => p.technique === 'dtg_dtf')) {
+    await db
+      .update(schema.productColours)
+      .set({ mockupUrl: proof.url })
+      .where(and(eq(schema.productColours.colourCode, proof.garmentCode), eq(schema.productColours.productId, proof.garmentCode === WHITE ? teeWhite : tee)));
+  }
+  log('Underwriter: two products live');
+
+  // Orders and runs, the way the app takes them: checkout on the mock Stripe, then paid.
+  const gateway = getStripeGateway();
+  async function shopOrder(lines: { productId: string; colourCode: string; size: string; qty: number }[], email: string): Promise<string> {
+    const checkout = must(await buildCheckout({ storeSlug: store.slug, lines, country: 'ES', email }), 'checkout');
+    const paid = must(await orders.markPaid(checkout.sessionId, await gateway.retrieveCheckoutSession(checkout.sessionId)), 'pay the order');
+    return paid.id;
+  }
+  // The earlier sale has shipped; the new one is queued.
+  const shipped = await shopOrder(
+    [
+      { productId: tee, colourCode: NAVY, size: 'L', qty: 1 },
+      { productId: teeWhite, colourCode: WHITE, size: 'M', qty: 1 },
+    ],
+    'maria@merchfrom.test',
+  );
+  for (const step of ['printing', 'packed'] as const) must(await production.advance(shipped, step), `order to ${step}`);
+  must(await production.advance(shipped, 'shipped', { carrier: 'Correos', code: 'PQ4829173650ES', url: 'https://www.correos.es' }), 'order to shipped');
+  await recordStaffActivity(marc, { area: 'production', action: 'production.advance', itemType: 'order', itemId: shipped, detail: { to: 'shipped', summary: 'Moved an order to shipped' } });
+  await shopOrder(
+    [
+      { productId: tee, colourCode: BLACK, size: 'M', qty: 2 },
+      { productId: tee, colourCode: BLACK, size: 'L', qty: 1 },
+      { productId: tee, colourCode: NAVY, size: 'S', qty: 1 },
+      { productId: teeWhite, colourCode: WHITE, size: 'M', qty: 1 },
+    ],
+    'jordi@merchfrom.test',
+  );
+  log('Underwriter: a shipped shop order and a queued one');
+
+  /** A paid screen-print run of shop products, the way the app takes one: quote, proof, the artist's OK,
+   * checkout on the mock Stripe, paid. Each line prints its product by screen print, whatever the product
+   * itself prints with. */
+  async function run(lines: { productId: string; colourCode: string; sizes: Record<string, number> }[]): Promise<{ bulkOrderId: string; orderId: string }> {
+    const quote = must(
+      await bulk.createBulkQuote({
+        storeId: store.id,
+        shipTo: SHIP_TO,
+        lines: lines.map((line) => ({ productId: line.productId, printServiceCode: 'screen_3c', colourCode: line.colourCode, sizes: line.sizes })),
+      }),
+      'quote the run',
+    );
+    const proof = must(await bulk.submitBulkProof(store.id, quote.id), 'submit the run proof');
+    must(await bulk.approveBulkProof(store.id, proof.id, artistId), 'approve the run proof');
+    const checkout = must(await buildBulkCheckout(store.id, quote.id), 'run checkout');
+    const paid = must(await bulk.markBulkPaid(checkout.sessionId, await gateway.retrieveCheckoutSession(checkout.sessionId)), 'pay the run');
+    if (!paid.orderId) throw new Error('The paid run has no order.');
+    return { bulkOrderId: quote.id, orderId: paid.orderId };
+  }
+  const runA = await run([
+    { productId: tee, colourCode: BLACK, sizes: { S: 10, M: 30, L: 20 } },
+    { productId: tee, colourCode: NAVY, sizes: { M: 20, L: 10 } },
+    { productId: teeWhite, colourCode: WHITE, sizes: { M: 15, L: 10, XL: 5 } },
+  ]);
+  must(await production.advance(runA.orderId, 'printing'), 'the run goes on the press');
+  await recordStaffActivity(marc, { area: 'production', action: 'production.advance', itemType: 'order', itemId: runA.orderId, detail: { to: 'printing', summary: 'Moved a run to printing' } });
+  log('Underwriter: a screen-printed run on the press');
+
+  const sheetA = await jobSheets.getDesignJobSheet(owner, underwriter);
+  if (!sheetA) throw new Error('The Underwriter has no job sheet.');
+  log(`Underwriter: job sheet ready (${(sheetA.bytes.length / 1024).toFixed(0)} KB)`);
+
+  // =========================================================================
+  // Sunset star: ready for the artist, a run waiting in pre-press
+  // =========================================================================
+  await prepare(sunset, 'Sunset star');
+  const viewB = await printPrep.getApprovalView({ storeId: store.id, designId: sunset });
+  if (!viewB?.canApprove) throw new Error('The Sunset star is not ready for the artist to approve.');
+  const packsB = await pipeline.loadCurrentPacks(viewB.versionId);
+  const darks = packsB.find((p) => p.technique === 'screen' && p.screenSetKey === 'darks');
+  if (!darks) throw new Error('The Sunset star has no darks pack.');
+  // Pre-press has started on the darks pack: every colour ink but the last has its code.
+  const colourInks = (pipeline.storedManifest(darks)?.inks ?? []).filter((i) => i.role === 'ink');
+  if (colourInks.length < 2) throw new Error('The Sunset star darks pack has too few colour inks to leave one without a code.');
+  const lastInk = Math.max(...colourInks.map((i) => i.index));
+  const codedB = await typeCodes([darks], (target, inkRow) => target.plateIndex === lastInk && inkRow.role === 'ink', 3);
+  log(`Sunset star: ${codedB} of ${colourInks.length} colour inks have a Pantone code on the darks pack`);
+
+  // A paid screen run on black: its pack (darks) joins the pre-press queue and waits there.
+  const runB = await run([{ productId: sunsetTee, colourCode: BLACK, sizes: { S: 12, M: 24, L: 24, XL: 12 } }]);
+  log('Sunset star: a run on black paid, its pack waiting in pre-press');
+
+  const sheetB = await jobSheets.getDesignJobSheet(owner, sunset);
+  if (!sheetB) throw new Error('The Sunset star has no job sheet.');
+
+  // -- what the build left ----------------------------------------------------
+  const packRows = await db.select().from(schema.productionPacks);
+  const byAudit: Record<string, number> = {};
+  for (const pack of packRows) byAudit[pack.auditStatus] = (byAudit[pack.auditStatus] ?? 0) + 1;
+  return {
+    store: { slug: store.slug, id: store.id },
+    designs: { underwriter, sunset },
+    packsByAudit: byAudit,
+    waitingPack: darks.id,
+    runs: { underwriter: runA, sunset: runB },
+    jobSheets: { underwriter: sheetA.filename, sunset: sheetB.filename },
+  };
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });

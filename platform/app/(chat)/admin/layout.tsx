@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
-import { requireUser } from '@/lib/auth';
+import { DEV_BYPASS, requireUser } from '@/lib/auth';
 import { hasAnyAdminAccess } from '@/lib/auth/permissions';
 import { adminNavFor } from '@/lib/admin/nav';
 import { AdminShell } from '@/components/admin/AdminShell';
@@ -16,5 +16,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   if (!hasAnyAdminAccess(actor)) redirect('/studio');
 
   const links = adminNavFor(actor).map(({ href, label }) => ({ href, label }));
-  return <AdminShell links={links}>{children}</AdminShell>;
+  return (
+    <AdminShell links={links} devSwitch={DEV_BYPASS}>
+      {children}
+    </AdminShell>
+  );
 }

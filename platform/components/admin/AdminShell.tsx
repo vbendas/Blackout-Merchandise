@@ -22,7 +22,16 @@ function isCurrent(pathname: string, href: string): boolean {
  * ADMIN, the pages this person may open, the way back to the Studio) and the
  * page to its right, which brings its own AdminPageHeader. Below 768px the
  * sidebar becomes a row of links across the top that scrolls sideways. */
-export function AdminShell({ links, children }: { links: AdminShellLink[]; children: ReactNode }) {
+export function AdminShell({
+  links,
+  devSwitch = false,
+  children,
+}: {
+  links: AdminShellLink[];
+  /** under the dev auth bypass: a link to /dev, where the identity can be switched */
+  devSwitch?: boolean;
+  children: ReactNode;
+}) {
   const pathname = usePathname() ?? '';
 
   return (
@@ -58,10 +67,19 @@ export function AdminShell({ links, children }: { links: AdminShellLink[]; child
         })}
         <Link
           href="/studio"
-          className="flex min-h-11 shrink-0 items-center rounded-[2px] px-2.5 whitespace-nowrap opacity-50 hover:opacity-100 md:mt-auto"
+          className={`flex min-h-11 shrink-0 items-center rounded-[2px] px-2.5 whitespace-nowrap opacity-50 hover:opacity-100 ${devSwitch ? '' : 'md:mt-auto'}`}
         >
           Back to Studio
         </Link>
+        {devSwitch ? (
+          <Link
+            href="/dev"
+            prefetch={false}
+            className="flex min-h-11 shrink-0 items-center rounded-[2px] px-2.5 whitespace-nowrap opacity-50 hover:opacity-100 md:mt-auto"
+          >
+            Switch identity (dev)
+          </Link>
+        ) : null}
       </nav>
       <main className="flex min-w-0 flex-1 flex-col">{children}</main>
     </div>

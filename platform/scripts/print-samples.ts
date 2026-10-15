@@ -22,8 +22,8 @@
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { assignSampleCodes, drainPrintQueue } from './print-run-helpers';
 
-const SAMPLE_CODES = ['PANTONE 186 C', 'PANTONE 2685 C', 'PANTONE 7406 C', 'PANTONE 3435 C', 'PANTONE 7621 C', 'PANTONE 300 C', 'PANTONE 1505 C', 'PANTONE 7739 C'];
 const GARMENTS = [
   { code: 'C002', front: '/packshots/PFM0_STTU169_C002.png', back: '/packshots/PBM0_STTU169_C002.png' },
   { code: 'C727', front: '/packshots/PFM0_STTU169_C727.webp', back: '/packshots/PBM0_STTU169_C727.webp' },
@@ -60,10 +60,8 @@ async function main(): Promise<void> {
     const { COLOUR_NAMES } = await import('@/lib/catalog/colour-names');
     const { seedInkSystem } = await import('./seed-print');
     const pipeline = await import('@/lib/print/pipeline');
-    const jobs = await import('@/lib/print/jobs');
     const printPrep = await import('@/lib/services/print-prep');
     const prepress = await import('@/lib/services/prepress');
-    const pantone = await import('@/lib/services/pantone-library');
     const storage = await import('@/lib/services/print-storage');
 
     // The catalogue this drop needs: the T-shirt in black, French Navy and white, with its packshots.
@@ -101,23 +99,7 @@ async function main(): Promise<void> {
     // The artwork is read from the fixture file; everything else is the real thing.
     pipeline.overridePrintDeps({ loadArt: async (v) => (v.artKey ? storage.getObject(v.artKey) : readFile(fixturePath)) });
 
-    const runQueue = async (): Promise<number> => {
-      let ran = 0;
-      for (;;) {
-        const job = await jobs.claimNextPrintJob('samples');
-        if (!job) return ran;
-        const started = Date.now();
-        try {
-          const result = await pipeline.handlePrintJob(job);
-          await jobs.completePrintJob(job.id, result, 'samples');
-          console.log(`job ${job.kind} done in ${((Date.now() - started) / 1000).toFixed(1)} s`);
-        } catch (err) {
-          await jobs.failPrintJob(job.id, err instanceof Error ? err.message : String(err), 'samples');
-          throw err;
-        }
-        ran++;
-      }
-    };
+    const runQueue = () => drainPrintQueue('samples');
 
     const queued = await printPrep.preparePrint({
       storeId: artist.storeId!,
@@ -136,13 +118,7 @@ async function main(): Promise<void> {
 
     // Pre-press: a code for every colour ink, the files rewritten with them, then the packs approved.
     const ownerActor = { userId: owner.userId, role: 'admin' as const };
-    let next = 0;
-    for (const pack of await pipeline.loadCurrentPacks(view.versionId)) {
-      for (const ink of (pipeline.storedManifest(pack)?.inks ?? []).filter((i) => i.role === 'ink')) {
-        const done = await pantone.assignPantone(ownerActor, { packId: pack.id, plateIndex: ink.index, code: SAMPLE_CODES[next++ % SAMPLE_CODES.length] });
-        if (!done.ok) throw new Error(done.error);
-      }
-    }
+    await assignSampleCodes(ownerActor, await pipeline.loadCurrentPacks(view.versionId));
     await runQueue();
     const audits: Record<string, string> = {};
     for (const pack of await pipeline.loadCurrentPacks(view.versionId)) {

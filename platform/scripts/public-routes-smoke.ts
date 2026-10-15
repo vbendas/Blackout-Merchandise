@@ -84,6 +84,9 @@ const PROTECTED_PATHS = [
   // the Studio's print approval, and a paused employee's page
   '/studio/approve/x',
   '/staff-invite/paused',
+  // the local demo's identity page and its cookie link (404 unless AUTH_DEV_BYPASS is on)
+  '/dev',
+  '/dev/as/artist',
   // print files and pre-press uploads
   '/api/print-files/print/x/v1/proof.webp',
   '/api/prepress/x/status',

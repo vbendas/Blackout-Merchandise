@@ -7,8 +7,10 @@
  * an admin's edits are never overwritten and re-running is safe.
  *
  * Run with: `npm run seed:print` (from `platform/`). Writes to whatever
- * DATABASE_URL points at, so check it first. The connection is made in main(),
- * so a test can import `seedInkSystem` and run it on PGlite.
+ * DATABASE_URL points at, so check it first. With LOCAL_DB_DIR set (local demo
+ * mode, lib/dev/local-demo.ts) it writes to that local PGlite database instead
+ * and never connects to Neon. The connection is made in main(), so a test can
+ * import `seedInkSystem` and run it on PGlite.
  */
 
 import { config } from 'dotenv';
@@ -19,6 +21,7 @@ import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core';
 import * as schema from '../../src/db/schema';
 
 import { DEFAULT_INK_SYSTEM } from '../lib/print/defaults';
+import { localDemoDir } from '../lib/dev/local-demo';
 
 export type SeedDb = PgDatabase<PgQueryResultHKT, typeof schema>;
 
@@ -45,16 +48,31 @@ export async function seedInkSystem(db: SeedDb): Promise<InkSystemSeedResult> {
 }
 
 async function main(): Promise<void> {
-  config({ path: '.env.local', quiet: true });
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not defined (expected in platform/.env.local)');
-  }
-  const db = drizzle(neon(process.env.DATABASE_URL), { schema });
-  const result = await seedInkSystem(db);
-  if (result.action === 'inserted') {
-    console.log(`[seed:print] inserted the default ink system (${result.id})`);
+  let db: SeedDb;
+  let close: (() => Promise<void>) | null = null;
+  if (localDemoDir()) {
+    // Local demo mode: the local PGlite database, with its migrations applied. Neon is never opened.
+    const { openDemoDatabase } = await import('./local-demo-db');
+    const demo = await openDemoDatabase();
+    db = demo.db;
+    close = demo.close;
+    console.log('[seed:print] using the local demo database (LOCAL_DB_DIR), not Neon');
   } else {
-    console.log(`[seed:print] kept the active ink system (${result.id}); nothing changed`);
+    config({ path: '.env.local', quiet: true });
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL is not defined (expected in platform/.env.local)');
+    }
+    db = drizzle(neon(process.env.DATABASE_URL), { schema });
+  }
+  try {
+    const result = await seedInkSystem(db);
+    if (result.action === 'inserted') {
+      console.log(`[seed:print] inserted the default ink system (${result.id})`);
+    } else {
+      console.log(`[seed:print] kept the active ink system (${result.id}); nothing changed`);
+    }
+  } finally {
+    await close?.();
   }
 }
 

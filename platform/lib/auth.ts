@@ -1,8 +1,10 @@
 import { cache } from 'react';
 import { eq } from 'drizzle-orm';
-import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { redirect, unstable_rethrow } from 'next/navigation';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { db, schema } from '@/lib/db';
+import { DEV_AS_COOKIE, devIdentityByKey, type DevIdentity } from '@/lib/dev/identities';
 import { clerkUserInputFromCurrentUser, getOrCreateUserFromClerk, parseUserRole } from '@/lib/services/users';
 import { loadActor, recordStaffActivity } from '@/lib/services/team';
 import { can, hasAnyAdminAccess, requirePermission, type Actor, type Area, type Level } from '@/lib/auth/permissions';
@@ -22,6 +24,9 @@ export interface SessionInfo {
 // Local development only: with AUTH_DEV_BYPASS=1 (and never in production)
 // every request runs as a fixed dev user so the app can be exercised
 // before real Clerk keys exist. The proxy skips Clerk under the same flag.
+// The /dev page (local demo mode) can switch that user for another one the
+// demo made, through the mf_dev_as cookie (lib/dev/identities.ts); nothing of
+// that is read unless this flag is on.
 export const DEV_BYPASS = process.env.AUTH_DEV_BYPASS === '1' && process.env.NODE_ENV !== 'production';
 
 /** Name shown for the dev-bypass user: an artist-style name, never "Dev". */
@@ -30,7 +35,25 @@ export const DEV_DISPLAY_NAME = process.env.AUTH_DEV_NAME ?? 'Nova Halo';
 /** Where a suspended employee is sent: a page that says so, and nothing else. */
 export const STAFF_PAUSED_PATH = '/staff-invite/paused';
 
+/** The identity the /dev page picked (the mf_dev_as cookie), or null: no cookie, a key that isn't one of
+ * lib/dev/identities.ts, or no request to read one from (a test, a script). Dev bypass only. */
+async function devIdentityFromCookie(): Promise<DevIdentity | null> {
+  try {
+    return devIdentityByKey((await cookies()).get(DEV_AS_COOKIE)?.value);
+  } catch (err) {
+    unstable_rethrow(err);
+    return null;
+  }
+}
+
 async function devUser(): Promise<SessionUser> {
+  // A picked identity is read, never written or created here: it exists when `npm run demo:local` made it
+  // (clerk ids 'dev-bypass' and 'dev-bypass:<key>'), otherwise the fixed dev user below signs in as before.
+  const picked = await devIdentityFromCookie();
+  if (picked) {
+    const [row] = await db.select().from(schema.users).where(eq(schema.users.clerkId, picked.clerkId)).limit(1);
+    if (row) return row;
+  }
   return getOrCreateUserFromClerk({
     clerkId: 'dev-bypass',
     email: process.env.AUTH_DEV_EMAIL ?? 'dev@merchfrom.test',

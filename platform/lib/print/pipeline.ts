@@ -24,7 +24,8 @@ import { dtgPngFileName, dtgPsdFileName, screenPsdFileName, type FileStemInput }
 import type * as JobsModule from '@/lib/print/jobs';
 import type * as StorageModule from '@/lib/services/print-storage';
 import { loadPackshot } from '@/lib/services/packshots';
-import { getObject, isNotFound, objectUrl, openObject, printKey, putObject, statObject } from '@/lib/services/print-storage';
+import { PRINT_FILES_ROUTE, getObject, isNotFound, isValidKey, objectUrl, openObject, printKey, putObject, statObject } from '@/lib/services/print-storage';
+import { localDemoOn } from '@/lib/dev/local-demo';
 import { enqueuePrintJob, hashJobInput } from '@/lib/print/jobs';
 import { recordStaffActivity } from '@/lib/services/team';
 import { notify, type NotificationEvent } from '@/lib/services/notifications';
@@ -154,8 +155,23 @@ const lazyPack: PackApi = {
   screenSetPrints: async (set) => (await import('@/lib/print/pack')).screenSetPrints(set),
 };
 
+/** Local demo mode keeps its designs' art in print storage and names it by the route that serves it
+ * ('/api/print-files/print/<design>/source/original.png'), an address a server cannot fetch: this is the
+ * storage key behind one, or null for any other address and always outside local demo mode. */
+function demoArtKey(artUrl: string): string | null {
+  if (!localDemoOn() || !artUrl.startsWith(`${PRINT_FILES_ROUTE}/`)) return null;
+  try {
+    const key = decodeURIComponent(artUrl.slice(PRINT_FILES_ROUTE.length + 1).split('?')[0]);
+    return isValidKey(key) ? key : null;
+  } catch {
+    return null;
+  }
+}
+
 async function defaultLoadArt(version: { artKey: string | null; artUrl: string }): Promise<Buffer> {
   if (version.artKey) return getObject(version.artKey);
+  const demoKey = demoArtKey(version.artUrl);
+  if (demoKey) return getObject(demoKey);
   const response = await fetch(version.artUrl);
   if (!response.ok) throw new Error(`Could not download the artwork (${response.status}).`);
   return Buffer.from(await response.arrayBuffer());

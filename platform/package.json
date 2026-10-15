@@ -13,7 +13,8 @@
     "seed": "tsx scripts/seed.ts",
     "test": "tsx --test \"lib/**/*.test.ts\" \"scripts/test/**/*.test.ts\" \"worker/**/*.test.ts\" \"app/**/*.test.ts\" \"components/**/*.test.ts\"",
     "worker": "tsx worker/print-worker.ts",
-    "seed:print": "tsx scripts/seed-print.ts"
+    "seed:print": "tsx scripts/seed-print.ts",
+    "demo:local": "tsx scripts/local-demo.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",

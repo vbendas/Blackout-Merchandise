@@ -11,6 +11,7 @@ export const RESERVED_SLUGS = new Set([
   // app routes
   'admin',
   'api',
+  'dev',
   'mock-checkout',
   'privacy',
   'register',

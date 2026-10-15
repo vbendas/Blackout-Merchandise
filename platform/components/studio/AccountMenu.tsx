@@ -41,6 +41,8 @@ function AccountMenuInner({ signOut }: { signOut?: () => void }) {
     { label: 'Settings', href: '/studio/settings', onSelect: go('/studio/settings') },
     { label: 'Billing', href: '/studio/billing', onSelect: go('/studio/billing') },
   );
+  // Under the dev auth bypass (no Clerk) the identity can be switched on /dev (local demo mode).
+  if (!account.showClerk) items.push('separator', { label: 'Switch identity (dev)', href: '/dev', onSelect: go('/dev') });
   if (signOut) items.push('separator', { label: 'Sign out', onSelect: signOut });
 
   return (
