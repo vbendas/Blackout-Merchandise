@@ -10,7 +10,7 @@
      below map straight onto the same MerchFrom tokens instead of a separate
      palette. Greys are white at reduced alpha, never a separate grey. */
   --paper: #000000;
-  --signal: #ffffff;
+  --signal: #f2efe9;
   --gutter: 40px;
   --font-ui: var(--font-inter), system-ui, -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 

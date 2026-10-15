@@ -7,8 +7,8 @@ interface LogoProps {
   priority?: boolean;
 }
 
-/** The MerchFrom logo: the white brush mark (public/logo.png, cut from
- * Assets/Logo/MerchFrom logo v2.png), the same file as the website's header. */
+/** The MerchFrom logo: the brush mark in soft white #F2EFE9 (public/logo.png,
+ * cut from Assets/Logo/logo.png), the same file as the website's header. */
 export function Logo({ height, className, priority }: LogoProps) {
   return (
     <Image

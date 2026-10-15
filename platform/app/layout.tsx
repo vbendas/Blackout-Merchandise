@@ -47,13 +47,13 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
     <ClerkProvider
       appearance={{
         variables: {
-          colorPrimary: '#ffffff',
+          colorPrimary: '#f2efe9',
           colorBackground: '#000000',
           // Clerk v7 renamed colorText -> colorForeground and
           // colorInputBackground/colorInputText -> colorInput/colorInputForeground.
-          colorForeground: '#ffffff',
+          colorForeground: '#f2efe9',
           colorInput: '#0d0d0d',
-          colorInputForeground: '#ffffff',
+          colorInputForeground: '#f2efe9',
           borderRadius: '2px',
         },
       }}

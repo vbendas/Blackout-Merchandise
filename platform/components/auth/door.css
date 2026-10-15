@@ -10,12 +10,12 @@
 @layer components {
   .door {
     /* white at reduced alpha, never a separate grey */
-    --door-a8: rgba(255, 255, 255, 0.8);
-    --door-a5: rgba(255, 255, 255, 0.5);
-    --door-a4: rgba(255, 255, 255, 0.46);
-    --door-a22: rgba(255, 255, 255, 0.22);
-    --door-rule: rgba(255, 255, 255, 0.16);
-    --door-tile: rgba(255, 255, 255, 0.085);
+    --door-a8: rgba(242, 239, 233, 0.8);
+    --door-a5: rgba(242, 239, 233, 0.5);
+    --door-a4: rgba(242, 239, 233, 0.46);
+    --door-a22: rgba(242, 239, 233, 0.22);
+    --door-rule: rgba(242, 239, 233, 0.16);
+    --door-tile: rgba(242, 239, 233, 0.085);
     --door-slogan: #8a8a8a;
     --door-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     --door-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -29,7 +29,7 @@
     min-height: 100dvh;
     overflow-x: hidden;
     background: #000;
-    color: #fff;
+    color: #f2efe9;
     font-family: var(--font-ui);
     font-size: 16px;
     font-weight: 400;
@@ -80,7 +80,7 @@
   .door-ulink {
     display: inline-block;
     padding: 4px 0;
-    color: #fff;
+    color: #f2efe9;
     font-size: 12px;
     font-weight: 600;
     line-height: 1.35;
@@ -101,7 +101,7 @@
   }
 
   .door-ulink.is-dim:hover {
-    color: #fff;
+    color: #f2efe9;
   }
 
   /* waiting (Send again's 30 seconds, a request in flight): grey, no underline */
@@ -257,7 +257,7 @@
     line-height: 1.42em;
     border-radius: 2px;
     background: var(--door-tile);
-    color: #fff;
+    color: #f2efe9;
     text-align: center;
     will-change: transform;
   }
@@ -280,8 +280,8 @@
   .door-verbs {
     display: none;
     padding-bottom: 0.14em;
-    color: #fff;
-    background-image: linear-gradient(#fff, #fff);
+    color: #f2efe9;
+    background-image: linear-gradient(#f2efe9, #f2efe9);
     background-position: 0 100%;
     background-repeat: no-repeat;
     background-size: 100% max(1px, 0.055em);
@@ -356,8 +356,8 @@
     border: 0;
     border-radius: 0;
     background: transparent;
-    color: #fff;
-    caret-color: #fff;
+    color: #f2efe9;
+    caret-color: #f2efe9;
     font-size: var(--door-h);
     font-weight: 600;
     line-height: 1.1;
@@ -371,8 +371,8 @@
 
   /* autofill keeps the black ground */
   .door-field input:-webkit-autofill {
-    -webkit-text-fill-color: #fff;
-    caret-color: #fff;
+    -webkit-text-fill-color: #f2efe9;
+    caret-color: #f2efe9;
     box-shadow: 0 0 0 1000px #000 inset;
     transition: background-color 600000s 0s;
   }
@@ -398,7 +398,7 @@
 
   /* focus: the rule turns white, as on the website */
   .door-field:focus-within .door-rule {
-    background: #fff;
+    background: #f2efe9;
   }
 
   .door-meta {
@@ -467,7 +467,7 @@
     height: 1.6em;
     border-radius: 2px;
     background: var(--door-tile);
-    color: #fff;
+    color: #f2efe9;
     font-family: var(--door-mono);
     font-size: clamp(28px, 4.2vw, 46px);
     font-weight: 500;
@@ -495,7 +495,7 @@
     right: 18%;
     bottom: 8px;
     height: 2px;
-    background: #fff;
+    background: #f2efe9;
     animation: door-pulse 1.2s ease-in-out infinite;
   }
 
@@ -506,7 +506,7 @@
   /* the key fits: the tiles open up */
   .door-key.is-ok .door-cell {
     background: transparent;
-    outline: 1px solid rgba(255, 255, 255, 0.7);
+    outline: 1px solid rgba(242, 239, 233, 0.7);
     outline-offset: -1px;
   }
 
@@ -595,7 +595,7 @@
 
   .door-flink {
     display: inline-block;
-    color: #fff;
+    color: #f2efe9;
     font-size: 12px;
     font-weight: 600;
     line-height: 1.35;
@@ -618,7 +618,7 @@
 
   .door-fi.is-place {
     margin-left: auto;
-    color: #fff;
+    color: #f2efe9;
   }
 
   @media (min-width: 900px) {
