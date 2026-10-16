@@ -23,6 +23,8 @@
 | Human check | A person audits every production pack before it goes to production. |
 | Publishing | A product can't be published until its design is approved for that product's garment, colours and placement (owner, 15 Oct). |
 | Job sheet | One per design, covering all the garments that use it (owner, 15 Oct). Made on demand and kept by a hash of what it says, so it is made again exactly when its contents change (section 6.3). |
+| Shop prices | Each garment has its own base price for shop products (DTG/DTF), including one print area up to A2 on the front or the back. Extras: +€1 when the print becomes front and back; +€2 once for sleeve prints (one or both sleeves). Set in /admin/pricing (owner, 16 Oct). |
+| Sleeve prints | Shown as a flat, true-size proof on a sleeve outline with measurements, next to the front and back mockups, until real sleeve photos exist (owner, 16 Oct). |
 | Team access | The owner gives each employee their own access level for each admin area: pre-press, production, orders, runs, support and the rest (section 9). |
 | Screen inks | Pantone colours. The shop doesn't stock colours: it mixes any Pantone from Magna Eco-Pigments in the MagnaPrint HB bases (HB Opaque or HB Neutral). On dark garments the inks print wet on wet over a flashed Aquaflex V2 White underbase (MagnaPrint HB data sheet). Pantone codes come from MagnaMix, which Magna licenses from Pantone, so no Pantone licence of our own is needed. Clients see only plain colour names. Pantone codes appear only in admin (pre-press, job sheet, films), where staff match them in MagnaMix (section 5). |
 | Screen halftones | 600 ppi, 55 lpi. |
@@ -337,7 +339,7 @@ This section applies to the whole admin, not only print prep.
 
 ## 10. Pricing
 
-- **Shop products** always print DTG/DTF and are priced per piece as today (blank plus print). The screen surcharge never applies to them.
+- **Shop products** always print DTG/DTF. Each garment has a base price that includes one print area up to A2, front or back; a second main print (front and back) adds €1 and sleeve prints add €2 once. The owner sets them in /admin/pricing, and artists see the breakdown when they add print areas. The screen surcharge never applies to them.
 - **Runs** are screen printed or DTG/DTF. A screen-printed run is priced on screen count (both whites included), placements, print size and quantity. 1 to 8 screens is standard. From 9 to 15, each screen above 8 adds €1 per piece, so 12 screens add €4 per piece (confirmed 15 Oct).
 - **Separations set the count.** The quote takes the screen count from the actual separations, not from the print service the client picked.
 - **The Studio shows the effect.** It shows how the screen count changes the price, and the agent can offer fewer screens.
@@ -357,8 +359,9 @@ This section applies to the whole admin, not only print prep.
 | `staff_permissions` | One row per employee and area: user, area, level |
 | `staff_invites` | Email, chosen access, invited by, accepted at |
 | `staff_activity` | Who, area, action, item, when (page actions; assistant actions stay in `tool_invocations`) |
-
-Later: `products.placement` becomes a list, for multi-placement products.
+| `products.placements` | The print areas (16 Oct): `{ position, widthCm, offsetYcm?, designId }`, each with its own design. At most one front, one back, and the sleeves on garments with sleeves; each area at most A2 (a sleeve: its own size). Migration `0005` copied each product's one `placement` and its design into it; the old column is read as a fallback and no longer written. `products.design_id` is the first area's design. |
+| `products.base_cost_lines` | What `base_cost_cents` is made of (podPrice): the garment with one print, front and back, sleeve prints. Both are taken again whenever the areas change, and at publish. |
+| `product_colours.mockup_views` | The front and back mockups of each colour, every area on its side. A sleeve's picture is its flat proof from the print files. |
 
 ## 12. Infrastructure
 
@@ -376,7 +379,7 @@ Approved by the owner on 15 Oct.
   - add `printRecipe` and anchor images;
   - remove the painted halftone, grain and misregistration from the Riso, Halftone and Photocopy prompts, because print prep applies those effects deterministically;
   - generate each prompt's colour clauses from the recipe.
-- Mockups come from the engine's proofs. Placement changes re-render them. Sleeve placement is supported or refused, never silently moved.
+- Mockups come from the engine's proofs. Placement changes re-render them. A sleeve print is offered on garments with sleeves and shown as a flat, true-size proof (never on a photo); a position a garment doesn't take is refused, never silently moved.
 - Ownership checks on `render_mockups` and `preview_on_blank`.
 - DTF added to the techniques list.
 - Shop products accept only DTG/DTF for print. Embroidery, where a blank offers it, is outside this plan.
@@ -428,12 +431,16 @@ Art that needs index or simulated process is flagged to the auditor in Phase 1 a
 | Dot-gain calibration from a printed test chart (built) | 2-3 d |
 | Pricing by screen count with the 9-15 surcharge (built) | 2 d |
 
+**Built after Phase 2 (16 Oct)**
+- **Shop prices.** Each garment has a base price for shop products (DTG/DTF), with one print area up to A2 on the front or the back. A print on both front and back adds €1, and sleeve prints add €2 once (section 10).
+- **Several print areas per product.** A product can have a front, a back and sleeve prints, each with its own design (section 11).
+- **Sleeve prints.** A flat, true-size proof on a sleeve outline, with measurements, until real sleeve photos exist.
+
 **Phase 3**
 - Distress and texture library from our own scans.
 - DTF gang sheets.
 - Vectorising flat art.
 - RIP hot folders.
-- Multi-placement products.
 - Per-ink screen angles (needs a mixing model for different angles).
 - Embroidery prep. Only solid designs in solid colours can be embroidered, so embroidery needs its own checks and conversion. Left for later (owner, 15 Oct).
 

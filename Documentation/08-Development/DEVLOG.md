@@ -6,6 +6,81 @@
 
 ---
 
+## October 16, 2026 — Print Prep: Shop Prices and Print Areas
+
+### Session Summary
+Built shop prices per garment, several print areas per product (a front, a back and sleeve prints, each with its own design), and flat sleeve proofs, on branch `feat/print-prep`. Not committed yet. Pending integration review and the owner's checks.
+
+### Work Completed
+
+#### Shop prices (`platform/lib/pricing/`, `/admin/pricing`)
+- Each garment has a base price for shop products (DTG/DTF). It covers one print area up to A2, on the front or the back.
+- Extras: €1 when the print is on both front and back, and €2 once for sleeve prints (one or both sleeves).
+- The price table is one JSON row in `app_settings` (`pod_price_table`), so it needs no migration.
+- Unset garments are placeholders: the DTG base cost at quantity 1, or DTF where the garment has no DTG.
+- `/admin/pricing?tab=shop` has search, filters, "set all of a type", an optional DTF price, and live examples.
+- Embroidery keeps its own base cost and gets no extras.
+
+#### Several print areas (`platform/lib/mockups/placements.ts`, `products.placements`)
+- A product holds a list of print areas, `{ position, widthCm, offsetYcm?, designId }`. Each area has its own design.
+- Rules: one front, one back, sleeves only on garments with sleeves, and A2 at most (portrait, 42 × 59.4 cm).
+- Default sleeve print sizes: 10 × 10 cm for a short sleeve, 8 × 40 cm for a long sleeve.
+- Migration `0005_products_print_areas` is additive. It copies the old `placement` and `design_id` into the list. The old column is read as a fallback and is no longer written.
+- Artists see the price breakdown and their margin when they add areas. Product cards and the panel show the areas, with buttons such as "Add a back print" and "Add a sleeve print".
+- Publishing needs every area approved. The approval page has an area button for each one.
+- Agent tools: `create_product` takes areas, the new `set_print_areas` changes them, `get_quote` prices shop products from the shop table, and `prepare_print` prepares every area, one job per design.
+- Runs carry a product's other areas as `extraPlacements`. Each run position reads its own design's screen files (`platform/lib/services/quotes.ts`).
+
+#### Sleeve prints (`platform/lib/mockups/sleeve-proof.ts`, `sleeve-geometry.ts`)
+- A sleeve print is a flat, true-size proof on a sleeve outline, with dimension brackets and a label.
+- The outline uses adult M measurements. The right sleeve is a mirror of the left.
+- Proofs are drawn only in the print pipeline, for both techniques, and stored as pack proof files.
+- If a proof cannot be drawn (the label needs a system font), the pack shows a `sleeve_proof` review check. The approval page shows a "Sleeve proof coming" card with the size until the proof exists.
+
+### Technical Notes
+- `pod-table.ts` holds the price table and its rules. It is pure and safe for the client. `pod.ts` is the server side, with the same exports.
+- The base cost is set from the shop price on create, on every area change and at publish. A change that lifts the base cost past the shop price less €1 is refused with `priceNeeded`, and the artist is asked for a new price.
+- The worker image has DejaVu, and a serverless build may not. Sleeve proofs are therefore drawn in the worker.
+
+### Not Live Yet
+- Nothing from this increment is live.
+- Shop prices are placeholders until the owner sets them in `/admin/pricing`.
+- Migration `0005` is not applied to Neon. It was tested on PGlite, from `0004`.
+- Sleeve proofs are drawn by the worker, so restart it after this change.
+- Catalogue "from" prices (`platform/lib/services/blanks.ts`) still read the base-cost rows, not the shop table. The `set_base_cost` tool is on the same to-do.
+
+### Owner Decisions Still Open
+- **Sleeve print sizes.** The defaults are 10 × 10 cm (short sleeve) and 8 × 40 cm (long sleeve). Confirm or change.
+- **Garments with no sleeve prints.** The list to confirm: dolman tee, puffers and padded jackets, sherpa, bomber, woven shirts, Kids & Baby, and polos.
+- **A2 in portrait only.** The build allows A2 in portrait only (42 × 59.4 cm). Confirm.
+- **Shop extras on DTG/DTF runs.** The build charges the shop extras for extra areas on DTG/DTF runs. Confirm.
+
+### Key Insights
+- The two extras are the same for every garment. The owner sets one base price per garment.
+- Sleeve prints are drawn on an outline, not on a photo, because the garment photos are front and back only.
+- Publishing waits for every area, so one unapproved sleeve holds back the whole product.
+
+### Commit Details
+- **Commit Hash:** none yet. The work is in the working tree on `feat/print-prep`, on top of `65de03a`.
+- **Commit Message:** none yet
+- **Files Changed:** not counted yet
+- **New Files:** `platform/lib/pricing/pod-table.ts` and `pod.ts`, `platform/lib/mockups/sleeve-proof.ts` and `sleeve-geometry.ts`, `platform/drizzle/0005_products_print_areas.sql` with its snapshot, and their tests.
+
+### Files Modified
+1. `platform/lib/pricing/` and `platform/lib/services/pricing-admin.ts`: the shop price table and its admin tab.
+2. `platform/lib/services/`: products, quotes, runs, print prep, pre-press, job sheets and mockups, so each follows every area.
+3. `platform/lib/mockups/placements.ts`: the area rules (`checkPrintAreas`) and the sleeve sizes.
+4. `platform/lib/tools/`: `products.ts` (areas on `create_product`, `set_print_areas`), `print.ts`, `bulk.ts` and `mockups.ts`.
+5. `src/db/schema.ts` and `platform/drizzle/`: `products.placements` and migration `0005`.
+6. Studio and admin screens: the Shop tab of `/admin/pricing`, the product cards and panel, and the approval page.
+
+### Next Steps
+- Integration review with Phase 2: typecheck, lint, tests and build together.
+- Owner: set the shop prices in `/admin/pricing`, and decide the four open points above.
+- Owner: decide on migration `0005` for Neon.
+
+---
+
 ## October 16, 2026 — Print Prep: Phase 2 Built
 
 ### Session Summary
@@ -44,8 +119,8 @@ Built print prep phase 2 on branch `feat/print-prep`: index and simulated proces
 - Nothing from Phase 2 is live. No calibration chart has been printed, and the placeholder prices are not set.
 
 ### Commit Details
-- **Commit Hash:** none yet for Phase 2. Phases 0 and 1 are in `639fd3a`, and Phase 2 is in the working tree on top of `d88bd7c`.
-- **Commit Message:** none yet
+- **Commit Hash:** Phase 2 is committed locally on `feat/print-prep`, as `39fb225` (code) and `65de03a` (docs), and not pushed. Phases 0 and 1 are in `639fd3a`. The 16 Oct shop pricing and print-areas increment (entry above) is not yet committed.
+- **Commit Message:** `feat(print): Phase 2 separation methods, dot-gain calibration and run pricing`; `docs: print prep Phase 2 status, notes, plan, DEVLOG, roadmap and PRD`
 - **Files Changed:** not counted yet
 - **New Files:** `platform/lib/pricing/`, `platform/lib/print/calibration/`, the index and simulated process modules in `platform/lib/print/engine/`, the `/admin/pricing` page and its components, the calibration page and API routes, and four test images
 

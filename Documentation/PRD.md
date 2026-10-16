@@ -54,10 +54,11 @@ This is the **master navigation document** for the Merch From Product Requiremen
 
 ## Print Prep and Staff Access (Oct 2026)
 
-The owner decided these on 15 October 2026. Full detail is in [[Dev/Print-Prep-Plan]].
+The owner decided these on 15 and 16 October 2026. Full detail is in [[Dev/Print-Prep-Plan]].
 
 - **One engine.** Print prep is one engine, in physical units (mm, lpi, ppi, degrees). Every design gets a DTG/DTF version and a screen-print version.
 - **Channels.** Shop products always print DTG/DTF. Screen print is for runs (bulk orders) only.
+- **Shop prices and print areas (16 Oct).** Shop garments have a base price for one print area up to A2, plus €1 for a front and back print and €2 once for sleeves. A product can have several areas, each with its own design.
 - **Separations.** Automatic, at 1 to 8 screens as standard. The count includes the white underbase and the highlight white. A screen-printed run can go to 15 screens, at €1 per piece for each screen above 8. A person audits every production pack before production.
 - **Methods.** Separations are spot, index or simulated process, with dot-gain calibration from a printed chart and screen-count pricing for runs.
 - **Inks.** Screen inks are Pantone colours. The shop mixes them from Magna pigments and matches them in MagnaMix. Pantone codes appear only in admin. Clients see plain colour names.

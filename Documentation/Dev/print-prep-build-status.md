@@ -1,6 +1,6 @@
-# Print prep build: status (Phase 2 integrated, 16 Oct 2026)
+# Print prep build: status (shop pricing and print areas integrated, 16 Oct 2026)
 
-Worktree: `/Users/victorbendas/Documents/GitHub/Merch-From-print-prep`, branch `feat/print-prep` (from `22678b3`). Phase 0 and 1 are in three local commits (not pushed); Phase 2 is uncommitted. Migrations `0003` and `0004` have run only on PGlite in tests, never on Neon. Phase 2 adds no migration.
+Worktree: `/Users/victorbendas/Documents/GitHub/Merch-From-print-prep`, branch `feat/print-prep` (from `22678b3`). Phases 0 to 2 are in local commits (not pushed); shop pricing and print areas (PL-A, PL-B, PL-C) are uncommitted. Migrations `0003`, `0004` and `0005` have run only on PGlite (the tests and the local demo database), never on Neon.
 
 ## Work packages
 
@@ -24,10 +24,95 @@ Worktree: `/Users/victorbendas/Documents/GitHub/Merch-From-print-prep`, branch `
 | P2-D Screen-count pricing for runs | Done |
 | P2-E Fixtures | Done |
 | Phase 2 integration and review | Done (16 Oct, "Phase 2" below) |
+| PL-A Print areas: front, back and sleeves, each with its own design | Done |
+| PL-B Shop-product pricing (DTG/DTF) and the Shop products tab | Done |
+| PL-C Flat true-size sleeve proof | Done |
+| Shop pricing and print areas: integration and review | Done (16 Oct, next section) |
+
+## Shop pricing and print areas (16 Oct 2026)
+
+Plan section 1 ("Shop prices", "Sleeve prints", "Channels", "Publishing"). Three packages built in parallel, then integrated and reviewed in one pass. Uncommitted; one migration, `0005_products_print_areas`.
+
+**What it adds**
+- **Print areas (PL-A).** A product prints a list of areas, `products.placements`: `{ position, widthCm, offsetYcm?, designId }`, so the front and the back can be different artwork.
+  - The rules (`checkPrintAreas` in `lib/mockups/placements.ts`): at most one front area (front chest, full front or left chest), one back, and the left and right sleeves on the blanks in `SLEEVE_PRINTS`; each area at most A2 portrait, 42 × 59.4 cm; a sleeve at most 10 × 10 cm (short) or 8 × 40 cm (long), the owner's defaults.
+  - Migration `0005` adds `products.placements`, `products.base_cost_lines` and `product_colours.mockup_views`, and copies each product's one `placement` and its design into the list. The old column is read as a fallback (`productAreasOf`) and never written.
+  - Tools: `create_product` takes `areas`; `set_print_areas` adds, changes and removes them; `get_quote` gives the shop breakdown; `prepare_print` with a product prepares every area, one job per design.
+  - Publishing needs every area approved, each against its own design, and the refusal names the area that waits ("the left sleeve print of the Underwriter tour tee").
+  - Orders, runs and job sheets follow every area. A run of a product carries its other areas as `extraPlacements`, each with its design.
+  - Mockups: the front photo carries every front print and the back photo every back print. A sleeve never goes on a photo.
+- **Shop prices (PL-B).** `lib/pricing/pod-table.ts` (pure, shared with the admin editor) and `lib/pricing/pod.ts` (`podPrice`, server).
+  - One `app_settings` row, `pod_price_table`: a base price per garment, which includes one print area up to A2 on the front or the back, an optional DTF price, and the extras: +€1 when a product prints front and back, +€2 once for sleeve prints.
+  - A garment nobody priced is a placeholder: its one-print DTG base cost, or DTF's where it has no DTG. Embroidery keeps its own base cost, with no extras.
+  - A product's base cost is `podPrice` for its areas, taken on create, on every area change and again at publish. A change that would lift the base past the price less €1 is refused with the lowest price that works (`priceNeeded`).
+  - `/admin/pricing?tab=shop`: search, filters, "set all of a type", the DTF price and live examples. Catalogue and pricing View reads it; Manage saves it, and the save is in the activity log.
+- **Sleeve proof (PL-C).** `lib/mockups/sleeve-proof.ts` and `sleeve-geometry.ts`: a 4:5 PNG (800 × 1000, about 35 KB) on the ecru plate, the sleeve outline in the garment colour, the print at true scale with dimension lines, and a label ("Left sleeve · 9 × 9 cm · true size"). A right sleeve is the exact mirror.
+  - Drawn only in the pipeline (the worker), for both techniques, and stored as the pack's `proof` files. The product and the approval page read them.
+  - When it can't be drawn, the approval page shows a "Sleeve proof coming" card with the size, and the pack gets a `sleeve_proof` review check. A missing font is logged and named in that check.
+
+**Integration (the notes items, all done)**
+- **"From" prices are the shop prices.** The catalogue page (`/api/catalogue`), `list_blanks` and `get_blank` show what a shop product of the garment costs with one print: its price in the shop table, at the cheapest shop method it offers (DTF's own price counts where the owner set one), else its placeholder. Run quantity breaks and embroidery no longer set it (`loadShopFromPrices` in `lib/services/pricing-admin.ts`).
+  - The catalogue's cached prices move to shape `v3`. Saving a shop price or a base cost refreshes them (tag `catalogue`), so a change shows at once, not up to an hour later.
+- **`set_base_cost` prices runs.** Its description says the rows price runs (DTG, DTF and embroidery, by quantity break) and embroidered shop products, never a DTG/DTF shop product. Its result says what a shop product of the garment costs now: the shop table's price, or the placeholder that this kind of row sets.
+- **New staff tool `set_shop_price`**: a garment's shop price in the shop table, the same as the admin tab. Catalogue and pricing Manage; it asks for confirmation; it keeps a DTF price it isn't told about; `null` takes the garment back to its placeholder. `list_base_costs` shows the shop price beside the run rows.
+- **Activity log words** for `pricing.shop_table`.
+
+**Review findings fixed**
+- **Migration `0005` failed if run twice.** Its `ADD COLUMN`s now have `IF NOT EXISTS`, and the backfill only fills rows without a list. A test runs the statements again on a migrated database: nothing fails, and a list written since stays.
+- **Preparing a product rebuilt files that existed.** `prepare_print` with a product rebuilt every area in every colour. A second product of an approved design in other colours rebuilt the screen packs, and the rebuilt packs went back to the pre-press queue.
+  - It now makes only the positions and colours that have no DTG/DTF files on the design's newest version. It still makes one job per design.
+  - A design whose areas all have files starts no job (`alreadyPrepared`).
+- **The prepare details were refused.** The assistant gets `offsetYcm` with the prepare details, but `prepare_print` took no offset and refuses unknown fields. It now takes `offsetYcm`, and the details carry `productId`, so the call prepares the whole product at its exact placements. The guidance says to prepare with the product.
+- **Shop quotes by positions.**
+  - The rules weren't checked, so a sleeve on a tank top was quoted at +€2. Positions are now held to the product rules.
+  - With no method named, a quote was always DTG, which a jacket can't print. It is now DTG, or DTF where the garment has no DTG.
+  - A method the garment doesn't offer, or screen print, is now refused in words.
+- **A price sent with an area change** was saved unchecked on a product with no base cost. It is now refused, as `set_price` refuses it.
+- **Runs:** the main position's design (from a service caller) wasn't checked against the shop; it is now, like the extra positions. A design id that isn't an id is now refused before it reaches the database, in runs and in product areas.
+- **`scripts/print-samples.ts`** wrote the old `placement` column; it now writes `placements`.
+
+**Checked and holding**
+- An artist edits only their own shop's print areas (every read and write is scoped by shop). No artist tool takes a base cost: their inputs are strict, and a call that names one is refused.
+- The price stays at least €1 above the base cost at `set_price`, on every area change (`priceNeeded`) and at publish (re-priced first). A colour change doesn't move the base.
+- Checkout uses the product's base cost, extras included. A test buys 2 of a front, back and sleeve tee: the Stripe application fee is 2 × (base + €1 + €2) plus shipping, and the transfer is the margin.
+- Admin pricing: the page needs View; the action and the service need Manage.
+- No Pantone code in an artist view. Sleeve proofs are drawn only in the worker.
+
+**Demo builder** (`scripts/local-demo.ts`, edited, not run: rebuild with `npm run demo:local -- --reset`)
+- **Shop prices for 8 garments**, the rest on placeholders: Classic tee €17, Women's classic tee €17, Light tee €16, Heavy tee €21, Long-sleeve tee €22, Heavy hoodie €34 (DTF €35), Heavy sweatshirt €30, Classic tote bag €12 (DTF only). The demo's existing tees are now made at €17.
+- **The Underwriter tour tee**, in black and French Navy:
+  - the Underwriter on the front (approved);
+  - a new design on the back (`riso-2-colour.png`, approved by the artist in the build);
+  - the Sunset star on the left sleeve.
+- Its base reads "Garment with one print €17.00 · Front and back +€1.00 · Sleeve prints +€2.00 · Base €20.00", and it is priced at €39. The build stops if the breakdown is anything else.
+- It stays a draft because the Sunset star still waits for the artist, so publishing names the left sleeve print. The Sunset star's approval page shows two areas, the sleeve as its flat proof. To finish: approve the Sunset star, then publish the tour tee.
+
+**Verification (16 Oct, final tree)**
+- `npx next typegen && npx tsc --noEmit`: 0 errors.
+- `npm run lint`: 0 errors. There are 25 warnings, in the same files as before.
+- `DATABASE_URL= npm test`: 1248 tests: 1245 pass, 3 skipped (the opt-in benchmarks), 0 fail. This pass added 13 tests.
+- `npm run build` (Turbopack): passes, with the root `node_modules` symlink moved aside and then restored. There are 41 pages and routes, and no function trace carries a `public/` file.
+
+**Owner actions**
+1. **Shop prices.** Set them at Admin, Pricing, Shop products (or ask the assistant: `set_shop_price`). Until then every garment is on its placeholder, and the extras are +€1 and +€2.
+2. **Neon.** Migration `0005` is not applied, nor are `0003` and `0004`. Ask before applying them, then run `npm run seed`.
+3. **Worker image.** Install fontconfig and DejaVu, or the sleeve proofs can't be labelled.
+
+**Owner decisions pending**
+- **Sleeve sizes.** The defaults are 10 × 10 cm on a short sleeve and 8 × 40 cm on a long one. The proof outline draws at most 12 × 12 and 9 × 40 (`sleeve-geometry.ts`), so raise the two together.
+- **Blanks with no sleeve print.** These are left out: the dolman tee, the puffers and padded jackets, the sherpa, the bomber, the woven shirts and the overshirt, and Kids & Baby. Polos are included.
+- **A2 portrait only.** The limit is 42 cm wide by 59.4 cm tall; a landscape A2, 59.4 cm wide, is refused.
+- **Extras on DTG/DTF runs.** A DTG/DTF run with more areas adds the shop extras (+€1 and +€2 a piece) to the run's price.
+- **DTF in the "from" price.** A DTF price below the garment's base becomes its "from" price.
+
+**Remaining risks**
+- **Sleeve proofs not printed yet.** They use the adult M sleeve and haven't been compared with a printed sleeve.
+- **Live prices don't follow the table.** A live product keeps its base cost when the table changes. New products, area changes and publishing take the new price.
+
 
 ## Phase 2 (16 Oct 2026): any art up to 15 screens
 
-Plan sections 4.3, 5 and 10. Five packages (P2-A to P2-E) built in parallel, then integrated and reviewed in one pass. Nothing is committed; no migration.
+Plan sections 4.3, 5 and 10. Five packages (P2-A to P2-E) built in parallel, then integrated and reviewed in one pass. Committed locally (`39fb225`, docs in `65de03a`); no migration.
 
 **What it adds**
 - **A method per screen set.** `separateScreen` (`lib/print/engine/index.ts`) takes spot, index or simulated process for each set, as `analyse.ts` chooses it or the recipe forces it, and renders the set with that method: `render.ts`, `index-method.ts` (with `index-cells`, `index-palette`, `index-mix` and `index-dither`) or `sim-process.ts` (with `sim-model`, `sim-lut`, `sim-inks` and `sim-screen`). A garment joins a set when that method's own prediction of the print stays within the ΔE target. Each set, and so each pack, says why it has its method. The Phase 1 "spot draft, finished by hand" path is left only as a fallback for a renderer that is a stub.

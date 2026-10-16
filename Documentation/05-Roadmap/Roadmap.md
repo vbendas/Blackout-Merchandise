@@ -164,12 +164,18 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 - **Owner checks:** set the real prices in `/admin/pricing`; print and scan the calibration chart; measure the inks with the spectrophotometer when it arrives; test the index and simulated process files in Photoshop and GTX Graphics Lab
 - Estimates are rough working days, for ordering only
 
+### Print Prep: Shop Prices and Print Areas — BUILT, PENDING OWNER CHECKS (Oct 2026)
+- Shop base price per garment in `/admin/pricing`: one print area up to A2; a front and back print +€1; sleeve prints +€2 once
+- **Multi-placement products built:** a front, a back and sleeve prints per product, each with its own design. Publishing needs every area approved
+- Sleeve prints as flat, true-size proofs on a sleeve outline
+- **Owner checks:** set the real shop prices; confirm the sleeve sizes, the garments without sleeve prints, portrait-only A2, and whether DTG/DTF runs charge the shop extras
+- **Not live yet:** migration `0005` on Neon; sleeve proofs need the worker to draw them
+
 ### Print Prep Phase 3: Next
 - Distress and texture library from our own scans
 - DTF gang sheets
 - Vectorising flat art
 - RIP hot folders
-- Multi-placement products
 - Per-ink screen angles (needs a different mixing model)
 - Embroidery prep: only solid designs in solid colours can be embroidered, so it needs its own checks and conversion
 
