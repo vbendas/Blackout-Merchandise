@@ -412,6 +412,81 @@ input:focus-visible{outline:none}
 .watch.embedded{grid-template-rows:0 minmax(0,1fr)}
 .watch.embedded .w-top{visibility:hidden;padding:0;overflow:hidden}
 
+
+/* ---------- THE NUMBERS ---------- */
+.view.numbers{display:flex;flex-direction:column}
+.n-head .label{color:var(--a5)}
+.n-head .head{margin-top:14px}
+.n-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:40px 72px;margin-top:56px;align-items:start}
+.n-eg .n-cap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:14px;border-bottom:1px solid var(--rule)}
+.n-tag{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--a5);border:1px solid var(--a22);border-radius:2px;padding:2px 6px;white-space:nowrap}
+.n-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:4px 24px;padding:18px 0;border-bottom:1px solid var(--rule)}
+.n-row .k{font-size:clamp(20px,1.9vw,26px);font-weight:600;letter-spacing:-.02em;color:var(--a5)}
+.n-row .s{grid-column:1;font-size:14px;color:var(--a4)}
+.n-row .v{grid-row:1/span 2;grid-column:2;align-self:center;font-family:var(--mono);font-size:clamp(28px,3vw,44px);letter-spacing:-.02em;color:var(--a5);font-variant-numeric:tabular-nums}
+.n-row.keep .k,.n-row.keep .v{color:#F2EFE9}
+.n-eg .note{margin-top:18px;font-size:15px;line-height:1.5;color:var(--a8)}
+.n-specs{border-top:1px solid var(--rule)}
+.n-specs>div{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:16px;padding:13px 0;border-bottom:1px solid var(--rule)}
+.n-specs dt{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--a5);padding-top:2px}
+.n-specs dd{font-size:15px;line-height:1.45;color:var(--a8)}
+.n-act{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px 18px;margin-top:56px}
+.n-act .head{font-size:clamp(22px,2vw,28px)}
+#numbers-foot{margin-top:auto;padding-top:56px}
+.n-pick{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.n-pick button{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;line-height:1.35;padding:8px 12px;border:1px solid var(--a22);border-radius:2px;color:var(--a8);transition:background .2s,color .2s,border-color .2s}
+.n-pick button:hover{border-color:var(--a5);color:#F2EFE9}
+.n-pick button[aria-checked="true"]{background:#F2EFE9;border-color:#F2EFE9;color:#000}
+.n-pick button:focus-visible{outline:1px solid #F2EFE9;outline-offset:3px}
+.n-price{display:grid;grid-template-columns:auto minmax(0,1fr) 4em;align-items:center;gap:16px;margin:22px 0 22px}
+.n-track{position:relative}
+/* the recommended price: a tick on the track (the thumb is 14px, so the track runs 7px in from each end) and a label that snaps back to it */
+.n-rec{position:absolute;top:50%;left:calc(7px + var(--rec,.5) * (100% - 14px));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;width:max-content;padding:0;white-space:nowrap}
+.n-rec{pointer-events:none}.n-rec .rt{pointer-events:auto;cursor:pointer}
+.n-rec .tick{width:1px;height:12px;margin-top:-6px;background:var(--a5);pointer-events:none}
+.n-rec .rt{margin-top:6px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--a5);text-decoration:underline;text-decoration-color:transparent;text-underline-offset:4px;transition:color .2s,text-decoration-color .2s}
+.n-rec:hover .rt{color:#F2EFE9;text-decoration-color:currentColor}
+.n-rec.on .rt{color:#F2EFE9}
+.n-rec:focus-visible{outline:none}.n-rec:focus-visible .rt{outline:1px solid #F2EFE9;outline-offset:3px}
+.n-price .label{color:var(--a5)}
+.n-price output{text-align:right;color:#F2EFE9;font-family:var(--mono);font-variant-numeric:tabular-nums}
+#n-p{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;cursor:pointer}
+#n-p::-webkit-slider-runnable-track{height:1px;background:var(--a22)}
+#n-p::-moz-range-track{height:1px;background:var(--a22)}
+#n-p::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:#F2EFE9;border:0}
+#n-p::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#F2EFE9;border:0}
+#n-p:focus-visible{outline:1px solid #F2EFE9;outline-offset:4px}
+.n-row .v{transition:color .3s}
+.n-bulk{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:40px 72px;margin-top:72px;padding-top:28px;border-top:1px solid var(--rule);align-items:start}
+.n-bulk-t>.label{color:var(--a5)}
+.n-bulk-h{margin-top:12px;font-size:clamp(24px,2.2vw,32px);font-weight:600;letter-spacing:-.025em;line-height:1.15}
+.n-bulk-l{list-style:none;margin-top:22px}
+.n-bulk-l li{padding:14px 0;border-top:1px solid var(--rule)}
+.n-bulk-l h3{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.n-bulk-l p{margin-top:6px;font-size:15px;line-height:1.5;color:var(--a5);max-width:34em}
+.n-tour{border:1px solid var(--rule);border-radius:2px;padding:18px 20px 16px}
+.n-tour-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--rule)}
+.n-tour-r{display:grid;grid-template-columns:4.2em 6.5em minmax(0,1fr) auto;gap:12px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--rule2);font-family:var(--mono);font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+.n-tour-r .d{color:var(--a4);white-space:nowrap}
+.n-tour-r .c{color:#F2EFE9}
+.n-tour-r .vn{color:var(--a5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.n-tour-r .q{color:#F2EFE9;font-variant-numeric:tabular-nums}
+.n-tour .note{margin-top:12px;font-size:14px;color:var(--a5)}
+@media (max-width:899.98px){.n-bulk{grid-template-columns:minmax(0,1fr);gap:32px}}
+@media (max-width:700px){.n-bulk{margin-top:48px}.n-tour{padding:14px 14px 12px}.n-tour-r{grid-template-columns:5em minmax(0,1fr) auto;font-size:12px}.n-tour-r .vn{display:none}}
+.n-lede{margin-top:18px;max-width:34em;font-size:clamp(18px,1.6vw,22px);line-height:1.4;color:var(--a8);text-wrap:pretty}
+.n-run{margin-top:64px}
+.n-run>.label{color:var(--a5)}
+.n-list{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 32px;margin-top:16px}
+.n-list li{padding:18px 0 26px;border-top:1px solid var(--rule)}
+.n-list .no{font-family:var(--mono);font-size:12px;color:var(--a4)}
+.n-list h3{margin-top:10px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.n-list p{margin-top:8px;font-size:15px;line-height:1.5;color:var(--a5);max-width:24em}
+@media (max-width:1099.98px){.n-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.n-run{margin-top:44px}.n-list{grid-template-columns:minmax(0,1fr)}.n-list li{padding:14px 0 18px}}
+@media (max-width:899.98px){.n-grid{grid-template-columns:minmax(0,1fr);gap:48px}}
+@media (max-width:700px){.n-grid{margin-top:36px}.n-specs>div{grid-template-columns:minmax(0,1fr);gap:4px}.n-act{margin-top:40px}}
+
 /* ---------- ASK ---------- */
 .ask{position:fixed;inset:0;z-index:60;background:#000;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;opacity:0;transition:opacity .45s var(--ease)}
 .ask.in{opacity:1}
@@ -545,6 +620,7 @@ input:focus-visible{outline:none}
     <nav class="doorlinks label r" id="doorlinks" aria-label="Other ways in">
       <a href="#apply"><span class="dim">Not a member?</span><span class="u">Apply.</span></a>
       <a href="#watch"><span class="u">Watch the run &middot; 01:30</span></a>
+      <a href="#numbers"><span class="u">The numbers.</span></a>
       <a href="#ask" id="asklink"><span class="dim">Questions?</span><span class="u">Ask.</span></a>
     </nav>
     </div>
@@ -593,6 +669,80 @@ input:focus-visible{outline:none}
   </form>
   <div class="done" id="ap-done" hidden></div>
   <div id="apply-foot"></div>
+</section>
+
+<!-- 3b. THE NUMBERS: quality and economics, before Apply -->
+<section id="v-numbers" class="view numbers" hidden aria-labelledby="n-h">
+  <div class="n-head">
+    <p class="label">Before you apply</p>
+    <h1 id="n-h" class="head" tabindex="-1">The numbers.</h1>
+    <p class="n-lede">We take care of everything, from the artwork to your fan&rsquo;s door, so you can focus on what you do best.</p>
+  </div>
+  <section class="n-run" aria-labelledby="n-run-h">
+    <h2 id="n-run-h" class="label">What we run for you</h2>
+    <ol class="n-list">
+      <li><span class="no" aria-hidden="true">01</span><h3>Art creation</h3><p>No artwork yet? We design it with you, from a brief or around your logo.</p></li>
+      <li><span class="no" aria-hidden="true">02</span><h3>Art preparation</h3><p>Every file checked and made print-ready: resolution, clean-up, colour separations.</p></li>
+      <li><span class="no" aria-hidden="true">03</span><h3>Production</h3><p>Printed, folded and tagged in-house in Barcelona, after you approve the proof.</p></li>
+      <li><span class="no" aria-hidden="true">04</span><h3>Your e-shop</h3><p>Your own store at merchfrom.com/you or on your domain. Each piece is made as it sells.</p></li>
+      <li><span class="no" aria-hidden="true">05</span><h3>Payments</h3><p>Checkout and payments handled for you. Your margin is paid out with each sale.</p></li>
+      <li><span class="no" aria-hidden="true">06</span><h3>Logistics</h3><p>Packed and shipped worldwide, direct to your fans, within 72 hours.</p></li>
+      <li><span class="no" aria-hidden="true">07</span><h3>Customer care</h3><p>Orders, tracking and your fans&rsquo; questions, answered for you.</p></li>
+      <li><span class="no" aria-hidden="true">08</span><h3>Merch Studio</h3><p>One place to brief, approve proofs, set prices and follow every sale, with an agent that does the work.</p></li>
+    </ol>
+  </section>
+  <div class="n-grid">
+    <div class="n-eg" id="n-eg">
+      <div class="n-cap"><span class="label">Your piece, sold in your shop</span><span class="n-tag">Example costs &middot; placeholder</span></div>
+      <div class="n-pick" role="radiogroup" aria-label="Garment" id="n-pick"></div>
+      <div class="n-price">
+        <label for="n-p" class="label">Your price</label>
+        <div class="n-track">
+          <input id="n-p" type="range" min="10" max="100" step="1" value="35" aria-describedby="n-rec">
+          <button type="button" class="n-rec" id="n-rec"><span class="tick" aria-hidden="true"></span><span class="rt">Recommended &euro;35</span></button>
+        </div>
+        <output id="n-p-v" for="n-p" class="label">&euro;35</output>
+      </div>
+      <div class="n-row"><span class="k">You sell</span><span class="s" id="n-g">240 g organic cotton tee</span><span class="v" id="n-sell">&euro;35</span></div>
+      <div class="n-row"><span class="k">Our base cost</span><span class="s">Printed, folded and tagged in Barcelona</span><span class="v" id="n-cost">&euro;17</span></div>
+      <div class="n-row keep"><span class="k">You keep</span><span class="s" id="n-100">&euro;1,800 on 100 sold</span><span class="v" id="n-keep">&euro;18</span></div>
+      <p class="note">Zero upfront. No stock, no minimums. You set the price and keep everything above our base cost. We ship it worldwide, straight to your fan, within 72 hours.</p>
+      <p class="sr" id="n-say" aria-live="polite" aria-atomic="true"></p>
+    </div>
+    <dl class="n-specs" aria-label="Quality">
+      <div><dt>Blanks</dt><dd>122, from tees and hoodies to totes</dd></div>
+      <div><dt>Weight</dt><dd>Up to 450 gsm; 73 blanks are 220 gsm or heavier</dd></div>
+      <div><dt>Certified</dt><dd>All OEKO-TEX tested, 74 GOTS-certified</dd></div>
+      <div><dt>Vegan</dt><dd>Every blank in the catalogue</dd></div>
+      <div><dt>Print</dt><dd>Screen print, DTG, embroidery and heat transfer</dd></div>
+      <div><dt>Proof</dt><dd>Nothing goes to press until you approve it</dd></div>
+      <div><dt>Made</dt><dd>Printed, folded and tagged in Barcelona</dd></div>
+      <div><dt>Shipping</dt><dd>Worldwide, direct to your fans, within 72 hours</dd></div>
+    </dl>
+  </div>
+  <section class="n-bulk" aria-labelledby="n-bulk-h">
+    <div class="n-bulk-t">
+      <h2 id="n-bulk-h" class="label">Or press a run</h2>
+      <p class="n-bulk-h">Your own stock, where you need it.</p>
+      <ul class="n-bulk-l">
+        <li><h3>Bulk, screen printed</h3><p>A run of your own stock for a drop, a gig or the merch table. Screen printed or embroidered, folded and tagged.</p></li>
+        <li><h3>Split across your tour</h3><p>Send each part of the run to a different address ahead of time: the venue in every city, before you get there.</p></li>
+        <li><h3>Paid once, before press</h3><p>You approve the proof, pay the run, and we press it.</p></li>
+      </ul>
+    </div>
+    <div class="n-tour" aria-label="Example: one run split across a tour">
+      <div class="n-tour-h"><span class="label">Run 2851 &middot; 300 heavy tees</span><span class="n-tag">Example</span></div>
+      <div class="n-tour-r"><span class="d">12 Mar</span><span class="c">Barcelona</span><span class="vn">Razzmatazz</span><span class="q">120</span></div>
+      <div class="n-tour-r"><span class="d">14 Mar</span><span class="c">Madrid</span><span class="vn">La Riviera</span><span class="q">100</span></div>
+      <div class="n-tour-r"><span class="d">16 Mar</span><span class="c">Lisboa</span><span class="vn">LAV</span><span class="q">80</span></div>
+      <p class="note">Each box lands at the venue before doors.</p>
+    </div>
+  </section>
+  <div class="n-act">
+    <p class="head">By application.</p>
+    <a href="#apply" class="ulink">Apply</a>
+  </div>
+  <div id="numbers-foot"></div>
 </section>
 
 <!-- 3. PRESS -->
@@ -781,6 +931,7 @@ $('#door-foot').innerHTML=footer('d');
 })();
 $('#press-foot').innerHTML=footer('p');
 $('#apply-foot').innerHTML=footer('a');
+$('#numbers-foot').innerHTML=footer('n');
 
 /* =====================================================================
    THE PRESS BOARD (idea-4 simulation, runs from page load)
@@ -1040,12 +1191,12 @@ function buildPinned(host,name,animate,delay){
    ===================================================================== */
 function pinned(){ try{ return JSON.parse(ss('mf.pinned')||'null'); }catch(e){ return null; } }
 
-var VIEWS=['v-door','v-apply','v-press'];
+var VIEWS=['v-door','v-apply','v-press','v-numbers'];
 function go(id){
   epoch++;
   VIEWS.forEach(function(v){ $('#'+v).hidden=(v!==id); });
-  view={'v-door':'door','v-apply':'apply','v-press':'press'}[id];
-  var sub=(view==='apply'||view==='press');
+  view={'v-door':'door','v-apply':'apply','v-press':'press','v-numbers':'numbers'}[id];
+  var sub=(view==='apply'||view==='press'||view==='numbers');
   $('#top-back').hidden=!sub;
   $('#top-clock').hidden=true; $('#presslink').hidden=(view==='press');
   window.scrollTo(0,0);
@@ -1489,6 +1640,56 @@ function ctaHTML(){
   if(p) return '<p class="t1">Your application is pinned to the board.</p><p class="t2">In review.</p><a href="#apply" class="ulink">Apply again</a>';
   return '<p class="t1">Your run isn\'t here yet.</p><p class="t2">By application.</p><a href="#apply" class="ulink">Apply</a>';
 }
+/* ---------- THE NUMBERS: pick a garment, set a price, see what you keep ----------
+   Example base costs only (placeholders): the real ones live in the Studio's catalogue. */
+var N_GARMENTS=[
+  {id:'tee',name:'Tee',spec:'180 g organic cotton tee',cost:14,price:30},
+  {id:'heavy',name:'Heavy tee',spec:'240 g organic cotton tee',cost:17,price:35},
+  {id:'long',name:'Long sleeve',spec:'220 g organic cotton long sleeve',cost:20,price:40},
+  {id:'hoodie',name:'Hoodie',spec:'350 g organic cotton hoodie',cost:32,price:65},
+  {id:'tote',name:'Tote',spec:'Organic cotton tote bag',cost:11,price:22}
+];
+(function(){
+  var pick=$('#n-pick'), range=$('#n-p'); if(!pick||!range) return;
+  var cur=N_GARMENTS[1], sayT=0;
+  function eur(n){ return '\u20ac'+n.toLocaleString('en-GB'); }
+  function paintN(){
+    var p=+range.value, keep=p-cur.cost;
+    $('#n-rec').classList.toggle('on',p===cur.price);
+    $('#n-p-v').textContent=eur(p); range.setAttribute('aria-valuetext',eur(p));
+    $('#n-g').textContent=cur.spec; $('#n-sell').textContent=eur(p); $('#n-cost').textContent=eur(cur.cost);
+    $('#n-keep').textContent=eur(keep); $('#n-100').textContent=eur(keep*100)+' on 100 sold';
+    clearTimeout(sayT); sayT=setTimeout(function(){ $('#n-say').textContent=cur.name+' at '+eur(p)+': you keep '+eur(keep)+' a piece.'; },400);
+  }
+  function choose(g,focus){
+    cur=g;
+    /* a margin is mandatory: the lowest price keeps €5 a piece above the base cost */
+    range.min=g.cost+5; range.max=Math.max(g.cost*4,g.price+20); range.value=g.price;
+    var rec=$('#n-rec'); rec.style.setProperty('--rec',(g.price-range.min)/(range.max-range.min)); rec.querySelector('.rt').textContent='Recommended '+eur(g.price);
+    rec.setAttribute('aria-label','Use the recommended price, '+eur(g.price));
+    [].forEach.call(pick.children,function(b){ var on=b.dataset.id===g.id; b.setAttribute('aria-checked',on); b.tabIndex=on?0:-1; if(on&&focus) b.focus(); });
+    paintN();
+  }
+  N_GARMENTS.forEach(function(g){
+    var b=document.createElement('button'); b.type='button'; b.setAttribute('role','radio'); b.dataset.id=g.id; b.textContent=g.name;
+    b.addEventListener('click',function(){ choose(g); });
+    pick.appendChild(b);
+  });
+  pick.addEventListener('keydown',function(e){
+    var i=N_GARMENTS.indexOf(cur), j=-1;
+    if(e.key==='ArrowRight'||e.key==='ArrowDown') j=(i+1)%N_GARMENTS.length;
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp') j=(i-1+N_GARMENTS.length)%N_GARMENTS.length;
+    if(j>=0){ e.preventDefault(); choose(N_GARMENTS[j],true); }
+  });
+  range.addEventListener('input',paintN);
+  $('#n-rec').addEventListener('click',function(){ range.value=cur.price; paintN(); range.focus(); });
+  choose(cur);
+})();
+
+function showNumbers(){
+  go('v-numbers');
+  $('#n-h').focus({preventScroll:true});
+}
 function showPress(){
   go('v-press');
   $('#p-cta').innerHTML=ctaHTML();
@@ -1580,14 +1781,14 @@ var FALLBACK_FAQ=[
   {id:'sign-in',q:'How do members sign in?',a:'Type your email on the door. If it belongs to a member, we send a key to that inbox. Enter the key and you are in. Attempts are limited.',keywords:['sign','login','key','email','member','code','password','access','door'],link:{label:'Go to the door',href:'../'}},
   {id:'merch-studio',q:'What is Merch Studio?',a:'The app where the agent works with you. You describe the piece, bring artwork or have some made, see it on real blanks, price it, approve the proof and run your store. Members only.',keywords:['merch','studio','app','workspace','members','agent','platform','dashboard','tool']},
   {id:'agent',q:'What does the agent do?',a:'It browses the blanks, checks your artwork is ready to print, cleans or edits it, builds designs around your logo or from a brief, renders mockups, prices a run, sends proofs, quotes bulk orders and runs your store, orders and support tickets. It only states what the catalogue and your account tell it. Approving a proof, publishing your store and cancelling an order wait for your confirmation.',keywords:['agent','assistant','ai','does','tools','mockups','proof','quote','design','capabilities']},
-  {id:'two-ways',q:'Store or bulk run: how do I sell?',a:'Shop is your own store at merchfrom.com/you or your own domain. Each piece is printed as it sells: no stock, no minimums, no upfront cost. You set the retail price and keep everything above our base cost, paid with each sale. Zero upfront applies to Shop only.\n\nRun is a bulk order for a tour, festival or studio, screen printed or embroidered, folded, tagged and shipped to you or the venue. A run is paid before it goes to press, once you have approved the proof.',keywords:['shop','store','run','bulk','sell','upfront','stock','minimum','margin','domain']},
-  {id:'lead-time',q:'How long does a shop order take?',a:'Each piece is printed to order in Barcelona and ships in 8 working days.',keywords:['how','long','time','lead','days','ship','shipping','delivery','production','order','shop','working']},
+  {id:'two-ways',q:'Store or bulk run: how do I sell?',a:'Shop is your own store at merchfrom.com/you or your own domain. Each piece is printed as it sells: no stock, no minimums, no upfront cost. You set the retail price and keep everything above our base cost, paid with each sale. Zero upfront applies to Shop only.\n\nRun is a bulk order for a tour, festival or studio, screen printed or embroidered, folded, tagged and shipped to you, to the venue, or split ahead of time across the cities on your tour. A run is paid before it goes to press, once you have approved the proof.',keywords:['shop','store','run','bulk','sell','upfront','stock','minimum','margin','domain']},
+  {id:'lead-time',q:'How long does a shop order take?',a:'Each piece is printed to order in Barcelona and ships within 72 hours, direct to your fan, wherever they are.',keywords:['how','long','time','lead','days','ship','shipping','delivery','production','order','shop','working']},
   {id:'blanks',q:'What are the blanks?',a:'The garments we print on: 122 blanks, from t-shirts and hoodies to tote bags. All 122 are OEKO-TEX tested, 74 are GOTS-certified, and organic cotton runs across most of the range. Weights go up to 450 gsm, and 73 blanks are 220 gsm or heavier.',keywords:['blanks','garments','catalog','cotton','organic','gots','oeko','gsm','heavyweight','certified']},
   {id:'vegan',q:'Are the garments vegan?',a:'Yes. Every blank in the catalogue is vegan.',keywords:['vegan','garments','blanks','animal','wool','leather','ethical','materials','fabric','plant']},
   {id:'sizes',q:'What sizes are there?',a:'Adult sizes run from XXS to 5XL, and most adult blanks cover XS to 3XL. Bags and beanies come in one size. Some blanks have kids and baby sizes.',keywords:['sizes','size','fit','xxs','xs','xl','5xl','kids','baby','small','large']},
   {id:'printing',q:'How is it printed, and what artwork can I send?',a:'Screen print, DTG, embroidery and heat transfer, depending on the garment. Everything is printed, folded and tagged in Barcelona, and nothing goes to press until you approve the proof.\n\nSend PNG, JPEG, WebP or SVG up to 25 MB. The agent checks resolution at a 28 cm print width and says plainly if a file will not hold up. It keeps your original and saves every change as a new version.',keywords:['print','printing','screen','dtg','embroidery','artwork','file','png','resolution','proof']},
   {id:'where',q:'Where are you?',a:'Barcelona, Spain. Pieces are printed, folded and tagged there.',keywords:['where','location','barcelona','spain','based','city','address','studio','country']},
-  {id:'shipping',q:'Where do you ship?',a:'Shop orders ship to Spain, Portugal, the rest of the EU, the UK, Switzerland and the rest of the world.',keywords:['ship','shipping','delivery','deliver','country','countries','abroad','international','eu','uk','spain','portugal','world','send']},
+  {id:'shipping',q:'Where do you ship?',a:'Worldwide, direct to your fans: Spain, Portugal, the rest of the EU, the UK, Switzerland and the rest of the world. Every shop order leaves within 72 hours.',keywords:['ship','shipping','delivery','deliver','country','countries','abroad','international','eu','uk','spain','portugal','world','send']},
   {id:'press-board',q:'What is the press board?',a:'A live board of runs in production in Barcelona: who it is for, the piece, the quantity, the ink and the status. Clients are private unless they opt in, so many rows read private. Open it from the door with On the press now.',keywords:['press','board','live','production','runs','status','private','clients','queue'],link:{label:'On the press now',href:'../#press'}},
   {id:'mcp',q:'Can I use my own AI agent?',a:'That is the plan. The tools behind Merch Studio open up as an MCP server, so Claude, ChatGPT, Gemini, Grok and other MCP clients can work with them. Members only, with your member email and key. It is not open yet. The agents page has the endpoint, the setup steps and the full list of tools.',keywords:['mcp','agents','claude','chatgpt','gemini','grok','connect','connector','own','server','integration'],link:{label:'For agents',href:'../agents/'}},
   {id:'contact',q:'How do I contact you?',a:'Write to hello@merchfrom.com. The community is on Discord. Members can also ask in Merch Studio, where the agent can open a support ticket for you.',keywords:['contact','email','write','support','discord','community','ticket','talk','reach','hello'],link:{label:'Write to us',href:'mailto:hello@merchfrom.com'}}
@@ -1786,10 +1987,10 @@ function closeAskNav(){
 $('#a-close').addEventListener('click',closeAskNav);
 
 /* =====================================================================
-   ROUTER: #press, #apply, #watch, #ask. Esc goes back.
+   ROUTER: #press, #apply, #numbers, #watch, #ask. Esc goes back.
    ===================================================================== */
 var cur=null, under=null;
-function route(){ var h=location.hash.replace(/^#/,''); return (h==='press'||h==='apply'||h==='watch'||h==='ask')?h:''; }
+function route(){ var h=location.hash.replace(/^#/,''); return (h==='press'||h==='apply'||h==='watch'||h==='ask'||h==='numbers')?h:''; }
 function showBase(){ resetGate(); }
 function render(){
   var r=route();
@@ -1802,6 +2003,7 @@ function render(){
   under=r;
   if(r==='apply') showApply();
   else if(r==='press') showPress();
+  else if(r==='numbers') showNumbers();
   else showBase();
 }
 function goHome(){
@@ -1824,7 +2026,7 @@ document.addEventListener('keydown',function(e){
   if(e.key!=='Escape') return;
   if(cur==='watch'){ e.preventDefault(); closeWatchNav(); return; }
   if(cur==='ask'){ e.preventDefault(); closeAskNav(); return; }
-  if(cur==='apply'||cur==='press'){ e.preventDefault(); goHome(); return; }
+  if(cur==='apply'||cur==='press'||cur==='numbers'){ e.preventDefault(); goHome(); return; }
 });
 document.addEventListener('visibilitychange',function(){ if(!document.hidden&&view==='press') rows.forEach(function(r){ paint(r,{instant:true}); }); });
 

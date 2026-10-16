@@ -140,7 +140,7 @@
   {
     "id": "two-ways",
     "q": "Store or bulk run: how do I sell?",
-    "a": "Shop is your own store at merchfrom.com/you or your own domain. Each piece is printed as it sells: no stock, no minimums, no upfront cost. You set the retail price and keep everything above our base cost, paid with each sale. Zero upfront applies to Shop only.\n\nRun is a bulk order for a tour, festival or studio, screen printed or embroidered, folded, tagged and shipped to you or the venue. A run is paid before it goes to press, once you have approved the proof.",
+    "a": "Shop is your own store at merchfrom.com/you or your own domain. Each piece is printed as it sells: no stock, no minimums, no upfront cost. You set the retail price and keep everything above our base cost, paid with each sale. Zero upfront applies to Shop only.\n\nRun is a bulk order for a tour, festival or studio, screen printed or embroidered, folded, tagged and shipped to you, to the venue, or split ahead of time across the cities on your tour. A run is paid before it goes to press, once you have approved the proof.",
     "keywords": [
       "shop",
       "store",
@@ -157,7 +157,7 @@
   {
     "id": "lead-time",
     "q": "How long does a shop order take?",
-    "a": "Each piece is printed to order in Barcelona and ships in 8 working days.",
+    "a": "Each piece is printed to order in Barcelona and ships within 72 hours, direct to your fan, wherever they are.",
     "keywords": [
       "how",
       "long",
@@ -261,7 +261,7 @@
   {
     "id": "shipping",
     "q": "Where do you ship?",
-    "a": "Shop orders ship to Spain, Portugal, the rest of the EU, the UK, Switzerland and the rest of the world.",
+    "a": "Worldwide, direct to your fans: Spain, Portugal, the rest of the EU, the UK, Switzerland and the rest of the world. Every shop order leaves within 72 hours.",
     "keywords": [
       "ship",
       "shipping",
