@@ -79,6 +79,30 @@ test('opening the database points everything in the process at disk and away fro
   }
 });
 
+test('a migration that lands while the demo runs (a hot reload) is applied to its database on the next open, once', async () => {
+  const dir = path.join(scratch, 'migrating');
+  const db = openLocalDb(dir, {});
+  try {
+    const columns = async () =>
+      ((await db.execute(sql`select column_name from information_schema.columns where table_name = 'products'`)).rows as { column_name: string }[]).map((r) => r.column_name);
+    // whoever opens it first migrates it (npm run demo:local does): nothing happens here on the first open
+    assert.deepEqual(await columns(), []);
+
+    // the migration files changed since this process opened it
+    (globalThis as unknown as Record<string, { journal?: string }>).__mfLocalDemoDb.journal = 'the journal before';
+    assert.equal(openLocalDb(dir, {}), db, 'still the one client');
+    for (let i = 0; i < 400 && !(await columns()).includes('placements'); i++) await new Promise((resolve) => setTimeout(resolve, 25));
+    assert.ok((await columns()).includes('placements'), 'the new migrations were applied');
+
+    // and only once: the next open finds nothing to do
+    assert.equal(openLocalDb(dir, {}), db);
+    const [{ n }] = (await db.execute(sql`select count(*)::int as n from drizzle.__drizzle_migrations`)).rows as { n: number }[];
+    assert.ok(n >= 6, `every migration is recorded (${n})`);
+  } finally {
+    await closeLocalDb();
+  }
+});
+
 test('a second live process is refused, a dead one is taken over, and our own lock is ours', () => {
   const file = lockFileFor(path.join(scratch, 'locked'));
 

@@ -280,8 +280,14 @@ export const products = pgTable('products', {
     printServiceCode: text('print_service_code').references(() => printServices.code).notNull(),
     name: text('name').notNull(),
     description: text('description'),
-    placement: jsonb('placement'), // { position, widthCm, offsetYcm }
-    baseCostCents: integer('base_cost_cents'), // snapshot at creation time
+    // LEGACY: the one print area of a product made before `placements` ({ position, widthCm, offsetYcm }). Read only as a
+    // fallback (productAreasOf in platform/lib/mockups/placements.ts) and never written; migration 0005 copied it into `placements`.
+    placement: jsonb('placement'),
+    // The print areas: ProductArea[] = { position, widthCm, offsetYcm?, designId }, each with its own design. At most one front,
+    // one back, and the sleeves (platform/lib/mockups/placements.ts checkPrintAreas). designId above is the first area's design.
+    placements: jsonb('placements'),
+    baseCostCents: integer('base_cost_cents'), // snapshot: set at creation and again whenever the print areas change (podPrice)
+    baseCostLines: jsonb('base_cost_lines'), // PodPriceLine[]: what baseCostCents is made of, as the artist reads it
     retailPriceCents: integer('retail_price_cents'),
     status: productStatusEnum('status').default('draft').notNull(),
     collectionId: uuid('collection_id').references(() => collections.id),
@@ -296,7 +302,8 @@ export const products = pgTable('products', {
 export const productColours = pgTable('product_colours', {
     productId: uuid('product_id').references(() => products.id, { onDelete: 'cascade' }).notNull(),
     colourCode: text('colour_code').references(() => colours.code).notNull(),
-    mockupUrl: text('mockup_url'),
+    mockupUrl: text('mockup_url'), // the main picture: the front with its print, else the back
+    mockupViews: jsonb('mockup_views'), // { front?, back?, sleeve_left?, sleeve_right? }: a picture of every side that prints
 }, (table) => [
     primaryKey({ columns: [table.productId, table.colourCode] }),
 ]);

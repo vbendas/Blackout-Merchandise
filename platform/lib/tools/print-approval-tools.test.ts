@@ -76,7 +76,7 @@ interface Shape {
   ok?: boolean;
   error?: string;
   designId?: string | null;
-  artwork?: { approved: boolean; reason?: string; note?: string; approvalPage?: string; prepare?: { designId: string; blankCode: string; colourCodes: string[]; position: string; widthCm: number } };
+  artwork?: { approved: boolean; reason?: string; note?: string; approvalPage?: string; prepare?: { productId: string; designId: string; blankCode: string; colourCodes: string[]; position: string; widthCm: number } };
 }
 const dataOf = (result: ToolResult<unknown>) => result.data as Shape;
 const noticeOf = (ui?: ToolUi) => (ui?.cards ?? []).find((c): c is Extract<Card, { kind: 'notice' }> => c.kind === 'notice');
@@ -153,8 +153,8 @@ test('publish_product points to preparing the print files when there are none fo
   const data = dataOf(result);
   assert.equal(data.error, "The print files don't cover the Underwriter tee yet. Prepare them and approve the artwork first.");
   assert.equal(data.artwork?.reason, 'not_prepared');
-  // The model gets the exact prepare_print call: the blank, every colour on the product and the print position.
-  assert.deepEqual(data.artwork?.prepare, { designId, blankCode: 'STTU169', colourCodes: ALL, position: 'front_chest', widthCm: 28 });
+  // The model gets the exact prepare_print call: the product (which prepares every area), the blank, every colour on it and the print position.
+  assert.deepEqual(data.artwork?.prepare, { productId: id, designId, blankCode: 'STTU169', colourCodes: ALL, position: 'front_chest', widthCm: 28 });
 
   const action = noticeOf(result.ui)?.actions?.[0];
   assert.deepEqual(action, { label: 'Prepare the print files', href: undefined, prompt: 'Prepare the print files for Underwriter tee', variant: 'primary' });
@@ -231,7 +231,8 @@ test('an account without a shop is told so', async () => {
 
 test('the tool says in its description what a publish needs', () => {
   const description = tools.publishProductTool.description;
-  assert.match(description, /print files approved for its garment, every colour it has and its print position/);
+  assert.match(description, /print files approved for its garment, every colour it has and every print area/);
+  assert.match(description, /a product whose areas print different designs needs each design approved/);
   assert.match(description, /Never offer to publish before the artwork is approved/);
   assert.match(description, /already live is not taken down/);
   assert.match(tools.updateProductTool.description, /already live, adding a colour or moving the print needs the design's approval/);
@@ -365,7 +366,7 @@ test('update_product refuses a new colour on a live product with the same kind o
   const result = await run(tools.updateProductTool, context, { productId: id, colours: [BLACK, NAVY] });
   assert.equal(dataOf(result).ok, false);
   assert.equal(dataOf(result).error, "The print files don't cover the French Navy Underwriter tee yet. Prepare them and approve the artwork first.");
-  assert.deepEqual(dataOf(result).artwork?.prepare, { designId, blankCode: 'STTU169', colourCodes: [NAVY], position: 'front_chest', widthCm: 28 });
+  assert.deepEqual(dataOf(result).artwork?.prepare, { productId: id, designId, blankCode: 'STTU169', colourCodes: [NAVY], position: 'front_chest', widthCm: 28 });
   assert.deepEqual(noticeOf(result.ui)?.actions?.map((a) => a.label), ['Prepare the print files']);
   assert.deepEqual((await h.db.select().from(schema.productColours).where(eq(schema.productColours.productId, id))).map((r) => r.colourCode), [BLACK]);
 
@@ -410,7 +411,7 @@ test('get_product tells the model and the card whether the artwork is approved, 
   assert.equal(dataOf(unprepared).designId, designId);
   assert.equal(dataOf(unprepared).artwork?.approved, false);
   assert.equal(dataOf(unprepared).artwork?.reason, 'not_prepared');
-  assert.deepEqual(dataOf(unprepared).artwork?.prepare, { designId, blankCode: 'STTU169', colourCodes: ALL, position: 'front_chest', widthCm: 28 });
+  assert.deepEqual(dataOf(unprepared).artwork?.prepare, { productId: id, designId, blankCode: 'STTU169', colourCodes: ALL, position: 'front_chest', widthCm: 28 });
   const card = productCardOf(unprepared.ui);
   assert.deepEqual(card?.printApproval, {
     covered: false,
@@ -463,7 +464,9 @@ test('create_product offers to prepare the print files beside pricing, and tells
   });
   assert.equal(dataOf(result).ok, true, dataOf(result).error);
   assert.equal(dataOf(result).designId, designId);
-  assert.deepEqual(dataOf(result).artwork?.prepare, { designId, blankCode: 'STTU169', colourCodes: [BLACK], position: 'front_chest', widthCm: 28 });
+  const madeId = (result.data as { productId?: string }).productId;
+  assert.ok(madeId);
+  assert.deepEqual(dataOf(result).artwork?.prepare, { productId: madeId, designId, blankCode: 'STTU169', colourCodes: [BLACK], position: 'front_chest', widthCm: 28 });
   assert.deepEqual(labels(result.ui?.next), ['Price it at €22', 'Prepare the print files', 'Add another colour']);
   assert.equal(result.ui?.next?.filter((c) => c.primary).length, 1, 'pricing stays the one primary step');
   assert.equal(productCardOf(result.ui)?.printApproval?.covered, false);

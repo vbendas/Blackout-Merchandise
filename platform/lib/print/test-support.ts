@@ -27,6 +27,7 @@ import type * as InkSystemModule from '@/lib/services/ink-system';
 import { plateLayerName } from '@/lib/print/pack/names';
 import { diffScreenPsd, rebuildScreenSet } from '@/lib/print/pack/psd-read';
 import type { ActivityEntry, EngineApi, JobsApi, PackApi, PackRow, PrintDeps, StorageApi } from '@/lib/print/pipeline';
+import type { SleeveProofInput } from '@/lib/mockups/sleeve-proof';
 import type {
   CheckResult,
   DtgLayer,
@@ -456,6 +457,11 @@ export interface Fakes {
   queue: FakeQueue;
   /** tells the fakes where a design's stored art is, and what it is */
   registerDesign: (designId: string, bytes: Buffer) => void;
+  /** the sleeve proofs asked for, in order (lib/mockups/sleeve-proof.ts) */
+  sleeveProofs: SleeveProofInput[];
+  /** 'stub' throws like the contract's stub, so the approval page shows its card; 'no_font' throws the renderer's
+   * no-font error (SleeveProofError code 'no_font'), as on a machine without fonts; 'draw' returns an image */
+  sleeveProof: { mode: 'stub' | 'no_font' | 'draw' };
 }
 
 /** Where seedDesign says a design's print art is stored. */
@@ -472,6 +478,8 @@ export function makeFakes(db: TestDb, opts: { engine?: Partial<FakeEngineOptions
   const finaliseCalls: string[] = [];
   const finaliseFails = new Set<string>();
   const queue: FakeQueue = { worker: null, runner: null, pending: [] };
+  const sleeveProofs: SleeveProofInput[] = [];
+  const sleeveProof: Fakes['sleeveProof'] = { mode: 'stub' };
 
   const deps: Partial<PrintDeps> = {
     engine: engine.engine,
@@ -507,6 +515,12 @@ export function makeFakes(db: TestDb, opts: { engine?: Partial<FakeEngineOptions
         .where(eq(schema.designs.id, designId));
       return { ok: true, value: { url: finalUrl, bytes, widthPx: 4000, heightPx: 4800, source: 'final_4k', rendered: true } };
     },
+    sleeveProof: async (input) => {
+      sleeveProofs.push(input);
+      if (sleeveProof.mode === 'stub') throw new Error('not implemented: PL-C renderSleeveProof');
+      if (sleeveProof.mode === 'no_font') throw Object.assign(new Error('The renderer has no font to write the measurements with.'), { code: 'no_font' });
+      return Buffer.from(`sleeve-proof:${input.side}:${input.sleeve}:${input.garmentHex}:${input.printWidthCm}x${input.printHeightCm}`);
+    },
     // Like lib/services/team.ts recordStaffActivity: a row in staff_activity (the pack history reads it), and a copy for the tests to look at.
     recordActivity: async (actor, entry) => {
       activity.push({ actorId: actor.userId, entry });
@@ -521,7 +535,7 @@ export function makeFakes(db: TestDb, opts: { engine?: Partial<FakeEngineOptions
     },
   };
   const registerDesign = (designId: string, bytes: Buffer) => void artByUrl.set(printUrlOf(designId), bytes);
-  return { deps, storage, engine, pack, artByUrl, activity, setArt: registerDesign, noPackshot, finalise, finaliseCalls, finaliseFails, queue, registerDesign };
+  return { deps, storage, engine, pack, artByUrl, activity, setArt: registerDesign, noPackshot, finalise, finaliseCalls, finaliseFails, queue, registerDesign, sleeveProofs, sleeveProof };
 }
 
 // ---------------------------------------------------------------------------
@@ -563,7 +577,15 @@ export async function seedDesign(db: TestDb, storeId: string, opts: { generated?
 
 export async function seedProduct(
   db: TestDb,
-  input: { storeId: string; designId: string; name?: string; printServiceCode?: string; placement?: { position: string; widthCm: number } },
+  input: {
+    storeId: string;
+    designId: string;
+    name?: string;
+    printServiceCode?: string;
+    placement?: { position: string; widthCm: number };
+    /** print areas (products.placements); without them the product is a row from before them, with one `placement` */
+    areas?: { position: string; widthCm: number; offsetYcm?: number; designId: string | null }[];
+  },
 ): Promise<string> {
   const [row] = await db
     .insert(schema.products)
@@ -573,7 +595,7 @@ export async function seedProduct(
       blankCode: 'STTU169',
       printServiceCode: input.printServiceCode ?? 'dtg',
       name: input.name ?? 'Underwriter tee',
-      placement: input.placement ?? { position: 'front_chest', widthCm: 28 },
+      ...(input.areas ? { placements: input.areas } : { placement: input.placement ?? { position: 'front_chest', widthCm: 28 } }),
     })
     .returning({ id: schema.products.id });
   return row.id;

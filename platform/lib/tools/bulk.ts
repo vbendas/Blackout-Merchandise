@@ -469,14 +469,14 @@ const bulkPlacementSchema = z.object({
     .string()
     .min(1)
     .max(40)
-    .describe("One the garment takes: 'front_chest', 'front_full', 'front_left_chest', 'back', 'centre' or 'front_leg' (trousers). There is no sleeve print yet; it is refused, not moved."),
+    .describe("One the garment takes: 'front_chest', 'front_full', 'front_left_chest', 'back', 'sleeve_left' or 'sleeve_right' (garments with sleeves), 'centre' (bags) or 'front_leg' (trousers). A position the garment doesn't take is refused, not moved."),
   widthCm: z.number().positive().max(200).describe('Print width in cm on the garment.'),
   offsetYcm: z.number().optional(),
 });
 
 const bulkLineSchema = z
   .object({
-    productId: z.string().uuid().optional().describe("Reuse an existing shop product for this line (its blank and placement). Its print method too, unless printServiceCode says otherwise."),
+    productId: z.string().uuid().optional().describe("Reuse an existing shop product for this line: its blank and every print area it has (a front, a back, sleeves, each with its own design). Its print method too, unless printServiceCode says otherwise."),
     designId: z.string().uuid().optional().describe('Design to print, when this line is brand-new artwork rather than an existing product.'),
     blankCode: z.string().min(2).max(20).optional().describe('Required with printServiceCode + placement when productId is omitted.'),
     printServiceCode: z

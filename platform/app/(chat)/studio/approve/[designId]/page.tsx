@@ -4,7 +4,7 @@ import { getApprovalView } from '@/lib/services/print-prep';
 import { PageTopBar } from '@/components/studio/PageTopBar';
 import { ApproveWorkspace } from '@/components/studio/approve/ApproveWorkspace';
 import { AskLink, BackLink } from '@/components/studio/approve/ApproveLinks';
-import { changesPrompt, cleanId, parseTab, placementPosition } from '@/components/studio/approve/approve-logic';
+import { changesPrompt, cleanId, parseTab, placementSummary } from '@/components/studio/approve/approve-logic';
 import '@/components/studio/approve/approve.css';
 
 export const dynamic = 'force-dynamic';
@@ -60,7 +60,7 @@ export default async function ApprovePage({
             <span className="ap-barname" title={view.designName}>
               {view.designName}
             </span>
-            {` · Version ${view.versionNumber} · ${placementPosition(view.placementLabel)}`}
+            {` · Version ${view.versionNumber} · ${placementSummary(view)}`}
           </span>
         }
       >

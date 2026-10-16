@@ -264,7 +264,7 @@ test('what goes wrong comes back as a plain sentence, as data and as a notice', 
   assert.equal(await say(run(print.preparePrintTool, ctx, { designId, blankCode: 'NOPE', colourCodes: ['C002'] })), 'There is no blank with the code NOPE.');
   assert.equal(await say(run(print.preparePrintTool, ctx, { designId: randomUUID(), blankCode: 'STTU169', colourCodes: ['C002'] })), 'Design not found for this shop.');
   assert.match(await say(run(print.preparePrintTool, ctx, { designId, blankCode: 'STTU169', colourCodes: ['C999'] })), /^C999 isn't available on the /);
-  assert.match(await say(run(print.preparePrintTool, ctx, { designId, blankCode: 'STTU169', colourCodes: ['C002'], position: 'sleeve' })), /has no "sleeve" print position\. Use one of: front chest, front, left chest, back\.$/);
+  assert.match(await say(run(print.preparePrintTool, ctx, { designId, blankCode: 'STTU169', colourCodes: ['C002'], position: 'sleeve' })), /has no "sleeve" print position\. Use one of: front chest, front, left chest, back, left sleeve, right sleeve\.$/);
   assert.equal(await say(run(print.getPrintProofTool, ctx, { designId })), 'There are no print files for this design yet. Prepare them first.');
   assert.equal(await say(run(print.approveDesignTool, ctx, { designId })), 'There are no print files for this design yet. Prepare them first.');
   assert.equal(await say(run(print.changeScreenCountTool, ctx, { designId, screens: 8 })), 'Prepare the print files first, then the screen count can change.');

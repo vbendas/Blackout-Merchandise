@@ -111,7 +111,7 @@ test('render_mockups says so when a saved placement is one the garment cannot ta
     .returning();
   const result = await tools.renderMockupsTool.run(a.ctx, { productId: sleeveTee.id });
   assert.equal(result.data.found, true);
-  assert.match(result.data.error ?? '', /Sleeve prints are not supported yet\. T-shirts take: front_chest/);
+  assert.match(result.data.error ?? '', /"sleeve" is not a print position for T-shirts\. Say which sleeve: sleeve_left or sleeve_right\. T-shirts take: front_chest/);
   assert.equal(calls.renderProduct.length, 0, 'it is not moved to the chest and rendered');
 });
 
@@ -147,8 +147,11 @@ test('preview_on_blank needs a shop', async () => {
 test('preview_on_blank refuses a sleeve and lists the positions the garment takes', async () => {
   const result = await tools.previewOnBlankTool.run(a.ctx, { designId: a.designId, blankCode: cat.tee, colourCodes: [cat.black], position: 'sleeve' });
   assert.equal(result.data.found, true);
-  assert.match(result.data.error ?? '', /Sleeve prints are not supported yet\. T-shirts take: front_chest, front_full, front_left_chest, back\./);
+  assert.match(result.data.error ?? '', /"sleeve" is not a print position for T-shirts\. T-shirts take: front_chest, front_full, front_left_chest, back\./);
   assert.equal(noticeText(result), result.data.error);
+  // a real sleeve has no photo to preview on: it is drawn flat with the product's other pictures
+  const left = await tools.previewOnBlankTool.run(a.ctx, { designId: a.designId, blankCode: cat.tee, colourCodes: [cat.black], position: 'sleeve_left' });
+  assert.match(left.data.error ?? '', /A sleeve print has no garment photo to go on/);
   assert.equal(calls.renderOnBlank.length, 0, 'it is not moved to the chest and rendered');
 });
 

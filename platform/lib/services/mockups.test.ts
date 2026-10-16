@@ -1,5 +1,7 @@
-// Mockups for a position the garment cannot take (a sleeve): placements.ts now
-// throws UnknownPositionError for it instead of quietly using the default spot.
+// Mockups for a position the garment cannot take: placements.ts throws
+// UnknownPositionError for it instead of quietly using the default spot. A
+// sleeve is a position on garments with sleeves, but it never goes on a photo
+// (it is drawn flat, by the print pipeline).
 // The mockup service answers in plain words (tryRender...), renders and saves
 // nothing, and the throwing forms keep throwing the class the mockup tool
 // catches. Also: a product with no saved position gets the garment's own usual
@@ -118,9 +120,14 @@ test('a sleeve is answered in plain words, with the positions the garment takes:
   const result = await mockups.tryRenderDesignOnBlank(on('TEE', 'sleeve'));
   assert.equal(result.ok, false);
   if (result.ok) return;
-  assert.match(result.error, /Sleeve prints are not supported yet/);
+  assert.match(result.error, /"sleeve" is not a print position for T-shirts/);
   assert.ok(result.positions.length > 0 && result.positions.includes('front_chest') && !result.positions.includes('sleeve'));
   for (const position of result.positions) assert.ok(result.error.includes(position), `the message names ${position}`);
+
+  // a real sleeve position has no photo box: it is drawn flat by the print pipeline, never composited on a photo
+  const left = await mockups.tryRenderDesignOnBlank(on('TEE', 'sleeve_left'));
+  assert.equal(left.ok, false);
+  if (!left.ok) assert.match(left.error, /A sleeve print has no garment photo to go on/);
   assert.equal(stored.length, 0, 'nothing was drawn, on the chest or anywhere else');
 });
 
@@ -171,7 +178,7 @@ test('a product saved with a sleeve: a plain error, nothing rendered, no mockup 
   const result = await mockups.tryRenderProductMockups(id);
   assert.equal(result.ok, false);
   if (result.ok) return;
-  assert.match(result.error, /Sleeve prints are not supported yet/);
+  assert.match(result.error, /"sleeve" is not a print position for T-shirts/);
   assert.ok(result.positions.includes('front_chest'));
 
   assert.deepEqual(await savedMockups(id), { C001: 'https://old.example/c001.webp', C002: null });
@@ -200,12 +207,68 @@ test('a product with a placement the garment takes renders every colour and save
   assert.deepEqual(result, {
     ok: true,
     value: [
-      { colourCode: 'C001', url: 'https://stub.example/mockups/TEE/C001-front_chest.webp' },
-      { colourCode: 'C002', url: 'https://stub.example/mockups/TEE/C002-front_chest.webp' },
+      { colourCode: 'C001', url: 'https://stub.example/mockups/TEE/C001-front_chest.webp', views: { front: 'https://stub.example/mockups/TEE/C001-front_chest.webp' } },
+      { colourCode: 'C002', url: 'https://stub.example/mockups/TEE/C002-front_chest.webp', views: { front: 'https://stub.example/mockups/TEE/C002-front_chest.webp' } },
     ],
   });
   assert.deepEqual(await savedMockups(id), { C001: 'https://stub.example/mockups/TEE/C001-front_chest.webp', C002: 'https://stub.example/mockups/TEE/C002-front_chest.webp' });
   assert.equal((await mockups.renderProductMockups(id)).length, 2, 'the throwing form agrees');
+});
+
+test('a product with a front and a back composites each area on its own photo, with its own design; a sleeve never goes on one', async () => {
+  const blue = await sharp({ create: { width: 300, height: 300, channels: 4, background: { r: 40, g: 70, b: 230, alpha: 1 } } }).png().toBuffer();
+  await writeFile(path.join(publicDir, 'dev', 'design-blue.png'), blue);
+  const [backDesign] = await t.db.insert(schema.designs).values({ storeId, source: 'upload', originalUrl: '/dev/design-blue.png' }).returning();
+  const [product] = await t.db
+    .insert(schema.products)
+    .values({
+      storeId,
+      designId,
+      blankCode: 'TEE',
+      printServiceCode: 'dtg',
+      name: 'Two sides',
+      placements: [
+        { position: 'front_chest', widthCm: 20, designId },
+        { position: 'back', widthCm: 20, designId: backDesign.id },
+        { position: 'sleeve_left', widthCm: 8, designId },
+      ],
+    })
+    .returning();
+  await t.db.insert(schema.productColours).values({ productId: product.id, colourCode: 'C001' });
+
+  const result = await mockups.tryRenderProductMockups(product.id);
+  assert.ok(result.ok, result.ok ? '' : result.error);
+  assert.deepEqual(stored.map((file) => file.filename), ['C001-front_chest.webp', 'C001-back.webp'], 'a photo per side, no sleeve on a photo');
+  const front = 'https://stub.example/mockups/TEE/C001-front_chest.webp';
+  const back = 'https://stub.example/mockups/TEE/C001-back.webp';
+  assert.deepEqual(result.value, [{ colourCode: 'C001', url: front, views: { front, back } }]);
+  const [saved] = await t.db.select().from(schema.productColours).where(eq(schema.productColours.productId, product.id));
+  assert.equal(saved.mockupUrl, front, 'the front is the main picture');
+  assert.deepEqual(saved.mockupViews, { front, back });
+
+  // The front photo shows the red design in the chest box, the back photo the blue one in the back box.
+  const pixel = async (image: Uint8Array, x: number, y: number) => {
+    const { data, info } = await sharp(Buffer.from(image)).raw().toBuffer({ resolveWithObject: true });
+    const i = (Math.round(y) * info.width + Math.round(x)) * info.channels;
+    return [data[i], data[i + 1], data[i + 2]];
+  };
+  const [fr, fg, fb] = await pixel(stored[0].data, 600, 0.3465 * 1500 + 120);
+  assert.ok(fr > fg + 60 && fr > fb + 60, `red on the front, got ${[fr, fg, fb]}`);
+  const [br, bg, bb] = await pixel(stored[1].data, (0.2929 + 0.4941 / 2) * 1200, 0.2896 * 1500 + 150);
+  assert.ok(bb > br + 60 && bb > bg + 60, `blue on the back, got ${[br, bg, bb]}`);
+  const [cr, cg, cb] = await pixel(stored[1].data, 600, 0.3465 * 1500 + 120 + 300);
+  assert.ok(Math.abs(cr - cg) < 20 && Math.abs(cg - cb) < 20 && cr < 160, `no red on the back, got ${[cr, cg, cb]}`);
+});
+
+test('a product that prints only on a sleeve keeps the plain garment as its picture: the sleeve is drawn by the print files', async () => {
+  const [product] = await t.db
+    .insert(schema.products)
+    .values({ storeId, designId, blankCode: 'TEE', printServiceCode: 'dtg', name: 'Sleeve only', placements: [{ position: 'sleeve_right', widthCm: 8, designId }] })
+    .returning();
+  await t.db.insert(schema.productColours).values({ productId: product.id, colourCode: 'C002' });
+  const result = await mockups.tryRenderProductMockups(product.id);
+  assert.deepEqual(result, { ok: true, value: [{ colourCode: 'C002', url: '/packshots/front.png', views: {} }] });
+  assert.equal(stored.length, 0, 'nothing was composited');
 });
 
 test("a product with no saved position gets the garment's own usual spot, not a chest it does not have", async () => {

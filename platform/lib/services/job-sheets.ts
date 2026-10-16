@@ -22,7 +22,7 @@
 // that prefix can expire them. A cache that cannot be read or written never stops a sheet.
 //
 // Pantone codes are on it, so only Pre-press or Production View (or the owner) may open it.
-import { and, asc, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { PermissionError, type Actor } from '@/lib/auth/permissions';
 import { blankDisplayName } from '@/lib/catalog/display-names';
@@ -46,6 +46,7 @@ import {
   placementShortLabel,
   positionLabel,
   printDeps,
+  productUsesDesign,
   samePlacement,
   shortDesignCode,
   storedManifest,
@@ -69,6 +70,7 @@ import type {
 } from '@/lib/print/types';
 import { getActiveInkSystem, getInkSystemById } from '@/lib/services/ink-system';
 import { toPrintPlacement, type StoredPlacement } from '@/lib/services/prepress';
+import { productAreas } from '@/lib/services/print-prep';
 import { techniqueOfService } from '@/lib/services/quotes';
 import { runNumberFor } from '@/lib/services/runs';
 import { sortSizes } from '@/lib/storefront/present';
@@ -85,9 +87,11 @@ const SHOP_STATUSES = ['proof_pending', 'live'] as const;
 type ProductRow = {
   id: string;
   name: string;
+  designId: string | null;
   blankCode: string;
   printServiceCode: string;
   placement: unknown;
+  placements: unknown;
   status: (typeof schema.products.$inferSelect)['status'];
 };
 
@@ -206,14 +210,17 @@ interface RawLine {
   usedBy: string;
 }
 
+/** A print position of a run line, with the design printed there when it isn't the line's own. */
+type RunPlacement = StoredPlacement & { designId?: string | null };
+
 interface RunLine {
   productId?: string | null;
   designId?: string | null;
   blankCode?: string;
   printServiceCode?: string;
-  placement?: StoredPlacement | null;
-  /** screen print: more positions on the same garment, each on its own screens */
-  extraPlacements?: StoredPlacement[] | null;
+  placement?: RunPlacement | null;
+  /** more positions on the same garment (a product's other print areas, or a screen print's extra positions) */
+  extraPlacements?: RunPlacement[] | null;
   colourCode?: string;
 }
 
@@ -232,18 +239,20 @@ export async function collectJobSheet(designId: string): Promise<CollectedJobShe
 
   const { version, approval, packs, building } = await resolveVersion(design.id);
 
-  // -- what uses the design: its products, and the open orders on them
+  // -- what uses the design: its products (in any of their print areas), and the open orders on them
   const products: ProductRow[] = await db
     .select({
       id: schema.products.id,
       name: schema.products.name,
+      designId: schema.products.designId,
       blankCode: schema.products.blankCode,
       printServiceCode: schema.products.printServiceCode,
       placement: schema.products.placement,
+      placements: schema.products.placements,
       status: schema.products.status,
     })
     .from(schema.products)
-    .where(eq(schema.products.designId, design.id))
+    .where(productUsesDesign(design.id))
     .orderBy(asc(schema.products.createdAt), asc(schema.products.id));
   const productById = new Map(products.map((p) => [p.id, p]));
 
@@ -313,26 +322,33 @@ export async function collectJobSheet(designId: string): Promise<CollectedJobShe
     // A shop sale prints DTG/DTF whatever the product says; a service with no print file (embroidery) has none.
     const technique: PrintTechnique | null = techniqueOfService(product.printServiceCode) === null ? null : 'dtg_dtf';
     const colours = new Set([...(inFront ? (colourCodesOfProduct.get(product.id) ?? []) : []), ...(sold ?? [])]);
+    // Only the areas that print this design: another area of the product is on its own design's sheet.
+    const areas = productAreas(product).filter((a) => a.designId === design.id);
     for (const colourCode of colours) {
-      lines.push({
-        blankCode: product.blankCode,
-        colourCode,
-        placement: toPrintPlacement(product.placement as StoredPlacement | null),
-        technique,
-        serviceCode: product.printServiceCode,
-        usedBy: `Shop · ${product.name}`,
-      });
+      for (const area of areas) {
+        lines.push({
+          blankCode: product.blankCode,
+          colourCode,
+          placement: toPrintPlacement(area),
+          technique,
+          serviceCode: product.printServiceCode,
+          usedBy: `Shop · ${product.name}`,
+        });
+      }
     }
   }
   for (const run of runs.values()) {
     for (const line of run.lines) {
-      // A line off one of this design's products, or one quoted off a blank for this design.
+      // A line off one of this design's products, or one quoted off a blank: each of its positions that prints this design.
       const product = line.productId ? productById.get(line.productId) : undefined;
-      const ours = line.productId ? product !== undefined : line.designId === design.id;
+      if (line.productId && !product) continue;
       const blankCode = line.blankCode ?? product?.blankCode;
-      if (!ours || !blankCode || !line.colourCode || !line.printServiceCode) continue;
+      if (!blankCode || !line.colourCode || !line.printServiceCode) continue;
+      const lineDesign = product?.designId ?? line.designId ?? null;
       const extras = Array.isArray(line.extraPlacements) ? line.extraPlacements : [];
-      for (const placement of [line.placement ?? (product?.placement as StoredPlacement | null), ...extras]) {
+      const placements: (RunPlacement | null)[] = line.placement ? [line.placement, ...extras] : product ? productAreas(product) : [null, ...extras];
+      for (const placement of placements) {
+        if ((placement?.designId ?? lineDesign) !== design.id) continue;
         lines.push({
           blankCode,
           colourCode: line.colourCode,
@@ -464,6 +480,8 @@ export async function collectJobSheet(designId: string): Promise<CollectedJobShe
   };
 
   const severalBlanks = new Set(packInfos.map((p) => p.info?.blankCode ?? '')).size > 1;
+  // A design printed in several areas (a front and a sleeve) says which area each proof is of.
+  const severalAreas = new Set(packInfos.map((p) => placementKey(packPlacement(p.pack)))).size > 1;
   const screenSets: JobSheetScreenSet[] = [];
   const dtgPacks: JobSheetDtgPack[] = [];
   const proofs: JobSheetSource['proofs'] = [];
@@ -533,7 +551,8 @@ export async function collectJobSheet(designId: string): Promise<CollectedJobShe
     }
 
     for (const file of [...files].filter((f) => f.kind === 'proof' && f.garmentCode).sort((a, b) => colourOrder(a.garmentCode as string) - colourOrder(b.garmentCode as string))) {
-      proofs.push({ colourName: colourName(file.garmentCode as string), label: severalBlanks ? `${technique} · ${blank}` : technique, key: file.key, sha256: file.sha256 });
+      const where = [severalBlanks ? blank : null, severalAreas ? positionLabel(placement.position) : null].filter(Boolean).join(' · ');
+      proofs.push({ colourName: colourName(file.garmentCode as string), label: where ? `${technique} · ${where}` : technique, key: file.key, sha256: file.sha256 });
     }
     checks.push({ label, checks: packChecks(pack) });
     audits.push({
@@ -694,27 +713,28 @@ export async function designsForOrders(orderIds: string[]): Promise<Map<string, 
   const byOrder = new Map<string, JobSheetLink[]>();
   if (unique.length === 0) return byOrder;
 
-  const rows = await db
-    .selectDistinct({ orderId: schema.orderItems.orderId, designId: schema.products.designId })
+  const items = await db
+    .select({ orderId: schema.orderItems.orderId, designId: schema.products.designId, placement: schema.products.placement, placements: schema.products.placements })
     .from(schema.orderItems)
     .innerJoin(schema.products, eq(schema.orderItems.productId, schema.products.id))
-    .where(and(inArray(schema.orderItems.orderId, unique), isNotNull(schema.products.designId)));
-  const designIds = [...new Set(rows.map((r) => r.designId as string))];
+    .where(inArray(schema.orderItems.orderId, unique));
+  // Every design an order's products print, in any of their areas (a front and a back can be different artwork).
+  const pairs = new Map<string, Set<string>>();
+  for (const item of items) {
+    for (const area of productAreas(item)) {
+      if (area.designId) pairs.set(item.orderId, (pairs.get(item.orderId) ?? new Set()).add(area.designId));
+    }
+  }
+  const designIds = [...new Set([...pairs.values()].flatMap((ids) => [...ids]))];
   if (designIds.length === 0) return byOrder;
 
   // The name of a design is its first product's, as designDisplayName reads it.
-  const named = await db
-    .select({ designId: schema.products.designId, name: schema.products.name })
-    .from(schema.products)
-    .where(inArray(schema.products.designId, designIds))
-    .orderBy(asc(schema.products.createdAt), asc(schema.products.id));
   const names = new Map<string, string>();
-  for (const row of named) if (row.designId && !names.has(row.designId) && row.name.trim()) names.set(row.designId, row.name.trim());
+  for (const id of designIds) names.set(id, await designDisplayName(id));
 
-  for (const row of rows) {
-    const designId = row.designId as string;
-    const link: JobSheetLink = { designId, name: names.get(designId) ?? `Design ${shortDesignCode(designId).slice(3)}` };
-    byOrder.set(row.orderId, [...(byOrder.get(row.orderId) ?? []), link].sort((a, b) => a.name.localeCompare(b.name) || a.designId.localeCompare(b.designId)));
+  for (const [orderId, ids] of pairs) {
+    const links: JobSheetLink[] = [...ids].map((designId) => ({ designId, name: names.get(designId) ?? `Design ${shortDesignCode(designId).slice(3)}` }));
+    byOrder.set(orderId, links.sort((a, b) => a.name.localeCompare(b.name) || a.designId.localeCompare(b.designId)));
   }
   return byOrder;
 }

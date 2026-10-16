@@ -14,6 +14,7 @@ import { claimWebhookEvent } from '@/lib/services/orders';
 import { notify } from '@/lib/services/notifications';
 import { markPacksNeededForOrder } from '@/lib/services/prepress';
 import { checkPlacementPosition, defaultPlacementFor } from '@/lib/mockups/placements';
+import { podPrice } from '@/lib/pricing/pod';
 import type { CheckoutSessionSnapshot } from '@/lib/services/stripe';
 
 // Bulk orders (service path B, Platform-Plan.md §6): an artist orders a run
@@ -61,6 +62,12 @@ export interface BulkShipTo {
   country: string;
 }
 
+/** A print position on a run's garment. `designId` is the design printed there when it isn't the line's own: a run of
+ * a product whose front and back are different artwork carries each area's design. */
+export interface RunPlacement extends Placement {
+  designId?: string | null;
+}
+
 export interface BulkQuoteLine {
   /** set when this line was quoted off an existing shop product */
   productId: string | null;
@@ -70,10 +77,12 @@ export interface BulkQuoteLine {
   blankName: string;
   printServiceCode: string;
   printServiceName: string;
-  placement: Placement | null;
-  /** screen print only: more print positions on the same garment, after `placement`, each priced at the second-position
-   * rate. Pre-press builds and gates a pack for each of them (resolveOrderRequirements), and the job sheet lists them. */
-  extraPlacements?: Placement[];
+  /** the main print position; off a product, its first print area */
+  placement: RunPlacement | null;
+  /** more print positions on the same garment, after `placement`: off a product, its other print areas. Screen print
+   * prices each at the second-position rate; DTG/DTF adds the shop's extras for them (front and back, sleeve prints).
+   * Pre-press builds and gates a pack for each of them (resolveOrderRequirements), and the job sheet lists them. */
+  extraPlacements?: RunPlacement[];
   colourCode: string;
   colourName: string;
   /** size code -> quantity */
@@ -226,9 +235,9 @@ export interface CreateBulkQuoteLineInput {
   designId?: string;
   blankCode?: string;
   printServiceCode?: string;
-  placement?: Placement;
-  /** screen print only: more print positions on the same garment (at most 3 more) */
-  extraPlacements?: Placement[];
+  placement?: RunPlacement;
+  /** more print positions on the same garment (at most 3 more); off a product they default to its other print areas */
+  extraPlacements?: RunPlacement[];
   colourCode: string;
   /** size code -> quantity */
   sizes: Record<string, number>;
@@ -254,10 +263,21 @@ function normaliseShipTo(input: BulkShipTo | undefined): BulkShipTo | null {
 
 type LineResult = { ok: true; value: BulkQuoteLine } | { ok: false; error: string };
 
-/** True when the design belongs to this shop: a run only ever prints its own shop's art. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** True when the design belongs to this shop: a run only ever prints its own shop's art. Something that isn't a design id
+ * at all is not this shop's (and never reaches the database as one). */
 async function designInShop(storeId: string, designId: string): Promise<boolean> {
+  if (!UUID.test(designId)) return false;
   const [design] = await db.select({ storeId: schema.designs.storeId }).from(schema.designs).where(eq(schema.designs.id, designId)).limit(1);
   return design?.storeId === storeId;
+}
+
+/** What more print areas add to one DTG/DTF piece: the shop's extras for them (front and back, sleeve prints; podPrice
+ * in lib/pricing/pod.ts), on top of the run's price for the garment with one print. */
+async function extraAreasCents(blankCode: string, printServiceCode: string, placements: RunPlacement[]): Promise<number> {
+  const price = await podPrice(blankCode, placements.map((p) => ({ position: p.position, widthCm: p.widthCm })), printServiceCode);
+  return price ? price.lines.filter((l) => l.key !== 'base').reduce((sum, l) => sum + l.cents, 0) : 0;
 }
 
 /** The usual place and size for a line that names none, as pre-press reads it for an order (toPrintPlacement in prepress.ts). */
@@ -278,7 +298,9 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
   let blankName: string;
   let printServiceCode: string;
   let printServiceName: string;
-  let placement: Placement | null;
+  let placement: RunPlacement | null;
+  /** off a product: its other print areas, each with its design */
+  let productExtras: RunPlacement[] = [];
   let colourName: string;
   let mockupUrl: string | null = null;
   let productId: string | null = null;
@@ -293,7 +315,10 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
     else if (designId && !(await designInShop(storeId, designId))) return { ok: false, error: 'Design not found for this shop.' };
     blankCode = product.blankCode;
     blankName = product.blankName;
-    placement = product.placement;
+    // The run prints what the product prints: its first area, then its others, each with its own design.
+    const [main, ...others] = product.areas;
+    placement = main ? { position: main.position, widthCm: main.widthCm, ...(main.offsetYcm ? { offsetYcm: main.offsetYcm } : {}), ...(main.designId && main.designId !== designId ? { designId: main.designId } : {}) } : product.placement;
+    productExtras = others.map((a) => ({ position: a.position, widthCm: a.widthCm, ...(a.offsetYcm ? { offsetYcm: a.offsetYcm } : {}), ...(a.designId ? { designId: a.designId } : {}) }));
 
     // The run picks its own method. Left out, it prints the way the product does.
     if (input.printServiceCode && input.printServiceCode !== product.printServiceCode) {
@@ -329,6 +354,8 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
     blankCode = blank.code;
     blankName = blankDisplayName(blank.code, blank.name);
     placement = input.placement;
+    // A run only ever prints its own shop's art, at every position.
+    if (placement.designId && placement.designId !== designId && !(await designInShop(storeId, placement.designId))) return { ok: false, error: 'Design not found for this shop.' };
 
     const services = await printServicesFor(input.blankCode);
     const service = services.find((s) => s.code === input.printServiceCode);
@@ -336,7 +363,7 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
     printServiceCode = service.code;
     printServiceName = service.name;
 
-    const position = checkPlacementPosition(blank.type, input.placement.position);
+    const position = checkPlacementPosition(blank.type, input.placement.position, blank.code);
     if (!position.ok) return { ok: false, error: position.error };
 
     const colourRows = await db
@@ -357,19 +384,21 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
 
   const isScreen = techniqueOfService(printServiceCode) === 'screen';
 
-  // More print positions on the garment: priced for screen print, where each position has its own screens.
-  const extras = input.extraPlacements ?? [];
+  // More print positions on the garment: the ones the line names, else (off a product) the product's other areas.
+  // Screen print gives each position its own screens; DTG/DTF prints them in the same pass, for the shop's extras.
+  const extras = input.extraPlacements ?? productExtras;
   if (extras.length > 0) {
-    if (!isScreen) return { ok: false, error: 'More than one print position is priced for screen print only.' };
     if (extras.length > MAX_EXTRA_PLACEMENTS) return { ok: false, error: `A garment takes at most ${MAX_EXTRA_PLACEMENTS + 1} print positions.` };
     const [blankRow] = await db.select({ type: schema.blanks.type }).from(schema.blanks).where(eq(schema.blanks.code, blankCode)).limit(1);
     const seen = new Set([(placement ?? DEFAULT_PLACEMENT).position]);
     for (const extra of extras) {
-      const position = checkPlacementPosition(blankRow?.type ?? '', extra.position);
+      const position = checkPlacementPosition(blankRow?.type ?? '', extra.position, blankCode);
       if (!position.ok) return { ok: false, error: position.error };
       if (seen.has(extra.position)) return { ok: false, error: 'A garment can have each print position once.' };
       // The width print prep can make files for (validateDrop in print-prep.ts).
       if (!(extra.widthCm >= 2 && extra.widthCm <= 60)) return { ok: false, error: 'A print position must be between 2 and 60 cm wide.' };
+      // A run only ever prints its own shop's art.
+      if (extra.designId && extra.designId !== designId && !(await designInShop(storeId, extra.designId))) return { ok: false, error: 'Design not found for this shop.' };
       seen.add(extra.position);
     }
   }
@@ -388,7 +417,7 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
   } else {
     const quote = await quoteFor({ blankCode, printServiceCode, qty });
     if (!quote) return { ok: false, error: `No pricing configured for ${blankCode} with ${printServiceCode}.` };
-    unitCents = quote.unitBaseCostCents;
+    unitCents = quote.unitBaseCostCents + (extras.length > 0 ? await extraAreasCents(blankCode, printServiceCode, [placement ?? DEFAULT_PLACEMENT, ...extras]) : 0);
   }
 
   const sizes = Object.fromEntries(sizeEntries);
@@ -680,12 +709,14 @@ async function ensureLineProduct(storeId: string, line: BulkQuoteLine): Promise<
   // products.ts). A line with no placement gets its blank's usual spot, not a
   // chest print on a pair of trousers.
   const blankRows = await db.select({ type: schema.blanks.type }).from(schema.blanks).where(eq(schema.blanks.code, line.blankCode)).limit(1);
+  const main: RunPlacement = line.placement ?? defaultPlacementFor(blankRows[0]?.type ?? '');
   const created = await createProduct({
     storeId,
     designId: line.designId ?? undefined,
     blankCode: line.blankCode,
     printServiceCode: line.printServiceCode,
-    placement: line.placement ?? defaultPlacementFor(blankRows[0]?.type ?? ''),
+    // every position the line prints, each with its own design when it has one
+    areas: [main, ...(line.extraPlacements ?? [])].map((p) => ({ position: p.position, widthCm: p.widthCm, ...(p.offsetYcm ? { offsetYcm: p.offsetYcm } : {}), designId: p.designId ?? line.designId ?? null })),
     colours: [line.colourCode],
     sizes: Object.keys(line.sizes),
     name: `Bulk run — ${line.blankName} (${line.colourName})`,

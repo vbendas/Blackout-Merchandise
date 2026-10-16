@@ -93,7 +93,7 @@ async function main(): Promise<void> {
       .returning();
     const [product] = await t.db
       .insert(schema.products)
-      .values({ storeId: artist.storeId!, designId: design.id, blankCode: 'STTU169', printServiceCode: 'dtg', name: fixture.replace(/[-_]/g, ' '), placement: { position: 'front_chest', widthCm: 28 } })
+      .values({ storeId: artist.storeId!, designId: design.id, blankCode: 'STTU169', printServiceCode: 'dtg', name: fixture.replace(/[-_]/g, ' '), placements: [{ position: 'front_chest', widthCm: 28, designId: design.id }] })
       .returning();
 
     // The artwork is read from the fixture file; everything else is the real thing.
@@ -151,7 +151,7 @@ async function main(): Promise<void> {
     for (const line of runLines) {
       const [backing] = await t.db
         .insert(schema.products)
-        .values({ storeId: artist.storeId!, designId: design.id, blankCode: 'STTU169', printServiceCode: line.service, name: `Bulk run ${line.colourCode}`, placement: { position: 'front_chest', widthCm: 28 } })
+        .values({ storeId: artist.storeId!, designId: design.id, blankCode: 'STTU169', printServiceCode: line.service, name: `Bulk run ${line.colourCode}`, placements: [{ position: 'front_chest', widthCm: 28, designId: design.id }] })
         .returning();
       for (const [size, qty] of Object.entries(line.sizes)) runItems.push({ productId: backing.id, colourCode: line.colourCode, size, qty });
       quoteLines.push({ productId: backing.id, designId: design.id, blankCode: 'STTU169', printServiceCode: line.service, placement: { position: 'front_chest', widthCm: 28 }, colourCode: line.colourCode, qty: Object.values(line.sizes).reduce((a, b) => a + b, 0) });

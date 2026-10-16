@@ -700,6 +700,7 @@ const ACTION_WORDS: Record<string, string> = {
   'ink_system.dot_gain': 'Calibrated the dot gain',
   'ink_system.dot_gain_reset': 'Removed the dot-gain calibration',
   'pricing.screen_table': 'Changed the screen-print prices',
+  'pricing.shop_table': 'Changed the shop-product prices',
 };
 
 function humanise(action: string): string {

@@ -1,5 +1,6 @@
-import { and, asc, count, eq, ilike, inArray, notLike, or } from 'drizzle-orm';
+import { and, asc, count, eq, ilike, inArray, or } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
+import { loadShopFromPrices } from '@/lib/services/pricing-admin';
 
 export interface ListBlanksInput {
   type?: string;
@@ -20,25 +21,6 @@ export interface BlankListItem {
   fromPriceCents: number | null;
 }
 
-/** Screen print has no base costs (a run is priced from the screen-print table by its screens); a row an old seed left is a
- * placeholder, never a "from" price. */
-export const NOT_SCREEN_BASE_COST = notLike(schema.baseCosts.printServiceCode, 'screen\_%');
-
-/** Cheapest qty_from=1 total across every print service offered for a blank (screen print has none). */
-async function minPricesByBlank(blankCodes: string[]): Promise<Map<string, number>> {
-  if (blankCodes.length === 0) return new Map();
-  const rows = await db
-    .select({ blankCode: schema.baseCosts.blankCode, totalCents: schema.baseCosts.totalCents })
-    .from(schema.baseCosts)
-    .where(and(inArray(schema.baseCosts.blankCode, blankCodes), eq(schema.baseCosts.qtyFrom, 1), NOT_SCREEN_BASE_COST));
-  const prices = new Map<string, number>();
-  for (const row of rows) {
-    if (row.totalCents == null) continue;
-    const current = prices.get(row.blankCode);
-    if (current === undefined || row.totalCents < current) prices.set(row.blankCode, row.totalCents);
-  }
-  return prices;
-}
 
 export async function listTypes(): Promise<string[]> {
   const rows = await db
@@ -95,7 +77,7 @@ export async function listBlanks(input: ListBlanksInput): Promise<{ items: Blank
   ]);
   const total = totalRows[0]?.total ?? 0;
 
-  const prices = await minPricesByBlank(rows.map((r) => r.code));
+  const prices = await loadShopFromPrices(rows.map((r) => r.code));
 
   return {
     items: rows.map((r) => ({
@@ -131,6 +113,7 @@ export interface BlankDetail {
    * those available in the shop (DTG, DTF), screen print is for runs */
   printServiceOptions: { code: string; name: string; availableInShop: boolean }[];
   sizeGuide: { unit: string | null; columns: string[]; rows: unknown[] } | null;
+  /** what a shop product of it costs with one print area (loadShopFromPrices) */
   fromPriceCents: number | null;
 }
 
@@ -139,7 +122,7 @@ export async function getBlank(code: string): Promise<BlankDetail | null> {
   const blank = blankRows[0];
   if (!blank) return null;
 
-  const [colourRows, sizeRows, sizeGuideRows, printServiceRows, baseCostRows] = await Promise.all([
+  const [colourRows, sizeRows, sizeGuideRows, printServiceRows, fromPrices] = await Promise.all([
     db
       .select({ code: schema.colours.code, name: schema.colours.name, hex: schema.colours.hex })
       .from(schema.blankColours)
@@ -157,13 +140,9 @@ export async function getBlank(code: string): Promise<BlankDetail | null> {
       .from(schema.blankPrintServices)
       .innerJoin(schema.printServices, eq(schema.blankPrintServices.printServiceCode, schema.printServices.code))
       .where(eq(schema.blankPrintServices.blankCode, code)),
-    db
-      .select({ totalCents: schema.baseCosts.totalCents })
-      .from(schema.baseCosts)
-      .where(and(eq(schema.baseCosts.blankCode, code), eq(schema.baseCosts.qtyFrom, 1), NOT_SCREEN_BASE_COST)),
+    loadShopFromPrices([blank.code]),
   ]);
 
-  const prices = baseCostRows.map((r) => r.totalCents).filter((v): v is number => v != null);
   const guide = sizeGuideRows[0];
 
   return {
@@ -185,6 +164,6 @@ export async function getBlank(code: string): Promise<BlankDetail | null> {
     sizeGuide: guide
       ? { unit: guide.unit, columns: (guide.columns as string[]) ?? [], rows: (guide.rows as unknown[]) ?? [] }
       : null,
-    fromPriceCents: prices.length > 0 ? Math.min(...prices) : null,
+    fromPriceCents: fromPrices.get(blank.code) ?? null,
   };
 }

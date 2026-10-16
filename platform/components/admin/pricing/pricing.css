@@ -1,5 +1,6 @@
-/* The pricing page: the screen-print price table as a grid to read or to edit, a few rows of
-   settings, and example prices. Buttons, fields, tables, the page frame and the type come from
+/* The pricing page: two tabs. Runs: the screen-print price table as a grid to read or to edit, a few
+   rows of settings, and example prices. Shop products: the extras, a searchable table of garments with
+   their base prices, and example prices. Buttons, fields, tables, the page frame and the type come from
    components/admin/prepress/prepress.css (the page imports both). It sits in @layer components,
    so a Tailwind utility on the same element still wins. */
 @layer properties, theme, base, components, utilities, overrides;
@@ -52,6 +53,13 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     vertical-align: 1px;
+    white-space: nowrap;
+  }
+
+  /* An unsaved change reads in white, where a placeholder is dimmer. */
+  .prc-tag[data-tone='strong'] {
+    border-color: var(--signal);
+    color: var(--signal);
   }
 
   /* ----- The price grid ----- */
@@ -201,6 +209,11 @@
     text-align: right;
   }
 
+  /* A row of the shop examples: the product's name is a row heading, not a column label. */
+  .prc-examples tbody th {
+    padding-right: 12px;
+  }
+
   /* The screens above 8: the fixed charge reads in white where the rest is dimmer. */
   .prc-examples tr[data-over='true'] td:nth-child(2) {
     color: var(--signal);
@@ -213,9 +226,140 @@
     gap: 12px;
   }
 
+  /* ----- Shop products: search, "set a type", the garment table ----- */
+
+  .prc-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 12px;
+  }
+
+  .prc-toolbar .pp-field,
+  .prc-bulk .pp-field {
+    width: auto;
+  }
+
+  .prc-toolbar .prc-search {
+    width: 300px;
+    max-width: 100%;
+  }
+
+  .prc-toolbar .prc-select,
+  .prc-bulk .prc-select {
+    min-width: 180px;
+    max-width: 100%;
+  }
+
+  /* A label and its menu on one line; on a phone the menu gives way instead of widening the page. */
+  .prc-pick {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .prc-pick .prc-select {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* "Set every garment of a type": a bordered strip above the table. */
+  .prc-bulk {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 14px 16px;
+    border: var(--hairline);
+    border-radius: 2px;
+  }
+
+  .prc-bulk-label {
+    color: var(--signal);
+    font-weight: 500;
+  }
+
+  .prc-bulk-hint {
+    flex-basis: 100%;
+  }
+
+  .prc-garments {
+    min-width: 860px;
+  }
+
+  .prc-garments thead th,
+  .prc-garments tbody th {
+    vertical-align: middle;
+  }
+
+  .prc-garments tbody th {
+    padding: 8px 12px 8px 0;
+    color: var(--signal);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .prc-garments td {
+    padding: 6px 12px;
+    vertical-align: middle;
+  }
+
+  .prc-garments .prc-tag {
+    margin-left: 0;
+  }
+
+  /* A box with its euro sign, and the message under it when it needs a look. */
+  .prc-cell {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+  }
+
+  .prc-garments .prc-box:disabled {
+    opacity: 0.35;
+  }
+
+  /* A placeholder price reads dimmer than one the owner chose. */
+  .prc-box.prc-ghost {
+    color: var(--pp-soft);
+  }
+
+  /* The save bar: with 120 garments in the table the buttons stay in view, at the foot of the window. */
+  .prc-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding: 14px 0;
+    border-top: var(--hairline);
+    background: var(--paper);
+  }
+
+  .prc-bar-text {
+    display: flex;
+    flex: 1 1 320px;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
   @media (max-width: 640px) {
     .prc-row {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    .prc-toolbar .prc-search {
+      width: 100%;
     }
   }
 }

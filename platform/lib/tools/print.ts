@@ -8,10 +8,12 @@ import {
   defaultPlacement,
   getApprovalView,
   preparePrint,
+  preparePrintForProduct,
   productApproval,
   type ApprovalView,
   type ProductApproval,
 } from '@/lib/services/print-prep';
+import { getProjectCard } from '@/lib/services/conversations';
 import type { Card, Chip, PrintApprovalState, ToolUi } from '@/lib/ui-cards/schemas';
 
 // Artist print-prep tools: prepare_print, get_print_proof, approve_design
@@ -152,6 +154,11 @@ function viewData(view: ApprovalView) {
     status: view.status,
     canApprove: view.canApprove,
     placement: view.placementLabel,
+    ...(view.areas && view.areas.length > 1 ? { printAreas: view.areas.map((a) => `${a.label} · ${a.size}`) } : {}),
+    ...(view.areas?.some((a) => a.sleeve) ? { sleeves: 'A sleeve has no garment photo: the approval page shows it flat and true size on a sleeve outline, with its measurements.' } : {}),
+    ...(view.relatedDesigns && view.relatedDesigns.length > 0
+      ? { otherArtworkOnTheseProducts: view.relatedDesigns.map((r) => ({ designId: r.designId, areas: r.areas, approved: r.approved, approvalPage: `/studio/approve/${r.designId}` })) }
+      : {}),
     garments: view.garments.map((g) => g.name),
     screenSets: view.screenSets.map((s) => ({ name: s.name, garments: s.garmentCodes.length, screens: s.screenCount, headline: s.headline, price: s.priceNote, inks: s.inks.map((i) => i.name) })),
     warnings: view.warnings,
@@ -169,26 +176,40 @@ interface PrepareData {
   designVersionId?: string;
   status?: string;
   approvalPage?: string;
+  /** a whole product: one entry per design its print areas print; alreadyPrepared when its files were all there */
+  designs?: { designId: string; positions: string[]; approvalPage: string; alreadyPrepared?: boolean }[];
 }
 
 export const preparePrintTool = defineTool({
   name: 'prepare_print',
   description:
-    "Prepare the print files for a design, once the artist has picked the blank, the garment colours and where the print goes. It makes both versions at once: DTG/DTF (how every shop product prints) and screen print (for runs), and a proof on every colour. Takes a few minutes. Returns a card with a link to the approval page; then use get_print_proof to show the proofs. Position and width are optional: the blank's usual spot and size are used when you leave them out. Never mention Pantone codes: colours are called by plain names.",
+    "Prepare the print files for a product or a design, once the artist has picked the blank, the garment colours and where the print goes. It makes both versions at once: DTG/DTF (how every shop product prints) and screen print (for runs), and a proof on every colour. Takes a few minutes. For a product, pass productId (or nothing, for the product open in this conversation): every print area is prepared at once, front, back and sleeves, each with its own design, at the exact sizes the product prints. Otherwise pass designId, blankCode and colourCodes; position and width are optional (the blank's usual spot and size). A sleeve print has no garment photo: its proof is drawn flat and true size on a sleeve outline. Returns a card with a link to the approval page; then use get_print_proof to show the proofs (a product whose areas print different designs has one approval page per design). Never mention Pantone codes: colours are called by plain names.",
   input: z
     .object({
-      designId: z.string().uuid().describe('The design to prepare.'),
-      blankCode: z.string().min(2).max(20).describe('Blank code, e.g. STTU169 (for tool calls only; say the blank by its name).'),
-      colourCodes: z.array(z.string().min(1).max(12)).min(1).max(20).describe('Garment colour codes the artist picked, e.g. ["C002", "C727"].'),
-      position: z.string().max(40).optional().describe("Print position: 'front_chest', 'front_full', 'front_left_chest', 'back', 'centre'. Defaults to the blank's usual spot."),
+      productId: z.string().uuid().optional().describe('A product: every print area it has is prepared, on its blank and all its colours.'),
+      designId: z.string().uuid().optional().describe('The design to prepare, without a product.'),
+      blankCode: z.string().min(2).max(20).optional().describe('Blank code, e.g. STTU169 (for tool calls only; say the blank by its name).'),
+      colourCodes: z.array(z.string().min(1).max(12)).min(1).max(20).optional().describe('Garment colour codes the artist picked, e.g. ["C002", "C727"].'),
+      position: z
+        .string()
+        .max(40)
+        .optional()
+        .describe("Print position: 'front_chest', 'front_full', 'front_left_chest', 'back', 'centre', or 'sleeve_left' / 'sleeve_right' on garments with sleeves. Defaults to the blank's usual spot."),
       widthCm: z.number().min(2).max(60).optional().describe('Print width in cm. Defaults to the size calibrated for that position.'),
+      offsetYcm: z.number().min(-30).max(30).optional().describe('How far the print is moved down (positive) or up from its usual height, in cm, as the product has it.'),
     })
     .strict(),
   scope: 'artist',
   run: async (ctx, input): Promise<ToolResult<PrepareData>> => {
     if (!ctx.storeId) return noStore();
-    const placement = await defaultPlacement(input.blankCode, { position: input.position, widthCm: input.widthCm });
-    if (!placement) return failure('prepare_print', `There is no blank with the code ${input.blankCode}.`);
+    // A product, named or open in the conversation: every print area at once.
+    const productId = input.productId ?? (input.designId ? undefined : await openProductId(ctx.conversationId));
+    if (productId) return prepareProduct(ctx, productId);
+    if (!input.designId || !input.blankCode || !input.colourCodes) return failure('prepare_print', 'Say which product to prepare, or the design, the blank and the colours.');
+    const usual = await defaultPlacement(input.blankCode, { position: input.position, widthCm: input.widthCm });
+    if (!usual) return failure('prepare_print', `There is no blank with the code ${input.blankCode}.`);
+    // A print moved from its usual height is prepared where it is, so the files cover the product.
+    const placement = input.offsetYcm ? { ...usual, offsetYMm: Math.round(input.offsetYcm * 10) } : usual;
 
     const result = await preparePrint({
       storeId: ctx.storeId,
@@ -207,6 +228,36 @@ export const preparePrintTool = defineTool({
     };
   },
 });
+
+/** The product open in this conversation (its project card), if there is one. */
+async function openProductId(conversationId: string): Promise<string | undefined> {
+  const card = await getProjectCard(conversationId).catch(() => null);
+  return card && card.kind === 'product' && card.refId ? card.refId : undefined;
+}
+
+async function prepareProduct(ctx: { storeId: string | null; userId: string; conversationId: string }, productId: string): Promise<ToolResult<PrepareData>> {
+  if (!ctx.storeId) return noStore();
+  const result = await preparePrintForProduct({ storeId: ctx.storeId, userId: ctx.userId, productId });
+  if (!result.ok) return failure('prepare_print', result.error);
+  const views = [];
+  for (const prepared of result.value.prepared) {
+    const view = await getApprovalView({ storeId: ctx.storeId, designId: prepared.designId });
+    if (view) views.push(view);
+  }
+  const first = result.value.prepared[0];
+  return {
+    data: {
+      ok: true,
+      jobId: result.value.prepared.find((p) => p.jobId)?.jobId ?? undefined,
+      designVersionId: first?.designVersionId,
+      // approved only when every design is; preparing while any is
+      status: views.length > 0 && views.every((v) => v.status === 'approved') ? 'approved' : views.some((v) => v.status === 'preparing') ? 'preparing' : (views[0]?.status ?? 'preparing'),
+      approvalPage: first ? `/studio/approve/${first.designId}` : undefined,
+      designs: result.value.prepared.map((p) => ({ designId: p.designId, positions: p.positions, approvalPage: `/studio/approve/${p.designId}`, ...(p.alreadyPrepared ? { alreadyPrepared: true } : {}) })),
+    },
+    ui: { cards: views.slice(0, 4).map((view) => printProofCard(view, ctx.conversationId)), next: nextChips(views[0] ?? null) },
+  };
+}
 
 // -- get_print_proof -----------------------------------------------------
 

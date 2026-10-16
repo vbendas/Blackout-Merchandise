@@ -10,10 +10,12 @@
 // It imports the services only lazily (pantone-library, ink-system, prepress),
 // so the services can import it without a cycle.
 import { createHash } from 'node:crypto';
-import { and, asc, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, or, sql, type SQL } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import type { Actor } from '@/lib/auth/permissions';
-import { STANDARD_PACKSHOT, keepOnPhoto, printOffsetPx, type PrintArea } from '@/lib/mockups/placements';
+import { STANDARD_PACKSHOT, isSleevePosition, keepOnPhoto, printOffsetPx, printPositionLabel, sleeveKindFor, type PrintArea } from '@/lib/mockups/placements';
+import type { SleeveProofInput } from '@/lib/mockups/sleeve-proof';
+import { ENGINE_TUNING } from '@/lib/print/defaults';
 import { clientColourName } from '@/lib/print/colour-names';
 import { hexToLab } from '@/lib/print/engine/colour';
 import type { PrintJobRow } from '@/lib/print/jobs';
@@ -38,6 +40,7 @@ import type {
   InkPlate,
   InkSystemProfile,
   JobSheetInput,
+  PackshotInput,
   Lab,
   OriginalArt,
   PackFile,
@@ -51,6 +54,7 @@ import type {
   PrintJobResult,
   PrintPlacement,
   PrintTechnique,
+  ProofImage,
   Raster,
   ScreenMethod,
   ScreenSet,
@@ -123,6 +127,8 @@ export interface PrintDeps {
   finaliseArt?: (storeId: string, designId: string, opts: { render: boolean }) => Promise<ServiceResult<FinalArt>>;
   /** a staff action in the activity log (lib/services/team.ts); never throws */
   recordActivity: (actor: Actor, entry: ActivityEntry) => Promise<void>;
+  /** a sleeve print drawn flat and true size on a sleeve outline (lib/mockups/sleeve-proof.ts): sleeves have no photo */
+  sleeveProof: (input: SleeveProofInput) => Promise<Buffer>;
   /** how long uploadCorrectedPsd waits for the worker to rebuild the pack (default: 250 s, inside the route's 300) */
   uploadWait?: { timeoutMs: number; intervalMs: number };
 }
@@ -220,6 +226,8 @@ const defaultDeps: PrintDeps = {
   loadArt: defaultLoadArt,
   imageSize: defaultImageSize,
   recordActivity: (actor, entry) => recordStaffActivity(actor, entry),
+  // Loaded on first use, like the engine: it draws with sharp, which only the worker needs.
+  sleeveProof: async (input) => (await import('@/lib/mockups/sleeve-proof')).renderSleeveProof(input),
 };
 
 let overrides: Partial<PrintDeps> | null = null;
@@ -269,20 +277,9 @@ function slug(text: string, max: number): string {
     .replace(/-+$/g, '');
 }
 
-const POSITION_LABELS: Record<string, string> = {
-  front_chest: 'Front chest',
-  front_full: 'Front',
-  front_left_chest: 'Left chest',
-  back: 'Back',
-  centre: 'Centre',
-  front_leg: 'Leg',
-};
-
+/** 'Front chest', 'Left sleeve': the words lib/mockups/placements.ts keeps for every position. */
 export function positionLabel(position: string): string {
-  const known = POSITION_LABELS[position];
-  if (known) return known;
-  const words = position.replace(/_/g, ' ').trim();
-  return words.charAt(0).toUpperCase() + words.slice(1);
+  return printPositionLabel(position);
 }
 
 /** 280 mm -> '28', 336 mm -> '33.6'. */
@@ -312,12 +309,19 @@ type DesignRow = typeof schema.designs.$inferSelect;
 export type PackRow = typeof schema.productionPacks.$inferSelect;
 type VersionRow = typeof schema.designVersions.$inferSelect;
 
-/** What clients and staff call a design: its first product's name, or a short code. */
+/** The products that print a design: as their main design (products.design_id) or in any of their print areas
+ * (products.placements, where each area names its own design). */
+export function productUsesDesign(designId: string): SQL {
+  return or(eq(schema.products.designId, designId), sql`${schema.products.placements} @> ${JSON.stringify([{ designId }])}::jsonb`) as SQL;
+}
+
+/** What clients and staff call a design: its first product's name, or a short code. A design printed only in one area
+ * of a product (its back, say) is named after that product too. */
 export async function designDisplayName(designId: string): Promise<string> {
   const [row] = await db
     .select({ name: schema.products.name })
     .from(schema.products)
-    .where(eq(schema.products.designId, designId))
+    .where(productUsesDesign(designId))
     .orderBy(asc(schema.products.createdAt))
     .limit(1);
   return row?.name?.trim() || `Design ${shortDesignCode(designId).slice(3)}`;
@@ -1072,6 +1076,110 @@ function proofChangedBy(checks: CheckResult[]): boolean {
   return proof ? proof.state !== 'passed' : false;
 }
 
+// ---------------------------------------------------------------------------
+// Sleeves: no photo, a flat proof (owner decision, 16 Oct 2026)
+
+/** The long side of a sleeve print drawn flat, in px: plenty for a proof drawn at about 100 ppi. */
+const FLAT_PRINT_LONG_SIDE_PX = 1200;
+/** A pixel this close to the garment colour, channel by channel, is bare garment (the proofs are lossy). */
+const BARE_GARMENT_TOLERANCE = 6;
+
+function rgbOf(hex: string): [number, number, number] {
+  const full = normaliseHex(hex) ?? '#808080';
+  const n = Number.parseInt(full.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+/** A sleeve print as it prints, drawn flat: the proof renderer the photo proofs use, on a plain ground in the garment
+ * colour sized to the print, cut to the print, with the bare garment made clear so the print keeps its transparency.
+ * Never wider than the print is in pixels, so the renderer always averages the print down. A proof that can't be read
+ * back (a stand-in in a test) is handed on as it is. */
+async function flatSleevePrint(area: { width: number; height: number }, garment: GarmentColour, render: (packshot: PackshotInput) => Promise<ProofImage>): Promise<Buffer> {
+  const sharp = (await import('sharp')).default;
+  const proofWidth = ENGINE_TUNING.proofWidthPx;
+  const aw = Math.max(1, Math.round(area.width));
+  const ah = Math.max(1, Math.round(area.height));
+  const w = Math.max(1, Math.min(aw, proofWidth, Math.round((FLAT_PRINT_LONG_SIDE_PX * aw) / Math.max(aw, ah))));
+  const h = Math.max(1, Math.round((w * ah) / aw));
+  const [r, g, b] = rgbOf(garment.hex);
+  const ground = await sharp({ create: { width: proofWidth, height: h, channels: 4, background: { r, g, b, alpha: 1 } } }).png().toBuffer();
+  const proof = await render({ image: ground, printBox: { x: 0, y: 0, w: w / proofWidth, h: 1 } });
+  try {
+    const { data, info } = await sharp(proof.image).extract({ left: 0, top: 0, width: w, height: h }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (let i = 0; i < data.length; i += 4) {
+      if (Math.abs(data[i] - r) <= BARE_GARMENT_TOLERANCE && Math.abs(data[i + 1] - g) <= BARE_GARMENT_TOLERANCE && Math.abs(data[i + 2] - b) <= BARE_GARMENT_TOLERANCE) data[i + 3] = 0;
+    }
+    return await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer();
+  } catch {
+    return proof.image;
+  }
+}
+
+/** Why a sleeve proof wasn't drawn on a garment colour. */
+interface SleeveProofFailure {
+  garment: string;
+  /** the renderer's code (SleeveProofError: 'no_font', 'too_large'...), when it gave one */
+  code: string | null;
+  message: string;
+}
+
+/** The flat, true-size proof of a sleeve print on one garment colour (lib/mockups/sleeve-proof.ts), drawn here in the
+ * worker beside the other proofs and stored like them; or why it couldn't be: the approval page then shows the print's
+ * size on a "sleeve proof coming" card, and the pack's checks say why (sleeveProofCheck). A missing font is logged too:
+ * the worker's image is meant to have one. Never throws. */
+async function sleeveProofOf(
+  ctx: BuildContext,
+  garment: GarmentColour,
+  placement: PrintPlacement,
+  areaPx: { width: number; height: number },
+  render: (packshot: PackshotInput) => Promise<ProofImage>,
+): Promise<{ image: Buffer } | { failure: SleeveProofFailure }> {
+  try {
+    const size = printSizeMm(ctx, placement);
+    const print = await flatSleevePrint(areaPx, garment, render);
+    const image = await ctx.deps.sleeveProof({
+      print,
+      printWidthCm: size.width / 10,
+      printHeightCm: size.height / 10,
+      garmentHex: garment.hex,
+      side: placement.position === 'sleeve_right' ? 'right' : 'left',
+      sleeve: sleeveKindFor(ctx.input.blankCode) ?? 'short',
+    });
+    return { image };
+  } catch (err) {
+    const code = typeof (err as { code?: unknown })?.code === 'string' ? ((err as { code: string }).code as string) : null;
+    const message = errorMessage(err);
+    if (code === 'no_font') console.error(`[print] the sleeve proof on ${garment.name} could not be drawn, there is no font for its labels: ${message}`);
+    return { failure: { garment: garment.name, code, message } };
+  }
+}
+
+/** The check that says a sleeve proof is missing, and why, so pre-press sees it (a missing font most of all). The
+ * print files themselves are not affected: it asks for a look, and blocks nothing. */
+function sleeveProofCheck(failures: SleeveProofFailure[]): CheckResult[] {
+  if (failures.length === 0) return [];
+  const font = failures.find((f) => f.code === 'no_font');
+  const first = font ?? failures[0];
+  const names = [...new Set(failures.map((f) => f.garment))].join(', ');
+  return [
+    {
+      id: 'sleeve_proof',
+      title: 'Sleeve proof',
+      state: 'review',
+      detail: font
+        ? `No sleeve proof on ${names}: the worker has no font to label it (${first.message}). Install fontconfig and DejaVu in the worker image, then run the pack again. The artist sees the print's size instead of the proof.`
+        : `No sleeve proof on ${names}: ${first.message}${/[.!?]$/.test(first.message.trim()) ? '' : '.'} The artist sees the print's size instead of the proof.`,
+    },
+  ];
+}
+
+/** Whether a pack's proof check says the print changed. A sleeve pack with no proof drawn, replacing one that had none
+ * either, shows nothing that could have changed: its files are checked by pre-press like any other. */
+function proofChangedFor(checks: CheckResult[], placement: PrintPlacement, proofsDrawn: number, approvedProof: Buffer | undefined): boolean {
+  if (isSleevePosition(placement.position) && proofsDrawn === 0 && approvedProof === undefined) return false;
+  return proofChangedBy(checks);
+}
+
 /** Writes one screen set: PSD, film previews, proofs, loupe, checks, manifest, row. */
 async function packageScreenSet(ctx: BuildContext, set: ScreenSet, args: PackageArgs): Promise<BuiltPack> {
   await nameInks(ctx, set, args.label, args.relabelAll ?? false);
@@ -1096,6 +1204,8 @@ async function buildScreenSet(ctx: BuildContext, set: ScreenSet, args: PackageAr
   const proofed: string[] = [];
   const missingPhotos: string[] = [];
   const overflows: (number | undefined)[] = [];
+  const sleeve = isSleevePosition(placement.position);
+  const sleeveFailures: SleeveProofFailure[] = [];
 
   // A set where nothing prints (black art on a black shirt) has no films: no PSD, no previews, no
   // proofs. The checks still run on it, and the one they return carries the engine's warning, which
@@ -1115,6 +1225,17 @@ async function buildScreenSet(ctx: BuildContext, set: ScreenSet, args: PackageAr
     }
 
     for (const garment of garments) {
+      // A sleeve has no photo: its proof is drawn flat on a sleeve outline, or (not drawn) left to the approval page's card.
+      if (sleeve) {
+        const flat = await sleeveProofOf(ctx, garment, placement, set.canvas.art, (packshot) => deps.engine.renderScreenProof(set, { garment, packshot, placement }, ctx.inks));
+        if ('failure' in flat) {
+          sleeveFailures.push(flat.failure);
+          continue;
+        }
+        await sink.add('proof', `proof-screen-${set.key}-${garment.code}.png`, flat.image, 'image/png', 'public', { garmentCode: garment.code });
+        proofed.push(garment.code);
+        continue;
+      }
       const shot = await deps.loadPackshot(input.blankCode, garment.code, placement.position);
       if (!shot) {
         missingPhotos.push(garment.name);
@@ -1129,11 +1250,13 @@ async function buildScreenSet(ctx: BuildContext, set: ScreenSet, args: PackageAr
       });
       proofed.push(garment.code);
     }
-    if (proofed.length > 0) {
+    // The loupe needs no photo, so a sleeve gets one even before its flat proof can be drawn.
+    const loupeCode = proofed[0] ?? (sleeve ? garments[0]?.code : undefined);
+    if (loupeCode) {
       // The garment is passed because a set rebuilt from an uploaded PSD was never separated here.
-      const loupeGarment = garments.find((g) => g.code === proofed[0]);
-      const loupe = await deps.engine.renderScreenLoupe(set, proofed[0], ctx.inks, undefined, loupeGarment);
-      await sink.add('loupe', `loupe-screen-${set.key}-${proofed[0]}.png`, loupe.image, 'image/png', 'public', { garmentCode: proofed[0], ppi: loupe.ppi });
+      const loupeGarment = garments.find((g) => g.code === loupeCode);
+      const loupe = await deps.engine.renderScreenLoupe(set, loupeCode, ctx.inks, undefined, loupeGarment);
+      await sink.add('loupe', `loupe-screen-${set.key}-${loupeCode}.png`, loupe.image, 'image/png', 'public', { garmentCode: loupeCode, ppi: loupe.ppi });
     }
   }
 
@@ -1151,6 +1274,7 @@ async function buildScreenSet(ctx: BuildContext, set: ScreenSet, args: PackageAr
       approvedProof: args.approvedProof,
     })),
     ...pipelineChecks(meta, missingPhotos),
+    ...sleeveProofCheck(sleeveFailures),
   ];
 
   const warnings = uniqueWarnings([...meta.warnings, ...set.warnings, ...tallPrintWarning(ctx, placement, overflows)]);
@@ -1171,7 +1295,7 @@ async function buildScreenSet(ctx: BuildContext, set: ScreenSet, args: PackageAr
     },
   });
 
-  return { packId: rowId, technique: 'screen', placement, setKey: set.key, proofChanged: proofChangedBy(checks), warnings };
+  return { packId: rowId, technique: 'screen', placement, setKey: set.key, proofChanged: proofChangedFor(checks, placement, proofed.length, args.approvedProof), warnings };
 }
 
 /** The plain-words list the artist reads for one garment colour. */
@@ -1218,6 +1342,9 @@ async function buildDtgPack(
   const missingPhotos: string[] = [];
   const dtgFacts: Record<string, string[]> = {};
   const overflows: (number | undefined)[] = [];
+  const sleeve = isSleevePosition(placement.position);
+  const sleeveFailures: SleeveProofFailure[] = [];
+  let proofsDrawn = 0;
   let loupeDone = false;
   for (const layer of dtg.layers) {
     const garment = garments.find((g) => g.code === layer.garmentCode);
@@ -1232,6 +1359,23 @@ async function buildDtgPack(
       ppi: layer.raster.ppi,
     });
 
+    // A sleeve has no photo: its proof is drawn flat on a sleeve outline, or (not drawn yet) left to the approval page's
+    // card. Its loupe needs no photo.
+    if (sleeve) {
+      const flat = await sleeveProofOf(ctx, garment, placement, layer.printAreaPx, (packshot) => deps.engine.renderDtgProof(layer, { garment, packshot, placement }, ctx.inks));
+      if ('failure' in flat) sleeveFailures.push(flat.failure);
+      else {
+        await sink.add('proof', `proof-dtg-${garment.code}.png`, flat.image, 'image/png', 'public', { garmentCode: garment.code });
+        proofsDrawn += 1;
+      }
+      if (!loupeDone) {
+        const loupe = await deps.engine.renderDtgLoupe(layer, garment.hex, undefined, garment.isLight);
+        await sink.add('loupe', `loupe-dtg-${garment.code}.png`, loupe.image, 'image/png', 'public', { garmentCode: garment.code, ppi: loupe.ppi });
+        loupeDone = true;
+      }
+      continue;
+    }
+
     const shot = await deps.loadPackshot(input.blankCode, garment.code, placement.position);
     if (!shot) {
       missingPhotos.push(garment.name);
@@ -1240,6 +1384,7 @@ async function buildDtgPack(
     const proof = await deps.engine.renderDtgProof(layer, { garment, packshot: { image: shot.image, printBox: printBoxFor(shot, placement) }, placement }, ctx.inks);
     overflows.push(proof.overflow);
     await sink.add('proof', `proof-dtg-${garment.code}.webp`, proof.image, 'image/webp', 'public', { garmentCode: garment.code, widthPx: proof.width, heightPx: proof.height });
+    proofsDrawn += 1;
     if (!loupeDone) {
       const loupe = await deps.engine.renderDtgLoupe(layer, garment.hex, undefined, garment.isLight);
       await sink.add('loupe', `loupe-dtg-${garment.code}.png`, loupe.image, 'image/png', 'public', { garmentCode: garment.code, ppi: loupe.ppi });
@@ -1275,6 +1420,7 @@ async function buildDtgPack(
       approvedProof: args.approvedProof,
     })),
     ...pipelineChecks(meta, missingPhotos),
+    ...sleeveProofCheck(sleeveFailures),
   ];
 
   await finishPack(ctx, sink, rowId, {
@@ -1295,7 +1441,7 @@ async function buildDtgPack(
     },
   });
 
-  return { packId: rowId, technique: 'dtg_dtf', placement, setKey: null, proofChanged: proofChangedBy(checks), warnings: dtgWarnings };
+  return { packId: rowId, technique: 'dtg_dtf', placement, setKey: null, proofChanged: proofChangedFor(checks, placement, proofsDrawn, args.approvedProof), warnings: dtgWarnings };
 }
 
 async function approvedProofFrom(deps: PrintDeps, old: PackRow | undefined, garmentCodes: string[]): Promise<Buffer | undefined> {
@@ -1451,7 +1597,7 @@ async function attachWaitingOrders(designId: string): Promise<void> {
       .from(schema.orders)
       .innerJoin(schema.orderItems, eq(schema.orderItems.orderId, schema.orders.id))
       .innerJoin(schema.products, eq(schema.orderItems.productId, schema.products.id))
-      .where(and(eq(schema.products.designId, designId), eq(schema.orders.status, 'paid'), eq(schema.orders.productionStatus, 'queued')));
+      .where(and(productUsesDesign(designId), eq(schema.orders.status, 'paid'), eq(schema.orders.productionStatus, 'queued')));
     if (rows.length === 0) return;
     // Attach only: a build that still misses a colour must not start another build here.
     const { attachBuiltPacksToOrder } = await import('@/lib/services/prepress');

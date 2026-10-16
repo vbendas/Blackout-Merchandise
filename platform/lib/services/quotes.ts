@@ -14,6 +14,7 @@ import {
   type ScreenPriceTable,
 } from '@/lib/pricing/screen-print';
 import type { PrintJobInput, PrintPlacement, PrintTechnique } from '@/lib/print/types';
+import { podPrice, type PodPlacementInput, type PodPriceBreakdown } from '@/lib/pricing/pod';
 import { getScreenPriceTable } from '@/lib/services/pricing-admin';
 
 // Pricing over the seeded base_costs table: garment + print + margin per
@@ -25,6 +26,12 @@ import { getScreenPriceTable } from '@/lib/services/pricing-admin';
 // design really uses, which is read from the design's print files for that
 // garment colour, not from the service the artist picked. base_costs still
 // supplies the blank's garment cost; it has no screen rows any more.
+//
+// A shop product is the other exception. A one-off shop price (a quote that names
+// `shop`) comes from podPrice(): the garment's base price from the shop price table,
+// plus the extras for more print areas. It has no quantity breaks: every piece costs
+// the same, as the checkout charges it. Runs keep the base_costs rows and the
+// screen-print table.
 
 export interface QuoteBreak {
   qtyFrom: number;
@@ -39,6 +46,8 @@ export interface Quote {
   estimate?: boolean;
   /** the screens the estimate assumed */
   screens?: number;
+  /** a shop quote: what the price is made of (base, front and back, sleeves), and whether the garment's base is still a placeholder */
+  breakdown?: PodPriceBreakdown;
 }
 
 export interface QuoteForInput {
@@ -47,6 +56,11 @@ export interface QuoteForInput {
   qty: number;
   /** screen print only: the garment colour, which decides whether a white underbase is assumed */
   colourCode?: string;
+  /** Prices a one-off SHOP product with these print areas instead of a run, from podPrice(): the garment's base price from the shop
+   * price table plus the extras for more print areas (DTG or DTF; embroidery at its own base cost). The same price at every quantity,
+   * with no breaks, and no price at all for screen print. Left out, the quote is a run's, from the base-cost rows or the screen-print
+   * table, even for one piece. */
+  shop?: { placements: PodPlacementInput[] };
 }
 
 export type QuoteResult<T> = { ok: true; value: T } | { ok: false; error: string };
@@ -70,14 +84,30 @@ async function loadBreaks(blankCode: string, printServiceCode: string): Promise<
     .map((r) => ({ qtyFrom: r.qtyFrom, unitCents: r.totalCents }));
 }
 
+/** A shop product's price, flat for every quantity: what the checkout charges (base cost x pieces). Null for screen print, which
+ * is for runs, and for a blank podPrice() can't price. */
+async function quoteShopProduct(input: QuoteForInput, placements: PodPlacementInput[]): Promise<Quote | null> {
+  if (isScreenServiceCode(input.printServiceCode)) return null;
+  const price = await podPrice(input.blankCode, placements, input.printServiceCode);
+  if (!price) return null;
+  return {
+    unitBaseCostCents: price.totalCents,
+    totalCents: price.totalCents * input.qty,
+    breaks: [{ qtyFrom: 1, unitCents: price.totalCents }],
+    breakdown: price,
+  };
+}
+
 /**
  * Price `qty` units of a blank printed with a given service. Picks the row
  * with the largest qtyFrom <= qty (breaks are ascending, so the last one
  * that still qualifies wins). Returns null when nothing is priced for this
  * blank/service pair at all. A screen print service is priced from the
  * screen-print table, as an estimate (see quoteScreenLine for a run line).
+ * With `shop` it is a one-off shop product instead: see quoteShopProduct.
  */
 export async function quoteFor(input: QuoteForInput): Promise<Quote | null> {
+  if (input.shop) return quoteShopProduct(input, input.shop.placements);
   if (isScreenServiceCode(input.printServiceCode)) return quoteScreenEstimate(input);
 
   const breaks = await loadBreaks(input.blankCode, input.printServiceCode);
@@ -218,8 +248,9 @@ export interface ScreenLineInput {
   qty: number;
   /** the design the line prints; null when it has none yet */
   designId: string | null;
-  /** every print position of the line, the main one first */
-  placements: { position: string; widthCm: number; offsetYcm?: number }[];
+  /** every print position of the line, the main one first; a position that prints another design than the line's
+   * (a product's back in different artwork) names it */
+  placements: { position: string; widthCm: number; offsetYcm?: number; designId?: string | null }[];
   /** tells lines apart when they share no design, so each guess keeps its own setup */
   lineKey?: string;
 }
@@ -368,18 +399,20 @@ export async function quoteScreenLine(input: ScreenLineInput, table?: ScreenPric
   for (const placement of input.placements) {
     const printPlacement = toPrintPlacement(placement);
     const where = several ? ` (${positionWords(printPlacement.position)})` : '';
+    // the design printed at this position: its own, else the line's
+    const designId = placement.designId ?? input.designId;
     let screens = guess;
     let basis: LineScreenPlacement['basis'] = 'estimate';
     let approved = false;
     // a job is making the design's screen files: whatever is read now may change when it finishes
     let pending = false;
     // A guess is shared by lines of one design, blank, position and lightness; with no design each line keeps its own.
-    let setId = `est:${input.designId ?? `line-${input.lineKey ?? ''}`}:${input.blankCode}:${printPlacement.position}:${printPlacement.widthMm}:${light ? 'light' : 'dark'}`;
+    let setId = `est:${designId ?? `line-${input.lineKey ?? ''}`}:${input.blankCode}:${printPlacement.position}:${printPlacement.widthMm}:${light ? 'light' : 'dark'}`;
 
-    if (!input.designId) {
+    if (!designId) {
       reasons.push(`This line has no artwork yet, so its screen count${where} is an estimate: ${assumed}.`);
     } else {
-      const lookup = await findScreenSet({ designId: input.designId, blankCode: input.blankCode, colourCode: input.colourCode, placement: printPlacement });
+      const lookup = await findScreenSet({ designId, blankCode: input.blankCode, colourCode: input.colourCode, placement: printPlacement });
       pending = lookup.busy;
       if (lookup.found && !lookup.busy) {
         screens = lookup.found.screens;

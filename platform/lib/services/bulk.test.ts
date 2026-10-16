@@ -153,9 +153,13 @@ test('new artwork on a blank chooses its method and its position the same way', 
   assert.equal(quoted.value.lines[0].productId, null);
   assert.equal(quoted.value.lines[0].printServiceCode, 'screen_1c');
 
+  // a bare 'sleeve' is no position: the error says which sleeve, as the tee has sleeves
   const sleeve = await bulk.createBulkQuote({ storeId, lines: [{ ...line, placement: { position: 'sleeve', widthCm: 8 } }], shipTo });
   assert.equal(sleeve.ok, false);
-  if (!sleeve.ok) assert.match(sleeve.error, /Sleeve prints are not supported yet/);
+  if (!sleeve.ok) assert.match(sleeve.error, /"sleeve" is not a print position for T-shirts\. Say which sleeve: sleeve_left or sleeve_right\./);
+  // the left sleeve of a tee is one
+  const left = await bulk.createBulkQuote({ storeId, lines: [{ ...line, placement: { position: 'sleeve_left', widthCm: 8 } }], shipTo });
+  assert.ok(left.ok, left.ok ? '' : left.error);
 
   const unknown = await bulk.createBulkQuote({ storeId, lines: [{ ...line, printServiceCode: 'screen_9c' }], shipTo });
   assert.equal(unknown.ok, false);

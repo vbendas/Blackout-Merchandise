@@ -167,6 +167,33 @@ export const EXTRA_MOCK_RULES: MockRule[] = [
       ...(match?.[1] ? { designId: match[1] } : {}),
     }),
   },
+  // -- print areas (set_print_areas acts on the open product) ---------------
+  {
+    match: /add (?:a |the )?back print/i,
+    text: 'Adding a back print...',
+    tool: 'set_print_areas',
+    input: { add: [{ position: 'back' }] },
+  },
+  {
+    match: /add (?:a |the )?sleeve prints?(?: on the (left|right) sleeve)?/i,
+    text: 'Adding a sleeve print...',
+    tool: 'set_print_areas',
+    input: { add: [{ position: 'sleeve_left' }] },
+    buildInput: (match) => ({ add: [{ position: match?.[1]?.toLowerCase() === 'right' ? 'sleeve_right' : 'sleeve_left' }] }),
+  },
+  {
+    match: /remove the (back|left sleeve|right sleeve) print/i,
+    text: 'Removing that print...',
+    tool: 'set_print_areas',
+    input: { remove: ['back'] },
+    buildInput: (match) => ({ remove: [match?.[1]?.toLowerCase() === 'back' ? 'back' : match?.[1]?.toLowerCase().startsWith('right') ? 'sleeve_right' : 'sleeve_left'] }),
+  },
+  {
+    match: /prepare the print files/i,
+    text: 'Preparing the print files...',
+    tool: 'prepare_print',
+    input: {},
+  },
   {
     match: /price it (?:at )?€?\s?(\d+)/i,
     text: 'Setting the price...',

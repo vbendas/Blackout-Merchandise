@@ -8,7 +8,7 @@
 // import would pull the service (and, once it is real, the database) into the
 // client bundle.
 import type { PrintTechnique } from '@/lib/print/types';
-import type { ApprovalGarment, ApprovalLoupe, ApprovalProof, ApprovalScreenSet, ApprovalView } from '@/lib/services/print-prep';
+import type { ApprovalArea, ApprovalGarment, ApprovalLoupe, ApprovalProof, ApprovalScreenSet, ApprovalView } from '@/lib/services/print-prep';
 
 // ---------------------------------------------------------------------------
 // Tabs
@@ -54,16 +54,40 @@ export function chatHref(sessionId: string | null): string {
 // ---------------------------------------------------------------------------
 // What the chosen tab and colour show
 
-export function pickProof(proofs: readonly ApprovalProof[], technique: PrintTechnique, garmentCode: string | undefined): ApprovalProof | null {
-  if (!garmentCode) return null;
-  return proofs.find((proof) => proof.technique === technique && proof.garmentCode === garmentCode) ?? null;
+/** The print areas a view shows. A view with one placement (or the mock) may carry none: it then shows its one print. */
+export function viewAreas(view: Pick<ApprovalView, 'areas'>): readonly ApprovalArea[] {
+  return view.areas ?? [];
 }
 
-/** The loupe of this colour; failing that the technique's own (the approved
- * mock keeps one per technique and says which colour it was drawn on). */
-export function pickLoupe(loupes: readonly ApprovalLoupe[], technique: PrintTechnique, garmentCode: string | undefined): ApprovalLoupe | null {
-  const ofTechnique = loupes.filter((loupe) => loupe.technique === technique);
+/** The area chosen, else the first (the front, when there is one). */
+export function pickArea(areas: readonly ApprovalArea[], key: string | null): ApprovalArea | null {
+  return areas.find((area) => area.key === key) ?? areas[0] ?? null;
+}
+
+/** Whether a proof or a loupe is of the area on show: one that names no area belongs to every area (a view with one). */
+function ofArea(item: { areaKey?: string }, areaKey: string | null | undefined): boolean {
+  return !areaKey || !item.areaKey || item.areaKey === areaKey;
+}
+
+export function pickProof(proofs: readonly ApprovalProof[], technique: PrintTechnique, garmentCode: string | undefined, areaKey?: string | null): ApprovalProof | null {
+  if (!garmentCode) return null;
+  return proofs.find((proof) => proof.technique === technique && proof.garmentCode === garmentCode && ofArea(proof, areaKey)) ?? null;
+}
+
+/** The loupe of this colour (and area); failing that the technique's own (the
+ * approved mock keeps one per technique and says which colour it was drawn on). */
+export function pickLoupe(loupes: readonly ApprovalLoupe[], technique: PrintTechnique, garmentCode: string | undefined, areaKey?: string | null): ApprovalLoupe | null {
+  const ofTechnique = loupes.filter((loupe) => loupe.technique === technique && ofArea(loupe, areaKey));
   return ofTechnique.find((loupe) => loupe.garmentCode === garmentCode) ?? ofTechnique[0] ?? null;
+}
+
+/** What a sleeve shows until its flat proof is drawn: that it is coming, and the print's size. */
+export function sleevePlaceholder(area: Pick<ApprovalArea, 'label' | 'size'>): { title: string; size: string; note: string } {
+  return {
+    title: 'Sleeve proof coming',
+    size: `${area.label} · ${area.size}`,
+    note: 'A sleeve has no garment photo: its proof is drawn flat at true size on a sleeve outline, with its measurements. Its print files are ready.',
+  };
 }
 
 export function pickGarment(garments: readonly ApprovalGarment[], code: string | null): ApprovalGarment | null {
@@ -104,10 +128,11 @@ export function joinNames(names: readonly string[]): string {
   return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
-export function approvalScope(garments: readonly Pick<ApprovalGarment, 'name'>[]): string {
+export function approvalScope(garments: readonly Pick<ApprovalGarment, 'name'>[], areas: readonly Pick<ApprovalArea, 'label'>[] = []): string {
   const names = joinNames(garments.map((garment) => garment.name));
   const where = names ? ` on ${names}` : '';
-  return `Approving covers both versions${where}: DTG/DTF for your shop products, and screen print for runs.`;
+  const prints = areas.length > 1 ? ` It covers every print area: ${joinNames(areas.map((area) => area.label.toLowerCase()))}.` : '';
+  return `Approving covers both versions${where}: DTG/DTF for your shop products, and screen print for runs.${prints}`;
 }
 
 /** 'Front' from 'Front · 28 × 33.6 cm'. */
@@ -115,9 +140,16 @@ export function placementPosition(placementLabel: string): string {
   return placementLabel.split('·')[0]?.trim() || placementLabel;
 }
 
+/** Where the design prints, in a few words: 'Front chest + Left sleeve', or the one placement's position. */
+export function placementSummary(view: Pick<ApprovalView, 'placementLabel' | 'areas'>): string {
+  const areas = view.areas ?? [];
+  if (areas.length > 1) return [...new Set(areas.map((area) => area.label))].join(' + ');
+  return placementPosition(view.placementLabel);
+}
+
 /** The top bar's line: 'Underwriter · Version 3 · Front'. */
-export function barMeta(view: Pick<ApprovalView, 'designName' | 'versionNumber' | 'placementLabel'>): string {
-  return [view.designName, `Version ${view.versionNumber}`, placementPosition(view.placementLabel)].filter(Boolean).join(' · ');
+export function barMeta(view: Pick<ApprovalView, 'designName' | 'versionNumber' | 'placementLabel' | 'areas'>): string {
+  return [view.designName, `Version ${view.versionNumber}`, placementSummary(view)].filter(Boolean).join(' · ');
 }
 
 const MAX_NAME = 80;

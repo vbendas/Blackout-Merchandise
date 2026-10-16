@@ -121,7 +121,7 @@ test('a design nobody has prepared cannot be published: the next step is to prep
   assert.equal(refused.step, 'prepare');
   assert.equal(refused.error, "The print files don't cover the Underwriter tee yet. Prepare them and approve the artwork first.");
   // What prepare_print needs, for the assistant: the blank, every colour on the product and the print position.
-  assert.deepEqual(refused.approval?.prepare, { designId, blankCode: 'STTU169', colourCodes: ALL, position: 'front_chest', widthCm: 28 });
+  assert.deepEqual(refused.approval?.prepare, { productId: id, designId, blankCode: 'STTU169', colourCodes: ALL, position: 'front_chest', widthCm: 28 });
   assert.equal(refused.approval?.step?.prompt, 'Prepare the print files for Underwriter tee');
   assert.equal(await statusOf(id), 'draft');
 });
@@ -231,7 +231,7 @@ test('another print width or position blocks the publish until it is prepared an
   const refusedWidth = await refusal(wider);
   assert.equal(refusedWidth.reason, 'not_prepared');
   assert.equal(refusedWidth.error, "The print files don't cover the Underwriter tee yet. Prepare them and approve the artwork first.");
-  assert.deepEqual(refusedWidth.approval?.prepare, { designId, blankCode: 'STTU169', colourCodes: ALL, position: 'front_chest', widthCm: 30 });
+  assert.deepEqual(refusedWidth.approval?.prepare, { productId: wider, designId, blankCode: 'STTU169', colourCodes: ALL, position: 'front_chest', widthCm: 30 });
 
   const back = await product(designId, { name: 'Underwriter tee, back print', placement: { position: 'back', widthCm: 32 } });
   assert.equal((await refusal(back)).reason, 'not_prepared');

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { db, schema } from '@/lib/db';
 import { getDesign } from '@/lib/services/designs';
 import { getDesignImageUrl, renderDesignOnBlank, renderProductMockups } from '@/lib/services/mockups';
-import { UnknownPositionError, checkPlacementPosition, getDefaultPosition } from '@/lib/mockups/placements';
+import { UnknownPositionError, checkPlacementPosition, getDefaultPosition, productAreasOf } from '@/lib/mockups/placements';
 import type { Card } from '@/lib/ui-cards/schemas';
 import { defineTool, type Tool } from '@/lib/tools/types';
 
@@ -55,7 +55,7 @@ interface PreviewOnBlankData {
 export const renderMockupsTool = defineTool({
   name: 'render_mockups',
   description:
-    "Render (or re-render) product mockup photos: composites the artist's design onto the blank garment packshot for every enabled colourway of a draft product. Call this once a product has a design, blank and colours set, or whenever the artist wants fresh mockups (e.g. after changing the design or moving the print). Colours that already have a mockup are skipped unless force is set. Only works on the artist's own products. Shows a visual grid; you only need to summarise the count in text.",
+    "Render (or re-render) product mockup photos: composites the artist's designs onto the blank garment packshot for every enabled colourway of a draft product, every print area on its side (the front photo with the front print, the back photo with the back print); a sleeve print has no photo and is drawn flat and true size on a sleeve outline. Call this once a product has a design, blank and colours set, or whenever the artist wants fresh mockups (e.g. after changing the design or moving the print). Colours that already have a mockup are skipped unless force is set. Only works on the artist's own products. Shows a visual grid; you only need to summarise the count in text.",
   input: z
     .object({
       productId: z.string().min(1).describe('Product id to render mockups for.'),
@@ -74,23 +74,27 @@ export const renderMockupsTool = defineTool({
         designId: schema.products.designId,
         blankCode: schema.products.blankCode,
         placement: schema.products.placement,
+        placements: schema.products.placements,
       })
       .from(schema.products)
       .where(and(eq(schema.products.id, input.productId), eq(schema.products.storeId, ctx.storeId)))
       .limit(1);
     if (!product) return refuse('not_found', `No product found with id ${input.productId}.`);
 
-    if (product.designId) {
-      const design = await getDesign(product.designId);
+    // Every design the product prints, in any of its areas, is this shop's.
+    const areas = productAreasOf(product);
+    for (const designId of new Set([product.designId, ...areas.map((a) => a.designId)].filter((id): id is string => Boolean(id)))) {
+      const design = await getDesign(designId);
       if (!design || design.storeId !== ctx.storeId) return refuse('not_found', `The design on ${product.name} was not found in your shop.`);
     }
 
     // A placement the garment cannot take is reported, not moved: the product keeps what the artist chose.
     const type = await blankTypeOf(product.blankCode);
-    const position = (product.placement as { position?: string } | null)?.position;
-    if (type && position) {
-      const check = checkPlacementPosition(type, position);
-      if (!check.ok) return { data: { found: true, productId: product.id, error: check.error }, ui: { cards: [notice(check.error)] } };
+    if (type) {
+      for (const area of areas) {
+        const check = checkPlacementPosition(type, area.position, product.blankCode);
+        if (!check.ok) return { data: { found: true, productId: product.id, error: check.error }, ui: { cards: [notice(check.error)] } };
+      }
     }
 
     let results: Awaited<ReturnType<typeof mockupIo.renderProductMockups>>;
@@ -125,7 +129,7 @@ export const renderMockupsTool = defineTool({
 export const previewOnBlankTool = defineTool({
   name: 'preview_on_blank',
   description:
-    "Preview a design printed on a specific blank garment before a product exists. Call this when the artist wants to try a design on one or more colourways to decide before committing — e.g. 'show me this design on the black hoodie' or 'try it in navy too'. Only works on the artist's own designs. Shows a visual grid, one mockup per colour; tapping one lets the artist turn it into a product. A position the garment doesn't take (there is no sleeve print yet) is refused with the ones it does.",
+    "Preview a design printed on a specific blank garment before a product exists. Call this when the artist wants to try a design on one or more colourways to decide before committing — e.g. 'show me this design on the black hoodie' or 'try it in navy too'. Only works on the artist's own designs. Shows a visual grid, one mockup per colour; tapping one lets the artist turn it into a product. A position the garment doesn't take is refused with the ones it does. A sleeve has no garment photo, so it can't be previewed here: make the product with a sleeve area (create_product or set_print_areas) and its flat sleeve proof shows with the mockups.",
   input: z
     .object({
       designId: z.string().min(1).describe('Design id to preview.'),

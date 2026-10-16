@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { humanStatus } from '@/lib/format/status';
-import { ActionRow, CardHead, Plate, Sizes, SpecRows, Swatches, blankLabel, formatMoney, placementWords, type ActionItem, type SpecRowData } from '@/components/cards/CardKit';
+import { ActionRow, CardHead, Plate, Sizes, SpecRows, Swatches, ViewPicker, blankLabel, productSpecRows, sleevesWaiting, viewImage, type ActionItem, type SpecRowData } from '@/components/cards/CardKit';
 import { StatusPill, type StatusTone } from '@/components/cards/StatusPill';
 import type { CardActionContext } from '@/components/cards/actions';
 import type { ProductProjectState } from '@/components/cards/project/types';
@@ -36,8 +36,11 @@ const proofTone: Record<NonNullable<ProductProjectState['proofStatus']>, StatusT
 export function ProductProjectView({ state, ctx }: { state: ProductProjectState; ctx: CardActionContext }) {
   const colours = state.colours ?? [];
   const [activeCode, setActiveCode] = useState(colours[0]?.code);
+  // The side on show: the front and back photos, and each sleeve's flat proof once the print files are made.
+  const [view, setView] = useState<string | null>(null);
   const activeColour = colours.find((colour) => colour.code === activeCode) ?? colours[0];
-  const image = activeColour?.mockupUrl ?? state.imageUrl;
+  const image = viewImage(activeColour, view) ?? state.imageUrl;
+  const waiting = sleevesWaiting(state.areas, activeColour?.views);
 
   // Publishing waits on the artwork's approval (the design's, for this garment, these colours and this position).
   const approval = state.printApproval;
@@ -53,12 +56,17 @@ export function ProductProjectView({ state, ctx }: { state: ProductProjectState;
         }
       : null;
 
-  const rows: SpecRowData[] = [
-    { key: 'print', label: 'Print', value: [state.printService, placementWords(state.placement)].filter(Boolean).join(' · ') },
-    { key: 'base', label: 'Base cost', value: state.baseCostCents !== undefined ? formatMoney(state.baseCostCents) : '—', dim: true },
-    { key: 'retail', label: 'Retail', value: state.retailPriceCents !== undefined ? formatMoney(state.retailPriceCents) : '—' },
-    { key: 'margin', label: 'Margin', value: state.marginCents !== undefined ? formatMoney(state.marginCents) : '—', strong: true },
-  ];
+  // Where it prints, area by area, and what the base cost is made of.
+  const rows: SpecRowData[] = productSpecRows(state);
+  // More print areas, as the assistant adds them (the price follows: front and back, sleeve prints).
+  const addable = state.addable ?? [];
+  const canEdit = state.status === 'draft' || state.status === 'proof_pending' || state.status === 'live';
+  const addActions: ActionItem[] = canEdit
+    ? [
+        ...(addable.includes('back') ? [{ key: 'add-back', label: 'Add a back print', onClick: () => ctx.onPrompt('Add a back print') }] : []),
+        ...(addable.some((p) => p.startsWith('sleeve_')) ? [{ key: 'add-sleeve', label: 'Add a sleeve print', onClick: () => ctx.onPrompt('Add a sleeve print on the left sleeve') }] : []),
+      ]
+    : [];
 
   return (
     <div className="mfc-stack">
@@ -78,8 +86,10 @@ export function ProductProjectView({ state, ctx }: { state: ProductProjectState;
         }}
         canPick={(colour) => Boolean(colour.mockupUrl)}
       />
+      <ViewPicker views={activeColour?.views} active={view} onPick={setView} />
       <Sizes sizes={state.sizes ?? []} />
       <SpecRows rows={rows} variant="plain" />
+      {waiting ? <p className="mfc-sentence">{waiting}</p> : null}
       <ActionRow
         actions={[
           // Blocked: the way to the approval leads, and Publish waits (the tool says the same if it is asked).
@@ -93,6 +103,7 @@ export function ProductProjectView({ state, ctx }: { state: ProductProjectState;
           ...(state.status === 'draft' || state.status === 'proof_pending'
             ? [{ key: 'publish', label: 'Publish', primary: !blocked, disabled: blocked, onClick: () => ctx.onPrompt('Publish') }]
             : []),
+          ...addActions,
         ]}
       />
     </div>

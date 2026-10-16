@@ -108,7 +108,7 @@ test('DTF is the shop method on blanks that never had DTG: jackets, bags, hats, 
 test("a sleeve is refused, and so is a position the garment does not take", async () => {
   const sleeve = await tee('dtg', { placement: { position: 'sleeve', widthCm: 8 } });
   assert.equal(sleeve.ok, false);
-  if (!sleeve.ok) assert.match(sleeve.error, /Sleeve prints are not supported yet\. T-shirts take: front_chest, front_full, front_left_chest, back\./);
+  if (!sleeve.ok) assert.match(sleeve.error, /"sleeve" is not a print position for T-shirts\. Say which sleeve: sleeve_left or sleeve_right\. T-shirts take: front_chest, front_full, front_left_chest, back, sleeve_left, sleeve_right\./);
 
   // trousers are not chest prints: it used to be moved to the leg without a word
   const chestOnShorts = await products.createProduct({ storeId, blankCode: cat.shorts, printServiceCode: 'dtf', placement, colours: [cat.black], sizes: ['M'] });
@@ -124,7 +124,7 @@ test('moving a product to another position is checked the same way', async () =>
   assert.ok(made.ok);
   const sleeve = await products.updateProduct(storeId, made.value.id, { placement: { position: 'sleeve', widthCm: 8 } });
   assert.equal(sleeve.ok, false);
-  if (!sleeve.ok) assert.match(sleeve.error, /Sleeve prints are not supported yet/);
+  if (!sleeve.ok) assert.match(sleeve.error, /"sleeve" is not a print position for T-shirts/);
 
   const back = await products.updateProduct(storeId, made.value.id, { placement: { position: 'back', widthCm: 30 } });
   assert.ok(back.ok, back.ok ? '' : back.error);

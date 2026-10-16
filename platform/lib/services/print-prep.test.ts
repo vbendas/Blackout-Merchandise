@@ -419,7 +419,9 @@ test('preparePrint says what is wrong with a drop in plain words', async () => {
   assert.match(await message({ garmentCodes: ['C002', 'C999'] }), /^C999 isn't available on the /);
   assert.equal(await message({ garmentCodes: [] }), 'Pick at least one garment colour.');
   assert.equal(await message({ placements: [] }), 'Say where the print goes.');
-  assert.match(await message({ placements: [{ position: 'sleeve', widthMm: 100 }] }), /has no "sleeve" print position\. Use one of: front chest, front, left chest, back\./);
+  assert.match(await message({ placements: [{ position: 'sleeve', widthMm: 100 }] }), /has no "sleeve" print position\. Use one of: front chest, front, left chest, back, left sleeve, right sleeve\./);
+  // a sleeve is a position on a tee, up to the short sleeve's size
+  assert.match(await message({ placements: [{ position: 'sleeve_left', widthMm: 120 }] }), /A short-sleeve print can be at most 10 × 10 cm\./);
   assert.equal(await message({ placements: [{ position: 'front_chest', widthMm: 5 }] }), 'The print width must be between 2 and 60 cm.');
   assert.equal(await message({ designId: '5f6c0f0e-6f83-4c0a-9a53-1d0e1b1d6a11' }), 'Design not found for this shop.');
   assert.equal(await message({ designId: 'not-a-uuid' }), 'Design not found for this shop.');

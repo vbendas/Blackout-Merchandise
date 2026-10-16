@@ -25,18 +25,20 @@ test('a known position resolves to its box', () => {
   assert.equal(resolved?.area.widthCm, 28);
 });
 
-test('a sleeve is refused with the positions the garment does take, never moved to the default', () => {
+test('a bare "sleeve" is no position, and a sleeve has no box on a photo: refused with the positions, never moved to the default', () => {
   for (const blankType of Object.keys(PLACEMENTS)) {
     assert.throws(
       () => resolvePrintArea(blankType, 'sleeve'),
       (err: unknown) => {
         assert.ok(err instanceof UnknownPositionError);
         assert.equal(err.position, 'sleeve');
-        assert.match(err.message, /Sleeve prints are not supported yet/);
+        assert.match(err.message, new RegExp(`"sleeve" is not a print position for ${blankType.replace(/[&]/g, '\\$&')}`));
         for (const position of availablePositions(blankType)) assert.ok(err.message.includes(position), `${position} is listed for ${blankType}`);
         return true;
       },
     );
+    // sleeve_left is a position, but there is no photo of a sleeve to put a box on
+    assert.throws(() => resolvePrintArea(blankType, 'sleeve_left'), /A sleeve print has no garment photo to go on: it is shown as a flat, true-size proof instead\./);
   }
 });
 

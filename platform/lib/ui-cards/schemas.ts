@@ -38,6 +38,29 @@ export const printApprovalSchema = z.object({
 });
 export type PrintApprovalState = z.infer<typeof printApprovalSchema>;
 
+/** One print area of a product as a card shows it: 'Front chest' and '28 × 33.6 cm'. A sleeve has no garment photo:
+ * its picture is a flat proof on a sleeve outline, or (not drawn yet) just its size. */
+export const productAreaSchema = z.object({
+  position: z.string(),
+  label: z.string(),
+  size: z.string(),
+  sleeve: z.boolean().optional(),
+});
+export type ProductAreaView = z.infer<typeof productAreaSchema>;
+
+/** A line of what a product's base cost is made of, as the artist reads it: 'Garment with one print', 'Front and back'. */
+export const priceLineSchema = z.object({ label: z.string(), cents: z.number() });
+export type PriceLineView = z.infer<typeof priceLineSchema>;
+
+/** A colour of a product, with its picture of every side that prints (front, back, and each sleeve's flat proof). */
+const productColourSchema = z.object({
+  code: z.string(),
+  name: z.string(),
+  hex: z.string(),
+  mockupUrl: z.string().optional(),
+  views: z.record(z.string(), z.string()).optional(),
+});
+
 const base = {
   /** stable id so the client can replace a card in place on updates */
   id: z.string(),
@@ -173,10 +196,14 @@ export const cardSchema = z.discriminatedUnion('kind', [
     blankCode: z.string(),
     blankName: z.string(),
     imageUrl: z.string().optional(),
-    colours: z.array(z.object({ code: z.string(), name: z.string(), hex: z.string(), mockupUrl: z.string().optional() })),
+    colours: z.array(productColourSchema),
     sizes: z.array(z.string()),
     printService: z.string(),
     placement: z.string().optional(),
+    /** every print area, front first; one area reads like `placement` */
+    areas: z.array(productAreaSchema).optional(),
+    /** what the base cost is made of: the garment with one print, then the extras for more areas */
+    priceLines: z.array(priceLineSchema).optional(),
     baseCostCents: z.number().optional(),
     retailPriceCents: z.number().optional(),
     marginCents: z.number().optional(),
@@ -365,10 +392,16 @@ export interface ProductProjectState {
   blankCode: string;
   blankName: string;
   imageUrl?: string;
-  colours: { code: string; name: string; hex: string; mockupUrl?: string }[];
+  colours: { code: string; name: string; hex: string; mockupUrl?: string; views?: Record<string, string> }[];
   sizes: string[];
   printService: string;
   placement?: string;
+  /** every print area, front first */
+  areas?: ProductAreaView[];
+  /** what the base cost is made of */
+  priceLines?: PriceLineView[];
+  /** the print areas the product could still add: 'back', 'sleeve_left', 'sleeve_right' (the panel offers them) */
+  addable?: string[];
   baseCostCents?: number;
   retailPriceCents?: number;
   marginCents?: number;

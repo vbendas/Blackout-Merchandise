@@ -33,6 +33,8 @@ interface Opened {
   lock: string;
   client: PGlite;
   db: PgliteDatabase<Record<string, unknown>>;
+  /** the migration journal (drizzle/meta/_journal.json) as it was when this process opened the database, or last migrated it */
+  journal?: string;
 }
 
 const SLOT = '__mfLocalDemoDb';
@@ -100,6 +102,7 @@ export function openLocalDb<S extends Record<string, unknown>>(configured: strin
   const open = slot();
   if (open) {
     if (open.dir !== dir) throw new Error(`The local demo database is already open at ${open.dir}, not ${dir}.`);
+    migrateIfBehind(open);
     return open.db as unknown as PgliteDatabase<S>;
   }
 
@@ -110,11 +113,40 @@ export function openLocalDb<S extends Record<string, unknown>>(configured: strin
   // First in the queue: every query waits for it (PGlite runs them in order).
   client.exec("SET TIME ZONE 'UTC'").catch((err: unknown) => console.error('[local demo] could not set the session time zone:', err));
   const db = loadDrizzle().drizzle(client, { schema });
-  (globalThis as unknown as Record<string, Opened>)[SLOT] = { dir, lock, client, db: db as unknown as Opened['db'] };
+  // Whoever opens it first has migrated it (npm run demo:local does): only a change made after that is applied here.
+  (globalThis as unknown as Record<string, Opened>)[SLOT] = { dir, lock, client, db: db as unknown as Opened['db'], journal: readJournal() ?? undefined };
   process.once('exit', () => releaseLock(lock));
 
   pinLocalEnvironment(dir);
   return db;
+}
+
+function migrationsFolder(): string {
+  return path.join(process.cwd(), 'drizzle');
+}
+
+function readJournal(): string | null {
+  try {
+    return readFileSync(path.join(migrationsFolder(), 'meta', '_journal.json'), 'utf8');
+  } catch {
+    return null;
+  }
+}
+
+/** A migration added while the demo runs (a schema change hot-reloaded into the dev server) is applied to the open
+ * database on the next query, instead of every query that reads a new column failing until the demo is built again.
+ * Once per set of migration files; the migrator only applies what the database doesn't have. */
+function migrateIfBehind(open: Opened): void {
+  const journal = readJournal();
+  if (journal === null || open.journal === journal) return;
+  open.journal = journal;
+  const { migrate } = projectRequire()('drizzle-orm/pglite/migrator') as typeof import('drizzle-orm/pglite/migrator');
+  migrate(open.db, { migrationsFolder: migrationsFolder() })
+    .then(() => console.log('[local demo] applied the new migrations.'))
+    .catch((err: unknown) => {
+      open.journal = undefined;
+      console.error('[local demo] could not apply the new migrations:', err);
+    });
 }
 
 /** What local demo mode turns off or points at disk, for everything in this process. */

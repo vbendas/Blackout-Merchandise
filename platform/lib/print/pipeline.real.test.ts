@@ -24,10 +24,11 @@ before(async () => {
   pack = await import('@/lib/print/pack');
   jobSheets = await import('@/lib/services/job-sheets');
 
-  // The real engine and pack: only storage, queue, activity and the photos stay fake.
-  const { engine: _engine, pack: _pack, ...rest } = h.fakes.deps;
+  // The real engine, pack and sleeve proof: only storage, queue, activity and the photos stay fake.
+  const { engine: _engine, pack: _pack, sleeveProof: _sleeveProof, ...rest } = h.fakes.deps;
   void _engine;
   void _pack;
+  void _sleeveProof;
   h.pipeline.overridePrintDeps({
     ...rest,
     // The real writers take seconds, not milliseconds.
@@ -300,4 +301,36 @@ test('a corrected PSD is read by the real reader, matched to the films, compared
   const again = await upload(worker, first, edited);
   assert.deepEqual(again, { ok: false, error: 'A newer pack replaced this one. Upload the corrected file to the newer one.' });
   assert.equal(h.fakes.storage.keys(`print/${designId}/`).length, stored, 'nothing was written');
+});
+
+test('a sleeve print: the real engine draws it flat, the real renderer lays it true size on a sleeve outline, and no photo is asked for', async () => {
+  const { designId } = await h.newDesign();
+  h.fakes.setArt(designId, await colourful());
+  const queued = await h.printPrep.preparePrint({ ...h.drop(designId), garmentCodes: ['C002', 'C001'], placements: [{ position: 'sleeve_left', widthMm: 80 }] });
+  assert.ok(queued.ok, queued.ok ? '' : queued.error);
+  await h.runJob(queued.value.jobId);
+
+  const packs = (await h.packs(queued.value.designVersionId)).filter((p) => p.buildStatus === 'ready');
+  const dtg = packs.find((p) => p.technique === 'dtg_dtf');
+  assert.ok(dtg, 'a DTG/DTF pack for the sleeve');
+  assert.ok(!checks(dtg).some((c) => c.id === 'garment_photos'), 'no garment photo is asked for a sleeve');
+  const proofs = files(dtg).filter((f) => f.kind === 'proof');
+  const sleeveCheck = byId(checks(dtg)).sleeve_proof;
+  if (sleeveCheck) {
+    // A machine without a font for the labels: said so on the pack, never silently.
+    assert.match(sleeveCheck.detail, /No sleeve proof on/);
+    return;
+  }
+  assert.deepEqual(proofs.map((f) => f.name).sort(), ['proof-dtg-C001.png', 'proof-dtg-C002.png']);
+  for (const proof of proofs) {
+    const meta = await sharp(h.fakes.storage.objects.get(proof.key)!.data).metadata();
+    assert.deepEqual([meta.format, meta.width, meta.height], ['png', 800, 1000], 'a 4:5 proof beside the 4:5 mockups');
+  }
+  // the screen sets draw theirs too
+  for (const screen of packs.filter((p) => p.technique === 'screen' && files(p).some((f) => f.kind === 'screen_psd'))) {
+    assert.ok(files(screen).some((f) => f.kind === 'proof' && f.name.endsWith('.png')), screen.screenSetKey ?? '');
+  }
+  const view = (await h.printPrep.getApprovalView({ storeId: h.artist.storeId, designId }))!;
+  assert.deepEqual(view.areas?.map((a) => [a.label, a.sleeve]), [['Left sleeve', true]]);
+  assert.ok(view.proofs.some((p) => p.flat && p.technique === 'dtg_dtf'));
 });

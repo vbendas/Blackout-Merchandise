@@ -3,16 +3,21 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { PrintTechnique } from '@/lib/print/types';
-import type { ApprovalGarment, ApprovalLoupe, ApprovalProof } from '@/lib/services/print-prep';
-import { loupeAlt } from './approve-logic';
+import type { ApprovalArea, ApprovalGarment, ApprovalLoupe, ApprovalProof } from '@/lib/services/print-prep';
+import { loupeAlt, sleevePlaceholder } from './approve-logic';
 
 /** The left column: the garment colour buttons with the placement and size,
- * the proof on the ecru plate, the true-size loupe over it, and the switch for
- * the loupe. The proof is drawn from the production files themselves. */
+ * the print areas when there are several (front, back, a sleeve), the proof on
+ * the ecru plate, the true-size loupe over it, and the switch for the loupe.
+ * The proof is drawn from the production files themselves: on the garment
+ * photo, or for a sleeve flat and true size on a sleeve outline. */
 export function ProofColumn({
   garments,
   garment,
   onPick,
+  areas = [],
+  area = null,
+  onPickArea,
   proof,
   loupe,
   technique,
@@ -23,6 +28,10 @@ export function ProofColumn({
   garments: readonly ApprovalGarment[];
   garment: ApprovalGarment | null;
   onPick: (code: string) => void;
+  /** every print area of the design; empty for a view with one */
+  areas?: readonly ApprovalArea[];
+  area?: ApprovalArea | null;
+  onPickArea?: (key: string) => void;
   proof: ApprovalProof | null;
   loupe: ApprovalLoupe | null;
   technique: PrintTechnique;
@@ -32,6 +41,7 @@ export function ProofColumn({
 }) {
   // The loupe lies over the proof, so without a proof there is nothing for it to sit on.
   const detail = proof ? loupe : null;
+  const where = area ? `${area.label} · ${area.size}` : placementLabel;
   return (
     <section className="ap-proof" aria-label="Proof">
       <div className="ap-colours">
@@ -43,11 +53,22 @@ export function ProofColumn({
             </button>
           ))}
         </div>
-        {placementLabel ? <span className="ap-place">{placementLabel}</span> : null}
+        {where ? <span className="ap-place">{where}</span> : null}
       </div>
 
+      {areas.length > 1 && onPickArea ? (
+        <div className="ap-colour-list ap-areas" role="group" aria-label="Print area">
+          {areas.map((item) => (
+            <button key={item.key} type="button" className="ap-colour" aria-pressed={item.key === area?.key} onClick={() => onPickArea(item.key)}>
+              <span>{item.label}</span>
+              <span className="ap-area-size">{item.size}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       <div className="ap-stage">
-        <div className="mf-plate ap-plate">{proof ? <ProofImage proof={proof} /> : <MissingProof garment={garment} />}</div>
+        <div className="mf-plate ap-plate">{proof ? <ProofImage proof={proof} /> : area?.sleeve ? <SleeveComing area={area} /> : <MissingProof garment={garment} />}</div>
         {detail && loupeOn ? (
           <figure className="ap-loupe">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -107,6 +128,18 @@ function ProofImage({ proof }: { proof: ApprovalProof }) {
       decoding="async"
       onError={() => setFailedUrl(proof.url)}
     />
+  );
+}
+
+/** A sleeve whose flat proof isn't drawn yet: the print's size, on the plate where the proof will be. */
+function SleeveComing({ area }: { area: ApprovalArea }) {
+  const card = sleevePlaceholder(area);
+  return (
+    <div className="ap-plate-note ap-sleeve-coming" role="status">
+      <p className="ap-sleeve-title">{card.title}</p>
+      <p className="ap-sleeve-size">{card.size}</p>
+      <p>{card.note}</p>
+    </div>
   );
 }
 

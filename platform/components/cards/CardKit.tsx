@@ -342,3 +342,76 @@ export function placementWords(raw: string | undefined): string {
     .trim();
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
+
+// ---------------------------------------------------------------------------
+// A product's sides, print areas and price
+
+/** The sides a product card can show: its photos, then its sleeves' flat proofs. */
+const VIEW_ORDER = ['front', 'back', 'sleeve_left', 'sleeve_right'] as const;
+const VIEW_LABELS: Record<string, string> = { front: 'Front', back: 'Back', sleeve_left: 'Left sleeve', sleeve_right: 'Right sleeve' };
+
+/** The sides of a colour that have a picture, in order. */
+export function viewKeys(views: Record<string, string> | undefined): string[] {
+  return VIEW_ORDER.filter((key) => Boolean(views?.[key]));
+}
+
+/** The picture of the side chosen, else the first side that has one (the front; a sleeve's proof on a product that
+ * prints only on its sleeves), else the colour's main picture. */
+export function viewImage(colour: { mockupUrl?: string; views?: Record<string, string> } | undefined, view: string | null): string | undefined {
+  const key = view && colour?.views?.[view] ? view : viewKeys(colour?.views)[0];
+  return (key ? colour?.views?.[key] : undefined) ?? colour?.mockupUrl;
+}
+
+/** Buttons for the sides of a product that have a picture (front, back, each sleeve's flat proof); nothing for one side. */
+export function ViewPicker({ views, active, onPick }: { views: Record<string, string> | undefined; active: string | null; onPick: (view: string) => void }) {
+  const keys = viewKeys(views);
+  if (keys.length < 2) return null;
+  const current = active && keys.includes(active) ? active : keys[0];
+  return (
+    <div className="mfc-views" role="group" aria-label="Side">
+      {keys.map((key) => (
+        <button key={key} type="button" className="mfc-size mfc-view" aria-pressed={key === current} onClick={() => onPick(key)}>
+          {VIEW_LABELS[key]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+interface ProductSpec {
+  printService: string;
+  placement?: string;
+  areas?: { position: string; label: string; size: string; sleeve?: boolean }[];
+  priceLines?: { label: string; cents: number }[];
+  baseCostCents?: number;
+  retailPriceCents?: number;
+  marginCents?: number;
+}
+
+/** A product's rows: how it prints and where (one row per print area), what its base cost is made of ('Garment with
+ * one print', '+€1.00 Front and back'), then the base cost, the retail price and the margin. */
+export function productSpecRows(spec: ProductSpec): SpecRowData[] {
+  const areas = spec.areas ?? [];
+  const rows: SpecRowData[] = [
+    { key: 'print', label: 'Print', value: areas.length > 0 ? spec.printService : [spec.printService, placementWords(spec.placement)].filter(Boolean).join(' · ') },
+    ...areas.map((area) => ({ key: `area-${area.position}`, label: area.label, value: area.size })),
+  ];
+  const lines = spec.priceLines ?? [];
+  // One line is the base cost itself: the breakdown only says something when there is more than one.
+  if (lines.length > 1) lines.forEach((line, i) => rows.push({ key: `price-${i}`, label: line.label, value: `${i === 0 ? '' : '+'}${formatMoney(line.cents)}`, dim: true }));
+  rows.push(
+    { key: 'base', label: 'Base cost', value: spec.baseCostCents !== undefined ? formatMoney(spec.baseCostCents) : '—', dim: true },
+    { key: 'retail', label: 'Retail', value: spec.retailPriceCents !== undefined ? formatMoney(spec.retailPriceCents) : '—' },
+    { key: 'margin', label: 'Margin', value: spec.marginCents !== undefined ? formatMoney(spec.marginCents) : '—', strong: true },
+  );
+  return rows;
+}
+
+/** The sleeves of a product that have no picture yet on this colour: their flat proof is drawn with the print files. */
+export function sleevesWaiting(areas: ProductSpec['areas'], views: Record<string, string> | undefined): string | null {
+  const waiting = (areas ?? []).filter((area) => area.sleeve && !views?.[area.position]);
+  if (waiting.length === 0) return null;
+  const names = waiting.map((area) => `${area.label.toLowerCase()} (${area.size})`);
+  const list = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+  return `The ${list} shows as a flat, true-size proof once the print files are prepared.`;
+}

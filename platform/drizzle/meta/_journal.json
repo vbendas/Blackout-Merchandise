@@ -36,6 +36,13 @@
       "when": 1792064956490,
       "tag": "0004_print_jobs_live_hash_and_shop_methods",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792148399377,
+      "tag": "0005_products_print_areas",
+      "breakpoints": true
     }
   ]
 }

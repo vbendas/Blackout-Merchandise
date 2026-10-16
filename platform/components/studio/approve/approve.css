@@ -373,6 +373,50 @@
     background: color-mix(in srgb, var(--paper) 8%, transparent);
   }
 
+  /* The print areas, when the design prints in several (front, back, a
+     sleeve): like the colours, with the size in the mono tag type. */
+  .ap-areas {
+    margin-top: -4px;
+  }
+
+  .ap-area-size {
+    font-family: var(--ap-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ap-a5);
+  }
+
+  /* A sleeve's flat proof that isn't drawn yet: what it will be, and the
+     print's size, in dark type on the plate. */
+  .ap-sleeve-coming {
+    gap: 8px;
+  }
+
+  .ap-sleeve-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--paper);
+  }
+
+  .ap-sleeve-size {
+    font-family: var(--ap-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--paper);
+  }
+
+  .ap-sleeve-coming p:last-child {
+    max-width: 36ch;
+  }
+
+  .ap-inline-link {
+    color: var(--signal);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
   /* True size: a crop at print resolution, 300px square, with its caption in
      the mono tag type. */
   .ap-loupe {

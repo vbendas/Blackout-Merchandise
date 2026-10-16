@@ -481,6 +481,30 @@
     color: var(--mfc-a8);
   }
 
+  /* ---------- a product's sides (front, back, sleeves) ---------- */
+
+  .mfc-views {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .mfc-view {
+    margin: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  .mfc-view[aria-pressed='true'] {
+    border-color: var(--signal);
+    color: var(--signal);
+  }
+
+  .mfc-view:focus-visible {
+    outline: 1px solid var(--signal);
+    outline-offset: 2px;
+  }
+
   /* ---------- lists (orders, inbox, signups) ---------- */
 
   .mfc-list {

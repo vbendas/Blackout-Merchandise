@@ -150,7 +150,7 @@ export function ApprovalBox({ view, sessionId }: { view: ApprovalView; sessionId
 
   return (
     <section className="ap-approval" aria-label="Approval" data-state="ask">
-      <p className="ap-approval-lead">{approvalScope(view.garments)}</p>
+      <p className="ap-approval-lead">{approvalScope(view.garments, view.areas ?? [])}</p>
       <p className="ap-dim">Our pre-press team checks every production file before it prints. If a fix changes how the print looks, we’ll ask you again.</p>
       <button
         ref={askRef}

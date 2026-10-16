@@ -8,6 +8,8 @@
  *   - every migration applied, the whole blank catalogue (scripts/seed.ts) and the ink system (seed-print.ts);
  *   - the people (lib/dev/identities.ts): the owner, an artist with the Underwriter shop, and three employees
  *     on the Pre-press, Production and Support presets;
+ *   - shop prices (lib/pricing/pod-table.ts) for a few garments, the rest left on their placeholders: the
+ *     Classic tee at 17 euros, other tees, a hoodie with its own DTF price, a sweatshirt and a tote (SHOP_PRICES);
  *   - two designs run through the real pipeline (engine, pack writers, checks, the job queue) on black, French
  *     Navy and white T-shirts, front chest 28 cm: the Underwriter (scripts/fixtures/print/test_design.png) and
  *     a flat three-colour logo (flat-logo-3c.png), left in these states:
@@ -16,7 +18,13 @@
  *                       press, and its job sheet;
  *       Sunset star     ready for the artist to approve, a screen run paid and waiting for pre-press: that
  *                       pack has two inks with Pantone codes and one without (the entry box shows), and
- *                       one draft product that can't be published until the artwork is approved.
+ *                       one draft product that can't be published until the artwork is approved;
+ *   - a shop product with three print areas, the Underwriter tour tee (black and French Navy): the Underwriter
+ *     on the front, a different design on the back (riso-2-colour.png, approved by the artist) and the Sunset
+ *     star on the left sleeve. Its base price reads "Garment with one print 17.00 + Front and back 1.00 + Sleeve
+ *     prints 2.00 = 20.00", priced at 39 euros. It stays a draft: the sleeve's design waits for the artist, so
+ *     publishing names the left sleeve print, and the Sunset star's approval page shows two print areas, the
+ *     sleeve as its flat, true-size proof. Approve the Sunset star, then publish the tour tee.
  *
  * Orders, products, runs and approvals go through the real services (checkout and the mock Stripe,
  * quotes and proofs, the publishing gate), the same calls the app makes. Running it takes a few minutes
@@ -53,6 +61,20 @@ const GARMENTS = [BLACK, NAVY, WHITE];
 const SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
 
 const SHIP_TO = { name: 'Underwriter', line1: 'Carrer de Provença 288', city: 'Barcelona', postcode: '08008', country: 'ES' };
+
+/** Shop prices for a few garments, in cents (Admin -> Pricing -> Shop products): what a shop product costs the artist with
+ * one print area up to A2, before the extras (+1 euro front and back, +2 euros once for sleeves). Every other garment stays
+ * on its placeholder, its one-print DTG base cost. The hoodie shows a DTF price of its own; the tote has no DTG. */
+const SHOP_PRICES: Record<string, { cents: number; dtfCents?: number }> = {
+  STTU169: { cents: 1700 }, // Classic tee: the demo's T-shirt
+  STTW172: { cents: 1700 }, // Women's classic tee
+  STTU170: { cents: 1600 }, // Light tee
+  STTU788: { cents: 2100 }, // Heavy tee
+  STTU199: { cents: 2200 }, // Long-sleeve tee
+  STSU177: { cents: 3400, dtfCents: 3500 }, // Heavy hoodie
+  STSU178: { cents: 3000 }, // Heavy sweatshirt
+  STAU760: { cents: 1200 }, // Classic tote bag (DTF)
+};
 
 type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
@@ -129,7 +151,7 @@ function pinEnvironment({ db, storage }: Folders): void {
 // The build
 
 interface ArtSpec {
-  key: 'underwriter' | 'sunset-star';
+  key: 'underwriter' | 'sunset-star' | 'tour-back';
   file: string;
 }
 
@@ -237,6 +259,14 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
   const ines = await loadActor(idOf('prepress'), 'staff');
   const marc = await loadActor(idOf('production'), 'staff');
   log('people made: owner, artist, pre-press, production, support');
+
+  // -- shop prices: a few garments set by the owner, the rest on their placeholders ---------------
+  const pricing = await import('../lib/services/pricing-admin');
+  const seeded = new Set((await db.select({ code: schema.blanks.code }).from(schema.blanks)).map((r) => r.code));
+  const priced = Object.fromEntries(Object.entries(SHOP_PRICES).filter(([code]) => seeded.has(code)));
+  if (!priced[BLANK]) throw new Error(`The ${BLANK} is not in the seeded catalogue: the demo's T-shirt needs its shop price.`);
+  must(await pricing.setPodPrices(owner, { garments: priced }), 'save the shop prices');
+  log(`shop prices set for ${Object.keys(priced).length} garments (${BLANK} at ${(priced[BLANK].cents / 100).toFixed(2)} euros); every other garment is a placeholder`);
 
   // -- the artist's shop ------------------------------------------------------
   const [store] = await db
@@ -428,6 +458,69 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
   const sheetB = await jobSheets.getDesignJobSheet(owner, sunset);
   if (!sheetB) throw new Error('The Sunset star has no job sheet.');
 
+  // =========================================================================
+  // Underwriter tour tee: a front, a back of another design and a sleeve print
+  // =========================================================================
+  // The front is the Underwriter (approved), the back a design of its own (approved here) and the left sleeve the
+  // Sunset star, which still waits for the artist: the tee stays a draft until it is approved (the publishing gate,
+  // area by area), and the Sunset star's approval page shows two print areas, the sleeve as its flat proof.
+  const tourBack = await addDesign({ key: 'tour-back', file: 'riso-2-colour.png' });
+  const tourTee = must(
+    await products.createProduct({
+      storeId: store.id,
+      blankCode: BLANK,
+      printServiceCode: 'dtg',
+      areas: [
+        { position: 'front_chest', widthCm: PLACEMENT.widthCm, designId: underwriter },
+        { position: 'back', widthCm: 30, designId: tourBack },
+        // the widest print the short sleeve takes for the art's shape (lib/mockups/placements.ts)
+        { position: 'sleeve_left', designId: sunset },
+      ],
+      colours: [BLACK, NAVY],
+      sizes,
+      name: 'Underwriter tour tee',
+    }),
+    'create "Underwriter tour tee"',
+  );
+  const tourBase = products.describeBaseCost(tourTee.baseCostLines, tourTee.baseCostCents ?? 0);
+  const tourExpected = priced[BLANK].cents + 100 + 200;
+  if (tourTee.baseCostCents !== tourExpected || tourTee.baseCostLines.map((l) => l.key).join(',') !== 'base,second_main_print,sleeves') {
+    throw new Error(`The tour tee's base price is ${tourBase}, not the T-shirt's shop price plus 1 euro (front and back) and 2 euros (sleeves).`);
+  }
+  must(await products.setPrice(store.id, tourTee.id, 3900), 'price "Underwriter tour tee"');
+  log(`Underwriter tour tee: ${tourBase}; priced at 39.00 euros`);
+
+  // Every area's print files, one job per design; the Underwriter's front is already made, so it isn't made again.
+  const preparedTour = must(await printPrep.preparePrintForProduct({ storeId: store.id, userId: artistId, productId: tourTee.id }), 'prepare the tour tee');
+  for (const area of preparedTour.prepared) log(`tour tee: ${area.positions.join(' + ')} ${area.alreadyPrepared ? 'already prepared' : 'being prepared'}`);
+  await drainPrintQueue('local-demo', (line) => log(`tour tee: ${line}`));
+
+  // The back's design: approved by the artist. The Sunset star (the sleeve) is left for the owner to approve.
+  const backView = await printPrep.getApprovalView({ storeId: store.id, designId: tourBack });
+  if (!backView?.canApprove) throw new Error('The tour back print is not ready for the artist to approve.');
+  must(await printPrep.approveDesign({ storeId: store.id, userId: artistId, designId: tourBack, versionId: backView.versionId }), 'the artist approves the tour back print');
+  const sleeveView = await printPrep.getApprovalView({ storeId: store.id, designId: sunset });
+  const sleeveArea = sleeveView?.areas?.find((a) => a.position === 'sleeve_left');
+  const sleeveProofs = (sleeveView?.proofs ?? []).filter((p) => p.flat).length;
+  log(`Sunset star: ${sleeveView?.areas?.length ?? 0} print areas on its approval page; left sleeve ${sleeveArea?.size ?? '?'}, ${sleeveProofs} flat sleeve proofs`);
+  const tourGate = await products.checkPublishable(store.id, tourTee.id);
+  log(`Underwriter tour tee: ${tourGate.ok ? 'publishable' : `a draft: ${tourGate.error}`}`);
+
+  // Each colour's pictures: the Underwriter's DTG proof for the front, the back print's for the back. The sleeve's
+  // picture is its flat proof, which the product reads from the Sunset star's print files.
+  const frontView = await printPrep.getApprovalView({ storeId: store.id, designId: underwriter });
+  const dtgProof = (view: typeof frontView, code: string) => view?.proofs.find((p) => p.technique === 'dtg_dtf' && p.garmentCode === code && !p.flat)?.url;
+  for (const code of [BLACK, NAVY]) {
+    const front = dtgProof(frontView, code);
+    const back = dtgProof(backView, code);
+    if (!front) continue;
+    await db
+      .update(schema.productColours)
+      .set({ mockupUrl: front, mockupViews: { front, ...(back ? { back } : {}) } })
+      .where(and(eq(schema.productColours.productId, tourTee.id), eq(schema.productColours.colourCode, code)));
+  }
+  log('Underwriter tour tee: front and back pictures from the proofs');
+
   // -- what the build left ----------------------------------------------------
   const packRows = await db.select().from(schema.productionPacks);
   const byAudit: Record<string, number> = {};
@@ -439,6 +532,8 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
     waitingPack: darks.id,
     runs: { underwriter: runA, sunset: runB },
     jobSheets: { underwriter: sheetA.filename, sunset: sheetB.filename },
+    shopPrices: priced,
+    tourTee: { id: tourTee.id, basePrice: tourBase, retailCents: 3900, designs: { front: underwriter, back: tourBack, sleeveLeft: sunset }, publishable: tourGate.ok },
   };
 }
 

@@ -342,18 +342,26 @@ test('a position with no files yet is guessed while the other is read: the line 
   assert.match(only.screens?.note ?? '', /There are no print files for this design at this print position and size \(back\) yet, so its screen count is an estimate: 4 screens/);
 });
 
-test('a second position that the blank does not take, a repeat, or one on a DTG line is refused', async () => {
+test('a second position that the blank does not take or a repeat is refused; on a DTG line it adds the shop extra', async () => {
   const { designId } = await h.newDesign();
   const base = { storeId: h.artist.storeId, shipTo };
   const sleeve = await bulk.createBulkQuote({ ...base, lines: [line(designId, black.code, { extraPlacements: [{ position: 'sleeve', widthCm: 8 }] })] });
   assert.equal(sleeve.ok, false);
-  if (!sleeve.ok) assert.match(sleeve.error, /Sleeve prints are not supported yet/);
+  if (!sleeve.ok) assert.match(sleeve.error, /"sleeve" is not a print position for T-shirts\. Say which sleeve: sleeve_left or sleeve_right\./);
 
   const repeat = await bulk.createBulkQuote({ ...base, lines: [line(designId, black.code, { extraPlacements: [{ position: 'front_chest', widthCm: 10 }] })] });
   assert.deepEqual(repeat, { ok: false, error: 'A garment can have each print position once.' });
 
+  // DTG/DTF prints the back in the same pass: the run's price for the garment with one print, plus the shop's extra for front and back.
+  const { podPrice } = await import('@/lib/pricing/pod');
+  const shop = await podPrice('STTU169', [{ position: 'front_chest', widthCm: 28 }, { position: 'back', widthCm: 30 }]);
+  const extra = (shop?.lines ?? []).filter((l) => l.key !== 'base').reduce((sum, l) => sum + l.cents, 0);
+  assert.ok(extra > 0, 'front and back has an extra');
   const dtg = await bulk.createBulkQuote({ ...base, lines: [line(designId, black.code, { printServiceCode: 'dtg', extraPlacements: [{ position: 'back', widthCm: 30 }] })] });
-  assert.deepEqual(dtg, { ok: false, error: 'More than one print position is priced for screen print only.' });
+  const one = await bulk.createBulkQuote({ ...base, lines: [line(designId, black.code, { printServiceCode: 'dtg' })] });
+  assert.ok(dtg.ok && one.ok, dtg.ok ? (one.ok ? '' : one.error) : dtg.error);
+  assert.equal(dtg.value.lines[0].unitCents, one.value.lines[0].unitCents + extra);
+  assert.deepEqual(dtg.value.lines[0].extraPlacements, [{ position: 'back', widthCm: 30 }]);
 
   const huge = await bulk.createBulkQuote({ ...base, lines: [line(designId, black.code, { extraPlacements: [{ position: 'back', widthCm: 100 }] })] });
   assert.deepEqual(huge, { ok: false, error: 'A print position must be between 2 and 60 cm wide.' });

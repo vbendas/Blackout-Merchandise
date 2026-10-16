@@ -53,7 +53,7 @@ import {
 } from '@/lib/print/pipeline';
 import { getActiveInkSystem } from '@/lib/services/ink-system';
 import { loadAssignedLibrary, suggestFromLibrary } from '@/lib/services/pantone-library';
-import { ensureDesignVersion, latestVersion, resolveRecipe } from '@/lib/services/print-prep';
+import { ensureDesignVersion, latestVersion, productAreas, resolveRecipe } from '@/lib/services/print-prep';
 import { runNumberFor } from '@/lib/services/runs';
 import { printMockOn } from '@/lib/print/mock-mode';
 
@@ -1017,8 +1017,10 @@ function addRequirement(into: Map<string, Requirement>, req: Omit<Requirement, '
 }
 
 /** What the order asks pre-press for: per design, the technique, blank, placement and colours.
- * Shop orders always print DTG/DTF; a run prints the way it was quoted. Empty when nothing
- * needs a pack (no design, or a print service that is neither screen nor DTG/DTF). */
+ * Shop orders always print DTG/DTF; a run prints the way it was quoted. Every print area of a
+ * product is its own requirement, for the design printed there (a front and a back can be different
+ * artwork). Empty when nothing needs a pack (no design, or a print service that is neither screen
+ * nor DTG/DTF). */
 async function resolveOrderRequirements(orderId: string): Promise<Requirement[]> {
   const [order] = await db.select().from(schema.orders).where(eq(schema.orders.id, orderId)).limit(1);
   if (!order) return [];
@@ -1032,6 +1034,7 @@ async function resolveOrderRequirements(orderId: string): Promise<Requirement[]>
       designId: schema.products.designId,
       blankCode: schema.products.blankCode,
       placement: schema.products.placement,
+      placements: schema.products.placements,
       printServiceCode: schema.products.printServiceCode,
     })
     .from(schema.orderItems)
@@ -1049,12 +1052,19 @@ async function resolveOrderRequirements(orderId: string): Promise<Requirement[]>
       const product = line.productId ? productRows.get(line.productId) : undefined;
       const technique = techniqueOfService(line.printServiceCode);
       // The product's own design first: the run quote checked a line's design against the shop, and it is checked again below.
-      const designId = product?.designId ?? line.designId ?? null;
+      const lineDesign = product?.designId ?? line.designId ?? null;
       const blankCode = line.blankCode ?? product?.blankCode;
-      if (!technique || !designId || !blankCode) continue;
-      // A screen-printed line can print more positions on the same garment (a back print, say), each on its own screens.
-      const placements = [line.placement ?? (product?.placement as StoredPlacement | null), ...(line.extraPlacements ?? [])];
+      if (!technique || !blankCode) continue;
+      // A line can print more positions on the same garment (a back print, say): the ones it was quoted with, each with
+      // its own design when it has one; a line that names none prints its product's print areas.
+      const placements: ((StoredPlacement & { designId?: string | null }) | null)[] = line.placement
+        ? [line.placement, ...(line.extraPlacements ?? [])]
+        : product
+          ? productAreas(product)
+          : [null];
       for (const placement of placements) {
+        const designId = placement?.designId ?? lineDesign;
+        if (!designId) continue;
         addRequirement(found, { designId, technique, blankCode, placement: toPrintPlacement(placement), kind: 'run', bulkOrderId: run?.bulkOrderId }, line.colourCode, line.qty);
       }
     }
@@ -1065,8 +1075,11 @@ async function resolveOrderRequirements(orderId: string): Promise<Requirement[]>
   for (const item of items) {
     // A shop sale prints DTG/DTF whatever its product says (screen print is for runs); a service with no
     // print file to make (embroidery) needs nothing from pre-press.
-    if (!item.designId || techniqueOfService(item.printServiceCode) === null) continue;
-    addRequirement(found, { designId: item.designId, technique: 'dtg_dtf', blankCode: item.blankCode, placement: toPrintPlacement(item.placement as StoredPlacement | null), kind: 'shop_order' }, item.colourCode, item.quantity);
+    if (techniqueOfService(item.printServiceCode) === null) continue;
+    for (const area of productAreas(item)) {
+      if (!area.designId) continue;
+      addRequirement(found, { designId: area.designId, technique: 'dtg_dtf', blankCode: item.blankCode, placement: toPrintPlacement(area), kind: 'shop_order' }, item.colourCode, item.quantity);
+    }
   }
   return ownDesignsOnly(order.storeId, [...found.values()]);
 }

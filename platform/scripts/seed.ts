@@ -74,6 +74,14 @@ function chunk<T>(items: T[], size: number): T[][] {
 
 // Placeholder garment cost by canonical type (cents). Victor will replace
 // these with the real cost sheet.
+//
+// Shop products (print on demand, DTG/DTF) are priced from the shop price table the
+// owner edits at /admin/pricing (lib/pricing/pod.ts): a base price for each garment,
+// with one print area up to A2, plus extras for more print areas. This seed never
+// writes that table. Until the owner saves a garment's price, its one-print DTG
+// row below (its DTF row where it has no DTG) is the placeholder price products
+// are made from, and the admin page marks it as a placeholder. Runs are priced
+// from these rows by quantity break, as before.
 const GARMENT_COST_CENTS_BY_TYPE: Record<string, number> = {
     'T-shirts': 650,
     'Sweats & Hoodies': 1900,

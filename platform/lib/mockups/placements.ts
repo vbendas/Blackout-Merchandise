@@ -12,7 +12,7 @@
 // before it runs into a hem, pocket or collar) — the design itself keeps its
 // own aspect ratio and is only ever scaled by width.
 
-export type PrintPosition = 'front_chest' | 'front_full' | 'front_left_chest' | 'back' | 'centre' | 'front_leg';
+export type PrintPosition = 'front_chest' | 'front_full' | 'front_left_chest' | 'back' | 'centre' | 'front_leg' | 'sleeve_left' | 'sleeve_right';
 
 export interface PrintArea {
   /** left, as a fraction of the packshot width */
@@ -47,12 +47,14 @@ export interface TypePlacement {
 // constant lets mockups.ts clamp a caller-supplied offsetYcm against it too.
 export const HOODIE_POCKET_LINE_FRAC = 0.6041;
 
-// Sleeve is intentionally not offered: none of our packshots isolate a
-// sleeve region from the rest of the garment silhouette (the alpha bbox
-// covers the whole garment, arms included), so there is no reliable box to
-// hand back. Asking for one is refused with an error that names the
-// positions the blank does take (resolvePrintArea, checkPlacementPosition);
-// it is never moved to the default spot (Print-Prep-Plan section 13).
+// Sleeves have no box here: the packshots are front and back only, and none
+// isolates a sleeve from the rest of the garment silhouette. A sleeve print
+// (sleeve_left, sleeve_right; see "Sleeve prints" below) is offered on the
+// blanks that have sleeves and is shown as a flat, true-size proof on a sleeve
+// outline (lib/mockups/sleeve-proof.ts), never on a photo (owner, 16 Oct 2026).
+// A position a blank can't take is refused with an error that names the ones it
+// does (resolvePrintArea, checkPlacementPosition); it is never moved to the
+// default spot (Print-Prep-Plan section 13).
 
 export const PLACEMENTS: Record<string, TypePlacement> = {
   'T-shirts': {
@@ -141,15 +143,150 @@ export function getTypePlacement(blankType: string): TypePlacement | undefined {
   return tableFor(blankType);
 }
 
-/** The positions a blank type can print at, in the order the table lists them. */
+/** The photo positions a blank type can print at, in the order the table lists them. Sleeves are not among them: they
+ * have no photo (positionsFor adds them for a blank that has sleeves). */
 export function availablePositions(blankType: string): PrintPosition[] {
   const table = tableFor(blankType);
   return table ? (Object.keys(table.positions) as PrintPosition[]) : [];
 }
 
-function unknownPositionMessage(blankType: string, position: string, available: PrintPosition[]): string {
-  const why = /sleeve/i.test(position) ? 'Sleeve prints are not supported yet' : `"${position}" is not a print position for ${blankType}`;
-  return `${why}. ${blankType} take: ${available.join(', ')}.`;
+// ---------------------------------------------------------------------------
+// Sleeve prints (owner decision, 16 Oct 2026)
+//
+// Named from the wearer's side, as front_left_chest is: sleeve_left is the wearer's left arm. Offered only on blanks
+// with sleeves that take a print (SLEEVE_PRINTS), and shown as a flat, true-size proof on a sleeve outline with its
+// measurements, never on a photo.
+
+export const SLEEVE_POSITIONS = ['sleeve_left', 'sleeve_right'] as const satisfies readonly PrintPosition[];
+export type SleevePosition = (typeof SLEEVE_POSITIONS)[number];
+export type SleeveKind = 'short' | 'long';
+
+export function isSleevePosition(position: string): position is SleevePosition {
+  return position === 'sleeve_left' || position === 'sleeve_right';
+}
+
+/** OWNER DEFAULTS (16 Oct 2026), adjust here: the biggest print each kind of sleeve takes, in cm. A print is sized by its
+ * width; its height is the width times the art's aspect, and must fit too. */
+export const SLEEVE_PRINT_MAX_CM: Readonly<Record<SleeveKind, { widthCm: number; heightCm: number }>> = {
+  short: { widthCm: 10, heightCm: 10 },
+  long: { widthCm: 8, heightCm: 40 },
+};
+
+/** OWNER DEFAULTS (16 Oct 2026), adjust here: the blanks that take sleeve prints, by style code, and their kind of sleeve.
+ * From the catalogue (lib/catalog/products.ts and product-details.ts). A blank that isn't listed has no sleeve print.
+ * Left out on purpose:
+ * - tank tops (STTM961, STTW962, STTW963), gilets and body warmers, bags, beanies, hats and bottoms: no sleeves;
+ * - the dolman tee (STTW089): its sleeves are cut in one with the body, so there is no sleeve to lay flat;
+ * - puffers and padded jackets (STJM188, STJM837, STJU840, STJU841, STJW191, STJW839): quilted sleeves; the sherpa
+ *   jacket (STJU248): pile sleeves; the bomber (STJU251): a zipped pocket on the sleeve;
+ * - woven shirts and the overshirt (STWM968, STWM969, STWW971, STWW973, STJU845): plackets and cuffs on the sleeve;
+ * - Kids & Baby: their sleeves are smaller than the adult sizes above. */
+export const SLEEVE_PRINTS: Readonly<Record<string, SleeveKind>> = {
+  // T-shirts
+  STTM562: 'short',
+  STTU078: 'short',
+  STTU169: 'short',
+  STTU170: 'short',
+  STTU171: 'short',
+  STTU258: 'short',
+  STTU263: 'short',
+  STTU758: 'short',
+  STTU788: 'short',
+  STTU815: 'short',
+  STTU959: 'short',
+  STTU964: 'short',
+  STTW079: 'short',
+  STTW172: 'short',
+  STTW173: 'short',
+  STTW174: 'short',
+  STTW175: 'short',
+  STTW176: 'short',
+  STTW259: 'short',
+  STTW264: 'short',
+  // long-sleeve tees
+  STTU199: 'long',
+  STTU200: 'long',
+  STTW219: 'long',
+  // polos
+  STPM224: 'short',
+  STPU222: 'short',
+  STPW977: 'short',
+  STPU223: 'long',
+  // sweats and hoodies
+  STSU011: 'long',
+  STSU077: 'long',
+  STSU168: 'long',
+  STSU177: 'long',
+  STSU178: 'long',
+  STSU179: 'long',
+  STSU201: 'long',
+  STSU202: 'long',
+  STSU204: 'long',
+  STSU205: 'long',
+  STSU207: 'long',
+  STSU208: 'long',
+  STSU209: 'long',
+  STSU229: 'long',
+  STSU253: 'long',
+  STSU255: 'long',
+  STSU256: 'long',
+  STSU257: 'long',
+  STSU261: 'long',
+  STSU269: 'long',
+  STSU795: 'long',
+  STSU797: 'long',
+  STSU798: 'long',
+  STSU799: 'long',
+  STSU824: 'long',
+  STSU856: 'long',
+  STSU857: 'long',
+  STSU868: 'long',
+  STSW212: 'long',
+  STSW213: 'long',
+  STSW214: 'long',
+  STSW217: 'long',
+  STSW218: 'long',
+  STSW254: 'long',
+  STSW262: 'long',
+  STSW268: 'long',
+  // jackets with flat sleeves: softshells, fleeces, the coach jacket, the anorak and the weather jacket
+  STJM158: 'long',
+  STJM167: 'long',
+  STJM238: 'long',
+  STJW239: 'long',
+  STJU242: 'long',
+  STJU833: 'long',
+  STJU834: 'long',
+  STJU846: 'long',
+};
+
+/** The kind of sleeve a blank prints on, or null when it takes no sleeve print. */
+export function sleeveKindFor(blankCode: string | null | undefined): SleeveKind | null {
+  const code = blankCode?.trim().toUpperCase() ?? '';
+  return code && Object.hasOwn(SLEEVE_PRINTS, code) ? SLEEVE_PRINTS[code] : null;
+}
+
+/** A blank as the position checks need it: its style code (sleeves are per blank) and its type (the photo boxes). */
+export interface BlankRef {
+  code: string;
+  type: string;
+}
+
+/** Every position a blank can print at: its type's photo positions, then its sleeves when it has them. */
+export function positionsFor(blank: BlankRef): PrintPosition[] {
+  return [...availablePositions(blank.type), ...(sleeveKindFor(blank.code) ? SLEEVE_POSITIONS : [])];
+}
+
+/** Why a position is refused, in words, with the positions the garment does take. `sleeves` says what is known about
+ * the garment's sleeves: it has them (a sleeve is only refused on a photo), it has none, or nobody said. */
+function unknownPositionMessage(blankType: string, position: string, available: PrintPosition[], sleeves: 'has' | 'none' | 'unknown' = 'unknown'): string {
+  const take = `${blankType} take: ${available.join(', ')}.`;
+  if (isSleevePosition(position)) {
+    if (sleeves === 'none') return `This garment has no sleeves to print on. ${take}`;
+    return `A sleeve print has no garment photo to go on: it is shown as a flat, true-size proof instead. ${take}`;
+  }
+  const which = /sleeve/i.test(position) && sleeves === 'has' ? ' Say which sleeve: sleeve_left or sleeve_right.' : '';
+  return `"${position}" is not a print position for ${blankType}.${which} ${take}`;
 }
 
 /** Thrown for a position the blank type has no calibrated box for. The caller
@@ -167,9 +304,9 @@ export class UnknownPositionError extends Error {
   }
 }
 
-/** The box for a position, or undefined when the blank type has no table at
- * all (callers decide what to show). A position the table lacks throws
- * UnknownPositionError; it never falls back to the type's default. */
+/** The box for a position on the garment photo, or undefined when the blank type has no table at all (callers decide
+ * what to show). A position the table lacks throws UnknownPositionError; it never falls back to the type's default.
+ * A sleeve has no box: it is never drawn on a photo (the caller handles sleeves before asking). */
 export function resolvePrintArea(blankType: string, position: string): { area: PrintArea; position: PrintPosition } | undefined {
   const table = tableFor(blankType);
   if (!table) return undefined;
@@ -185,15 +322,27 @@ export function resolvePrintArea(blankType: string, position: string): { area: P
 
 export type PositionCheck = { ok: true; position: string } | { ok: false; error: string; positions: PrintPosition[] };
 
-/** The non-throwing form of resolvePrintArea, for the services and tools that
- * take a position from the artist or the model and must answer in words.
- * A blank type with no table passes: there is nothing to check it against. */
-export function checkPlacementPosition(blankType: string, position: string): PositionCheck {
+/** The non-throwing check of a position, for the services and tools that take one from the artist or the model and
+ * must answer in words. With the blank's code a sleeve is checked too: it passes on a blank that has sleeves
+ * (sleeveKindFor), and the refusal lists the sleeves among the positions. Without it a sleeve is refused, as there is
+ * nothing to tell whether the garment has sleeves. A blank type with no table passes: there is nothing to check it
+ * against. */
+export function checkPlacementPosition(blankType: string, position: string, blankCode?: string): PositionCheck {
+  const sleeves: 'has' | 'none' | 'unknown' = blankCode === undefined ? 'unknown' : sleeveKindFor(blankCode) ? 'has' : 'none';
+  const refuse = (): PositionCheck => {
+    const positions: PrintPosition[] = [...availablePositions(blankType), ...(sleeves === 'has' ? SLEEVE_POSITIONS : [])];
+    return { ok: false, error: unknownPositionMessage(blankType, position, positions, sleeves), positions };
+  };
+  if (isSleevePosition(position)) {
+    if (sleeves === 'has') return { ok: true, position };
+    // a blank type with no table is not checked, as before; a code that says "no sleeves" is
+    return !tableFor(blankType) && sleeves === 'unknown' ? { ok: true, position } : refuse();
+  }
   try {
     resolvePrintArea(blankType, position);
     return { ok: true, position };
   } catch (err) {
-    if (err instanceof UnknownPositionError) return { ok: false, error: err.message, positions: err.available };
+    if (err instanceof UnknownPositionError) return refuse();
     throw err;
   }
 }
@@ -207,6 +356,161 @@ export function getDefaultPosition(blankType: string): PrintPosition {
 export function defaultPlacementFor(blankType: string): { position: PrintPosition; widthCm: number } {
   const position = getDefaultPosition(blankType);
   return { position, widthCm: tableFor(blankType)?.positions[position]?.widthCm ?? 28 };
+}
+
+// ---------------------------------------------------------------------------
+// Print areas: the rules a product's areas follow (owner decision, 16 Oct 2026)
+
+/** The biggest print area: A2, portrait. A shop product's base price includes one area up to this size. */
+export const A2_CM = { widthCm: 42, heightCm: 59.4 } as const;
+
+/** The narrowest print the print files can be made at (validateDrop in lib/services/print-prep.ts). */
+export const MIN_PRINT_WIDTH_CM = 2;
+
+/** The side of the garment a position is on. Agrees with placementKind in lib/pricing/pod-table.ts: the front positions
+ * (the bag's centre and the leg print included) are the front. */
+export type AreaSide = 'front' | 'back' | 'sleeve';
+
+export function areaSide(position: string): AreaSide | null {
+  if (position === 'back') return 'back';
+  if (isSleevePosition(position)) return 'sleeve';
+  if (position === 'front_chest' || position === 'front_full' || position === 'front_left_chest' || position === 'centre' || position === 'front_leg') return 'front';
+  return null;
+}
+
+const POSITION_LABELS: Record<string, string> = {
+  front_chest: 'Front chest',
+  front_full: 'Front',
+  front_left_chest: 'Left chest',
+  back: 'Back',
+  centre: 'Centre',
+  front_leg: 'Leg',
+  sleeve_left: 'Left sleeve',
+  sleeve_right: 'Right sleeve',
+};
+
+/** 'Front chest', 'Left sleeve': a position as artists and staff read it. */
+export function printPositionLabel(position: string): string {
+  if (Object.hasOwn(POSITION_LABELS, position)) return POSITION_LABELS[position];
+  const words = position.replace(/_/g, ' ').trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/** The biggest print a position takes on a blank: the sleeve's size for a sleeve, A2 for everything else. */
+export function maxPrintCm(blankCode: string | null | undefined, position: string): { widthCm: number; heightCm: number } {
+  const kind = isSleevePosition(position) ? sleeveKindFor(blankCode) : null;
+  return kind ? SLEEVE_PRINT_MAX_CM[kind] : A2_CM;
+}
+
+const tenth = (n: number) => Math.round(n * 10) / 10;
+
+/** The width a print takes when the artist doesn't say: the photo box's calibrated width, or the sleeve's widest print,
+ * narrowed when the art is tall so its height still fits (`aspect` is the art's height over its width, when known). */
+export function defaultAreaWidthCm(blank: BlankRef, position: string, aspect?: number | null): number {
+  const max = maxPrintCm(blank.code, position);
+  const usual = isSleevePosition(position) ? max.widthCm : (tableFor(blank.type)?.positions[position as PrintPosition]?.widthCm ?? 28);
+  const fits = aspect && aspect > 0 ? Math.min(usual, max.widthCm, max.heightCm / aspect) : Math.min(usual, max.widthCm);
+  return Math.max(MIN_PRINT_WIDTH_CM, Math.floor(fits * 10) / 10);
+}
+
+/** A print area as the rules see it: where, how wide, and how tall when the art is known (width times its aspect). */
+export interface AreaSize {
+  position: string;
+  widthCm: number;
+  heightCm?: number | null;
+}
+
+export type AreaCheck = { ok: true } | { ok: false; error: string };
+
+function sideList(labels: string[]): string {
+  return labels.length <= 1 ? (labels[0] ?? '') : `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
+}
+
+/** The rules for a product's print areas (owner, 16 Oct 2026): at least one; each a position the garment takes (sleeves
+ * only on a blank with sleeves); each position once; at most one front area (front chest, full front or left chest)
+ * and one back; and each no bigger than A2, 42 x 59.4 cm (a sleeve: its own size). In plain words when one fails.
+ * A run's backing product (`forRun`) keeps the run's own positions, which were checked when it was quoted: only the
+ * sizes are checked. */
+export function checkPrintAreas(blank: BlankRef, areas: readonly AreaSize[], opts: { forRun?: boolean } = {}): AreaCheck {
+  if (areas.length === 0) return { ok: false, error: 'Say where the print goes: a product prints at least one area.' };
+  if (!opts.forRun) {
+    const seen = new Set<string>();
+    for (const area of areas) {
+      const check = checkPlacementPosition(blank.type, area.position, blank.code);
+      if (!check.ok) return { ok: false, error: check.error };
+      if (seen.has(area.position)) return { ok: false, error: `A product prints each position once: there are two ${printPositionLabel(area.position).toLowerCase()} prints.` };
+      seen.add(area.position);
+    }
+    const fronts = areas.filter((a) => areaSide(a.position) === 'front');
+    if (fronts.length > 1) {
+      return { ok: false, error: `A product has one front print, and ${sideList(fronts.map((a) => printPositionLabel(a.position).toLowerCase()))} are all on the front. Keep one of them.` };
+    }
+  }
+  for (const area of areas) {
+    const label = printPositionLabel(area.position).toLowerCase();
+    if (!Number.isFinite(area.widthCm) || area.widthCm < MIN_PRINT_WIDTH_CM) return { ok: false, error: `A print is at least ${MIN_PRINT_WIDTH_CM} cm wide: the ${label} print is ${tenth(area.widthCm)} cm.` };
+    const max = maxPrintCm(blank.code, area.position);
+    const height = area.heightCm ?? null;
+    const tooWide = area.widthCm > max.widthCm + 1e-9;
+    const tooTall = height !== null && Number.isFinite(height) && height > max.heightCm + 1e-9;
+    if (!tooWide && !tooTall) continue;
+    const size = height !== null && Number.isFinite(height) ? `${tenth(area.widthCm)} × ${tenth(height)} cm` : `${tenth(area.widthCm)} cm wide`;
+    const kind = isSleevePosition(area.position) ? sleeveKindFor(blank.code) : null;
+    const limit = kind ? `A ${kind}-sleeve print can be at most ${max.widthCm} × ${max.heightCm} cm` : `A print area can be at most A2, ${A2_CM.widthCm} × ${A2_CM.heightCm} cm`;
+    return { ok: false, error: `${limit}: the ${label} print would be ${size}. Make it narrower.` };
+  }
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// A product's print areas (products.placements)
+
+/** One print area of a product: where it prints, how big, and the design printed there. */
+export interface ProductArea {
+  position: string;
+  widthCm: number;
+  /** from the standard position of the blank and position, in cm (positive = lower); left out at the standard position */
+  offsetYcm?: number;
+  /** the design printed in this area; null only on a product made without one */
+  designId: string | null;
+}
+
+const SIDE_ORDER: Record<string, number> = { front: 0, back: 1, sleeve: 2 };
+
+/** Front first, then the back, then the left and the right sleeve. The first area is the product's main one (its
+ * designId is products.design_id). */
+export function sortAreas<T extends { position: string }>(areas: readonly T[]): T[] {
+  const rank = (a: T) => (SIDE_ORDER[areaSide(a.position) ?? ''] ?? 3) * 10 + (a.position === 'sleeve_right' ? 1 : 0);
+  return [...areas].sort((a, b) => rank(a) - rank(b));
+}
+
+function readArea(raw: unknown, designId: string | null, fallback?: { position: string; widthCm: number }): ProductArea | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const o = raw as Record<string, unknown>;
+  const position = typeof o.position === 'string' && o.position.trim() ? o.position.trim() : fallback?.position;
+  const widthCm = typeof o.widthCm === 'number' && o.widthCm > 0 ? o.widthCm : fallback?.widthCm;
+  if (!position || widthCm === undefined) return null;
+  const area: ProductArea = { position, widthCm, designId: typeof o.designId === 'string' && o.designId ? o.designId : designId };
+  if (typeof o.offsetYcm === 'number' && Number.isFinite(o.offsetYcm) && o.offsetYcm !== 0) area.offsetYcm = o.offsetYcm;
+  return area;
+}
+
+/** A product's print areas, in order (sortAreas). From `placements` when the row has them; a row from before them is
+ * read from its one `placement` and its design (the legacy columns, which nothing writes any more). A row with neither
+ * gets `fallback` (the caller's usual spot) with its design, or no area at all. */
+export function productAreasOf(
+  row: { placements?: unknown; placement?: unknown; designId?: string | null },
+  fallback?: { position: string; widthCm: number },
+): ProductArea[] {
+  const designId = row.designId ?? null;
+  if (Array.isArray(row.placements) && row.placements.length > 0) {
+    // An area that doesn't name its design prints the product's own.
+    const areas = row.placements.map((raw) => readArea(raw, designId)).filter((a): a is ProductArea => a !== null);
+    if (areas.length > 0) return sortAreas(areas);
+  }
+  const legacy = readArea(row.placement, designId, fallback ?? undefined);
+  if (legacy) return [legacy];
+  return fallback ? [{ ...fallback, designId }] : [];
 }
 
 /** The standard collar distance of a blank type's print position, in cm: how far below the collar seam

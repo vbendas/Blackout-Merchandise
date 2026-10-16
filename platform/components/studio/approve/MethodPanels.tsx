@@ -1,5 +1,7 @@
+import Link from 'next/link';
 import { describeScreenEffect } from '@/lib/pricing/screen-print';
-import type { ApprovalGarment, ApprovalScreenSet } from '@/lib/services/print-prep';
+import type { ApprovalGarment, ApprovalRelatedDesign, ApprovalScreenSet } from '@/lib/services/print-prep';
+import { joinNames } from './approve-logic';
 
 /** Shop products · DTG/DTF: how every product in the shop prints, with the
  * facts for the chosen garment colour (what is left out, how fades and whites
@@ -71,6 +73,28 @@ export function ScreenPanel({ set, garment }: { set: ApprovalScreenSet | null; g
         ))}
       </ol>
       <PriceLine screens={set.screenCount} />
+    </section>
+  );
+}
+
+/** The other artwork printed on the same products (a different back, a sleeve
+ * logo): each has its own approval page, which these products need too before
+ * they go live. Nothing is drawn when the products print this design alone. */
+export function RelatedPanel({ related, sessionId }: { related: readonly ApprovalRelatedDesign[]; sessionId: string | null }) {
+  if (related.length === 0) return null;
+  return (
+    <section className="ap-block ap-block-tight">
+      <h2 className="mf-label">Other artwork on these products</h2>
+      <ul className="ap-facts">
+        {related.map((item) => (
+          <li key={item.designId}>
+            {joinNames(item.areas)}: {item.approved ? 'approved' : 'needs its own approval'}.{' '}
+            <Link className="ap-inline-link" href={`/studio/approve/${item.designId}${sessionId ? `?from=${encodeURIComponent(sessionId)}` : ''}`}>
+              Open its proofs
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

@@ -73,6 +73,16 @@ test('the 19 former admin tools carry exactly the access in the map', () => {
   assert.equal(Object.keys(ACCESS_MAP).length, 19);
 });
 
+test('the shop price tool takes Catalogue and pricing Manage, like the base costs and the admin page', () => {
+  const tool = registry.getTool('set_shop_price');
+  assert.ok(tool, 'set_shop_price is registered');
+  assert.equal(tool.scope, 'staff');
+  assert.equal(`${tool.access?.area}:${tool.access?.level}`, 'catalogue:manage');
+  assert.equal(tool.confirm, true, 'a price change asks first');
+  assert.ok(!names({ role: 'staff', permissions: { catalogue: 'view' } }).includes('set_shop_price'));
+  assert.ok(!names({ role: 'artist' }).includes('set_shop_price'));
+});
+
 test('tool names are unique', () => {
   const all = registry.allTools().map((tool) => tool.name);
   assert.equal(new Set(all).size, all.length);

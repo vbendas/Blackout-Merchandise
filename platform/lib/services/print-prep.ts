@@ -3,10 +3,10 @@
 // The approval view never carries Pantone codes: clients see colour names only.
 // PRINT_MOCK=1 returns the sample views in lib/print/mock-views.ts so the
 // Studio page can be built and checked before the pipeline exists.
-import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { blankDisplayName } from '@/lib/catalog/display-names';
-import { getTypePlacement } from '@/lib/mockups/placements';
+import { defaultAreaWidthCm, getTypePlacement, isSleevePosition, maxPrintCm, positionsFor, productAreasOf, sleeveKindFor, sortAreas, type ProductArea } from '@/lib/mockups/placements';
 import { ABSOLUTE_MAX_SCREENS, DEFAULT_RECIPE, EXTRA_SCREEN_CENTS_PER_PIECE, STANDARD_MAX_SCREENS, mergeRecipe } from '@/lib/print/defaults';
 import { MOCK_APPROVAL_VIEW } from '@/lib/print/mock-views';
 import type { GarmentColour, Hex, PrintJobInput, PrintPlacement, PrintTechnique, RecipeOverride, Warning } from '@/lib/print/types';
@@ -26,8 +26,10 @@ import {
   packHash,
   packInfo,
   packPlacement,
+  placementKey,
   positionLabel,
   printDeps,
+  productUsesDesign,
   samePlacement,
   sha256Hex,
   sniffImage,
@@ -59,6 +61,10 @@ export interface ApprovalProof {
   technique: PrintTechnique;
   url: string;
   alt: string;
+  /** the print area it shows (ApprovalArea.key); left out on a view with one area */
+  areaKey?: string;
+  /** a sleeve's flat, true-size proof on a sleeve outline, not a garment photo */
+  flat?: boolean;
 }
 
 export interface ApprovalLoupe {
@@ -66,6 +72,32 @@ export interface ApprovalLoupe {
   garmentCode: string;
   url: string;
   caption: string;
+  /** the print area it is a detail of (ApprovalArea.key) */
+  areaKey?: string;
+}
+
+/** One print area of the design: where it prints and how big. A design printed on the front and on a sleeve has two. */
+export interface ApprovalArea {
+  /** the area's placement key; its proofs and loupes carry it */
+  key: string;
+  position: string;
+  /** 'Front chest', 'Left sleeve' */
+  label: string;
+  /** '28 × 33.6 cm' */
+  size: string;
+  widthCm: number;
+  heightCm: number | null;
+  /** a sleeve has no garment photo: its proof is drawn flat and true size on a sleeve outline */
+  sleeve: boolean;
+}
+
+/** Another design printed on the same products (their back, say): it has its own approval page. */
+export interface ApprovalRelatedDesign {
+  designId: string;
+  designName: string;
+  /** where it prints on those products: 'Back', 'Left sleeve' */
+  areas: string[];
+  approved: boolean;
 }
 
 /** One ink as the client sees it: a plain colour name, never a Pantone code. */
@@ -97,8 +129,12 @@ export interface ApprovalView {
   designName: string;
   versionId: string;
   versionNumber: number;
-  /** e.g. 'Front · 28 × 33.6 cm' */
+  /** e.g. 'Front · 28 × 33.6 cm'; several areas are joined with ' + ' */
   placementLabel: string;
+  /** every print area the design's files cover, front first, then the back, then the sleeves */
+  areas?: ApprovalArea[];
+  /** the other designs printed on the same products, each approved on its own page */
+  relatedDesigns?: ApprovalRelatedDesign[];
   status: ApprovalStatus;
   garments: ApprovalGarment[];
   proofs: ApprovalProof[];
@@ -323,13 +359,21 @@ async function validateDrop(input: PreparePrintInput): Promise<ServiceResult<{ b
   if (input.placements.length === 0) return { ok: false, error: 'Say where the print goes.' };
   if (input.placements.length > MAX_PLACEMENTS) return { ok: false, error: `A drop can have at most ${MAX_PLACEMENTS} placements.` };
   const table = getTypePlacement(blank.type);
+  // The photo positions of the blank's type, and its sleeves when it has them (lib/mockups/placements.ts).
+  const allowed: string[] = positionsFor({ code: blank.code, type: blank.type });
   const placements: PrintPlacement[] = [];
   for (const p of input.placements) {
-    if (table && !table.positions[p.position as keyof typeof table.positions]) {
-      const known = Object.keys(table.positions).map(positionLabel).join(', ').toLowerCase();
+    const sleeve = isSleevePosition(p.position);
+    if ((table || sleeve) && !allowed.includes(p.position)) {
+      const known = allowed.map(positionLabel).join(', ').toLowerCase();
+      if (sleeve) return { ok: false, error: `The ${blankName} has no sleeves to print on.${known ? ` Use one of: ${known}.` : ''}` };
       return { ok: false, error: `The ${blankName} has no "${p.position}" print position. Use one of: ${known}.` };
     }
     if (!Number.isFinite(p.widthMm) || p.widthMm < 20 || p.widthMm > 600) return { ok: false, error: 'The print width must be between 2 and 60 cm.' };
+    if (sleeve) {
+      const max = maxPrintCm(blank.code, p.position);
+      if (p.widthMm > max.widthCm * 10) return { ok: false, error: `A ${sleeveKindFor(blank.code)}-sleeve print can be at most ${max.widthCm} × ${max.heightCm} cm.` };
+    }
     placements.push({ position: p.position, widthMm: Math.round(p.widthMm), ...(p.offsetYMm === undefined ? {} : { offsetYMm: Math.round(p.offsetYMm) }) });
   }
   return { ok: true, value: { blankCode: blank.code, garmentCodes: found.map((g) => g.code), placements } };
@@ -341,8 +385,8 @@ export async function defaultPlacement(blankCode: string, opts: { position?: str
   if (!blank) return null;
   const table = getTypePlacement(blank.type);
   const position = opts.position ?? table?.defaultPosition ?? 'front_chest';
-  const area = table?.positions[position as keyof typeof table.positions];
-  const widthCm = opts.widthCm ?? area?.widthCm ?? 28;
+  // The photo box's calibrated width, or a sleeve's widest print.
+  const widthCm = opts.widthCm ?? defaultAreaWidthCm({ code: blank.code, type: blank.type }, position);
   return { position, widthMm: Math.round(widthCm * 10) };
 }
 
@@ -515,6 +559,53 @@ function screenSetView(pack: PackRow, garmentNames: Map<string, string>): Approv
   };
 }
 
+/** The print areas a design's packs cover, one per placement, front first, then the back, then the sleeves. */
+export function approvalAreas(packs: readonly PackRow[]): ApprovalArea[] {
+  const byKey = new Map<string, ApprovalArea>();
+  for (const pack of packs) {
+    const placement = packPlacement(pack);
+    const key = placementKey(placement);
+    if (byKey.has(key)) continue;
+    const size = packInfo(pack)?.printSizeMm;
+    byKey.set(key, {
+      key,
+      position: placement.position,
+      label: positionLabel(placement.position),
+      size: `${formatCm(placement.widthMm)}${size ? ` × ${formatCm(size.height)}` : ''} cm`,
+      widthCm: placement.widthMm / 10,
+      heightCm: size ? Math.round(size.height) / 10 : null,
+      sleeve: isSleevePosition(placement.position),
+    });
+  }
+  // narrowest first, then by side (a stable sort): the same position at several sizes reads from small to big
+  return sortAreas([...byKey.values()].sort((a, b) => a.widthCm - b.widthCm));
+}
+
+/** The other designs printed on the shop's products that print this one (a different back, a sleeve logo), each with
+ * where it prints and whether its own approval stands. */
+async function relatedDesignsOf(storeId: string, designId: string): Promise<ApprovalRelatedDesign[]> {
+  const rows = await db
+    .select({ designId: schema.products.designId, placement: schema.products.placement, placements: schema.products.placements })
+    .from(schema.products)
+    .where(and(eq(schema.products.storeId, storeId), ne(schema.products.status, 'archived'), productUsesDesign(designId)));
+  const where = new Map<string, Set<string>>();
+  for (const row of rows) {
+    const areas = productAreasOf(row);
+    if (!areas.some((a) => a.designId === designId)) continue;
+    for (const area of areas) {
+      if (!area.designId || area.designId === designId) continue;
+      where.set(area.designId, (where.get(area.designId) ?? new Set()).add(positionLabel(area.position)));
+    }
+  }
+  const related: ApprovalRelatedDesign[] = [];
+  for (const [otherId, labels] of where) {
+    const version = await latestVersion(otherId);
+    const approval = version ? await validApproval(otherId, version.id) : null;
+    related.push({ designId: otherId, designName: await designDisplayName(otherId), areas: [...labels], approved: Boolean(approval) });
+  }
+  return related;
+}
+
 export async function getApprovalView(input: { storeId: string; designId: string }): Promise<ApprovalView | null> {
   if (mockOn()) return { ...MOCK_APPROVAL_VIEW, designId: input.designId };
   const deps = printDeps();
@@ -560,13 +651,20 @@ export async function getApprovalView(input: { storeId: string; designId: string
     const technique = pack.technique as PrintTechnique;
     const label = technique === 'screen' ? 'Screen print' : 'DTG';
     const blank = blankNames.get(info?.blankCode ?? '') ?? 'garment';
+    const placement = packPlacement(pack);
+    const areaKey = placementKey(placement);
+    // A sleeve's proof is drawn flat on a sleeve outline (there is no photo of a sleeve).
+    const flat = isSleevePosition(placement.position);
+    const where = flat ? `the ${positionLabel(placement.position).toLowerCase()} of the ${blank.toLowerCase()}` : `the ${blank.toLowerCase()}`;
     for (const file of packFiles(pack)) {
       if (file.kind === 'proof' && file.garmentCode) {
         proofs.push({
           garmentCode: file.garmentCode,
           technique,
           url: await deps.storage.objectUrl(file.key, file.visibility),
-          alt: `${label} proof of the ${designName} design on the ${blank.toLowerCase()} in ${garmentNames.get(file.garmentCode) ?? file.garmentCode}`,
+          alt: `${label} proof of the ${designName} design on ${where} in ${garmentNames.get(file.garmentCode) ?? file.garmentCode}${flat ? ', drawn flat at true size' : ''}`,
+          areaKey,
+          ...(flat ? { flat: true } : {}),
         });
       }
       if (file.kind === 'loupe' && file.garmentCode) {
@@ -577,6 +675,7 @@ export async function getApprovalView(input: { storeId: string; designId: string
           garmentCode: file.garmentCode,
           url: await deps.storage.objectUrl(file.key, file.visibility),
           caption: loupeCaption(pack, technique, recipe, name),
+          areaKey,
         });
       }
     }
@@ -590,14 +689,9 @@ export async function getApprovalView(input: { storeId: string; designId: string
   const heldBack = packs.some((p) => p.auditStatus === 'sent_back');
   for (const note of sentBack) if (heldBack) warnings.unshift(`Our pre-press team asked for a change: ${note.note}`);
 
-  // The placements as the artist reads them: 'Front chest · 28 × 33.6 cm'.
-  const placementLabels: string[] = [];
-  for (const pack of packs) {
-    const placement = packPlacement(pack);
-    const size = packInfo(pack)?.printSizeMm;
-    const label = `${positionLabel(placement.position)} · ${formatCm(placement.widthMm)}${size ? ` × ${formatCm(size.height)}` : ''} cm`;
-    if (!placementLabels.includes(label)) placementLabels.push(label);
-  }
+  // The print areas as the artist reads them: 'Front chest · 28 × 33.6 cm'. Front first, then the back, then the sleeves.
+  const areas = approvalAreas(packs);
+  const placementLabels = [...new Set(areas.map((a) => `${a.label} · ${a.size}`))];
 
   // Approved only while the approval covers every pack shown: what the artist approved, or a replacement
   // that kept the proof. A colour or print position added since makes the page ask again.
@@ -611,12 +705,18 @@ export async function getApprovalView(input: { storeId: string; designId: string
 
   const blocked = packs.some((p) => (packInfo(p)?.warnings ?? []).some((w) => w.severity === 'block'));
   const canRevoke = status === 'approved' && revokeBlocker(versionPacks) === null;
+  // Every area is shown before it can be approved: on a garment photo, or for a sleeve as its flat proof or, while that
+  // can't be drawn, the card with its size.
+  const withProofs = new Set(proofs.map((p) => p.areaKey));
+  const everyAreaShown = areas.length > 0 && areas.every((a) => a.sleeve || withProofs.has(a.key));
   return {
     designId: design.id,
     designName,
     versionId: version.id,
     versionNumber: shown.get(version.id) ?? version.version,
     placementLabel: placementLabels.join(' + '),
+    areas,
+    relatedDesigns: await relatedDesignsOf(design.storeId, design.id),
     status,
     garments,
     proofs,
@@ -625,7 +725,7 @@ export async function getApprovalView(input: { storeId: string; designId: string
     screenSets,
     warnings,
     approvedAt: status === 'approved' && approval ? approval.approvedAt.toISOString() : null,
-    canApprove: status === 'ready' && !blocked && !heldBack && proofs.length > 0,
+    canApprove: status === 'ready' && !blocked && !heldBack && everyAreaShown,
     canRevoke,
   };
 }
@@ -913,15 +1013,17 @@ export function approvalPath(designId: string, sessionId?: string | null): strin
 
 /** The sentence an artist reads when their approval doesn't cover a product, and the step it points to.
  * Plain words: the product's own name, colour names, never a Pantone code. Colours are named when only
- * some are missing, or always with `nameColours` ("the French Navy Underwriter tee"). */
+ * some are missing, or always with `nameColours` ("the French Navy Underwriter tee"). On a product with more
+ * than one print area, `area` names the one that waits ("the back print of the Underwriter tee"). */
 export function describeApprovalGap(
   coverage: Pick<ApprovalCoverage, 'reason' | 'asked' | 'missing'>,
   productName: string,
-  opts: { nameColours?: boolean } = {},
+  opts: { nameColours?: boolean; area?: string } = {},
 ): { sentence: string; step: ApprovalStep } {
   const names = coverage.missing.map((m) => m.name);
   const named = names.length > 0 && (opts.nameColours || names.length < coverage.asked);
-  const subject = named ? `the ${joinNames(names)} ${productName}` : `the ${productName}`;
+  const product = named ? `${joinNames(names)} ${productName}` : productName;
+  const subject = opts.area ? `the ${opts.area.toLowerCase()} print of the ${product}` : `the ${product}`;
   const proofs = `Show me the print proofs for ${productName}`;
 
   switch (coverage.reason) {
@@ -946,29 +1048,48 @@ export function describeApprovalGap(
   }
 }
 
-/** A product's stored placement (products.placement, in cm). */
+/** A product's stored placement (one print area, in cm). */
 export interface StoredPlacement {
   position?: string;
   widthCm?: number;
   offsetYcm?: number;
 }
 
-/** A product's placement as print prep reads it (mm). What the product didn't save is the usual
+/** Where a print goes when a product saved none: the usual front chest at 28 cm, the way pre-press reads it for an order. */
+export const DEFAULT_PRODUCT_AREA = { position: 'front_chest', widthCm: 28 } as const;
+
+/** A product's print area as print prep reads it (mm). What the product didn't save is the usual
  * front chest at 28 cm, the way pre-press reads it for an order. */
 export function productPrintPlacement(placement: StoredPlacement | null | undefined): PrintPlacement {
   return {
-    position: placement?.position || 'front_chest',
-    widthMm: Math.round((placement?.widthCm ?? 28) * 10),
+    position: placement?.position || DEFAULT_PRODUCT_AREA.position,
+    widthMm: Math.round((placement?.widthCm ?? DEFAULT_PRODUCT_AREA.widthCm) * 10),
     ...(placement?.offsetYcm === undefined || placement?.offsetYcm === null ? {} : { offsetYMm: Math.round(placement.offsetYcm * 10) }),
   };
 }
 
+/** A product's print areas, front first: its `placements`, else its one legacy placement with its design, else the usual front chest. */
+export function productAreas(product: { placements?: unknown; placement?: unknown; designId?: string | null }): ProductArea[] {
+  return productAreasOf(product, DEFAULT_PRODUCT_AREA);
+}
+
+/** Where one print area of a product stands against its design's approval. */
+export interface ProductAreaApproval {
+  position: string;
+  /** 'Front chest', 'Left sleeve' */
+  label: string;
+  designId: string | null;
+  covered: boolean;
+  reason: ApprovalGap | 'no_design' | null;
+}
+
 /** Where a product stands against the design approval. */
 export interface ProductApproval {
-  /** the product may go in front of fans, as far as its artwork goes */
+  /** the product may go in front of fans, as far as its artwork goes: every print area is covered */
   covered: boolean;
   /** it prints with no print file to make (embroidery is outside print prep), so there is nothing to approve */
   exempt: boolean;
+  /** the design of the first area that waits (the approval page to open), else the product's own */
   designId: string | null;
   reason: ApprovalGap | 'no_design' | null;
   /** what is missing, in the artist's words; null when covered */
@@ -976,8 +1097,11 @@ export interface ProductApproval {
   step: ApprovalStep | null;
   /** the colours not covered, by name */
   missingColours: string[];
-  /** what prepare_print needs, for the assistant's tool call; never shown to the artist */
-  prepare: { designId: string; blankCode: string; colourCodes: string[]; position: string; widthCm: number } | null;
+  /** what prepare_print needs for the first area that waits, for the assistant's tool call; never shown to the artist.
+   * With productId, prepare_print prepares every area of the product at once, at the placements it prints. */
+  prepare: { productId: string; designId: string; blankCode: string; colourCodes: string[]; position: string; widthCm: number; offsetYcm?: number } | null;
+  /** every print area of the product and where each stands, in order (none for a product that needs no approval) */
+  areas: ProductAreaApproval[];
 }
 
 type ProductRow = typeof schema.products.$inferSelect;
@@ -987,46 +1111,75 @@ export async function productColourCodes(productId: string): Promise<string[]> {
   return rows.map((r) => r.code);
 }
 
-/** Checks one product against its design's approval for the colours and placement given: the product's
- * own to publish it, or the colours and position an edit would add to a live one. */
+/** Checks a product against its designs' approvals for the colours and print areas given: the product's own to
+ * publish it, or the colours and areas an edit would add to a live one. Every area is checked against its own
+ * design (a front and a back can print different artwork); the first area that waits sets the sentence and the step.
+ * `areas` defaults to the product's own. */
 export async function checkProductApproval(
   product: ProductRow,
-  drop: { colours: string[]; placement: StoredPlacement | null; /** name the colours in the sentence even when they are all there is to check (colours added to a live product) */ nameColours?: boolean },
+  drop: {
+    colours: string[];
+    areas?: ProductArea[];
+    /** name the colours in the sentence even when they are all there is to check (colours added to a live product) */
+    nameColours?: boolean;
+    /** name the area in the sentence (a product with more than one); by default when there is more than one to check */
+    nameAreas?: boolean;
+  },
 ): Promise<ProductApproval> {
   const base = { designId: product.designId, missingColours: [], prepare: null };
   // Embroidery has no print file to make, and print prep leaves it out (techniqueOfService): nothing to approve.
-  if (techniqueOfService(product.printServiceCode) === null) return { ...base, covered: true, exempt: true, reason: null, sentence: null, step: null };
+  if (techniqueOfService(product.printServiceCode) === null) return { ...base, covered: true, exempt: true, reason: null, sentence: null, step: null, areas: [] };
 
-  const designId = product.designId;
-  if (!designId) {
-    return {
-      ...base,
+  const areas = drop.areas ?? productAreas(product);
+  const nameAreas = drop.nameAreas ?? areas.length > 1;
+  const states: ProductAreaApproval[] = [];
+  let first: ProductApproval | null = null;
+  for (const area of areas) {
+    const label = positionLabel(area.position);
+    if (!area.designId) {
+      states.push({ position: area.position, label, designId: null, covered: false, reason: 'no_design' });
+      first ??= {
+        ...base,
+        covered: false,
+        exempt: false,
+        designId: null,
+        reason: 'no_design',
+        sentence: `${product.name} has no artwork yet, so there is nothing to approve. Make a new product from your artwork and approve that.`,
+        step: { kind: 'design', label: 'Add your artwork', prompt: 'I want to upload artwork' },
+        areas: [],
+      };
+      continue;
+    }
+    const placement = productPrintPlacement(area);
+    const coverage = await approvalCoverage(area.designId, { blankCode: product.blankCode, colours: drop.colours, placement });
+    states.push({ position: area.position, label, designId: area.designId, covered: coverage.covered, reason: coverage.reason });
+    if (coverage.covered || first) continue;
+    const gap = describeApprovalGap(coverage, product.name, { nameColours: drop.nameColours, ...(nameAreas ? { area: label } : {}) });
+    first = {
       covered: false,
       exempt: false,
-      reason: 'no_design',
-      sentence: `${product.name} has no artwork yet, so there is nothing to approve. Make a new product from your artwork and approve that.`,
-      step: { kind: 'design', label: 'Add your artwork', prompt: 'I want to upload artwork' },
+      designId: area.designId,
+      reason: coverage.reason,
+      sentence: gap.sentence,
+      step: gap.step,
+      missingColours: coverage.missing.map((m) => m.name),
+      prepare: {
+        productId: product.id,
+        designId: area.designId,
+        blankCode: product.blankCode,
+        colourCodes: [...new Set(drop.colours)],
+        position: placement.position,
+        widthCm: placement.widthMm / 10,
+        ...(placement.offsetYMm === undefined ? {} : { offsetYcm: placement.offsetYMm / 10 }),
+      },
+      areas: [],
     };
   }
-
-  const placement = productPrintPlacement(drop.placement);
-  const coverage = await approvalCoverage(designId, { blankCode: product.blankCode, colours: drop.colours, placement });
-  if (coverage.covered) return { ...base, covered: true, exempt: false, reason: null, sentence: null, step: null };
-
-  const gap = describeApprovalGap(coverage, product.name, { nameColours: drop.nameColours });
-  return {
-    covered: false,
-    exempt: false,
-    designId,
-    reason: coverage.reason,
-    sentence: gap.sentence,
-    step: gap.step,
-    missingColours: coverage.missing.map((m) => m.name),
-    prepare: { designId, blankCode: product.blankCode, colourCodes: [...new Set(drop.colours)], position: placement.position, widthCm: placement.widthMm / 10 },
-  };
+  if (first) return { ...first, areas: states };
+  return { ...base, covered: true, exempt: false, reason: null, sentence: null, step: null, areas: states };
 }
 
-/** The product's standing against its design's approval, for the shop that owns it; null when it isn't theirs. */
+/** The product's standing against its designs' approvals, for the shop that owns it; null when it isn't theirs. */
 export async function productApproval(storeId: string, productId: string): Promise<ProductApproval | null> {
   if (!UUID.test(productId) || !UUID.test(storeId)) return null;
   const [product] = await db
@@ -1035,5 +1188,105 @@ export async function productApproval(storeId: string, productId: string): Promi
     .where(and(eq(schema.products.id, productId), eq(schema.products.storeId, storeId)))
     .limit(1);
   if (!product) return null;
-  return checkProductApproval(product, { colours: await productColourCodes(product.id), placement: product.placement as StoredPlacement | null });
+  return checkProductApproval(product, { colours: await productColourCodes(product.id) });
+}
+
+// ---------------------------------------------------------------------------
+// A product's sleeve proofs
+
+/** The flat, true-size proofs of a product's sleeve prints, by garment colour and sleeve: the ones the print pipeline
+ * drew in the worker (the DTG/DTF pack of the sleeve's design, on the product's blank, at its placement, from the
+ * design's newest version). Only read here, never drawn in a request (the renderer needs a font a request may not
+ * have). Empty for a sleeve whose print files aren't prepared yet: the product shows the print's size instead. */
+export async function productSleeveProofs(product: { blankCode: string; placements?: unknown; placement?: unknown; designId?: string | null }): Promise<Record<string, Partial<Record<'sleeve_left' | 'sleeve_right', string>>>> {
+  const sleeves = productAreas(product).filter((a) => a.designId && isSleevePosition(a.position));
+  const out: Record<string, Partial<Record<'sleeve_left' | 'sleeve_right', string>>> = {};
+  if (sleeves.length === 0 || mockOn()) return out;
+  const storage = printDeps().storage;
+  for (const area of sleeves) {
+    const version = await latestVersion(area.designId as string);
+    if (!version) continue;
+    const placement = productPrintPlacement(area);
+    const packs = (await loadCurrentPacks(version.id)).filter((p) => p.technique === 'dtg_dtf' && packInfo(p)?.blankCode === product.blankCode && samePlacement(packPlacement(p), placement));
+    for (const pack of packs) {
+      for (const file of packFiles(pack)) {
+        if (file.kind !== 'proof' || !file.garmentCode) continue;
+        const side = area.position as 'sleeve_left' | 'sleeve_right';
+        if (out[file.garmentCode]?.[side]) continue;
+        const url = await storage.objectUrl(file.key, file.visibility).catch(() => null);
+        if (url) out[file.garmentCode] = { ...out[file.garmentCode], [side]: url };
+      }
+    }
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// Preparing a whole product
+
+export interface PreparedArea {
+  designId: string;
+  /** the job making the files; null when the design's areas all had them already and nothing was started */
+  jobId: string | null;
+  designVersionId: string;
+  /** the positions this design prints at on the product */
+  positions: string[];
+  /** every one of these positions already had print files for every colour of the product */
+  alreadyPrepared?: boolean;
+}
+
+/** Prepares the print files of every print area of a product, on its blank and all its colours: one job per design
+ * (a front and a back of different artwork are two), with the exact placements the product prints at, its offsets
+ * included, so the files cover it. Only what is missing is made: a position that already has DTG/DTF files for every
+ * colour of the product (on the design's newest version) is left out of the job, and the job makes only the colours
+ * some position lacks, so files the artist or pre-press already approved are not built again and replaced. Jobs that
+ * already make these files are reused. */
+export async function preparePrintForProduct(input: { storeId: string; userId: string; productId: string }): Promise<ServiceResult<{ productName: string; prepared: PreparedArea[] }>> {
+  if (!UUID.test(input.productId) || !UUID.test(input.storeId)) return { ok: false, error: 'Product not found for this shop.' };
+  const [product] = await db
+    .select()
+    .from(schema.products)
+    .where(and(eq(schema.products.id, input.productId), eq(schema.products.storeId, input.storeId)))
+    .limit(1);
+  if (!product) return { ok: false, error: 'Product not found for this shop.' };
+  if (techniqueOfService(product.printServiceCode) === null) return { ok: false, error: `${product.name} is embroidered, so it has no print files to prepare.` };
+
+  const colours = await productColourCodes(product.id);
+  const byDesign = new Map<string, PrintPlacement[]>();
+  for (const area of productAreas(product)) {
+    if (!area.designId) continue;
+    byDesign.set(area.designId, [...(byDesign.get(area.designId) ?? []), productPrintPlacement(area)]);
+  }
+  if (byDesign.size === 0) return { ok: false, error: `${product.name} has no artwork yet, so there are no print files to prepare.` };
+
+  const prepared: PreparedArea[] = [];
+  for (const [designId, placements] of byDesign) {
+    const positions = placements.map((p) => p.position);
+    const missing: PrintPlacement[] = [];
+    const toMake = new Set<string>();
+    for (const placement of placements) {
+      const coverage = await approvalCoverage(designId, { blankCode: product.blankCode, colours, placement });
+      const lacking = coverage.missing.filter((m) => m.step === 'prepare').map((m) => m.code);
+      if (lacking.length === 0) continue;
+      missing.push(placement);
+      for (const code of lacking) toMake.add(code);
+    }
+    const version = missing.length === 0 ? await latestVersion(designId) : null;
+    if (version) {
+      prepared.push({ designId, jobId: null, designVersionId: version.id, positions, alreadyPrepared: true });
+      continue;
+    }
+    const result = await preparePrint({
+      storeId: input.storeId,
+      userId: input.userId,
+      designId,
+      blankCode: product.blankCode,
+      // in the product's own order, so asking again finds the same job
+      garmentCodes: missing.length > 0 ? colours.filter((code) => toMake.has(code)) : colours,
+      placements: missing.length > 0 ? missing : placements,
+    });
+    if (!result.ok) return result;
+    prepared.push({ designId, ...result.value, positions });
+  }
+  return { ok: true, value: { productName: product.name, prepared } };
 }

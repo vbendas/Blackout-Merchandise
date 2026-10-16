@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
-import { can, type AccessHolder, type Area, type Level } from '@/lib/auth/permissions';
-import { defineTool, type Tool, type ToolResult } from '@/lib/tools/types';
+import { can, type AccessHolder, type Actor, type Area, type Level } from '@/lib/auth/permissions';
+import { defineTool, type Tool, type ToolContext, type ToolResult } from '@/lib/tools/types';
 import { jobSheetActions } from '@/lib/tools/job-sheet-actions';
 import { buildQueue, type QueueSection } from '@/lib/services/admin-queue';
 import {
@@ -20,7 +20,8 @@ import {
   type SupplierOrderDetail,
 } from '@/lib/services/supplier';
 import { listAnomalies, reviewPayout } from '@/lib/services/payouts';
-import { setBaseCost, listBaseCosts, updateShippingZone } from '@/lib/services/pricing-admin';
+import { getPodPriceTableState, listBaseCosts, resolvePodBase, setBaseCost, setPodPrices, updateShippingZone } from '@/lib/services/pricing-admin';
+import { garmentPriceOf, podExampleRows } from '@/lib/pricing/pod-table';
 import { getOrder, type OrderDetail } from '@/lib/services/orders';
 import type { Card, CardAction, Chip } from '@/lib/ui-cards/schemas';
 
@@ -33,6 +34,11 @@ import type { Card, CardAction, Chip } from '@/lib/ui-cards/schemas';
 
 function errorNotice(id: string, text: string): Card {
   return { id, kind: 'notice', tone: 'warning', text };
+}
+
+/** The caller as the services check it (pricing-admin's setPodPrices asks for Catalogue and pricing Manage itself). */
+function actorOf(ctx: ToolContext): Actor {
+  return { userId: ctx.userId, role: ctx.role, permissions: ctx.permissions ?? null, suspended: ctx.suspended };
 }
 
 /** Next-step chips, keeping only those the caller may act on. */
@@ -447,12 +453,37 @@ interface SetBaseCostData {
   ok: boolean;
   error?: string;
   totalCents?: number;
+  /** DTG/DTF: what a shop product of the garment costs now (the shop price table, or the placeholder this kind of row sets) */
+  shopPriceCents?: number;
+  /** the garment has no shop price yet: shop products stand on its one-piece DTG cost (DTF where it has no DTG) */
+  shopPricePlaceholder?: boolean;
+  note?: string;
+}
+
+/** €17.00 */
+function euro(cents: number): string {
+  return `€${(cents / 100).toFixed(2)}`;
+}
+
+/** What shop products of a garment cost after a base-cost row changed, in words for the admin. Shop products print DTG/DTF and are
+ * priced from the shop price table (set_shop_price, Admin → Pricing → Shop products), so a DTG or DTF row prices runs; only while
+ * the garment has no shop price does its one-piece DTG row (DTF where it has no DTG) stand in as the placeholder. Null for the
+ * other methods (an embroidered product keeps its own rows). */
+async function shopPriceNote(blankCode: string, printServiceCode: string): Promise<{ cents: number; placeholder: boolean; text: string } | null> {
+  if (printServiceCode !== 'dtg' && printServiceCode !== 'dtf') return null;
+  const base = await resolvePodBase(blankCode, printServiceCode);
+  if (!base) return null;
+  const method = printServiceCode.toUpperCase();
+  const text = base.placeholder
+    ? `${blankCode} has no shop price yet, so its ${method} shop products stand on ${euro(base.baseCents)}, its one-piece base cost, until set_shop_price sets one. This row also prices ${method} runs.`
+    : `Shop products of ${blankCode} are priced from the shop price table (${method} ${euro(base.baseCents)}), so this row prices ${method} runs only.`;
+  return { cents: base.baseCents, placeholder: base.placeholder, text };
 }
 
 export const setBaseCostTool = defineTool({
   name: 'set_base_cost',
   description:
-    "Set (or update) the garment + print + margin cost for a blank at a print service and quantity break (qtyFrom defaults to 1). Sensitive action: shows a confirm card and only executes once the admin clicks confirm.",
+    "Set (or update) the garment + print + margin cost for a blank at a print service and quantity break (qtyFrom defaults to 1). These rows price runs (bulk orders) printed DTG, DTF or with embroidery, by quantity break, and embroidered shop products. They do NOT set what a DTG/DTF shop product costs: that is the garment's shop price, set with set_shop_price (or at Admin → Pricing → Shop products), and a garment uses its one-piece DTG row (DTF where it has no DTG) only as a placeholder until its shop price is set. The result's note says which applies. Screen print has no rows: runs are priced by screen count in the screen-print table. Sensitive action: shows a confirm card and only executes once the admin clicks confirm.",
   input: z
     .object({
       blankCode: z.string().min(2).max(20),
@@ -473,18 +504,82 @@ export const setBaseCostTool = defineTool({
     if (!result.ok) return { data: { ok: false, error: result.error }, ui: { cards: [errorNotice(`set_base_cost_err_${randomUUID()}`, result.error)] } };
 
     const total = result.value.totalCents ?? input.garmentCostCents + input.printCostCents + input.marginCents;
+    const shop = await shopPriceNote(input.blankCode, input.printServiceCode);
     return {
-      data: { ok: true, totalCents: total },
+      data: { ok: true, totalCents: total, ...(shop ? { shopPriceCents: shop.cents, shopPricePlaceholder: shop.placeholder, note: shop.text } : {}) },
       ui: {
         cards: [
           {
             id: `notice_basecost_${randomUUID()}`,
             kind: 'notice',
             tone: 'success',
-            text: `Saved — €${(total / 100).toFixed(2)} total for ${input.blankCode} / ${input.printServiceCode} at qty ${input.qtyFrom ?? 1}+.`,
+            text: `Saved — €${(total / 100).toFixed(2)} total for ${input.blankCode} / ${input.printServiceCode} at qty ${input.qtyFrom ?? 1}+.${shop ? ` ${shop.text}` : ''}`,
           },
         ],
       },
+    };
+  },
+});
+
+interface SetShopPriceData {
+  ok: boolean;
+  error?: string;
+  blankCode?: string;
+  /** the garment's base price for shop products; null when it is back on its placeholder */
+  priceCents?: number | null;
+  /** DTF's own price, when it has one */
+  dtfPriceCents?: number | null;
+  /** what the placeholder is, for a garment taken back to it */
+  placeholderCents?: number | null;
+  /** what products of the garment cost with each mix of print areas, in words */
+  examples?: string[];
+}
+
+export const setShopPriceTool = defineTool({
+  name: 'set_shop_price',
+  description:
+    "Set what a garment costs an artist as a shop product (print on demand, DTG/DTF): its base price, which includes one print area up to A2 on the front or the back, in the shop price table (the same as Admin → Pricing → Shop products). The extras go on top for every garment: +€1 when a product prints front and back, +€2 once for sleeve prints (the owner changes them on that page). dtfPriceCents sets a DTF price when DTF costs differently; left out, a DTF price the garment already has is kept; null, DTF uses the base price. priceCents null takes the garment back to its placeholder (its one-piece DTG base cost). New products, area changes and drafts published from now on use it; products already live keep their base price. Runs are priced separately (set_base_cost rows, the screen-print table). Sensitive action: shows a confirm card and only executes once the admin clicks confirm.",
+  input: z
+    .object({
+      blankCode: z.string().min(2).max(20),
+      priceCents: z.number().int().positive().max(100_000).nullable().describe('The base price in cents, e.g. 1700 for €17. null: back to the placeholder.'),
+      dtfPriceCents: z.number().int().positive().max(100_000).nullable().optional().describe('A DTF price in cents when DTF costs differently. Left out: keep the one it has. null: DTF uses the base price.'),
+    })
+    .strict(),
+  scope: 'staff',
+  access: { area: 'catalogue', level: 'manage' },
+  confirm: true,
+  summarize: (input) =>
+    input.priceCents === null
+      ? `Take ${input.blankCode} back to its placeholder shop price.`
+      : `Set the shop price of ${input.blankCode} to ${euro(input.priceCents)}${input.dtfPriceCents ? `, DTF ${euro(input.dtfPriceCents)}` : input.dtfPriceCents === null ? ', DTF at the same price' : ''}: one print area up to A2, +€1 front and back, +€2 for sleeves.`,
+  run: async (ctx, input): Promise<ToolResult<SetShopPriceData>> => {
+    const code = input.blankCode.trim().toUpperCase();
+    const fail = (error: string): ToolResult<SetShopPriceData> => ({ data: { ok: false, error }, ui: { cards: [errorNotice(`set_shop_price_err_${randomUUID()}`, error)] } });
+    if (input.priceCents === null && input.dtfPriceCents) return fail('A DTF price needs a base price: set priceCents too, or leave the DTF price out.');
+
+    // A DTF price left out stays as it is; the table keeps whole entries, so it is carried over here.
+    const current = garmentPriceOf((await getPodPriceTableState()).table, code);
+    const dtfCents = input.dtfPriceCents === undefined ? current?.dtfCents : (input.dtfPriceCents ?? undefined);
+    const entry = input.priceCents === null ? null : { cents: input.priceCents, ...(dtfCents !== undefined ? { dtfCents } : {}) };
+    const saved = await setPodPrices(actorOf(ctx), { garments: { [code]: entry } });
+    if (!saved.ok) return fail(saved.error);
+
+    const price = garmentPriceOf(saved.value.table, code);
+    const extras = saved.value.table.extras;
+    if (!price) {
+      const placeholder = (await resolvePodBase(code, 'dtg'))?.baseCents ?? null;
+      const text = `${code} is back on its placeholder shop price${placeholder !== null ? `, ${euro(placeholder)} (its one-piece DTG base cost)` : ''}.`;
+      return {
+        data: { ok: true, blankCode: code, priceCents: null, dtfPriceCents: null, placeholderCents: placeholder },
+        ui: { cards: [{ id: `notice_shop_price_${randomUUID()}`, kind: 'notice', tone: 'success', text }] },
+      };
+    }
+    const examples = podExampleRows(price.cents, extras).map((row) => `${row.label}: ${euro(row.totalCents)}`);
+    const text = `Saved: a shop ${code} is ${euro(price.cents)} with one print${price.dtfCents !== undefined ? ` (DTF ${euro(price.dtfCents)})` : ''}. ${examples.join(' · ')}.`;
+    return {
+      data: { ok: true, blankCode: code, priceCents: price.cents, dtfPriceCents: price.dtfCents ?? null, examples },
+      ui: { cards: [{ id: `notice_shop_price_${randomUUID()}`, kind: 'notice', tone: 'success', text }] },
     };
   },
 });
@@ -539,11 +634,15 @@ interface ListBaseCostsData {
   ok: boolean;
   error?: string;
   total?: number;
+  /** what a DTG shop product of the garment costs with one print: its shop price, or the placeholder it stands on */
+  shopPriceCents?: number;
+  shopPricePlaceholder?: boolean;
 }
 
 export const listBaseCostsTool = defineTool({
   name: 'list_base_costs',
-  description: "List every quantity-break base cost row for a blank (totals only, by print service and qty break).",
+  description:
+    "List every quantity-break base cost row for a blank (totals only, by print service and qty break): what runs cost. Also says what a shop product of the garment costs with one print (its shop price from the shop price table, or the placeholder it stands on until one is set).",
   input: z.object({ blankCode: z.string().min(2).max(20) }).strict(),
   scope: 'staff',
   access: { area: 'catalogue', level: 'view' },
@@ -555,6 +654,8 @@ export const listBaseCostsTool = defineTool({
       return { data: { ok: false, error: text }, ui: { cards: [errorNotice(`list_base_costs_err_${randomUUID()}`, text)] } };
     }
 
+    const shop = await resolvePodBase(input.blankCode, 'dtg');
+    const shopWords = shop ? ` Shop product, one print: ${euro(shop.baseCents)}${shop.placeholder ? ' (placeholder until a shop price is set)' : ' (shop price table)'}.` : '';
     const card: Card = {
       id: `quote_${randomUUID()}`,
       kind: 'quote',
@@ -562,10 +663,10 @@ export const listBaseCostsTool = defineTool({
       lines: rows.map((r) => ({ label: `${r.printServiceCode} · ${r.qtyFrom}+`, qty: r.qtyFrom, unitCents: r.totalCents ?? 0, totalCents: r.totalCents ?? 0 })),
       totalCents: rows[0]?.totalCents ?? 0,
       currency: 'EUR',
-      note: 'Totals only — garment/print/margin components are admin-internal.',
+      note: `Totals only — garment/print/margin components are admin-internal. These rows price runs.${shopWords}`,
     };
 
-    return { data: { ok: true, total: rows.length }, ui: { cards: [card] } };
+    return { data: { ok: true, total: rows.length, ...(shop ? { shopPriceCents: shop.baseCents, shopPricePlaceholder: shop.placeholder } : {}) }, ui: { cards: [card] } };
   },
 });
 
@@ -582,6 +683,7 @@ export const ADMIN_TOOLS: Tool<any, any>[] = [
   listPayoutAnomaliesTool,
   reviewPayoutTool,
   setBaseCostTool,
+  setShopPriceTool,
   updateShippingZoneTool,
   listBaseCostsTool,
 ];

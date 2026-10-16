@@ -5,10 +5,10 @@ import type { ApprovalView } from '@/lib/services/print-prep';
 import { ApprovalBox } from './ApprovalBox';
 import { AskLink } from './ApproveLinks';
 import { ApproveTabs } from './ApproveTabs';
-import { ScreenPanel, ShopPanel, WarningsPanel } from './MethodPanels';
+import { RelatedPanel, ScreenPanel, ShopPanel, WarningsPanel } from './MethodPanels';
 import { ProofColumn } from './ProofColumn';
 import { FailedPanel, PreparingPanel } from './WaitPanels';
-import { barMeta, changesPrompt, dtgFactsFor, phaseOf, pickGarment, pickLoupe, pickProof, pickScreenSet, techniqueOf, type ApproveTab } from './approve-logic';
+import { barMeta, changesPrompt, dtgFactsFor, phaseOf, pickArea, pickGarment, pickLoupe, pickProof, pickScreenSet, techniqueOf, viewAreas, type ApproveTab } from './approve-logic';
 
 /** Everything under the top bar of the approval page. While the proofs render,
  * or if they failed, it is a single panel; otherwise two tabs (shop products
@@ -21,6 +21,8 @@ export function ApproveWorkspace({ view, sessionId, initialTab }: { view: Approv
   const base = useId();
   const [tab, setTab] = useState<ApproveTab>(initialTab);
   const [garmentCode, setGarmentCode] = useState<string | null>(view.garments[0]?.code ?? null);
+  // The print area on show, when the design prints in several (a front and a sleeve): the front first.
+  const [areaKey, setAreaKey] = useState<string | null>(view.areas?.[0]?.key ?? null);
   const [loupeOn, setLoupeOn] = useState(true);
 
   // Under about 720px the top bar has no room for the design line and the
@@ -54,6 +56,8 @@ export function ApproveWorkspace({ view, sessionId, initialTab }: { view: Approv
 
   const technique = techniqueOf(tab);
   const garment = pickGarment(view.garments, garmentCode);
+  const areas = viewAreas(view);
+  const area = pickArea(areas, areaKey);
   const tabId = (id: ApproveTab) => `${base}-tab-${id}`;
   const panelId = `${base}-panel`;
 
@@ -66,8 +70,11 @@ export function ApproveWorkspace({ view, sessionId, initialTab }: { view: Approv
           garments={view.garments}
           garment={garment}
           onPick={setGarmentCode}
-          proof={pickProof(view.proofs, technique, garment?.code)}
-          loupe={pickLoupe(view.loupes, technique, garment?.code)}
+          areas={areas}
+          area={area}
+          onPickArea={setAreaKey}
+          proof={pickProof(view.proofs, technique, garment?.code, area?.key)}
+          loupe={pickLoupe(view.loupes, technique, garment?.code, area?.key)}
           technique={technique}
           loupeOn={loupeOn}
           onToggleLoupe={() => setLoupeOn((on) => !on)}
@@ -76,6 +83,7 @@ export function ApproveWorkspace({ view, sessionId, initialTab }: { view: Approv
         <aside className="ap-aside" aria-label="Print details and approval">
           {tab === 'runs' ? <ScreenPanel set={pickScreenSet(view.screenSets, garment)} garment={garment} /> : <ShopPanel facts={dtgFactsFor(view.dtgFacts, garment)} />}
           <WarningsPanel warnings={view.warnings} />
+          <RelatedPanel related={view.relatedDesigns ?? []} sessionId={sessionId} />
           {/* Keyed by version: a newer version arriving starts the box over, so an
               approval (or a half-made one) never carries over to proofs the artist
               has not seen. */}

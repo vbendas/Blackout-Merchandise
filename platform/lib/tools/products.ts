@@ -6,15 +6,21 @@ import {
   archiveProduct,
   checkPublishable,
   createProduct,
+  describeBaseCost,
+  editProductAreas,
   getProduct,
   listProducts,
   publishProduct,
+  quoteProductAreas,
   setPrice,
   updateProduct,
+  type PriceNeeded,
+  type ProductAreaDetail,
   type PublishCheck,
   type ProductDetail,
   type ProductStatus,
 } from '@/lib/services/products';
+import { printPositionLabel } from '@/lib/mockups/placements';
 import { productApproval, type ProductApproval } from '@/lib/services/print-prep';
 import { approvalChip, printApprovalState } from '@/lib/tools/print';
 import { getLatestProof, type ProofStatus } from '@/lib/services/proofs';
@@ -32,16 +38,60 @@ import type { Card, Chip, PrintApprovalState, ProductProjectState, ToolUi } from
 // "publish it" never needs the model to track uuids. A shop product has no
 // proof of its own: its design's approval (print.ts) replaces it, and the three
 // proof tools below are retired. A run's proof is in bulk.ts.
+//
+// A product prints one or more print areas (a front, a back, sleeves), each
+// with its own design. Its base price is the garment with one print plus the
+// extras for more areas, and the artist sees that breakdown (never the garment,
+// print and margin inside it).
+
+const POSITIONS_WORDS =
+  "'front_chest', 'front_full', 'front_left_chest', 'back', 'sleeve_left' or 'sleeve_right' (sleeves only on garments with sleeves; a sleeve shows as a flat true-size proof, never on a photo), 'centre' (bags) or 'front_leg' (trousers)";
 
 const placementSchema = z.object({
-  position: z
-    .string()
-    .min(1)
-    .max(40)
-    .describe("One the garment takes: 'front_chest', 'front_full', 'front_left_chest', 'back', 'centre' or 'front_leg' (trousers). There is no sleeve print yet; it is refused, not moved."),
+  position: z.string().min(1).max(40).describe(`One the garment takes: ${POSITIONS_WORDS}. A position it doesn't take is refused, not moved.`),
   widthCm: z.number().positive().max(200).describe('Print width in cm on the garment.'),
   offsetYcm: z.number().optional().describe('Vertical offset from the default anchor, cm (positive = down).'),
 });
+
+const areaSchema = z.object({
+  position: z.string().min(1).max(40).describe(`Where it prints: ${POSITIONS_WORDS}.`),
+  widthCm: z.number().positive().max(200).optional().describe('Print width in cm. Leave it out for the usual size there (on a sleeve, the widest that fits the art).'),
+  offsetYcm: z.number().optional().describe('Move the print down (positive) or up from its usual height, in cm.'),
+  designId: z.string().uuid().optional().describe("The design printed in this area when it isn't the product's own, for example a different back print."),
+});
+
+/** '28 × 33.6 cm', or '28 cm wide' when the art's size isn't known. */
+function areaSize(area: ProductAreaDetail): string {
+  return area.heightCm ? `${area.widthCm} × ${area.heightCm} cm` : `${area.widthCm} cm wide`;
+}
+
+function areasView(detail: ProductDetail) {
+  return detail.areas.map((a) => ({ position: a.position, label: a.label, size: areaSize(a), ...(a.sleeve ? { sleeve: true } : {}) }));
+}
+
+/** €17.00 */
+function euros(cents: number): string {
+  return `€${(cents / 100).toFixed(2)}`;
+}
+
+/** What the model is told about a product's print areas and its price: where each prints, and the base price
+ * breakdown in the artist's words ('Garment with one print €17.00 · Front and back +€1.00 · Base €18.00'). */
+function areasData(detail: ProductDetail) {
+  return {
+    printAreas: detail.areas.map((a) => ({ position: a.position, label: a.label, widthCm: a.widthCm, ...(a.heightCm ? { heightCm: a.heightCm } : {}), ...(a.designId && a.designId !== detail.designId ? { designId: a.designId } : {}) })),
+    ...(detail.baseCostCents != null && detail.baseCostLines.length > 0 ? { basePrice: describeBaseCost(detail.baseCostLines, detail.baseCostCents) } : {}),
+    ...(detail.addableAreas.length > 0 ? { canAdd: detail.addableAreas } : {}),
+  };
+}
+
+/** The chips that add a print area: a back print, a sleeve print. */
+function addAreaChips(detail: ProductDetail): Chip[] {
+  if (detail.status === 'archived') return [];
+  const chips: Chip[] = [];
+  if (detail.addableAreas.includes('back')) chips.push({ label: 'Add a back print', prompt: 'Add a back print' });
+  if (detail.addableAreas.some((p) => p.startsWith('sleeve_'))) chips.push({ label: 'Add a sleeve print', prompt: 'Add a sleeve print on the left sleeve' });
+  return chips;
+}
 
 function errorNotice(id: string, text: string): Card {
   return { id, kind: 'notice', tone: 'warning', text };
@@ -102,6 +152,16 @@ function approvalRefusal(ctx: ToolContext, idPrefix: string, error: string, appr
   };
 }
 
+function coloursView(detail: ProductDetail) {
+  return detail.colours.map((c) => ({
+    code: c.code,
+    name: c.name,
+    hex: c.hex,
+    mockupUrl: c.mockupUrl ?? undefined,
+    ...(Object.keys(c.views).length > 0 ? { views: c.views as Record<string, string> } : {}),
+  }));
+}
+
 function productCard(detail: ProductDetail, approval?: PrintApprovalState): Card {
   return {
     id: `product_${detail.id}`,
@@ -111,10 +171,12 @@ function productCard(detail: ProductDetail, approval?: PrintApprovalState): Card
     blankCode: detail.blankCode,
     blankName: detail.blankName,
     imageUrl: detail.colours.find((c) => c.mockupUrl)?.mockupUrl ?? undefined,
-    colours: detail.colours.map((c) => ({ code: c.code, name: c.name, hex: c.hex, mockupUrl: c.mockupUrl ?? undefined })),
+    colours: coloursView(detail),
     sizes: detail.sizes,
     printService: detail.printServiceName,
     placement: detail.placement ? `${detail.placement.position} · ${detail.placement.widthCm}cm` : undefined,
+    areas: areasView(detail),
+    ...(detail.baseCostLines.length > 0 ? { priceLines: detail.baseCostLines.map((l) => ({ label: l.label, cents: l.cents })) } : {}),
     baseCostCents: detail.baseCostCents ?? undefined,
     retailPriceCents: detail.retailPriceCents ?? undefined,
     marginCents: detail.marginCents ?? undefined,
@@ -138,10 +200,13 @@ function projectStateFor(detail: ProductDetail, proofStatus?: ProofStatus, appro
     blankCode: detail.blankCode,
     blankName: detail.blankName,
     imageUrl: detail.colours.find((c) => c.mockupUrl)?.mockupUrl ?? undefined,
-    colours: detail.colours.map((c) => ({ code: c.code, name: c.name, hex: c.hex, mockupUrl: c.mockupUrl ?? undefined })),
+    colours: coloursView(detail),
     sizes: detail.sizes,
     printService: detail.printServiceName,
     placement: detail.placement ? `${detail.placement.position} · ${detail.placement.widthCm}cm` : undefined,
+    areas: areasView(detail),
+    ...(detail.baseCostLines.length > 0 ? { priceLines: detail.baseCostLines.map((l) => ({ label: l.label, cents: l.cents })) } : {}),
+    ...(detail.addableAreas.length > 0 && detail.status !== 'archived' ? { addable: detail.addableAreas } : {}),
     baseCostCents: detail.baseCostCents ?? undefined,
     retailPriceCents: detail.retailPriceCents ?? undefined,
     marginCents: detail.marginCents ?? undefined,
@@ -191,19 +256,23 @@ interface CreateProductData {
   name?: string;
   status?: ProductStatus;
   baseCostCents?: number | null;
+  printAreas?: ReturnType<typeof areasData>['printAreas'];
+  basePrice?: string;
+  canAdd?: string[];
   artwork?: ReturnType<typeof artworkData>['artwork'];
 }
 
 export const createProductTool = defineTool({
   name: 'create_product',
   description:
-    "Create a new draft product: a design printed on a blank garment. Requires the exact blank code (from list_blanks/get_blank), a print service offered on that blank, a placement (position + width in cm), at least one colour code and one size that are available on that blank. A shop product always prints DTG or DTF: pass printServiceCode 'dtg' (direct-to-garment) unless the artist asks for 'dtf' (direct-to-film), which is also the one to use on blanks without DTG (jackets, bags, hats, trousers, woven shirts). Screen print is only for runs (create_bulk_quote), so a screen service is refused here with the ones that work. Snapshots the base cost (garment + print + margin) for quantity 1 as baseCostCents — the artist only ever sees this total, never the cost breakdown; use get_quote to explain pricing at other quantities. Best-effort renders mockups immediately; if rendering isn't available yet the product is still created without preview images. Sets this product as the conversation's active project, so later tools (set_price, get_product, publish_product, ...) can omit productId and act on it directly. A shop product needs no proof: once its design's print files are approved for it and it has a price, publish_product puts it in the shop.",
+    "Create a new draft product: designs printed on a blank garment. Requires the exact blank code (from list_blanks/get_blank), a print service offered on that blank, where it prints (placement: one position + width in cm, or areas: several print areas), at least one colour code and one size that are available on that blank. A product prints at most one front area (front chest, full front or left chest), one back, and the left and/or right sleeve on garments with sleeves (never tank tops, bags, hats, beanies or trousers); each area is at most A2 (42 × 59.4 cm), a sleeve at most its own size. Each area can print its own design (designId per area), so the front and the back can be different artwork. A shop product always prints DTG or DTF: pass printServiceCode 'dtg' (direct-to-garment) unless the artist asks for 'dtf' (direct-to-film), which is also the one to use on blanks without DTG (jackets, bags, hats, trousers, woven shirts). Screen print is only for runs (create_bulk_quote), so a screen service is refused here with the ones that work. Snapshots the base price as baseCostCents: the garment's price with one print area up to A2 on the front or the back, plus €1 when it prints front and back and €2 once for sleeve prints. The result's basePrice says it in the artist's words ('Garment with one print €17.00 · Front and back +€1.00 · Base €18.00'): tell them, with their margin once they have a price. Never show the garment, print and margin inside it. Best-effort renders mockups immediately (front and back photos; a sleeve as a flat proof); if rendering isn't available yet the product is still created without preview images. Sets this product as the conversation's active project, so later tools (set_price, get_product, set_print_areas, publish_product, ...) can omit productId and act on it directly. A shop product needs no proof: once its design's print files are approved for every area and it has a price, publish_product puts it in the shop.",
   input: z
     .object({
-      designId: z.string().uuid().optional().describe('Design to print, if one was uploaded or generated.'),
+      designId: z.string().uuid().optional().describe('Design to print, if one was uploaded or generated (every area prints it unless the area names its own).'),
       blankCode: z.string().min(2).max(20),
       printServiceCode: z.string().min(2).max(40).describe("'dtg' or 'dtf' ('dtf' on blanks without DTG). Screen print codes (screen_1c, screen_2c, screen_3c) are for runs and are refused."),
-      placement: placementSchema,
+      placement: placementSchema.optional().describe('One print area. Use areas for more than one.'),
+      areas: z.array(areaSchema).min(1).max(4).optional().describe('Every print area, e.g. a front chest and a back, or a front and a left sleeve. Wins over placement.'),
       colours: z.array(z.string().min(1).max(10)).min(1).describe('Supplier colour codes, e.g. C002.'),
       sizes: z.array(z.string().min(1).max(6)).min(1),
       name: z.string().min(1).max(80).optional(),
@@ -212,6 +281,10 @@ export const createProductTool = defineTool({
   scope: 'artist',
   run: async (ctx, input): Promise<ToolResult<CreateProductData>> => {
     if (!ctx.storeId) return noStore();
+    if (!input.placement && !input.areas) {
+      const text = 'Say where the print goes: a placement, or the print areas.';
+      return { data: { ok: false, error: text }, ui: { cards: [errorNotice(`create_product_err_${randomUUID()}`, text)] } };
+    }
 
     const result = await createProduct({ storeId: ctx.storeId, ...input });
     if (!result.ok) {
@@ -226,7 +299,7 @@ export const createProductTool = defineTool({
     const prepare = approval?.step?.kind === 'prepare' ? approvalChip(approval) : null;
 
     return {
-      data: { ok: true, productId: detail.id, designId: detail.designId, name: detail.name, status: detail.status, baseCostCents: detail.baseCostCents, ...artworkData(approval) },
+      data: { ok: true, productId: detail.id, designId: detail.designId, name: detail.name, status: detail.status, baseCostCents: detail.baseCostCents, ...areasData(detail), ...artworkData(approval) },
       ui: {
         cards: [productCard(detail, approvalState)],
         next: [
@@ -252,7 +325,7 @@ interface UpdateProductData {
 export const updateProductTool = defineTool({
   name: 'update_product',
   description:
-    "Update an existing product's name, description, placement, enabled colours, enabled sizes, or collection. Colours and sizes must still be available on the product's blank. Changing colours re-triggers mockup rendering. Omit productId to update the product currently open in this conversation. On a product that is already live, adding a colour or moving the print needs the design's approval to cover it: the tool refuses with what is missing (prepare the print files, then the artist approves them) and changes nothing.",
+    "Update an existing product's name, description, placement (moves or resizes its main print area; use set_print_areas to add or remove areas), enabled colours, enabled sizes, or collection. Colours and sizes must still be available on the product's blank. Changing colours re-triggers mockup rendering. Omit productId to update the product currently open in this conversation. On a product that is already live, adding a colour or moving the print needs the design's approval to cover it: the tool refuses with what is missing (prepare the print files, then the artist approves them) and changes nothing.",
   input: z
     .object({
       productId: z.string().uuid().optional(),
@@ -289,10 +362,93 @@ export const updateProductTool = defineTool({
     // Another colour or position has no print files yet: that is the next step, before the shop.
     const next = nextStepFor(detail, approval);
     return {
-      data: { ok: true, productId: detail.id, designId: detail.designId, name: detail.name, ...artworkData(approval) },
+      data: { ok: true, productId: detail.id, designId: detail.designId, name: detail.name, ...areasData(detail), ...artworkData(approval) },
       ui: {
         cards: [productCard(detail, approvalState)],
         next: next ? [next] : undefined,
+        project: projectFor(detail, undefined, approvalState),
+      },
+    };
+  },
+});
+
+// -- print areas ------------------------------------------------------------
+
+interface PrintAreasData {
+  ok: boolean;
+  error?: string;
+  productId?: string;
+  printAreas?: ReturnType<typeof areasData>['printAreas'];
+  basePrice?: string;
+  baseCostCents?: number | null;
+  retailPriceCents?: number | null;
+  marginCents?: number | null;
+  canAdd?: string[];
+  /** the change would put the base cost past the price: ask the artist for a new price of at least this, then call again with retailCents */
+  newPriceNeeded?: { baseCostCents: number; minRetailCents: number; currentRetailCents: number; basePrice?: string };
+  artwork?: ReturnType<typeof artworkData>['artwork'];
+  designId?: string;
+}
+
+function priceNeededData(needed: PriceNeeded): NonNullable<PrintAreasData['newPriceNeeded']> {
+  return {
+    baseCostCents: needed.baseCostCents,
+    minRetailCents: needed.minRetailCents,
+    currentRetailCents: needed.retailPriceCents,
+    ...(needed.lines.length > 0 ? { basePrice: describeBaseCost(needed.lines, needed.baseCostCents) } : {}),
+  };
+}
+
+export const setPrintAreasTool = defineTool({
+  name: 'set_print_areas',
+  description:
+    "Add, change or remove a product's print areas: add a back print, add a print on the left and/or right sleeve, change an area's size or its design, or take one away. add lists areas to print: a new one without widthCm takes the usual size there (on a sleeve, the widest that fits the art); one at a position the product already prints changes it, and what you leave out (its width, its offset, its design) stays as it was; remove lists positions to drop. Rules: at most one front area (front chest, full front or left chest), one back, and the sleeves on garments with sleeves (never tank tops, bags, hats, beanies or trousers); each area at most A2 (42 × 59.4 cm), a sleeve at most its own size. Each area can print a different design. The base price follows the areas: the garment with one print area, +€1 when it prints front and back, +€2 once for sleeve prints. The result's basePrice says it in the artist's words ('Garment with one print €17.00 · Front and back +€1.00 · Sleeve prints +€2.00 · Base €20.00') with the margin at their price: tell them. If the new base would go above their price, nothing changes and newPriceNeeded says the lowest price that works: ask the artist for a new price, then call again with the same change and retailCents. Every new or changed area needs its print files prepared and approved before the product can be published (on a live product, before the change is made): prepare_print with the product, then the approval page. A sleeve shows as a flat, true-size proof, never on a photo. Omit productId for the product open in this conversation.",
+  input: z
+    .object({
+      productId: z.string().uuid().optional(),
+      add: z.array(areaSchema).max(4).optional().describe('Areas to print, e.g. [{ "position": "back" }] or [{ "position": "sleeve_left", "widthCm": 8 }].'),
+      remove: z.array(z.string().min(1).max(40)).max(4).optional().describe('Positions to stop printing, e.g. ["sleeve_left"].'),
+      retailCents: z.number().int().positive().optional().describe('A new retail price in cents, with the change: needed when the change lifts the base cost past the current price.'),
+    })
+    .strict(),
+  scope: 'artist',
+  run: async (ctx, input): Promise<ToolResult<PrintAreasData>> => {
+    if (!ctx.storeId) return noStore();
+    const productId = await resolveProductId(ctx, input.productId);
+    if (!productId) return { data: { ok: false, error: 'No product to change: create or open one first.' } };
+    if (!input.add?.length && !input.remove?.length) {
+      const text = 'Say which print area to add or remove.';
+      return { data: { ok: false, error: text }, ui: { cards: [errorNotice(`set_print_areas_err_${randomUUID()}`, text)] } };
+    }
+
+    const result = await editProductAreas(ctx.storeId, productId, { add: input.add, remove: input.remove, ...(input.retailCents ? { retailPriceCents: input.retailCents } : {}) });
+    if (!result.ok) {
+      if (result.approval) return approvalRefusal(ctx, 'set_print_areas', result.error, result.approval);
+      const needed = result.priceNeeded;
+      const chips: Chip[] = needed ? [{ label: `Price it at €${Math.ceil(needed.minRetailCents / 100)}`, prompt: `Make those print area changes and price it at €${Math.ceil(needed.minRetailCents / 100)}`, primary: true }] : [];
+      return {
+        data: { ok: false, error: result.error, ...(needed ? { newPriceNeeded: priceNeededData(needed) } : {}) },
+        ui: { cards: [errorNotice(`set_print_areas_err_${randomUUID()}`, result.error)], next: chips.length ? chips : undefined },
+      };
+    }
+
+    const detail = result.value;
+    const approval = await approvalOf(detail);
+    const approvalState = printApprovalState(approval, ctx.conversationId);
+    const next = nextStepFor(detail, approval);
+    return {
+      data: {
+        ok: true,
+        productId: detail.id,
+        ...areasData(detail),
+        baseCostCents: detail.baseCostCents,
+        retailPriceCents: detail.retailPriceCents,
+        marginCents: detail.marginCents,
+        ...artworkData(approval),
+      },
+      ui: {
+        cards: [productCard(detail, approvalState)],
+        next: [...(next ? [next] : []), ...addAreaChips(detail).slice(0, 1)],
         project: projectFor(detail, undefined, approvalState),
       },
     };
@@ -350,12 +506,18 @@ interface GetQuoteData {
   estimate?: boolean;
   /** screen print: the screens the guess assumed */
   screens?: number;
+  /** a shop product's base price, in the artist's words: 'Garment with one print €17.00 · Front and back +€1.00 · Base €18.00' */
+  basePrice?: string;
+  /** a shop product's margin at its price, or at the price asked about */
+  marginCents?: number;
+  /** the garment's price is still a placeholder the owner hasn't set */
+  placeholder?: boolean;
 }
 
 export const getQuoteTool = defineTool({
   name: 'get_quote',
   description:
-    "Price a run of a blank + print service at a given quantity, using the seeded base-cost table (garment + print + margin, with quantity breaks). Pass either blankCode or productId (to reuse an existing product's blank/print service); printServiceCode is optional when productId is given. A run can print by any method the blank offers, screen print (screen_1c, screen_2c, screen_3c) or DTG/DTF (dtg, dtf), whatever the shop product itself uses, so pass printServiceCode to price a different method. Returns only totals per quantity break — never the garment/print/margin components, which artists don't see. A screen-print price here is an estimate (estimate: true): it guesses the screens from the service's colours, plus the white underbase and highlight white on a dark garment (pass colourCode to say which garment colour; dark is assumed without it). Say it is an estimate: a run quote (create_bulk_quote) counts the screens from the design's print files, so its price can differ. Use this for 'what would 40 hoodies cost', 'what's my margin at €40', or any pricing question.",
+    "Two kinds of price. (1) A shop product's base price, for one piece at any quantity: pass shop: true with productId (its print areas) or with blankCode and positions (the print areas to price, e.g. ['front_chest', 'back', 'sleeve_left']; held to the product rules, so a sleeve on a garment without sleeves is refused), and optionally retailCents to show the margin at that price. Without printServiceCode a blank is priced the way a new product of it prints: DTG, or DTF where it has no DTG. A product (productId, or the one open in this conversation) at qty 1 with no printServiceCode is priced this way too; pass shop: false for a run of one. It returns basePrice in the artist's words: 'Garment with one print €17.00 · Front and back +€1.00 · Sleeve prints +€2.00 · Base €20.00' (the garment's price includes one print area up to A2 on the front or the back; +€1 when it prints front and back; +€2 once for sleeve prints). (2) Otherwise, a run: price a run of a blank + print service at a given quantity, using the seeded base-cost table (garment + print + margin, with quantity breaks). Pass either blankCode or productId (to reuse an existing product's blank/print service); printServiceCode is optional when productId is given. A run can print by any method the blank offers, screen print (screen_1c, screen_2c, screen_3c) or DTG/DTF (dtg, dtf), whatever the shop product itself uses, so pass printServiceCode to price a different method. Returns only totals per quantity break — never the garment/print/margin components, which artists don't see. A screen-print price here is an estimate (estimate: true): it guesses the screens from the service's colours, plus the white underbase and highlight white on a dark garment (pass colourCode to say which garment colour; dark is assumed without it). Say it is an estimate: a run quote (create_bulk_quote) counts the screens from the design's print files, so its price can differ. Use this for 'what would 40 hoodies cost', 'what's my margin at €40', or any pricing question.",
   input: z
     .object({
       blankCode: z.string().min(2).max(20).optional(),
@@ -363,11 +525,17 @@ export const getQuoteTool = defineTool({
       printServiceCode: z.string().min(2).max(40).optional(),
       qty: z.number().int().min(1).max(100000),
       colourCode: z.string().min(1).max(10).optional().describe('Screen print only: the garment colour code. A light garment needs no white underbase or highlight white, so its estimate counts fewer screens.'),
+      shop: z.boolean().optional().describe("true: a shop product's base price (its print areas). false: a run, even for one piece."),
+      positions: z.array(z.string().min(1).max(40)).min(1).max(4).optional().describe("Shop price only: the print areas to price, e.g. ['front_chest', 'back']. Left out with productId: the product's own."),
+      retailCents: z.number().int().positive().optional().describe('Shop price only: a retail price to show the margin at.'),
     })
     .strict(),
   scope: 'both',
   readOnly: true,
   run: async (ctx, input): Promise<ToolResult<GetQuoteData>> => {
+    // A shop product's price: asked for, or a product at one piece with no run method named.
+    const shop = input.shop ?? (Boolean(input.positions) || (!input.blankCode && !input.printServiceCode && input.qty === 1 && Boolean(await resolveProductId(ctx, input.productId))));
+    if (shop) return shopQuote(ctx, input);
     let blankCode = input.blankCode;
     let printServiceCode = input.printServiceCode;
     let blankLabel = blankCode;
@@ -432,6 +600,56 @@ export const getQuoteTool = defineTool({
     };
   },
 });
+
+/** A shop product's base price for its print areas: the breakdown the artist reads, and the margin at a price. */
+async function shopQuote(ctx: ToolContext, input: { blankCode?: string; productId?: string; printServiceCode?: string; positions?: string[]; retailCents?: number }): Promise<ToolResult<GetQuoteData>> {
+  let blankCode = input.blankCode;
+  // left out on a blank: the method a new product of it takes (DTG, or DTF where it has no DTG)
+  let printServiceCode: string | null = input.printServiceCode ?? null;
+  let label = blankCode ? blankDisplayName(blankCode, blankCode) : '';
+  let areas: { position: string; widthCm?: number }[] | null = input.positions?.map((position) => ({ position })) ?? null;
+  // positions asked about are held to the product rules; a product's own areas are what it prints
+  let check = true;
+  let retail = input.retailCents ?? null;
+  const productId = input.blankCode ? null : await resolveProductId(ctx, input.productId);
+  if (!blankCode && productId) {
+    if (!ctx.storeId) return noStore();
+    const product = await getProduct(ctx.storeId, productId);
+    if (!product) return { data: { ok: false, error: 'Product not found for this shop.' } };
+    blankCode = product.blankCode;
+    printServiceCode = input.printServiceCode ?? product.printServiceCode;
+    label = product.name;
+    if (!areas) {
+      areas = product.areas.map((a) => ({ position: a.position, widthCm: a.widthCm }));
+      check = false;
+    }
+    retail ??= product.retailPriceCents;
+  }
+  if (!blankCode || !areas) {
+    const text = 'Which garment and print areas should I price? Pick a blank, or open a product.';
+    return { data: { ok: false, error: text }, ui: { cards: [errorNotice(`quote_err_${randomUUID()}`, text)], next: [{ label: 'Browse blanks', prompt: 'Show me blanks' }] } };
+  }
+
+  const quoted = await quoteProductAreas(blankCode, printServiceCode, areas, { check });
+  if (!quoted.ok) return { data: { ok: false, error: quoted.error }, ui: { cards: [errorNotice(`quote_err_${randomUUID()}`, quoted.error)] } };
+  const price = quoted.value;
+  const basePrice = describeBaseCost(price.lines, price.cents);
+  const margin = retail != null ? retail - price.cents : null;
+  const where = areas.map((a) => printPositionLabel(a.position).toLowerCase()).join(', ');
+  const card: Card = {
+    id: `quote_${randomUUID()}`,
+    kind: 'quote',
+    title: `Shop price — ${label}`,
+    lines: price.lines.map((l) => ({ label: l.label, qty: 1, unitCents: l.cents, totalCents: l.cents })),
+    totalCents: price.cents,
+    currency: 'EUR',
+    note: `Base price with ${where}: ${basePrice}.${margin !== null && retail !== null ? ` At ${euros(retail)} the margin is ${euros(margin)}.` : ''}${price.placeholder ? ' The garment price is provisional.' : ''}`,
+  };
+  return {
+    data: { ok: true, qty: 1, unitBaseCostCents: price.cents, totalCents: price.cents, basePrice, ...(margin !== null ? { marginCents: margin } : {}), ...(price.placeholder ? { placeholder: true } : {}) },
+    ui: { cards: [card], next: retail == null ? [{ label: 'Set a price', prompt: `Price it at €${Math.ceil((price.cents + 500) / 100)}` }] : undefined },
+  };
+}
 
 // -- the per-product proof is retired ---------------------------------------------------------
 //
@@ -519,18 +737,26 @@ interface PublishProductData {
   status?: ProductStatus;
   designId?: string;
   artwork?: ReturnType<typeof artworkData>['artwork'];
+  /** the base cost moved past the price since the draft was priced: the lowest price that works now */
+  newPriceNeeded?: { baseCostCents: number; minRetailCents: number; currentRetailCents: number; basePrice?: string };
 }
 
-/** A publish that was refused, in the artist's words: the artwork's sentence with its way on, or the plain notice. */
-function publishRefusal(ctx: ToolContext, refused: { error: string; approval?: ProductApproval }): ToolResult<PublishProductData> {
+/** A publish that was refused, in the artist's words: the artwork's sentence with its way on, the base cost that moved
+ * past the price with a new price to set, or the plain notice. */
+function publishRefusal(ctx: ToolContext, refused: { error: string; approval?: ProductApproval; priceNeeded?: PriceNeeded }): ToolResult<PublishProductData> {
   if (refused.approval) return approvalRefusal(ctx, 'publish', refused.error, refused.approval);
-  return { data: { ok: false, error: refused.error }, ui: { cards: [errorNotice(`publish_err_${randomUUID()}`, refused.error)] } };
+  const needed = refused.priceNeeded;
+  const price = needed ? Math.ceil(needed.minRetailCents / 100) : null;
+  return {
+    data: { ok: false, error: refused.error, ...(needed ? { newPriceNeeded: priceNeededData(needed) } : {}) },
+    ui: { cards: [errorNotice(`publish_err_${randomUUID()}`, refused.error)], next: price ? [{ label: `Price it at €${price}`, prompt: `Price it at €${price}`, primary: true }] : undefined },
+  };
 }
 
 export const publishProductTool = defineTool({
   name: 'publish_product',
   description:
-    "Publish a product to the live shop. Only allowed once the product's design has print files approved for its garment, every colour it has and its print position (prepare_print, then the artist approves on the approval page: get_product's artwork field says where that stands), it has a retail price, and the shop's Stripe account has both charges and payouts enabled. A shop product needs no proof of its own: the artwork approval is the only approval it needs, and a draft is published directly. Fails closed with a plain sentence otherwise, and the result says what is missing and the next step (the print files to prepare, or the approval page). Never offer to publish before the artwork is approved. A product that is already live is not taken down when its approval is later withdrawn. Sensitive action: shows a confirm card and only executes once the human clicks confirm; a product that can't be published gets the refusal instead of a confirm card. Omit productId to publish the product currently open in this conversation; always pass name (from the product card) so the confirmation reads clearly.",
+    "Publish a product to the live shop. Only allowed once the product's designs have print files approved for its garment, every colour it has and every print area (prepare_print, then the artist approves on the approval page; a product whose areas print different designs needs each design approved: get_product's artwork field says where that stands), it has a retail price at least €1 above its base cost (a draft goes live at today's base price for its print areas; if that moved past the price, the result's newPriceNeeded says the lowest price that works), and the shop's Stripe account has both charges and payouts enabled. A shop product needs no proof of its own: the artwork approval is the only approval it needs, and a draft is published directly. Fails closed with a plain sentence otherwise, and the result says what is missing and the next step (the print files to prepare, or the approval page). Never offer to publish before the artwork is approved. A product that is already live is not taken down when its approval is later withdrawn. Sensitive action: shows a confirm card and only executes once the human clicks confirm; a product that can't be published gets the refusal instead of a confirm card. Omit productId to publish the product currently open in this conversation; always pass name (from the product card) so the confirmation reads clearly.",
   input: z.object({ productId: z.string().uuid().optional(), name: z.string().max(80).optional() }).strict(),
   scope: 'artist',
   confirm: true,
@@ -652,13 +878,16 @@ interface GetProductData {
   status?: ProductStatus;
   retailPriceCents?: number | null;
   marginCents?: number | null;
+  printAreas?: ReturnType<typeof areasData>['printAreas'];
+  basePrice?: string;
+  canAdd?: string[];
   artwork?: ReturnType<typeof artworkData>['artwork'];
 }
 
 export const getProductTool = defineTool({
   name: 'get_product',
   description:
-    "Get full details for one product (colours, sizes, price, margin, status, design id). Its artwork field says whether the design's print files are approved for this product's garment, colours and print position, which a product needs before it can be published, and when they are not, why and what to do (prepare_print with the prepare details, or the approval page). Call this when the artist says 'open product <id>' (e.g. from a list_products grid) or asks about a specific product, and before offering to publish. Omit productId to show the product currently open in this conversation.",
+    "Get full details for one product (colours, sizes, print areas, the base price breakdown, price, margin, status, design id). Its artwork field says whether the design's print files are approved for this product's garment, colours and print position, which a product needs before it can be published, and when they are not, why and what to do (prepare_print with the prepare details, or the approval page). Call this when the artist says 'open product <id>' (e.g. from a list_products grid) or asks about a specific product, and before offering to publish. Omit productId to show the product currently open in this conversation.",
   input: z.object({ productId: z.string().uuid().optional() }).strict(),
   scope: 'artist',
   readOnly: true,
@@ -682,6 +911,7 @@ export const getProductTool = defineTool({
         status: current.detail.status,
         retailPriceCents: current.detail.retailPriceCents,
         marginCents: current.detail.marginCents,
+        ...areasData(current.detail),
         ...artworkData(current.approval),
       },
       ui: { cards: [productCard(current.detail, current.approvalState)], project: current.project },
@@ -750,6 +980,7 @@ export const assignToCollectionTool = defineTool({
 export const PRODUCT_TOOLS: Tool<any, any>[] = [
   createProductTool,
   updateProductTool,
+  setPrintAreasTool,
   setPriceTool,
   getQuoteTool,
   submitProofTool,
