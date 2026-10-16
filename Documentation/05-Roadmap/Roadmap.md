@@ -1,7 +1,7 @@
 # MerchFrom Master Roadmap
 
-> **Document Version:** 4.1 — PRINT PREP ADDED  
-> **Last Updated:** October 15, 2026  
+> **Document Version:** 4.2 — PRINT PREP PHASE 2 BUILT  
+> **Last Updated:** October 16, 2026  
 > **Status:** P0 Demo Hardening — Week 1 COMPLETE, Week 2 IN PROGRESS  
 > **Branch:** `feat/crowdfunding-demo`  
 > **Campaign Launch:** June 30, 2026 (Indiegogo)
@@ -154,19 +154,23 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 - **Owner checks:** open the screen PSD in Photoshop and print the films one by one; open the PNG in GTX Graphics Lab and print it on black and white blanks; sign off a test print against the proof
 - **Not live yet:** migration `0003` on Neon, R2, and the worker host
 
-### Print Prep Phase 2: Any art up to 15 screens — NEXT
-- Index separations (3 to 4 working days)
-- Simulated process separations, using a print-model lookup table (6 to 10 working days)
-- Dot-gain calibration from a printed test chart (2 to 3 working days)
-- Screen-count pricing with the 9 to 15 screen surcharge (2 working days)
+### Print Prep Phase 2: Any art up to 15 screens — BUILT, PENDING OWNER CHECKS (Oct 2026)
+- Index separations: square cells at 200 per inch, one ink per cell (3 to 4 working days)
+- Simulated process separations, from a print-model lookup table (6 to 10 working days)
+- Method dispatch: spot, index or simulated process per design and screen set, with auditor override
+- Dot-gain calibration from a printed chart, read by typed values or a flatbed scan (Murray–Davies), applied to new films only (2 to 3 working days)
+- Screen-count pricing: `/admin/pricing` table with placeholder numbers; €1 per piece for each screen above 8, up to 15; shop products never surcharged (2 working days)
+- New test images for index and simulated process
+- **Owner checks:** set the real prices in `/admin/pricing`; print and scan the calibration chart; measure the inks with the spectrophotometer when it arrives; test the index and simulated process files in Photoshop and GTX Graphics Lab
 - Estimates are rough working days, for ordering only
 
-### Print Prep Phase 3: Later
+### Print Prep Phase 3: Next
 - Distress and texture library from our own scans
 - DTF gang sheets
 - Vectorising flat art
 - RIP hot folders
 - Multi-placement products
+- Per-ink screen angles (needs a different mixing model)
 - Embroidery prep: only solid designs in solid colours can be embroidered, so it needs its own checks and conversion
 
 ---
@@ -861,9 +865,10 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 ---
 
 **Roadmap Owner:** Victor Bendas  
-**Last Updated:** October 15, 2026  
+**Last Updated:** October 16, 2026  
 **Next Review:** Daily during P0 Demo Hardening sprint  
 **Version History:**
+- v4.2 (Oct 16, 2026): Print prep Phase 2 built, pending checks; Phase 3 next
 - v4.1 (Oct 15, 2026): Print prep phases added (Phase 0 and 1 built, pending owner checks; Phase 2 next; Phase 3 later)
 - v4.0 (May 13, 2026): Restructured — P0 at top, chronological order, completed phases summarized, full task detail for active/future phases
 - v3.0 (May 13, 2026): Consolidated — merged Roadmap-Crowdfunding, Sprint-Plan, Research-Gaps, Unified-Wave-Voice

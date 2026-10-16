@@ -1,6 +1,6 @@
 # Print prep: plan
 
-15 Oct 2026. Phase 0 and Phase 1 built on branch feat/print-prep, pending integration review and the owner's checks. Updated the same day with the owner's answers on the ink system, the surcharge, infrastructure and ink measurement.
+16 Oct 2026. Phases 0, 1 and 2 built on branch feat/print-prep, pending integration review and the owner's checks. Phases 0 and 1 were built on 15 Oct, and the plan was updated that day with the owner's answers on the ink system, the surcharge, infrastructure and ink measurement.
 
 **Goal.** Everything from "the artwork is final" to "the production files are on the press". Every design gets both production versions, DTG/DTF and screen print, generated automatically, checked by a person, and delivered ready to print with no further image processing.
 
@@ -131,7 +131,7 @@ The old Python services (`services/color-separation`, `services/print-engine`, `
 6. **Traps.** For spot: spread the lighter ink under the darker one by 0.25 mm (default). For index and simulated process: none, because the halftones and cells overlap by design.
 7. **Halftone.**
    - AM threshold screen at 600 ppi, 55 lpi, 22.5° on every ink by default (angle per ink is configurable), with a round dot (elliptical optional).
-   - Coverage passes through a dot-gain compensation curve (linear until calibrated, Phase 2) and a min/max dot clamp (default 5% and 90%).
+   - Coverage passes through a dot-gain compensation curve (comes from Ink system → Dot gain calibration; linear until a chart is measured) and a min/max dot clamp (default 5% and 90%).
    - Output is binary: 0 or 255.
 8. **Print order.** Underbase, flash, colours from light to dark by L*, highlight white last. The auditor can reorder; the traps are recomputed.
 9. **Marks.**
@@ -423,10 +423,10 @@ Art that needs index or simulated process is flagged to the auditor in Phase 1 a
 
 | Task | Size |
 |---|---|
-| Index separations | 3-4 d |
-| Simulated process (print-model lookup table) | 6-10 d |
-| Dot-gain calibration from a printed test chart | 2-3 d |
-| Pricing by screen count with the 9-15 surcharge | 2 d |
+| Index separations (built) | 3-4 d |
+| Simulated process (print-model lookup table) (built) | 6-10 d |
+| Dot-gain calibration from a printed test chart (built) | 2-3 d |
+| Pricing by screen count with the 9-15 surcharge (built) | 2 d |
 
 **Phase 3**
 - Distress and texture library from our own scans.
@@ -434,6 +434,7 @@ Art that needs index or simulated process is flagged to the auditor in Phase 1 a
 - Vectorising flat art.
 - RIP hot folders.
 - Multi-placement products.
+- Per-ink screen angles (needs a mixing model for different angles).
 - Embroidery prep. Only solid designs in solid colours can be embroidered, so embroidery needs its own checks and conversion. Left for later (owner, 15 Oct).
 
 ## 15. Risks

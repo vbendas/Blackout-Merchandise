@@ -1,6 +1,6 @@
-# Print prep build: status (integrated, 15 Oct 2026)
+# Print prep build: status (Phase 2 integrated, 16 Oct 2026)
 
-Worktree: `/Users/victorbendas/Documents/GitHub/Merch-From-print-prep`, branch `feat/print-prep` (from `22678b3`). Nothing is committed. Migrations `0003` and `0004` have run only on PGlite in tests, never on Neon.
+Worktree: `/Users/victorbendas/Documents/GitHub/Merch-From-print-prep`, branch `feat/print-prep` (from `22678b3`). Phase 0 and 1 are in three local commits (not pushed); Phase 2 is uncommitted. Migrations `0003` and `0004` have run only on PGlite in tests, never on Neon. Phase 2 adds no migration.
 
 ## Work packages
 
@@ -18,8 +18,112 @@ Worktree: `/Users/victorbendas/Documents/GitHub/Merch-From-print-prep`, branch `
 | 9 Admin pre-press pages | Done, with Undo, the PNG zip and the dot shape |
 | 10 Integration and review | Done (this file) |
 | 11 Docs | Separate session; its edits to the PRD, DEVLOG, roadmap and image-generation note are in the worktree |
+| P2-A Index separations | Done |
+| P2-B Simulated process and method dispatch | Done |
+| P2-C Dot-gain calibration | Done |
+| P2-D Screen-count pricing for runs | Done |
+| P2-E Fixtures | Done |
+| Phase 2 integration and review | Done (16 Oct, "Phase 2" below) |
 
-## Verification (final run)
+## Phase 2 (16 Oct 2026): any art up to 15 screens
+
+Plan sections 4.3, 5 and 10. Five packages (P2-A to P2-E) built in parallel, then integrated and reviewed in one pass. Nothing is committed; no migration.
+
+**What it adds**
+- **A method per screen set.** `separateScreen` (`lib/print/engine/index.ts`) takes spot, index or simulated process for each set, as `analyse.ts` chooses it or the recipe forces it, and renders the set with that method: `render.ts`, `index-method.ts` (with `index-cells`, `index-palette`, `index-mix` and `index-dither`) or `sim-process.ts` (with `sim-model`, `sim-lut`, `sim-inks` and `sim-screen`). A garment joins a set when that method's own prediction of the print stays within the ΔE target. Each set, and so each pack, says why it has its method. The Phase 1 "spot draft, finished by hand" path is left only as a fallback for a renderer that is a stub.
+- **Index.** Square cells at 200 per inch (3 × 3 px at 600 ppi), one ink per cell, so two inks never share a spot. The dither is serpentine Floyd–Steinberg, with the error carried in linear light and each choice made in OKLab. The underbase lies under every ink cell, choked in whole cells, and there are no traps. A colour the inks can't reach is flagged for review and named.
+- **Simulated process.** The print model (`model.ts`) inverted through a 3D table: for each pixel, the plate areas that print the art's colour over the underbase and the garment, within a 250% wet-ink limit. All plates share one AM screen, so the dots nest as the model assumes. Tones past the 5% and 90% dot limits are dithered cell by cell. Each set reports how far its proof is from the art (ΔE2000 over 3 mm squares, info).
+- **Dot-gain calibration** (`lib/print/calibration/`):
+  - A test chart (PSD films and a PDF), read from a scan (fiducials, a projective fit, Murray–Davies), from typed readings or from a spectrophotometer's.
+  - A monotone curve through the readings (isotonic fit, then PCHIP) and its exact inverse.
+  - Saved as `InkSystemProfile.dotGain`. A save adds a new ink-system row, so each pack keeps the curve it was made with.
+  - The films are compensated (`dotGainFor`). Proofs and the accuracy figure add the gain back (`printedToneFor`, through `engine/printed-tone.ts`), so they show the print.
+  - Admin: Ink system → Dot gain calibration, and the routes `app/api/calibration/{chart,scan-url,scan}`.
+- **Runs priced by their screens** (`lib/pricing/screen-print.ts`):
+  - A price table by screen count and quantity, plus the fixed €1 per piece for each screen above 8, up to 15. More than 15 is refused.
+  - `/admin/pricing` edits the table: Catalogue and pricing View reads it, Manage saves it. It is one JSON row in `app_settings`.
+  - A screen-printed run line takes its count from the design's screen files for that colour and position: from the version the artist approved, else the newest. With no files it guesses, and says why.
+  - The line is priced again when the proof is sent. An approval is refused if the count has moved, or while the files are being made again.
+  - Shop products, and runs printed DTG/DTF, are priced as before.
+
+**Integration (the notes items, all done)**
+- **Supplier orders:** a screen run's blanks are bought at the blank's own cost. They were costed at €0.
+- **More print positions on a run line** (`extraPlacements`): pre-press builds, attaches and gates a pack for each position, and the job sheet lists each one.
+- **`get_quote`:** says a screen price is an estimate, with its screens. It takes an optional garment colour, and offers a run quote rather than a shop price.
+- **Clean-ups:** `priceNote` and `PRICE_LINE` are removed, and the test catalogue has no screen base costs.
+- **Index films are named "Index 200 ppi"** everywhere:
+  - in the PSD layer names, through the writer, the structure check, and the corrected-PSD reader and its parser;
+  - on the job sheet;
+  - in the pre-press film line;
+  - in the Studio loupe caption.
+- **Proofs show the printed tone** once a curve is saved. Without one they are byte for byte what they were.
+- **Admin gate test:** it now scans `app/api/calibration`, and the three routes pass.
+- **Activity log words** for `ink_system.update`, `ink_system.dot_gain`, `ink_system.dot_gain_reset` and `pricing.screen_table`.
+- **Job sheet:**
+  - A "Dot gain" line per screen set: the curve's date, how it was read, and its lpi, angle and mesh. It says "Not calibrated: linear" without a curve, and "Not used" for index sets.
+  - Traps as each method makes them.
+  - Index rulings.
+  - The cached sheets carry a layout version, so the old ones are drawn again.
+- **Index separations are made once:** the index renderer reuses the separation the set joins made, and the films come out byte-identical.
+
+**Review findings fixed**
+- **Simulated process: stray dots across the empty print area.** On some shirt colours it left scattered 5% dots there. On the engine's own black, every transparent pixel had a 1/255 area, because the table blends nodes next to the shirt colour. Colours the knockout removes entirely, and transparent pixels, now print nothing. A test uses the reviewer's art.
+- **Simulated process: the accuracy figure ignored dot gain.** With a curve saved, the compensated films read ΔE 5–6 off where the print is ΔE 1. The figure now uses the printed tone, as the proof does.
+- **Runs: approval while files were rebuilding.** A run could be approved while its design's screen files were being made again, at a count about to change. The approval now waits until they are ready.
+- **Runs: DTG/DTF setup fee.** DTG/DTF runs re-read the setup fee when the proof was sent. They now keep the quoted price.
+- **Pricing: stale screen base costs.** Neon still has screen base costs from the old seed, and they would have set the catalogue's "from" prices. The price queries skip them, and the seed deletes them.
+- **Engine version.** `ENGINE_VERSION` was still 1.0.0, so a Phase 1 job input could find Phase 1 packs again. It is now 2.0.0, in every job hash and manifest.
+- **Method reasons.** Every pack carried the lead set's reason; each set now has its own.
+- **Ink changes with fewer screens.** A re-run that changes inks and asks for fewer screens than the pack has films is refused: the engine would have dropped inks. Simulated process never makes more films than there are screens.
+- **Index edge cases:** the rare-ink pass can no longer drop every ink, and the cell grid is clamped to 25–600 per inch.
+- **Wording:** the simulated-process reason says when the number of colours, not shading, ruled out spot.
+- **Calibration:**
+  - The scan decoder refuses images over 160 megapixels before decoding them. It allowed 450, about 1.35 GB decoded.
+  - The chart route's refusals now talk about the chart.
+
+**Verification (16 Oct, final tree)**
+- `npx next typegen && npx tsc --noEmit`: 0 errors.
+- `npm run lint`: 0 errors. There are 25 warnings, all in files Phase 2 doesn't touch: the same files as before Phase 2.
+- `DATABASE_URL= npm test`: 1091 tests: 1088 pass, 3 skipped (the opt-in benchmarks), 0 fail. This pass added 18 tests and removed one (priceNote's), on top of the packages' own.
+- `npm run build` (Turbopack): passes, with the root `node_modules` symlink moved aside and then restored.
+  - 41 pages and routes.
+  - The calibration routes trace 42 MB and carry no `public/` file.
+- **Samples:** six fixtures regenerated with the Phase 2 engine. Every file re-opens with the independent decoders (table under "Samples").
+
+**Owner actions (Phase 2)**
+1. **Screen-print prices.** Until a table is saved, `/admin/pricing` uses placeholders:
+   - 8 tiers × 4 quantity breaks, from the old seed: 3.50, 5.20 and 6.90, +1.70 per screen, with breaks of −8%, −15% and −22%;
+   - a 30% margin;
+   - €0 setup per screen;
+   - the second position at 100%;
+   - one size band at 100%.
+   The garment cost is the blank's own base cost.
+2. **Calibration print.** Until this is done the films are linear.
+   1. Ink system → Dot gain calibration → download the chart PSD. It has one film per ink kind, at the house screen of 55 lpi, 22.5° and the halftone mesh.
+   2. Burn the films, and print the chart on the shop's own blank.
+   3. Scan it at 300–600 dpi (TIFF, PNG or JPEG) and read it, or type the readings in.
+3. **Environment and storage:**
+   - `CALIBRATION_SCAN_MAX_MB` caps a scan upload: 300 by default, 1024 at most.
+   - Scans go to `uploads/prepress/calibration/` by a signed PUT, as corrected PSDs do, and are deleted once read. Add an R2 lifecycle rule for `uploads/prepress/` beside the one for `prepress-uploads/`.
+4. **Neon.** After the migrations, `npm run seed` as before. It now also deletes the old screen base costs.
+
+**Owner decisions**
+- **Paying for a run on an estimated screen count.** A line whose design has no screen files for its colour or position is priced on a guess, which is never above 8 screens and so never surcharged. Its files are only made once the run is paid; if they need more screens, the shop absorbs the difference. The alternative is to make the files before the run's proof can be approved.
+- **Surcharge per position.** The surcharge is counted per print position, so a front and a back of 10 screens each add €4 a piece. Confirm this, or count only the position with the most screens.
+- **Which area owns the price table.** It sits under Catalogue and pricing (Manage), but the plan's Runs area also has "run prices" at Manage. Confirm which owns it.
+- **Method choices.** Index and simulated process were tuned on synthetic fixtures only. Sign off the choices after the first test prints.
+
+**Phase 2: remaining risks**
+- **Not printed yet.** Nothing from Phase 2 has been printed or opened in Photoshop, the index cells and simulated-process halftones especially.
+- **One curve for every ink.** One dot-gain curve covers the underbase, the colour base and the highlight white. The calibration page warns when the chart's films disagree.
+- **Accuracy is the model's.** The print model uses estimated opacities until the inks are measured, so the simulated-process figure is the model's accuracy, not the print's.
+- **Specks in simulated process.** Its films carry a few hundred isolated 1–2 px dots each (under 0.1% of the cells), where tones fade out. The features check asks for review on them, and they drop out on the press. A despeckle pass after the halftone would clear them (Phase 3).
+- **Where a plate turns solid.** In a smooth gradient, the proof shows a faint boundary where a plate turns solid, past the 90% dot (the turquoise spot in `smooth-gradients`). The test print will show whether it matters.
+- **Scan reading runs in a request.** It can take up to 120 s and about 1 GB for a big scan, and it doesn't run in the worker.
+- **Ink-system saves.** Saving reads the active profile, then inserts a new row. If two saves land at once the newest wins, but there is never no active row.
+- **Ink changes on a re-run** (from Phase 1). They lock only the colour inks, so on darks the highlight white can drop out and on lights a white becomes a colour ink.
+
+## Phase 1 verification (15 Oct)
 
 - `npx next typegen && npx tsc --noEmit`: 0 errors (clean, no incremental cache).
 - `npm run lint`: 0 errors. 26 warnings, all in files this build didn't touch, and identical to the baseline before integration.
@@ -33,31 +137,37 @@ Worktree: `/Users/victorbendas/Documents/GitHub/Merch-From-print-prep`, branch `
   - The flow: prepare, the artist approves, codes are entered, the files are refreshed, pre-press approves.
   - Every file re-opens with the independent decoders: @webtoon/psd, pngjs and pdf-lib.
 
-## Samples (`print-prep-samples/`, gitignored)
+## Samples (`print-prep-samples/`, gitignored; regenerated 16 Oct with the Phase 2 engine)
 
-Each fixture is a T-shirt, front chest at 28 cm, on Black, French Navy and White. Each fixture folder holds `screen-darks/`, `screen-lights/` and `dtg-dtf/`, plus `index.json` (checks and what each file re-opened as). The Pantone codes are placeholders typed for the sample, not matches for the colours.
+Each fixture is a T-shirt, front chest at 28 cm, on Black, French Navy and White. Each fixture folder holds a folder per screen set (`screen-darks/`, `screen-lights/`, or `screen-C727/` when French Navy gets its own), `dtg-dtf/`, `job-sheet.pdf` and `index.json`. The index lists each pack's method, reason, warnings and checks, and what each file re-opened as. The Pantone codes are placeholders typed for the sample, not matches for the colours. The ink system has no dot-gain curve, so the films are linear.
 
-| Fixture | Screen PSDs (600 ppi) | DTG/DTF PSD (300 ppi) | DTG PNGs | Run | Peak memory |
-|---|---|---|---|---|---|
-| flat-logo-3c | darks 21.4 MB (4 films), lights 15.6 MB (3) | 4.5 MB | 0.03–0.15 MB, zip 0.3 MB | 24 s | 2.3 GB |
-| tints-2c | darks 30.8 MB (5), lights 23.8 MB (4) | 16.0 MB | about 0.25 MB each, zip 0.7 MB | 33 s | 2.1 GB |
-| test_design | darks 134.8 MB (8), lights 132.2 MB (8) | 76.2 MB | 7.9–10.3 MB, zip 28.4 MB | 93 s | 3.1 GB |
+| Fixture | Method | Screen PSDs (600 ppi), films | DTG/DTF PSD | Accuracy (ΔE2000 mean / p95, 3 mm squares) | Run | Peak memory |
+|---|---|---|---|---|---|---|
+| flat-logo-3c | spot | darks 22.4 MB (4), lights 16.3 MB (3) | 4.7 MB | not measured for spot | 27 s | 1.8 GB |
+| tints-2c | spot | darks 32.3 MB (5), lights 24.9 MB (4) | 16.7 MB | not measured for spot | 34 s | 1.7 GB |
+| many-colours-flat | index | darks 42.5 MB (8), French Navy 44.4 MB (8), lights 42.6 MB (8) | 4.5 MB | flagged: lime ΔE 13.2 off on darks and lights, hot pink ΔE 15.2 on navy | 67 s | 1.7 GB |
+| smooth-gradients | simulated process | darks 144.3 MB (8, Black and Navy), lights 123.9 MB (8) | 38.2 MB | Black 0.8 / 1.9, White 1.6 / 4.1 | 122 s | 2.1 GB |
+| painted-shading | simulated process | darks 60.9 MB (8), French Navy 62.9 MB (8), lights 55.1 MB (7) | 14.2 MB | Black 1.1 / 2.2, Navy 1.1 / 1.8, White 1.0 / 2.1 | 100 s | 1.9 GB |
+| test_design | simulated process | darks 159.5 MB (8, Black and Navy), lights 157.0 MB (8) | 79.9 MB (PNGs 8–11 MB, zip 30 MB) | Black 1.6 / 3.5, White 1.0 / 3.1 | 108 s | 2.3 GB |
 
 **What every pack contains**
-- A job sheet per design, not per pack (see "Job sheet: one per design" below): the packs hold no sheet.
-- `manifest.json`: hashes of every file.
+- No job sheet. There is one per design, not per pack (see "Job sheet: one per design" below), and the sample writes it as `job-sheet.pdf` beside the packs.
+- `manifest.json`: the hashes of every file.
 - Proofs (webp), loupes and film previews.
 
 **What the checks found**
-- Every check passes or asks for review.
-- "Inks not measured" asks for review on every screen pack, as the plan expects.
-- test_design asks for review on its method: it needs simulated process, so the engine made a spot draft.
-- Thin-line and speck notes appear on soft art, and on flat-logo's navy film.
+- Every check passes or asks for review, and every pack was approved by pre-press in the sample.
+- "Inks not measured" asks for review on every screen pack, as the plan expects. No pack asks about its method any more.
+- The features check asks for review:
+  - on simulated process for its fading specks (see the Phase 2 risks);
+  - on the index sets for a few lines under 0.3 mm, mostly on the underbase;
+  - on flat-logo's darks film 4.
+- The index sets flag the colours their inks can't reach; "More screens would hold it" is right, since each set uses all 8.
 
-**Regenerate** from `platform/`:
-- `npx tsx scripts/print-samples.ts flat-logo-3c ../print-prep-samples`
-- the same for `tints-2c` and `test_design`.
-- Run one fixture per process.
+**Regenerate**
+- From `platform/`, one fixture per process: `npx tsx scripts/print-samples.ts <fixture> ../print-prep-samples`.
+- The fixtures: `flat-logo-3c`, `tints-2c`, `many-colours-flat`, `smooth-gradients`, `painted-shading`, `test_design`.
+- The script prints each pack's method, screens, accuracy and checks.
 
 ## What WP10 wired (integration notes)
 
@@ -187,7 +297,7 @@ The per-pack sheet (and the per-order one the plan once wanted) is gone. One A4 
 
 **Quality limits**
 - Proof thresholds are uncalibrated, and the inks are unmeasured.
-- Soft art gets a spot draft only: index and simulated process are Phase 2.
+- Index and simulated process are built (Phase 2). Their limits are under "Phase 2: remaining risks".
 
 **Specks**
 - A speck between half a mesh dot and 0.25 mm isn't flagged, because a film can't tell it from a lone halftone dot.

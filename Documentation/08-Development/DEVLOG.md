@@ -1,15 +1,82 @@
 # MerchFrom Development Log
 
 **Purpose:** Track daily progress, technical decisions, and session outcomes for development accountability
-**Last Updated:** October 15, 2026
+**Last Updated:** October 16, 2026
 **Project Status:** Phase 3 - Frontend Content Suite (In Progress)
+
+---
+
+## October 16, 2026 — Print Prep: Phase 2 Built
+
+### Session Summary
+Built print prep phase 2 on branch `feat/print-prep`: index and simulated process separations, dot-gain calibration, and screen-count pricing for runs. Pending integration review and the owner's checks.
+
+### Work Completed
+
+#### Separation methods (`platform/lib/print/engine/`)
+- **Method dispatch:** spot, index or simulated process, chosen per design and screen set. The auditor can override the choice.
+- **Index:** square cells at 200 per inch, one ink per cell, no overlap. On dark garments, each ink cell sits on an underbase.
+- **Simulated process:** inks are chosen from the art, and their amounts come from the same print model that draws the proofs. All inks print at 55 lpi and 22.5°.
+- **Test images** in `platform/scripts/fixtures/print/`: `many-colours-flat.png` for index, and `smooth-gradients.png`, `painted-shading.png` and `low-chroma-tonal.png` for simulated process.
+
+#### Dot-gain calibration (`platform/lib/print/calibration/`)
+- A printable chart, 182 × 165 mm.
+- Read it by typing in the values, by flatbed scan (Murray–Davies), or later with a spectrophotometer.
+- The correction curve applies to every new film. Packs already approved keep their files.
+- Lives in the ink system admin area (`/admin/ink-system`).
+
+#### Screen-count pricing (`platform/lib/pricing/`, `/admin/pricing`)
+- Quotes take the screen count from the design's current screen pack for each colour and position: the approved version, else the newest. With no pack yet, the quote is an estimate and says why.
+- Each screen above 8 adds €1 per piece, up to 15. Shop products are never surcharged.
+- `/admin/pricing` holds the price table as one JSON row in `app_settings`, so there is no schema change. The numbers are placeholders.
+- Quotes are re-priced when a proof is sent. Approval is refused if the screen count has moved since the quote.
+- The quote tool offers to use 8 screens.
+
+### Technical Notes
+- These figures compare the model with the art. They are not measured prints, because the inks are not measured yet.
+- Simulated process, on the Underwriter art: about ΔE 1.5 (mean) on dark shirts.
+- Index, on 12 flat colours at 8 screens: mean ΔE 1.25 on white and 1.5 on black. One lime colour came out at ΔE 12.7 and is flagged.
+- Speed: a full 38 cm front at 600 ppi, with two screen sets of 8 films, took 31 s and peaked at 2.2 GB (simulated process). Index on a full front at 600 ppi with 8 films took 1.2 s and 0.92 GB on flat art, and up to 3.7 s and 1.5 GB on painted art.
+- Tones past the 5% and 90% mesh limits are dithered cell by cell. That removes contours. It is a design choice for the owner to review.
+- Optional env var: `CALIBRATION_SCAN_MAX_MB` sets the largest calibration scan (default 300 MB).
+
+### Not Live Yet
+- Nothing from Phase 2 is live. No calibration chart has been printed, and the placeholder prices are not set.
+
+### Commit Details
+- **Commit Hash:** none yet for Phase 2. Phases 0 and 1 are in `639fd3a`, and Phase 2 is in the working tree on top of `d88bd7c`.
+- **Commit Message:** none yet
+- **Files Changed:** not counted yet
+- **New Files:** `platform/lib/pricing/`, `platform/lib/print/calibration/`, the index and simulated process modules in `platform/lib/print/engine/`, the `/admin/pricing` page and its components, the calibration page and API routes, and four test images
+
+### Files Modified
+1. `platform/lib/print/` — method dispatch, index and simulated process, calibration, shared types and defaults
+2. `platform/lib/services/` and `platform/lib/tools/bulk.ts` — quotes, runs, pricing admin, the ink system's dot-gain profile, and the quote tool
+3. `platform/app/(chat)/admin/pricing/`, `platform/app/(chat)/admin/ink-system/` and `platform/app/api/calibration/` — pages and routes
+4. `platform/components/admin/` and `platform/components/studio/approve/` — pricing and calibration screens, and method panels on the approval screen
+5. `platform/scripts/fixtures/print/` — four new test images, with the fixture script and README
+6. `Documentation/` — print prep plan, roadmap, PRD and this log
+
+### Key Insights
+- The engine chooses the method from the art: spot for flat art, index for bright many-colour art, and simulated process for gradients, photos and painted art.
+- Calibration changes only new films. Approved packs keep their files.
+- Approval is refused if the screen count has moved since the quote, so the approved count and the price match.
+
+### Next Steps
+- Integration review of Phase 2 with Phases 0 and 1: typecheck, lint, tests and build together.
+- Owner: set the real prices in `/admin/pricing`. The tiers, quantity breaks, margin and garment costs are placeholders.
+- Owner: print the calibration chart and scan it, or type in the readings.
+- Owner: measure the inks with the spectrophotometer when it arrives.
+- Owner: test the index and simulated process files in Photoshop and GTX Graphics Lab, as in the Phase 1 checks.
+- Owner: review the dithering note above.
+- Print prep Phase 3: texture and distress library from our own scans, DTF gang sheets, vectorising flat art, RIP hot folders, multi-placement products, per-ink screen angles, and embroidery prep for solid designs in solid colours.
 
 ---
 
 ## October 15, 2026 — Print Prep: Phases 0 and 1 Built
 
 ### Session Summary
-Built print prep phases 0 and 1 on branch `feat/print-prep`: one engine for every design, DTG/DTF and screen outputs, production packs with automatic checks, a pre-press audit queue, and staff access by area. Nothing is committed or live yet.
+Built print prep phases 0 and 1 on branch `feat/print-prep`: one engine for every design, DTG/DTF and screen outputs, production packs with automatic checks, a pre-press audit queue, and staff access by area. Committed locally on `feat/print-prep` (`639fd3a`, `699fcad`, `d88bd7c`), not pushed, and not live yet.
 
 ### Work Completed
 
@@ -59,8 +126,8 @@ Built print prep phases 0 and 1 on branch `feat/print-prep`: one engine for ever
 - Beanie and bucket-hat print boxes reuse the bag table (unverified). Joggers STBU157 and STBU185 only partly overlap their box.
 
 ### Commit Details
-- **Commit Hash:** none yet (branch `feat/print-prep`, from `22678b3`)
-- **Commit Message:** none yet
+- **Commit Hash:** `639fd3a` (code), `699fcad` (docs), `d88bd7c` (local demo mode), committed locally on `feat/print-prep` from `22678b3`, not pushed
+- **Commit Message:** `feat(platform): print prep Phase 0 and 1`; `docs: print prep plan, build notes, approved mocks and decision updates`; `chore(platform): local demo mode for print prep`
 - **Files Changed:** not counted yet
 - **New Files:** most print prep code under `platform/lib/print/`, `platform/worker/`, the approval and pre-press pages, and `platform/drizzle/0003_print_prep_and_staff.sql`
 
