@@ -1,5 +1,5 @@
+import { describeScreenEffect } from '@/lib/pricing/screen-print';
 import type { ApprovalGarment, ApprovalScreenSet } from '@/lib/services/print-prep';
-import { priceNote } from './approve-logic';
 
 /** Shop products · DTG/DTF: how every product in the shop prints, with the
  * facts for the chosen garment colour (what is left out, how fades and whites
@@ -18,10 +18,30 @@ export function ShopPanel({ facts }: { facts: readonly string[] }) {
   );
 }
 
+/** What the screen count does to a run's price: the count and its effect in one
+ * line ("6 screens: no surcharge", "11 screens: +€3 per piece"), then the fixed
+ * rule behind it. The count is the set's own, read from lib/pricing/screen-print.ts
+ * like the quote is, so the page and the run's price cannot disagree. Over the
+ * standard 8, it says how to bring the price down. */
+function PriceLine({ screens }: { screens: number }) {
+  const effect = describeScreenEffect(screens);
+  return (
+    <>
+      <p className="ap-a8">
+        <span className="font-semibold text-[var(--signal)]">{effect.line}.</span>
+      </p>
+      <p className="ap-a8">
+        {effect.rule}
+        {effect.over > 0 ? ' For fewer screens, ask in the chat: the look changes, and you approve the new proof again.' : ''}
+      </p>
+    </>
+  );
+}
+
 /** Runs · screen print: the screen set that prints the chosen colour, with the
  * screen count against the standard 8, which colours share the screens, the
  * inks in press order by their plain names (never a Pantone code), what the
- * whites are for, and what extra screens cost on a run. */
+ * whites are for, and what the count does to the price of a run. */
 export function ScreenPanel({ set, garment }: { set: ApprovalScreenSet | null; garment: ApprovalGarment | null }) {
   if (!set) {
     return (
@@ -50,7 +70,7 @@ export function ScreenPanel({ set, garment }: { set: ApprovalScreenSet | null; g
           </li>
         ))}
       </ol>
-      <p className="ap-a8">{priceNote(set)}</p>
+      <PriceLine screens={set.screenCount} />
     </section>
   );
 }

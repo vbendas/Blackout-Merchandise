@@ -1,0 +1,349 @@
+/* The dot gain calibration page: blocks of labelled content like the ink system page, a few boxes in a row, the
+   readings as a grid of small boxes, two plots and a table. Buttons, fields, the page frame and the type come
+   from components/admin/prepress/prepress.css (the page imports it). Monochrome like the rest of admin: a line is
+   told apart by its weight and dash, never by colour. It sits in @layer components, so a Tailwind utility on the
+   same element still wins. */
+@layer properties, theme, base, components, utilities, overrides;
+
+@layer components {
+  .cal {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+    max-width: 960px;
+    min-width: 0;
+  }
+
+  .cal p,
+  .cal ul {
+    margin: 0;
+  }
+
+  .cal-block {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .cal-block > legend {
+    margin-bottom: 4px;
+    padding: 0;
+  }
+
+  .cal-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .cal-fields .pp-fieldwrap {
+    flex: 0 1 auto;
+  }
+
+  .cal-num-input {
+    width: 140px;
+  }
+
+  .cal-select {
+    width: auto;
+    min-width: 220px;
+  }
+
+  .cal-films {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .cal-films > legend {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 0;
+  }
+
+  .cal-check {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-height: 44px;
+    cursor: pointer;
+  }
+
+  .cal-check input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 3px 0 0;
+    accent-color: var(--signal);
+  }
+
+  /* In a table cell the box sits level with its word. */
+  .cal-table .cal-check {
+    align-items: center;
+    min-height: 0;
+  }
+
+  .cal-table .cal-check input {
+    margin: 0;
+  }
+
+  .cal-file {
+    font-family: var(--pp-mono);
+    font-size: 12px;
+    color: var(--pp-dim);
+    overflow-wrap: anywhere;
+  }
+
+  /* Reading methods: three buttons that act as one choice. */
+  .cal-methods {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-self: flex-start;
+    border: var(--hairline-strong);
+    border-radius: 2px;
+  }
+
+  .cal-method {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 18px;
+    color: var(--pp-soft);
+    cursor: pointer;
+    transition: background-color 200ms var(--ease-settle), color 200ms var(--ease-settle);
+  }
+
+  .cal-method + .cal-method {
+    border-left: var(--hairline);
+  }
+
+  .cal-method input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .cal-method:hover {
+    background: var(--tint-8);
+  }
+
+  .cal-method[data-checked='true'] {
+    background: var(--signal);
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .cal-method:focus-within {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
+  }
+
+  .cal-disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .cal-scan,
+  .cal-typed,
+  .cal-result {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  /* The file box is hidden; the button that opens it shows where the keyboard is. */
+  .cal-scan label.pp-btn:focus-within {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
+  }
+
+  /* The readings to type: small boxes, as many to a row as fit. */
+  .cal-entry {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px 16px;
+  }
+
+  .cal-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: var(--pp-soft);
+    font-size: 13px;
+  }
+
+  .cal-cell .cal-num-input {
+    width: 100%;
+  }
+
+  .cal-problems {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0;
+    list-style: none;
+    color: var(--pp-soft);
+  }
+
+  .cal-problems li {
+    padding: 8px 12px;
+    border: var(--hairline);
+    border-radius: 2px;
+  }
+
+  .cal-problems li[data-severity='block'] {
+    border-color: var(--signal);
+    color: var(--signal);
+    font-weight: 600;
+  }
+
+  .cal-details summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    color: var(--pp-soft);
+    cursor: pointer;
+  }
+
+  /* Tables: small and plain, scrolling inside .pp-scroll rather than squeezing. */
+  .cal-table {
+    width: 100%;
+    min-width: 520px;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .cal-table th,
+  .cal-table td {
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 400;
+  }
+
+  .cal-table thead th {
+    font-family: var(--pp-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pp-dim);
+  }
+
+  .cal-table tbody tr {
+    border-top: var(--hairline);
+  }
+
+  .cal-table tbody th {
+    color: var(--pp-soft);
+  }
+
+  .cal-table :is(th, td):first-child {
+    padding-left: 0;
+  }
+
+  .cal-table .cal-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The plots. */
+  .cal-plots {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .cal-plot {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .cal-plot-svg {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+  }
+
+  .cal-grid-line {
+    stroke: var(--pp-line);
+    stroke-width: 1;
+  }
+
+  .cal-frame {
+    fill: none;
+    stroke: var(--pp-edge);
+    stroke-width: 1;
+  }
+
+  .cal-tick,
+  .cal-axis {
+    fill: var(--pp-dim);
+    font-family: var(--pp-mono);
+    font-size: 10px;
+  }
+
+  .cal-axis {
+    font-size: 11px;
+  }
+
+  .cal-line {
+    stroke: var(--signal);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .cal-line[data-style='faint'] {
+    stroke: var(--pp-dim);
+    stroke-width: 1.5;
+  }
+
+  .cal-line[data-style='dotted'] {
+    stroke: var(--pp-dim);
+    stroke-width: 1;
+    stroke-dasharray: 2 4;
+  }
+
+  .cal-reading {
+    fill: var(--paper);
+    stroke: var(--signal);
+    stroke-width: 1.5;
+  }
+
+  .cal-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    color: var(--pp-soft);
+    font-size: 13px;
+  }
+
+  .cal-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  @media (max-width: 640px) {
+    .cal-method {
+      flex: 1 1 auto;
+      padding: 0 12px;
+    }
+  }
+}

@@ -415,12 +415,15 @@ test('staff find a pack in the queue, open it, enter codes, approve it, run it a
   assert.equal((await h.db.select().from(schema.productionPacks).where(eq(schema.productionPacks.id, darks.id)))[0].auditStatus, 'approved');
 
   // Running a pack again: the tool turns its inputs into the service's settings (a colour as a hex with or without '#').
-  const again = await run(prepress.rerunPackTool, ctx, { packId: lights.id, screens: 3, lpi: 45, angleDeg: 15, trapMm: 0.1, underbaseChokeMm: 0.2, method: 'spot', inkChanges: [{ filmNumber: 2, hex: '5456ac' }] });
+  // Changed inks keep all the pack's films, so they can't come with fewer screens than that (the lights pack has 4).
+  const tooFew = await run(prepress.rerunPackTool, ctx, { packId: lights.id, screens: 3, inkChanges: [{ filmNumber: 2, hex: '5456ac' }] });
+  assert.equal(tooFew.data.error, 'Changing inks keeps all 4 films, more than the 3 screens asked for. Change the inks first, then the screen count.');
+  const again = await run(prepress.rerunPackTool, ctx, { packId: lights.id, screens: 4, lpi: 45, angleDeg: 15, trapMm: 0.1, underbaseChokeMm: 0.2, method: 'spot', inkChanges: [{ filmNumber: 2, hex: '5456ac' }] });
   assert.equal(again.data.ok, true, JSON.stringify(again.data));
   const [job] = await h.db.select().from(schema.printJobs).where(eq(schema.printJobs.id, again.data.jobId as string));
   assert.deepEqual((job.input as PrintJobInput).rerun?.settings, {
     method: 'spot',
-    maxScreens: 3,
+    maxScreens: 4,
     lpi: 45,
     angleDeg: 15,
     underbaseChokeMm: 0.2,

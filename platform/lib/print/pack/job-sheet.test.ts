@@ -246,6 +246,7 @@ test('one sheet covers garments printed DTG and by screen, with every section, o
     '2 to 2.5 min at 165 °C',
     '6 on a 8-head press',
     'Not measured yet: the proof uses target colours',
+    'Not calibrated: linear, the films carry the tones as they are',
     'Lights · 4 screens · spot colours',
     // DTG/DTF notes per garment colour
     'MF-UNDERWRITER-TEE-v3-FRONT-CHEST-DTG-BLACK.png',
@@ -317,6 +318,32 @@ test('a design nothing is prepared for and no order waits on still makes a sheet
   }
   assert.ok(!lines.join('\n').includes('Screen sets'), 'no screen section without screen sets');
   assert.ok(!shows(lines, 'Standard position'), 'no placement note when no placement says it');
+});
+
+test('each set says how its films are made: index cells and no traps, simulated process on the calibrated curve', async () => {
+  const input = await fullInput();
+  const cells = inks(false).map((ink) => ({ ...ink, lpi: 200, angleDeg: 0 }));
+  const calibrated = {
+    ...DEFAULT_INK_SYSTEM,
+    dotGain: { measuredAt: '2026-10-16T09:30:00.000Z', method: 'scan' as const, lpi: 55, angleDeg: 22.5, mesh: 230, points: [{ input: 0.5, printed: 0.65 }] },
+  };
+  input.screenSets = [set('Lights', { method: 'index', inks: cells }), set('Darks', { method: 'sim_process', system: calibrated })];
+  const lines = pdfLines(await renderJobSheet(input));
+  for (const phrase of [
+    'Lights · 4 screens · index',
+    'Index 200 ppi',
+    'None: index cells sit side by side',
+    'Not used: index films have no halftone dots',
+    'Darks · 6 screens · simulated process',
+    'None: the halftones overlap by design',
+    'Calibrated 2026-10-16 (from a scan) at 55 lpi 22.5°, mesh 230: tones compensated',
+  ]) {
+    assert.ok(shows(lines, phrase), `the sheet says "${phrase}"`);
+  }
+  assert.ok(!shows(lines, '200 lpi 0°'), 'an index film has no ruling');
+  // a saved curve the engine can't fit is linear to it, and to the sheet
+  input.screenSets = [set('Darks', { method: 'sim_process', system: { ...calibrated, dotGain: { ...calibrated.dotGain, points: [] } } })];
+  assert.ok(shows(pdfLines(await renderJobSheet(input)), 'Not calibrated: linear, the films carry the tones as they are'));
 });
 
 test('a set where nothing prints says why, in the engine’s words, and has no film table', async () => {

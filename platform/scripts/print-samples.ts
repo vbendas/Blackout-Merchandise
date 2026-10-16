@@ -39,7 +39,7 @@ interface FileReport {
 
 async function main(): Promise<void> {
   const [fixture, outArg] = process.argv.slice(2);
-  if (!fixture) throw new Error('Name a fixture: flat-logo-3c, tints-2c or test_design.');
+  if (!fixture) throw new Error('Name a fixture from scripts/fixtures/print: flat-logo-3c (spot), many-colours-flat (index), smooth-gradients or painted-shading (simulated process), test_design.');
   const fixturePath = path.resolve('scripts/fixtures/print', `${fixture}.png`);
   const out = path.resolve(outArg ?? '../print-prep-samples', fixture);
 
@@ -181,11 +181,15 @@ async function main(): Promise<void> {
         await writeFile(path.join(dir, name), bytes);
         reports.push(await openAgain(file.kind, name, bytes, { parsePsdIndependently, decodePngIndependently, PDFDocument }));
       }
+      const info = pipeline.packInfo(pack);
       packs.push({
         technique: pack.technique,
         screenSet: pack.screenSetKey,
         garments: pack.garmentCodes,
         screens: pack.screenCount,
+        method: pack.method,
+        methodReason: info?.methodReason ?? null,
+        warnings: (info?.warnings ?? []).map((w) => ({ code: w.code, severity: w.severity, message: w.message })),
         audit: audits[pack.id],
         checks: pipeline.packChecks(pack).map((c) => ({ id: c.id, state: c.state, detail: c.detail })),
         files: reports,
@@ -207,7 +211,25 @@ async function main(): Promise<void> {
     };
     await writeFile(path.join(out, 'index.json'), JSON.stringify(summary, null, 2));
     const failedOpen = [...packs.flatMap((p) => p.files.filter((f) => !f.ok)), ...(sheetReport.ok ? [] : [sheetReport])];
-    console.log(JSON.stringify({ fixture, packs: packs.map((p) => ({ technique: p.technique, set: p.screenSet, audit: p.audit, checks: Object.fromEntries(p.checks.map((c) => [c.id, c.state])) })), failedOpen }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          fixture,
+          packs: packs.map((p) => ({
+            technique: p.technique,
+            set: p.screenSet,
+            method: p.method,
+            screens: p.screens,
+            audit: p.audit,
+            accuracy: p.warnings.filter((w) => w.code === 'sim_process_accuracy' || w.code === 'index_colour_loss').map((w) => w.message),
+            checks: Object.fromEntries(p.checks.map((c) => [c.id, c.state])),
+          })),
+          failedOpen,
+        },
+        null,
+        2,
+      ),
+    );
     if (failedOpen.length > 0) process.exitCode = 1;
   } finally {
     await t.close();

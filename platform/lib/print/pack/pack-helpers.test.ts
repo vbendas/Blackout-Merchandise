@@ -14,7 +14,9 @@ import {
   plateIdentity,
   plateLayerName,
   screenPsdFileName,
+  screenRulingText,
 } from './names';
+import { indexScreenText } from '@/lib/print/engine/index-method';
 import { compareProofs } from './proof-compare';
 import { BLACK, NAVY, WHITE, syntheticDtgLayers, syntheticScreenSet } from './synthetic';
 
@@ -60,6 +62,20 @@ test('film layer names read back, Pantone codes normalise and ids are stable GUI
   const guid = guidFromHex(sha256Hex('art'));
   assert.match(guid, /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   assert.equal(guid, guidFromHex(sha256Hex('art')));
+});
+
+test('an index film is named by its square-cell grid, as its label strip is, and reads back', () => {
+  const s = syntheticScreenSet({ plates: 6, widthMm: 10, heightMm: 12 });
+  // index plates carry their grid in the halftone: cells per inch, 0°
+  const plate = { ...s.set.plates[1], halftone: { ...s.set.plates[1].halftone, lpi: 200, angleDeg: 0 } };
+  const name = plateLayerName(plate, 6, 'index');
+  assert.equal(name, '2/6  PANTONE 237 C · HB Opaque · Index 200 ppi');
+  assert.ok(name.endsWith(indexScreenText(200)), 'the layer and the film strip say the same');
+  assert.equal(screenRulingText(600 / 7, 0, 'index'), indexScreenText(600 / 7), 'a grid that is not whole: the same two decimals');
+  const parsed = parsePlateLayerName(name)!;
+  assert.deepEqual([parsed.role, parsed.pantone, parsed.base, parsed.lpi, parsed.angleDeg], ['ink', 'PANTONE 237 C', 'HB Opaque', 200, 0]);
+  // spot and simulated process keep the ruling
+  assert.equal(plateLayerName(plate, 6, 'sim_process'), '2/6  PANTONE 237 C · HB Opaque · 200 lpi 0°');
 });
 
 test('the manifest hashes every input, records sizes, screens and DTG crops, and serialises stably', () => {

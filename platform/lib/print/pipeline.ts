@@ -1086,7 +1086,9 @@ async function packageScreenSet(ctx: BuildContext, set: ScreenSet, args: Package
 
 async function buildScreenSet(ctx: BuildContext, set: ScreenSet, args: PackageArgs, rowId: string): Promise<BuiltPack> {
   const { deps, input } = ctx;
-  const { placement, label, meta } = args;
+  const { placement, label } = args;
+  // The separation's sets can have different methods: the pack gives its own set's reason.
+  const meta: PackMeta = { ...args.meta, methodReason: set.methodReason ?? args.meta.methodReason };
   const garments = ctx.garments.filter((g) => set.garmentCodes.includes(g.code));
   const stem = stemOf(ctx, placement);
   const sink = new FileSink(ctx, ['pack', `${placementKey(placement).replace(/:/g, '-')}`, `screen-${set.key}`, ctx.inputHash.slice(0, 10)]);

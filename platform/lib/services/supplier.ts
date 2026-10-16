@@ -1,6 +1,8 @@
 import { randomUUID } from 'crypto';
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
+import { isScreenServiceCode } from '@/lib/pricing/screen-print';
+import { blankGarmentCost } from '@/lib/services/quotes';
 
 // Supplier purchase orders (Stanley/Stella): group queued orders' items by
 // blank + colour + size into a draft PO, then move it draft -> placed ->
@@ -75,14 +77,20 @@ function parseNotes(notes: string | null): NotesPayload {
 }
 
 /** Garment-only cost (the supplier ships blanks; print happens in-house), at
- * the base-cost quantity break matching the group's total quantity. */
+ * the base-cost quantity break matching the group's total quantity. Screen
+ * print has no base-cost rows of its own (a screen run is priced from the
+ * screen-print table), and any left from an old seed were placeholders, so a
+ * screen-printed item, or any service without rows, costs what the blank
+ * costs under its other services (blankGarmentCost). 0 only when the blank has
+ * no pricing at all. */
 async function garmentCostFor(blankCode: string, printServiceCode: string, qty: number): Promise<number> {
+  if (isScreenServiceCode(printServiceCode)) return (await blankGarmentCost(blankCode, qty)) ?? 0;
   const rows = await db
     .select({ qtyFrom: schema.baseCosts.qtyFrom, garmentCostCents: schema.baseCosts.garmentCostCents })
     .from(schema.baseCosts)
     .where(and(eq(schema.baseCosts.blankCode, blankCode), eq(schema.baseCosts.printServiceCode, printServiceCode)))
     .orderBy(asc(schema.baseCosts.qtyFrom));
-  if (rows.length === 0) return 0;
+  if (rows.length === 0) return (await blankGarmentCost(blankCode, qty)) ?? 0;
   const applicable = rows.filter((r) => r.qtyFrom <= qty).at(-1) ?? rows[0];
   return applicable.garmentCostCents;
 }

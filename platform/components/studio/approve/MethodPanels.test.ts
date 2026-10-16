@@ -25,7 +25,7 @@ test('the runs panel names the set, the screen count, who shares it and the pric
   assert.match(read, /Runs · screen print · Darks/);
   assert.match(read, /6 screens, within the standard 8\./);
   assert.match(read, /Black and French Navy print from the same 6 screens, over a white underbase\./);
-  assert.match(read, /No surcharge\. On a run, each screen above 8 adds €1 per piece\./);
+  assert.match(read, /6 screens: no surcharge\. On a run, each screen above 8 adds €1 per piece, up to 15 screens\./);
 });
 
 test('the inks come in press order with their plain names, and only the whites explain themselves', () => {
@@ -52,9 +52,38 @@ test('no Pantone code reaches a client, on either set', () => {
   }
 });
 
-test('a view with no price note still says what extra screens cost', () => {
-  const html = renderToStaticMarkup(createElement(ScreenPanel, { set: { ...darks, priceNote: '' }, garment: black }));
-  assert.match(text(html), /On a run, each screen above 8 adds €1 per piece\./);
+// The price line comes from the set's own screen count, whatever note the view carries.
+const withScreens = (screenCount: number) => ({ ...darks, screenCount });
+const priceLine = (set: typeof darks) => text(renderToStaticMarkup(createElement(ScreenPanel, { set, garment: black })));
+
+test('the price line shows the screen count and its effect: nothing up to 8', () => {
+  assert.match(priceLine(withScreens(1)), /1 screen: no surcharge\./);
+  assert.match(priceLine(withScreens(6)), /6 screens: no surcharge\./);
+  assert.match(priceLine(withScreens(8)), /8 screens: no surcharge\./);
+  assert.doesNotMatch(priceLine(withScreens(8)), /ask in the chat/i);
+});
+
+test('above 8 the price line says what each extra screen adds, and how to bring it down', () => {
+  assert.match(priceLine(withScreens(9)), /9 screens: \+€1 per piece\./);
+  assert.match(priceLine(withScreens(11)), /11 screens: \+€3 per piece\./);
+  assert.match(priceLine(withScreens(15)), /15 screens: \+€7 per piece\./);
+  const read = priceLine(withScreens(11));
+  assert.match(read, /On a run, each screen above 8 adds €1 per piece, up to 15 screens\./);
+  assert.match(read, /For fewer screens, ask in the chat: the look changes, and you approve the new proof again\./);
+});
+
+test('a note the view carries does not change the line: the count decides', () => {
+  const stale = { ...withScreens(11), priceNote: 'No surcharge. On a run, each screen above 8 adds €1 per piece.' };
+  assert.match(priceLine(stale), /11 screens: \+€3 per piece\./);
+  assert.doesNotMatch(priceLine(stale), /No surcharge\./);
+});
+
+test('the price line is plain text in the details column: no Pantone, no codes, and the effect leads', () => {
+  for (const screens of [3, 8, 12]) {
+    const read = priceLine(withScreens(screens));
+    assert.doesNotMatch(read, /pantone/i);
+    assert.ok(read.indexOf(`${screens} screens:`) > read.indexOf('Runs · screen print'), 'after the heading');
+  }
 });
 
 test('a colour with no screen set says so, by name, instead of showing an empty list', () => {

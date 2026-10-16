@@ -2,7 +2,7 @@
 // (Documentation/Dev/Print-Prep-Plan.md sections 4 and 5). Run from platform/:
 //   npx tsx scripts/fixtures/print/make-fixtures.ts
 // Offline: no database, no network. Writes next to this file, and the output is
-// the same on every run. Every shape is flat and drawn here (no photos, no third-
+// the same on every run. Every shape is drawn here (no photos, no third-
 // party artwork). The lettering uses the Arial Black system font (macOS), so a
 // machine without it renders a fallback: the PNGs committed here are the reference.
 import path from 'node:path';
@@ -337,6 +337,216 @@ function halftone(): Fixture {
   return { file: 'halftone.png', svg: svgDoc(SAMPLE, SAMPLE, body), width: SAMPLE, height: SAMPLE };
 }
 
+// --- 28 cm fixtures: index and simulated process -----------------------------
+
+/** 280 mm at 300 ppi is 3307 px. Every fixture in this group is this wide. */
+const PRINT_WIDTH_MM = 280;
+const WIDE_PX = Math.round(mm(PRINT_WIDTH_MM));
+
+/** A gradient stop: offset, colour, and an optional opacity (default 1). */
+type Stop = [offset: number, colour: string, opacity?: number];
+
+function stopsXml(stops: Stop[]): string {
+  return stops
+    .map(([offset, colour, opacity = 1]) => `<stop offset="${offset}" stop-color="${colour}" stop-opacity="${opacity}"/>`)
+    .join('');
+}
+
+interface RadialSpec {
+  cx: number;
+  cy: number;
+  r: number;
+  fx?: number;
+  fy?: number;
+}
+
+/** A radial gradient in bounding-box units. The focus (fx, fy) sets where the light falls. */
+function radialGradient(id: string, spec: RadialSpec, stops: Stop[]): string {
+  const { cx, cy, r, fx = cx, fy = cy } = spec;
+  return `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}" fx="${fx}" fy="${fy}">${stopsXml(stops)}</radialGradient>`;
+}
+
+function linearGradient(id: string, x1: number, y1: number, x2: number, y2: number, stops: Stop[]): string {
+  return `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stopsXml(stops)}</linearGradient>`;
+}
+
+/** A closed polygon through the given points. */
+function polygonPath(points: [number, number][]): string {
+  return `M ${points.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L ')} Z`;
+}
+
+/** A regular polygon with its first vertex on the right (angle 0). */
+function regularPolygon(cx: number, cy: number, r: number, sides: number): [number, number][] {
+  return Array.from({ length: sides }, (_, k): [number, number] => {
+    const angle = (k * 2 * Math.PI) / sides;
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  });
+}
+
+/**
+ * Twelve flat colours on transparent, one bold shape each, on a 4 x 3 grid (280 x 210 mm).
+ * No overlaps and no gradients: the index-separation target. The only anti-aliasing is on
+ * the shape edges.
+ */
+function manyColoursFlat(): Fixture {
+  const width = WIDE_PX;
+  const height = Math.round(mm(210));
+  const size = 600;
+  const h = size / 2;
+  const t = h * 0.3;
+  const shapes: { colour: string; path: (cx: number, cy: number) => string }[] = [
+    { colour: '#E4262C', path: (cx, cy) => circlePath(cx, cy, h) },
+    { colour: '#F7941D', path: (cx, cy) => polygonPath([[cx - h, cy - h], [cx + h, cy - h], [cx + h, cy + h], [cx - h, cy + h]]) },
+    { colour: '#FFD400', path: (cx, cy) => polygonPath([[cx, cy - h], [cx + h, cy + h], [cx - h, cy + h]]) },
+    { colour: '#9ACD32', path: (cx, cy) => starPath(cx, cy, h, h * 0.42) },
+    { colour: '#00843D', path: (cx, cy) => polygonPath([[cx, cy - h], [cx + h, cy], [cx, cy + h], [cx - h, cy]]) },
+    { colour: '#009A9A', path: (cx, cy) => polygonPath(regularPolygon(cx, cy, h, 6)) },
+    { colour: '#4FC3F7', path: (cx, cy) => `M ${cx - h} ${cy} A ${h} ${h} 0 0 1 ${cx + h} ${cy} Z` },
+    { colour: '#1F3FBF', path: (cx, cy) => `M ${cx - h} ${cy + h} L ${cx + h} ${cy + h} A ${size} ${size} 0 0 0 ${cx - h} ${cy - h} Z` },
+    { colour: '#151515', path: (cx, cy) => `${circlePath(cx, cy, h)} ${circlePath(cx, cy, h * 0.5)}` },
+    {
+      colour: '#A855F7',
+      path: (cx, cy) =>
+        polygonPath([
+          [cx - t, cy - h], [cx + t, cy - h], [cx + t, cy - t], [cx + h, cy - t],
+          [cx + h, cy + t], [cx + t, cy + t], [cx + t, cy + h], [cx - t, cy + h],
+          [cx - t, cy + t], [cx - h, cy + t], [cx - h, cy - t], [cx - t, cy - t],
+        ]),
+    },
+    {
+      colour: '#FF5FA2',
+      path: (cx, cy) =>
+        polygonPath([[cx - h, cy - h / 2], [cx, cy - h / 2], [cx, cy - h], [cx + h, cy], [cx, cy + h], [cx, cy + h / 2], [cx - h, cy + h / 2]]),
+    },
+    {
+      colour: '#6B3A1E',
+      path: (cx, cy) => polygonPath([[cx - h + h / 2, cy - h], [cx + h, cy - h], [cx + h - h / 2, cy + h], [cx - h, cy + h]]),
+    },
+  ];
+  const cellW = width / 4;
+  const cellH = height / 3;
+  const body = shapes
+    .map(({ colour, path }, i) => {
+      const cx = ((i % 4) + 0.5) * cellW;
+      const cy = (Math.floor(i / 4) + 0.5) * cellH;
+      return `<path d="${path(cx, cy)}" fill="${colour}" fill-rule="evenodd"/>`;
+    })
+    .join('');
+  return { file: 'many-colours-flat.png', svg: svgDoc(width, height, body), width, height };
+}
+
+/**
+ * Opaque and smooth: a violet-to-yellow sweep, a teal field, a blue field and a soft warm
+ * glow. Large areas with no edges to trace: the simulated-process target.
+ */
+function smoothGradients(): Fixture {
+  const size = WIDE_PX;
+  const body = [
+    '<defs>',
+    linearGradient('sweep', 0, 0, 1, 1, [
+      [0, '#2A0A5E'],
+      [0.28, '#8E1A9C'],
+      [0.52, '#F0457A'],
+      [0.76, '#FF9A3C'],
+      [1, '#FFD84D'],
+    ]),
+    radialGradient('teal', { cx: 0.18, cy: 0.82, r: 0.7 }, [[0, '#1FD1C0', 0.95], [1, '#1FD1C0', 0]]),
+    radialGradient('blue', { cx: 0.86, cy: 0.2, r: 0.62 }, [[0, '#2F6BFF', 0.9], [1, '#2F6BFF', 0]]),
+    radialGradient('glow', { cx: 0.42, cy: 0.42, r: 0.34 }, [
+      [0, '#FFF6D6', 0.95],
+      [0.3, '#FFE9A8', 0.55],
+      [1, '#FFE9A8', 0],
+    ]),
+    '</defs>',
+    `<rect width="${size}" height="${size}" fill="url(#sweep)"/>`,
+    `<rect width="${size}" height="${size}" fill="url(#teal)"/>`,
+    `<rect width="${size}" height="${size}" fill="url(#blue)"/>`,
+    `<rect width="${size}" height="${size}" fill="url(#glow)"/>`,
+  ].join('');
+  return { file: 'smooth-gradients.png', svg: svgDoc(size, size, body), width: size, height: size };
+}
+
+/** A closed blob: a circle with a slow wobble, so the edge is organic but smooth. */
+function blobPath(cx: number, cy: number, r: number, wobble: number, phase: number): string {
+  const steps = 240;
+  const points: string[] = [];
+  for (let i = 0; i < steps; i++) {
+    const t = (i / steps) * Math.PI * 2;
+    const k = 1 + wobble * Math.sin(3 * t + phase) + wobble * 0.5 * Math.sin(5 * t + 2 * phase);
+    points.push(`${(cx + r * k * Math.cos(t)).toFixed(1)} ${(cy + r * k * Math.sin(t)).toFixed(1)}`);
+  }
+  return `M ${points.join(' L ')} Z`;
+}
+
+/**
+ * A stylised painted orb: three concentric blobs in three hues (coral, ochre, teal), each
+ * shaded from light to dark by the same upper-left light, with one dark outline per blob.
+ * On transparent. This is the art that should go to simulated process on dark garments.
+ */
+function paintedShading(): Fixture {
+  const size = WIDE_PX;
+  const c = size / 2;
+  const layers: { r: number; wobble: number; phase: number; outline: number; stops: Stop[] }[] = [
+    {
+      r: 1180, wobble: 0.035, phase: 0.6, outline: 30,
+      stops: [[0, '#FFB39A'], [0.4, '#F0553A'], [0.78, '#B3251A'], [1, '#5C0F12']],
+    },
+    {
+      r: 800, wobble: 0.045, phase: 2.1, outline: 22,
+      stops: [[0, '#FFE58F'], [0.4, '#F5B21E'], [0.78, '#C27A10'], [1, '#6B3F08']],
+    },
+    {
+      r: 410, wobble: 0.05, phase: 4.0, outline: 16,
+      stops: [[0, '#C9F7EE'], [0.4, '#2CC2B3'], [0.78, '#13766F'], [1, '#08343A']],
+    },
+  ];
+  const defs = layers.map((layer, i) =>
+    radialGradient(`shade${i}`, { cx: 0.5, cy: 0.5, r: 0.72, fx: 0.36, fy: 0.3 }, layer.stops),
+  );
+  const shapes = layers.map((layer, i) => {
+    const d = blobPath(c, c, layer.r, layer.wobble, layer.phase);
+    return (
+      `<path d="${d}" fill="url(#shade${i})"/>` +
+      `<path d="${d}" fill="none" stroke="#120708" stroke-width="${layer.outline}" stroke-linejoin="round"/>`
+    );
+  });
+  const body = `<defs>${defs.join('')}</defs>${shapes.join('')}`;
+  return { file: 'painted-shading.png', svg: svgDoc(size, size, body), width: size, height: size };
+}
+
+/**
+ * A tonal piece on transparent: neutral greys (one black ink, in tints) and one muted sage
+ * (a second ink, in tints). A grey moon, a sage hill and a grey hill, all opaque, so no
+ * grey sits over the sage and there is no soft alpha ramp to band.
+ */
+function lowChromaTonal(): Fixture {
+  const size = WIDE_PX;
+  const sage = '#6E8577';
+  const cx = size / 2;
+  const moonY = 1100;
+  const body = [
+    '<defs>',
+    radialGradient('moon', { cx: 0.5, cy: 0.5, r: 0.5, fx: 0.36, fy: 0.32 }, [
+      [0, '#FAFAFA'],
+      [0.55, '#B4B4B4'],
+      [1, '#4E4E4E'],
+    ]),
+    linearGradient('far', 0, 0, 0, 1, [
+      [0, tintOf(sage, 0.3)],
+      [1, sage],
+    ]),
+    linearGradient('near', 0, 0, 0, 1, [
+      [0, '#8A8A8A'],
+      [1, '#2B2B2B'],
+    ]),
+    '</defs>',
+    `<circle cx="${cx}" cy="${moonY}" r="640" fill="url(#moon)"/>`,
+    `<path d="M 0 1960 C 500 1760 1000 1900 1450 1990 S 2650 1800 ${size} 1960 L ${size} ${size} L 0 ${size} Z" fill="url(#far)"/>`,
+    `<path d="M 0 2420 C 700 2260 1200 2480 1900 2400 S 2900 2300 ${size} 2420 L ${size} ${size} L 0 ${size} Z" fill="url(#near)"/>`,
+  ].join('');
+  return { file: 'low-chroma-tonal.png', svg: svgDoc(size, size, body), width: size, height: size };
+}
+
 // --- run ---------------------------------------------------------------------
 
 const FIXTURES: Fixture[] = [
@@ -353,6 +563,10 @@ const FIXTURES: Fixture[] = [
   photocopyZine(),
   lineTattoo(),
   halftone(),
+  manyColoursFlat(),
+  smoothGradients(),
+  paintedShading(),
+  lowChromaTonal(),
 ];
 
 async function main(): Promise<void> {

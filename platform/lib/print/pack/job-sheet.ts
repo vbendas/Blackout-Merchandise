@@ -11,7 +11,8 @@
 import PDFDocument from 'pdfkit';
 import sharp from 'sharp';
 import type { CheckResult, JobSheetAuditState, JobSheetDtgPack, JobSheetInput, JobSheetScreenSet, PackManifestInk } from '@/lib/print/types';
-import { displayPantone, formatNumber } from './names';
+import { compensationFor } from '@/lib/print/calibration/curve';
+import { displayPantone, formatNumber, screenRulingText } from './names';
 
 const PAGE = { width: 841.89, height: 595.28, margin: 36 };
 const CONTENT_WIDTH = PAGE.width - 2 * PAGE.margin;
@@ -322,7 +323,7 @@ function planScreenSet(set: JobSheetScreenSet): SetPlan {
         { text: inkLabel(ink), bold: true },
         ink.base,
         ink.role === 'ink' && ink.clientName ? `${ink.clientName} · ${ink.hex}` : ink.hex,
-        `${formatNumber(ink.lpi)} lpi ${formatNumber(ink.angleDeg)}°`,
+        screenRulingText(ink.lpi, ink.angleDeg, set.method),
         ink.mesh ? `${ink.mesh} (${threadsPerCm(ink.mesh)}T)` : '-',
         pct(ink.coverage),
       ],
@@ -347,7 +348,7 @@ function planScreenSet(set: JobSheetScreenSet): SetPlan {
     'Colour base',
     colourBases.length > 0 ? `${colourBases.join(', ')}${hasUnderbase ? ', wet on wet over the underbase' : ''}` : `${sys.bases.dark} on dark garments (wet on wet over the underbase), ${sys.bases.light} on light`,
   ]);
-  settings.push(['Traps', set.trapMm !== null ? `${mm(set.trapMm)}, lighter ink spread under darker` : 'Not recorded with this set']);
+  settings.push(['Traps', trapsText(set)]);
   if (hasHighlight) settings.push(['Highlight white', `${sys.highlightWhite.ink}, last screen`]);
   settings.push(
     ['Cure', `${formatNumber(sys.cure.minutesMin)} to ${formatNumber(sys.cure.minutesMax)} min at ${formatNumber(sys.cure.celsius)} °C`],
@@ -357,6 +358,7 @@ function planScreenSet(set: JobSheetScreenSet): SetPlan {
     ['Screens', `${screens} on a ${heads}-head press${screens > heads ? ': more than the heads, plan the run' : ''}`],
   );
   if (extra > 0) settings.push(['Surcharge', `${extra} ${extra === 1 ? 'screen' : 'screens'} above ${STANDARD_SCREENS}: €${extra} per piece on runs`]);
+  settings.push(['Dot gain', dotGainText(set)]);
   if (!sys.measured) settings.push(['Inks', 'Not measured yet: the proof uses target colours']);
 
   return {
@@ -365,6 +367,26 @@ function planScreenSet(set: JobSheetScreenSet): SetPlan {
     rows,
     settings,
   };
+}
+
+/** Traps as the method makes them: spot spreads the lighter ink under the darker; index cells and simulated-process
+ * halftones overlap by design, so they have none (plan 4.3 step 6). */
+function trapsText(set: JobSheetScreenSet): string {
+  if (set.method === 'index') return 'None: index cells sit side by side';
+  if (set.method === 'sim_process') return 'None: the halftones overlap by design';
+  return set.trapMm !== null ? `${mm(set.trapMm)}, lighter ink spread under darker` : 'Not recorded with this set';
+}
+
+const GAIN_METHOD_WORDS: Record<string, string> = { scan: 'from a scan', manual: 'typed in', spectro: 'from a spectrophotometer' };
+
+/** The dot-gain curve the films were made with: that of the ink system the set was built with. A saved curve the engine
+ * can't fit is linear to it (dotGainFor), so the sheet says linear too. Index films have no halftone dots to compensate. */
+function dotGainText(set: JobSheetScreenSet): string {
+  if (set.method === 'index') return 'Not used: index films have no halftone dots';
+  const gain = set.system.dotGain;
+  if (!gain || !compensationFor(gain)) return 'Not calibrated: linear, the films carry the tones as they are';
+  const how = GAIN_METHOD_WORDS[gain.method] ?? gain.method;
+  return `Calibrated ${dateOf(gain.measuredAt)} (${how}) at ${formatNumber(gain.lpi)} lpi ${formatNumber(gain.angleDeg)}°, mesh ${formatNumber(gain.mesh)}: tones compensated`;
 }
 
 /** The height of a screen set: its heading, its films and its press settings. */

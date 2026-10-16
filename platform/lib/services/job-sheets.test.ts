@@ -165,6 +165,23 @@ test('one sheet covers every shop product and run line: several blanks and colou
   assert.ok(productId);
 });
 
+test('a run line that also prints the back has a row for the back, with no file until one is made', async () => {
+  const { designId, darks } = await liveDesign({ colours: ['C002'] });
+  const run = await seedRun(h.db, {
+    storeId: h.artist.storeId,
+    designId,
+    lines: [{ colourCode: 'C002', qty: 30, printServiceCode: 'screen_2c', extraPlacements: [{ position: 'back', widthCm: 30 }] }],
+  });
+  const { source } = await collect(designId);
+  const screenRows = source.garments.filter((g) => g.colourCode === 'C002' && g.method === 'screen');
+  const runLabel = await runLabelOf(run.bulkOrderId);
+  const front = screenRows.find((g) => g.placement.startsWith('Front chest'))!;
+  const back = screenRows.find((g) => g.placement.startsWith('Back'))!;
+  assert.deepEqual([front.file, front.usedBy], [fileOf(darks.files as PackFile[], 'screen_psd'), [runLabel]]);
+  assert.ok(back, `a row for the back: ${JSON.stringify(screenRows.map((g) => g.placement))}`);
+  assert.deepEqual([back.file, back.note, back.usedBy], [null, 'No print file yet', [runLabel]]);
+});
+
 test('a shop product with a method that makes no print file (embroidery) is listed, without a file', async () => {
   const { designId, productId } = await liveDesign({ colours: ['C002'] });
   await h.db.update(schema.products).set({ printServiceCode: 'embroidery' }).where(eq(schema.products.id, productId));

@@ -441,7 +441,7 @@ export async function writeScreenPsdWithStats(input: ScreenPsdInput, options: Ps
   for (const p of plates) {
     const [r, g, b] = hexToRgb(p.target.hex);
     layers.push({
-      name: plateLayerName(p, plates.length),
+      name: plateLayerName(p, plates.length, set.method),
       left: 0,
       top: 0,
       width: W,

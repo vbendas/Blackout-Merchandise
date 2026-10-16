@@ -696,6 +696,10 @@ const ACTION_WORDS: Record<string, string> = {
   'supplier.draft': 'Drafted a supplier order',
   'supplier.place': 'Placed a supplier order',
   'supplier.receive': 'Received a supplier order',
+  'ink_system.update': 'Changed the ink system',
+  'ink_system.dot_gain': 'Calibrated the dot gain',
+  'ink_system.dot_gain_reset': 'Removed the dot-gain calibration',
+  'pricing.screen_table': 'Changed the screen-print prices',
 };
 
 function humanise(action: string): string {

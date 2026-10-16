@@ -73,6 +73,10 @@ import { techniqueOfService } from '@/lib/services/quotes';
 import { runNumberFor } from '@/lib/services/runs';
 import { sortSizes } from '@/lib/storefront/present';
 
+/** The drawing's own version, part of every sheet's hash: a sheet cached before lib/print/pack/job-sheet.ts drew something new
+ * for the same contents (2: the dot-gain line, traps by method, index rulings) is drawn again rather than served as it was. */
+const JOB_SHEET_LAYOUT = 2;
+
 /** Production stages an order is open in: paid, and its pieces not yet printed and packed. */
 const OPEN_PRODUCTION = ['queued', 'printing'] as const;
 /** Products in front of fans: their proof is out, or they are on sale. A draft is not (yet). */
@@ -208,6 +212,8 @@ interface RunLine {
   blankCode?: string;
   printServiceCode?: string;
   placement?: StoredPlacement | null;
+  /** screen print: more positions on the same garment, each on its own screens */
+  extraPlacements?: StoredPlacement[] | null;
   colourCode?: string;
 }
 
@@ -325,14 +331,17 @@ export async function collectJobSheet(designId: string): Promise<CollectedJobShe
       const ours = line.productId ? product !== undefined : line.designId === design.id;
       const blankCode = line.blankCode ?? product?.blankCode;
       if (!ours || !blankCode || !line.colourCode || !line.printServiceCode) continue;
-      lines.push({
-        blankCode,
-        colourCode: line.colourCode,
-        placement: toPrintPlacement(line.placement ?? (product?.placement as StoredPlacement | null)),
-        technique: techniqueOfService(line.printServiceCode),
-        serviceCode: line.printServiceCode,
-        usedBy: run.label,
-      });
+      const extras = Array.isArray(line.extraPlacements) ? line.extraPlacements : [];
+      for (const placement of [line.placement ?? (product?.placement as StoredPlacement | null), ...extras]) {
+        lines.push({
+          blankCode,
+          colourCode: line.colourCode,
+          placement: toPrintPlacement(placement),
+          technique: techniqueOfService(line.printServiceCode),
+          serviceCode: line.printServiceCode,
+          usedBy: run.label,
+        });
+      }
     }
   }
 
@@ -599,7 +608,7 @@ export async function collectJobSheet(designId: string): Promise<CollectedJobShe
   };
   return {
     source,
-    contentHash: hashJson(source),
+    contentHash: hashJson({ layout: JOB_SHEET_LAYOUT, source }),
     filename: `${fileSlug(code)}${shown === null ? '' : `-v${shown}`}-job-sheet.pdf`,
   };
 }

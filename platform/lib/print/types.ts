@@ -115,6 +115,8 @@ export interface PrintRecipe {
   highlightWhite: boolean;
   /** inks the design must use, if the capsule or auditor locks them */
   lockedInks?: Hex[];
+  /** index separations: square cells per inch on the film (200 when absent; lib/print/engine/index-cells.ts) */
+  indexCellPpi?: Ppi;
   dtg: {
     ppi: Ppi;
     fadeLpi: Lpi;
@@ -160,6 +162,22 @@ export interface InkSystemProfile {
   pressHeads: number;
   /** false until inks are measured with a spectrophotometer */
   measured: boolean;
+  /** Phase 2: dot gain measured from a printed test chart; absent means linear (no compensation) */
+  dotGain?: DotGainProfile;
+}
+
+/** Measured dot gain of the press and ink system (Phase 2, lib/print/calibration). */
+export interface DotGainProfile {
+  /** ISO timestamp of the measurement */
+  measuredAt: string;
+  /** how the printed chart was read */
+  method: 'manual' | 'scan' | 'spectro';
+  /** the screen the chart was printed with */
+  lpi: number;
+  angleDeg: number;
+  mesh: number;
+  /** film coverage in (0..1) against the coverage measured on the garment (0..1), ascending input */
+  points: { input: number; printed: number }[];
 }
 
 // ---------------------------------------------------------------------------
@@ -224,6 +242,9 @@ export interface ScreenSet {
   /** the set's garment colours, when known: a proof or loupe made later (a
    * set rebuilt from a corrected PSD keeps them) finds the shirt colour here */
   garments?: GarmentColour[];
+  /** why this set has its method: sets of one separation can differ (darks
+   * simulated process, lights spot), so each pack says its own */
+  methodReason?: string;
 }
 
 export interface SeparationInput {

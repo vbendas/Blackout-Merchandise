@@ -86,11 +86,11 @@ const GARMENT_COST_CENTS_BY_TYPE: Record<string, number> = {
 };
 
 // Placeholder print cost by print service (cents). DTF starts at the DTG
-// figure until the owner sets its own.
+// figure until the owner sets its own. Screen print has none here: a
+// screen-printed run is priced by screen count from the screen-print price
+// table (lib/pricing/screen-print.ts, edited at /admin/pricing), and its
+// garment cost is read from the blank's other rows (Print-Prep-Plan section 10).
 const PRINT_COST_CENTS_BY_SERVICE: Record<string, number> = {
-    screen_1c: 350,
-    screen_2c: 520,
-    screen_3c: 690,
     dtg: 600,
     dtf: 600,
     embroidery: 850,
@@ -342,7 +342,12 @@ async function seedBaseCosts(db: SeedDb): Promise<void> {
         }
 
         for (const serviceCode of printServiceCodesFor(p.code)) {
+            // No base-cost rows for screen print (see PRINT_COST_CENTS_BY_SERVICE).
+            if (serviceCode.startsWith('screen_')) continue;
             const basePrintCost = PRINT_COST_CENTS_BY_SERVICE[serviceCode];
+            if (basePrintCost === undefined) {
+                throw new Error(`No placeholder print cost for service '${serviceCode}' (blank ${p.code})`);
+            }
             for (const { qtyFrom, printCostReduction } of QTY_BREAKS) {
                 const printCostCents = Math.round(basePrintCost * (1 - printCostReduction));
                 const marginCents = Math.round(0.3 * (garmentCostCents + printCostCents));
@@ -358,6 +363,10 @@ async function seedBaseCosts(db: SeedDb): Promise<void> {
             }
         }
     }
+
+    // Screen-print rows an older seed left behind were placeholders: a screen-printed run is priced from the screen-print
+    // table now, and the catalogue's "from" prices must not fall back on them.
+    await db.delete(S.baseCosts).where(rawSql`${S.baseCosts.printServiceCode} LIKE 'screen\_%'`);
 
     for (const batch of chunk(rows, 300)) {
         await db.insert(S.baseCosts).values(batch).onConflictDoUpdate({

@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { updateInkSystem } from '@/lib/services/ink-system';
+import { getActiveInkSystem, updateInkSystem } from '@/lib/services/ink-system';
 import { runPrepressAction } from '@/components/admin/prepress/action-runner';
 import { checkInkSystemProfile } from '@/components/admin/ink-system/profile-form';
 import type { Checked } from '@/components/admin/prepress/rules';
@@ -16,7 +16,12 @@ export async function saveInkSystemAction(profile: unknown): Promise<Checked<{ u
   return runPrepressAction('manage', async (actor) => {
     const checked = checkInkSystemProfile(profile);
     if (!checked.ok) return { ok: false, error: checked.error };
-    const result = await updateInkSystem(actor, checked.profile);
+    // The form doesn't edit the dot-gain calibration: whatever is in force now stays, even if this page was loaded before a
+    // measurement was saved on the calibration page (and so holds an older one, or none).
+    const next = { ...checked.profile };
+    delete next.dotGain;
+    const current = (await getActiveInkSystem()).profile.dotGain;
+    const result = await updateInkSystem(actor, current ? { ...next, dotGain: current } : next);
     if (!result.ok) return { ok: false, error: result.error };
     revalidatePath('/admin/ink-system');
     return { ok: true, value: { updatedAt: result.value.updatedAt } };

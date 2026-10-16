@@ -346,18 +346,23 @@ interface GetQuoteData {
   unitBaseCostCents?: number;
   totalCents?: number;
   breaks?: QuoteBreak[];
+  /** screen print: the price rests on a first guess at the screens, not on a design's print files */
+  estimate?: boolean;
+  /** screen print: the screens the guess assumed */
+  screens?: number;
 }
 
 export const getQuoteTool = defineTool({
   name: 'get_quote',
   description:
-    "Price a run of a blank + print service at a given quantity, using the seeded base-cost table (garment + print + margin, with quantity breaks). Pass either blankCode or productId (to reuse an existing product's blank/print service); printServiceCode is optional when productId is given. A run can print by any method the blank offers, screen print (screen_1c, screen_2c, screen_3c) or DTG/DTF (dtg, dtf), whatever the shop product itself uses, so pass printServiceCode to price a different method. Returns only totals per quantity break — never the garment/print/margin components, which artists don't see. Use this for 'what would 40 hoodies cost', 'what's my margin at €40', or any pricing question.",
+    "Price a run of a blank + print service at a given quantity, using the seeded base-cost table (garment + print + margin, with quantity breaks). Pass either blankCode or productId (to reuse an existing product's blank/print service); printServiceCode is optional when productId is given. A run can print by any method the blank offers, screen print (screen_1c, screen_2c, screen_3c) or DTG/DTF (dtg, dtf), whatever the shop product itself uses, so pass printServiceCode to price a different method. Returns only totals per quantity break — never the garment/print/margin components, which artists don't see. A screen-print price here is an estimate (estimate: true): it guesses the screens from the service's colours, plus the white underbase and highlight white on a dark garment (pass colourCode to say which garment colour; dark is assumed without it). Say it is an estimate: a run quote (create_bulk_quote) counts the screens from the design's print files, so its price can differ. Use this for 'what would 40 hoodies cost', 'what's my margin at €40', or any pricing question.",
   input: z
     .object({
       blankCode: z.string().min(2).max(20).optional(),
       productId: z.string().uuid().optional(),
       printServiceCode: z.string().min(2).max(40).optional(),
       qty: z.number().int().min(1).max(100000),
+      colourCode: z.string().min(1).max(10).optional().describe('Screen print only: the garment colour code. A light garment needs no white underbase or highlight white, so its estimate counts fewer screens.'),
     })
     .strict(),
   scope: 'both',
@@ -387,12 +392,17 @@ export const getQuoteTool = defineTool({
       };
     }
 
-    const quote = await quoteFor({ blankCode, printServiceCode, qty: input.qty });
+    const quote = await quoteFor({ blankCode, printServiceCode, qty: input.qty, ...(input.colourCode ? { colourCode: input.colourCode } : {}) });
     if (!quote) {
       const text = `No pricing configured for ${blankCode} with ${printServiceCode}.`;
       return { data: { ok: false, error: text }, ui: { cards: [errorNotice(`quote_err_${randomUUID()}`, text)] } };
     }
 
+    // A screen-print price with no design behind it guesses the screens; the card says so, and what the guess was.
+    const estimateNote =
+      quote.estimate && quote.screens !== undefined
+        ? ` Estimate for ${quote.screens} ${quote.screens === 1 ? 'screen' : 'screens'}: a run quote counts the screens from the design's print files, so its price can differ.`
+        : '';
     const card: Card = {
       id: `quote_${randomUUID()}`,
       kind: 'quote',
@@ -400,12 +410,25 @@ export const getQuoteTool = defineTool({
       lines: quote.breaks.map((b) => ({ label: `${b.qtyFrom}+ units`, qty: b.qtyFrom, unitCents: b.unitCents, totalCents: b.unitCents * b.qtyFrom })),
       totalCents: quote.totalCents,
       currency: 'EUR',
-      note: `${input.qty} unit${input.qty === 1 ? '' : 's'} at €${(quote.unitBaseCostCents / 100).toFixed(2)} each = €${(quote.totalCents / 100).toFixed(2)} total.`,
+      note: `${input.qty} unit${input.qty === 1 ? '' : 's'} at €${(quote.unitBaseCostCents / 100).toFixed(2)} each = €${(quote.totalCents / 100).toFixed(2)} total.${estimateNote}`,
     };
 
     return {
-      data: { ok: true, qty: input.qty, unitBaseCostCents: quote.unitBaseCostCents, totalCents: quote.totalCents, breaks: quote.breaks },
-      ui: { cards: [card], next: [{ label: 'Set a price', prompt: `Price it at €${Math.ceil((quote.unitBaseCostCents + 500) / 100)}` }] },
+      data: {
+        ok: true,
+        qty: input.qty,
+        unitBaseCostCents: quote.unitBaseCostCents,
+        totalCents: quote.totalCents,
+        breaks: quote.breaks,
+        ...(quote.estimate ? { estimate: true, ...(quote.screens !== undefined ? { screens: quote.screens } : {}) } : {}),
+      },
+      // screen print is for runs, never a shop price: the next step for an estimate is a run quote, which counts the real screens
+      ui: {
+        cards: [card],
+        next: quote.estimate
+          ? [{ label: 'Quote a run', prompt: `Quote a bulk order of ${input.qty}` }]
+          : [{ label: 'Set a price', prompt: `Price it at €${Math.ceil((quote.unitBaseCostCents + 500) / 100)}` }],
+      },
     };
   },
 });

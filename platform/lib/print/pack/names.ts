@@ -3,7 +3,7 @@
 // the press position, the Pantone code or role, the base, the flash and the
 // screen ruling. Pantone codes belong here: these are admin and production
 // files, never shown to clients.
-import type { InkPlate, PlateRole } from '@/lib/print/types';
+import type { InkPlate, PlateRole, ScreenMethod } from '@/lib/print/types';
 
 export const ORIGINAL_LAYER_NAME = 'ORIGINAL (do not print)';
 const GARMENT_PREFIX = 'GARMENT · ';
@@ -31,11 +31,29 @@ export function plateInkLabel(plate: Pick<InkPlate, 'role' | 'pantone' | 'target
   return `Ink ${plate.target.hex.toUpperCase()}`;
 }
 
-/** '2/6  PANTONE 237 C · HB Opaque · 55 lpi 22.5°' (two spaces after the position, as in Plan 6.1). */
-export function plateLayerName(plate: InkPlate, total: number): string {
+/**
+ * The screen a film is made with: '55 lpi 22.5°'. An index film has no
+ * halftone screen: its plates carry their square-cell grid in `halftone`
+ * (lpi = cells per inch, 0°), so it reads 'Index 200 ppi', as the film's own
+ * label strip does (indexScreenText in engine/index-method.ts).
+ */
+export function plateScreenText(plate: Pick<InkPlate, 'halftone'>, method?: ScreenMethod): string {
+  return screenRulingText(plate.halftone.lpi, plate.halftone.angleDeg, method);
+}
+
+/** plateScreenText from the ruling as a manifest stores it (lpi and angle). */
+export function screenRulingText(lpi: number, angleDeg: number, method?: ScreenMethod): string {
+  // two decimals at most, as the film's own label strip prints a grid like 85.71 ppi
+  if (method === 'index') return `Index ${formatNumber(Math.round(lpi * 100) / 100)} ppi`;
+  return `${formatNumber(lpi)} lpi ${formatNumber(angleDeg)}°`;
+}
+
+/** '2/6  PANTONE 237 C · HB Opaque · 55 lpi 22.5°' (two spaces after the position, as in Plan 6.1); an index set's films end
+ * 'Index 200 ppi' instead. */
+export function plateLayerName(plate: InkPlate, total: number, method?: ScreenMethod): string {
   const parts = [plateInkLabel(plate), plate.base];
   if (plate.role === 'underbase') parts.push('flash');
-  parts.push(`${formatNumber(plate.halftone.lpi)} lpi ${formatNumber(plate.halftone.angleDeg)}°`);
+  parts.push(plateScreenText(plate, method));
   return `${plate.index}/${total}  ${parts.join(' · ')}`;
 }
 
@@ -69,6 +87,7 @@ export interface ParsedPlateName {
   hex: string | null;
   base: string | null;
   flash: boolean;
+  /** the ruling, or for an index film ('Index 200 ppi') its cells per inch, as its plates store it */
   lpi: number | null;
   angleDeg: number | null;
 }
@@ -92,8 +111,9 @@ export function parsePlateLayerName(name: string): ParsedPlateName | null {
   const pantoneMatch = /\bpantone\s+(.+)$/i.exec(first);
   const hexMatch = /#([0-9a-f]{6})\b/i.exec(first);
   const ruling = /(\d+(?:\.\d+)?)\s*lpi\s*(-?\d+(?:\.\d+)?)\s*°?/i.exec(descriptor);
+  const cells = ruling ? null : /\bindex\s+(\d+(?:\.\d+)?)\s*ppi\b/i.exec(descriptor);
   const flash = parts.some((p) => /^flash$/i.test(p));
-  const baseCandidates = parts.slice(1).filter((p) => !/^flash$/i.test(p) && !/\blpi\b/i.test(p));
+  const baseCandidates = parts.slice(1).filter((p) => !/^flash$/i.test(p) && !/\blpi\b/i.test(p) && !/^index\b.*\bppi\b/i.test(p));
 
   return {
     index,
@@ -104,8 +124,8 @@ export function parsePlateLayerName(name: string): ParsedPlateName | null {
     hex: hexMatch ? `#${hexMatch[1].toUpperCase()}` : null,
     base: baseCandidates[0] ?? null,
     flash,
-    lpi: ruling ? Number(ruling[1]) : null,
-    angleDeg: ruling ? Number(ruling[2]) : null,
+    lpi: ruling ? Number(ruling[1]) : cells ? Number(cells[1]) : null,
+    angleDeg: ruling ? Number(ruling[2]) : cells ? 0 : null,
   };
 }
 

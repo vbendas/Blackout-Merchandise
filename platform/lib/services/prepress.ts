@@ -111,8 +111,11 @@ export interface PackFilmView {
   /** '9.9%' of the print area */
   coverage: string;
   mesh: number;
+  /** the screen ruling; for an index film, its square cells per inch (no halftone, 0°) */
   lpi: number;
   angleDeg: number;
+  /** the set's method: an index film is square cells, not halftone dots */
+  method: ScreenMethod;
   /** the dot the halftone is made of, from the recipe the pack was built with */
   dotShape: 'round' | 'ellipse';
   /** the films' resolution in pixels per inch: the PSD's own, else the recipe's */
@@ -517,6 +520,7 @@ export async function getPackDetail(actor: Actor, packId: string): Promise<PackD
         mesh: ink.mesh,
         lpi: ink.lpi,
         angleDeg: ink.angleDeg,
+        method: manifest.method === 'dtg' ? 'spot' : manifest.method,
         dotShape: recipe.halftone.dot,
         ppi: screenPsd?.ppi ?? info?.canvas?.ppi ?? recipe.screenPpi,
         previewUrl: preview ? ((await publicUrl(preview.key, preview.visibility)) ?? '') : '',
@@ -764,6 +768,10 @@ function recipeFromSettings(settings: RerunSettings, manifest: StoredManifest | 
       const hex = /^#[0-9a-fA-F]{6}$/.test(sub.hex) ? sub.hex.toUpperCase() : null;
       if (!hex) return { ok: false, error: `${sub.hex} is not a colour. Use a code like #5456AC.` };
       locked[at] = hex;
+    }
+    // Changed inks keep every film the pack has, so they can't also fit in fewer screens: the engine would drop inks.
+    if (settings.maxScreens !== undefined && settings.maxScreens < manifest.inks.length) {
+      return { ok: false, error: `Changing inks keeps all ${manifest.inks.length} films, more than the ${settings.maxScreens} screens asked for. Change the inks first, then the screen count.` };
     }
     override.lockedInks = locked;
   }
@@ -1044,12 +1052,11 @@ async function resolveOrderRequirements(orderId: string): Promise<Requirement[]>
       const designId = product?.designId ?? line.designId ?? null;
       const blankCode = line.blankCode ?? product?.blankCode;
       if (!technique || !designId || !blankCode) continue;
-      addRequirement(
-        found,
-        { designId, technique, blankCode, placement: toPrintPlacement(line.placement ?? (product?.placement as StoredPlacement | null)), kind: 'run', bulkOrderId: run?.bulkOrderId },
-        line.colourCode,
-        line.qty,
-      );
+      // A screen-printed line can print more positions on the same garment (a back print, say), each on its own screens.
+      const placements = [line.placement ?? (product?.placement as StoredPlacement | null), ...(line.extraPlacements ?? [])];
+      for (const placement of placements) {
+        addRequirement(found, { designId, technique, blankCode, placement: toPrintPlacement(placement), kind: 'run', bulkOrderId: run?.bulkOrderId }, line.colourCode, line.qty);
+      }
     }
     return ownDesignsOnly(order.storeId, [...found.values()]);
   }

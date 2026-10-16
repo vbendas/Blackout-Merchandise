@@ -166,3 +166,40 @@ test('the server says what is wrong in words', () => {
   assert.equal(result.ok, false);
   if (!result.ok) assert.match(result.error, /coarsest mesh/);
 });
+
+// The dot-gain calibration lives in the profile but is edited on its own page: the form keeps it, and checks it.
+
+const calibrated = {
+  ...saved,
+  dotGain: {
+    measuredAt: '2026-10-15T09:00:00.000Z',
+    method: 'scan' as const,
+    lpi: 55,
+    angleDeg: 22.5,
+    mesh: 230,
+    points: [
+      { input: 0.25, printed: 0.4 },
+      { input: 0.5, printed: 0.68 },
+      { input: 0.75, printed: 0.89 },
+    ],
+  },
+};
+
+test('a saved calibration goes through the form and back unchanged: saving the settings does not erase it', () => {
+  const result = profileFromForm(formFromProfile(calibrated), calibrated);
+  assert.equal(result.ok, true);
+  if (result.ok) assert.deepEqual(result.profile, calibrated);
+  // and with none, the key is not invented
+  const without = profileFromForm(form(), saved);
+  assert.equal(without.ok && Object.hasOwn(without.profile, 'dotGain'), false);
+});
+
+test('the server takes a profile that carries a calibration, and refuses one that is wrong in words', () => {
+  const ok = checkInkSystemProfile(structuredClone(calibrated));
+  assert.equal(ok.ok, true);
+  if (ok.ok) assert.deepEqual(ok.profile.dotGain, calibrated.dotGain);
+  const bad = checkInkSystemProfile({ ...structuredClone(calibrated), dotGain: { ...calibrated.dotGain, lpi: 900 } });
+  assert.equal(bad.ok, false);
+  if (!bad.ok) assert.match(bad.error, /Lines per inch goes from 15 to 150/);
+  assert.equal(checkInkSystemProfile({ ...structuredClone(calibrated), dotGain: { ...calibrated.dotGain, extra: 1 } }).ok, false, 'no stray fields');
+});

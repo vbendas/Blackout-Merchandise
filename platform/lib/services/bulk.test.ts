@@ -79,7 +79,14 @@ test('a run of a DTG shop product can be screen printed', async () => {
   assert.equal(line.printServiceName, 'Screen print (2 colours)');
   assert.equal(line.productId, dtgProductId);
   assert.equal(line.qty, 30);
-  assert.equal(line.unitCents, await unitCents('screen_2c', 30), 'priced as the screen service');
+  // Priced from the screen-print table by the screens: the tee has no print files yet, so 2 colours and the white
+  // underbase and highlight white on black make a guess of 4 screens. The default table continues the old seed
+  // (1 screen 3.50, then 1.70 more for each), 8% off at 25 pieces, and 30% margin on the blank and the print.
+  assert.equal(line.screens?.basis, 'estimate');
+  assert.equal(line.screens?.count, 4);
+  const garment = 650;
+  const print = Math.round((350 + 170 * 3) * 0.92);
+  assert.equal(line.unitCents, garment + print + Math.round(0.3 * (garment + print)));
   assert.notEqual(line.unitCents, await unitCents('dtg', 30));
   assert.equal(line.totalCents, line.unitCents * 30);
 
@@ -168,7 +175,9 @@ test('the proof says which print method the artist is approving', async () => {
   const proof = await bulk.submitBulkProof(storeId, quoted.value.id);
   assert.ok(proof.ok, proof.ok ? '' : proof.error);
   const row = proof.value.spec.find((s) => s.label === 'Print method');
-  assert.equal(row?.value, 'Screen print (2 colours), Direct-to-film print');
+  // A screen line says "Screen print": the number in its service name is only a first guess at the colours.
+  assert.equal(row?.value, 'Screen print, Direct-to-film print');
+  assert.match(proof.value.spec.find((s) => /^Screens · .* · Black$/.test(s.label))?.value ?? '', /^Estimate: 4 screens: no surcharge$/);
 });
 
 // -- paying -------------------------------------------------------------------------------

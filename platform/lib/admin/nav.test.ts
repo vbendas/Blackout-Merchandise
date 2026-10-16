@@ -23,7 +23,7 @@ import { ADMIN_NAV, adminNavFor, firstAdminHref } from './nav';
 
 const ROOT = path.resolve(__dirname, '../..');
 const ADMIN_DIR = path.join(ROOT, 'app/(chat)/admin');
-const ADMIN_API_DIRS = ['app/api/prepress', 'app/api/admin'].map((dir) => path.join(ROOT, dir));
+const ADMIN_API_DIRS = ['app/api/prepress', 'app/api/admin', 'app/api/calibration'].map((dir) => path.join(ROOT, dir));
 
 // ---------------------------------------------------------------------------
 // 1. The source scan

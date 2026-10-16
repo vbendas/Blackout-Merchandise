@@ -538,7 +538,7 @@ test('running a pack again queues a job with the new settings, then replaces the
   await h.prepress.markPacksNeededForOrder(run.orderId);
   assert.equal((await reload(darks)).auditStatus, 'waiting');
 
-  const settings = { method: 'sim_process' as const, maxScreens: 5, lpi: 60, angleDeg: 15, underbaseChokeMm: 0.3, trapMm: 0.1, inkSubstitutions: [{ plateIndex: 3, hex: '#112233' }] };
+  const settings = { method: 'sim_process' as const, maxScreens: 6, lpi: 60, angleDeg: 15, underbaseChokeMm: 0.3, trapMm: 0.1, inkSubstitutions: [{ plateIndex: 3, hex: '#112233' }] };
   const queued = await h.prepress.rerunPack(worker, darks.id, settings);
   assert.ok(queued.ok);
   const [job] = await h.db.select().from(schema.printJobs).where(eq(schema.printJobs.id, queued.ok ? queued.value.jobId : ''));
@@ -547,7 +547,7 @@ test('running a pack again queues a job with the new settings, then replaces the
   assert.deepEqual(input.techniques, ['screen']);
   assert.deepEqual(input.rerun, { packId: darks.id, settings });
   assert.equal(input.recipe.method, 'sim_process');
-  assert.equal(input.recipe.maxScreens, 5);
+  assert.equal(input.recipe.maxScreens, 6);
   assert.deepEqual([input.recipe.halftone.lpi, input.recipe.halftone.angleDeg], [60, 15]);
   assert.deepEqual([input.recipe.underbaseChokeMm, input.recipe.trapMm], [0.3, 0.1]);
   assert.deepEqual(input.recipe.lockedInks, ['#ED90DC', '#112233', '#5456AC', '#3E0E61'], 'film 3 takes the new colour');
@@ -561,7 +561,7 @@ test('running a pack again queues a job with the new settings, then replaces the
   const current = await h.pipeline.loadCurrentPacks(designVersionId);
   const newDarks = current.find((p) => p.screenSetKey === 'darks')!;
   assert.notEqual(newDarks.id, darks.id);
-  assert.equal(newDarks.screenCount, 5, 'underbase, three colours and the highlight white');
+  assert.equal(newDarks.screenCount, 6, 'underbase, four colours and the highlight white');
   assert.equal(newDarks.correctedFromPackId, darks.id);
   assert.equal(newDarks.auditStatus, 'being_fixed');
   assert.deepEqual(needsOf(newDarks).map((n) => n.orderId), [run.orderId]);
@@ -606,6 +606,10 @@ test('re-run settings are checked, and a run that changes the proof asks the art
   assert.equal(await error({ inkSubstitutions: [{ plateIndex: 1, hex: '#112233' }] }), "Film 1 is not a colour ink, so it can't be changed.");
   assert.equal(await error({ inkSubstitutions: [{ plateIndex: 3, hex: 'blue' }] }), 'blue is not a colour. Use a code like #5456AC.');
   assert.equal(await error({ inkSubstitutions: [{ plateIndex: 3, hex: '#112233' }] }, dtg), 'Inks can only be changed on a screen pack.');
+  assert.equal(
+    await error({ maxScreens: 5, inkSubstitutions: [{ plateIndex: 3, hex: '#112233' }] }),
+    'Changing inks keeps all 6 films, more than the 5 screens asked for. Change the inks first, then the screen count.',
+  );
   assert.deepEqual(await h.prepress.rerunPack(worker, '5f6c0f0e-6f83-4c0a-9a53-1d0e1b1d6a11', {}), { ok: false, error: 'Pack not found.' });
 
   // A change that moves the proof beyond the threshold withdraws the approval.

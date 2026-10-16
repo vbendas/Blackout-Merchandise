@@ -290,9 +290,10 @@ test('screen budget: more colours than screens is flagged; over the press heads 
   const shapes: Shape[] = palette.map((c, i) => ({ kind: 'rect', x: 20 + (i % 5) * 115, y: 40 + Math.floor(i / 5) * 200, w: 100, h: 170, colour: c }));
   const tight = await separateScreen(input(shapes, [WHITE]));
   assert.equal(tight.method, 'index', tight.methodReason);
-  assert.equal(tight.needsManual, true);
+  assert.equal(tight.needsManual, false);
+  assert.equal(tight.sets[0].method, 'index');
   assert.ok(tight.sets[0].plates.length <= 8);
-  assert.ok(tight.warnings.some((w) => w.code === 'needs_index'));
+  assert.ok(!tight.warnings.some((w) => w.code === 'needs_index'));
 
   const wide = await separateScreen(input(shapes, [WHITE], mergeRecipe(RECIPE, { maxScreens: 15 })));
   assert.equal(wide.method, 'spot', wide.methodReason);

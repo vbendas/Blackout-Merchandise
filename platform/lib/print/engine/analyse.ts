@@ -511,7 +511,12 @@ function colourBudget(recipe: PrintRecipe, ctx: SetContext): number {
   return Math.max(1, recipe.maxScreens - 1 - (recipe.highlightWhite ? 1 : 0));
 }
 
-/** Spot when the inks fit and reproduce the art; otherwise flag index or simulated process. */
+/**
+ * Spot when the inks fit and reproduce the art. Otherwise index for many
+ * flat colours with little shading (each flat colour is a few close colours,
+ * not a run of them), else simulated process: gradients, photos, painted art.
+ * A method the recipe forces (a capsule, or the auditor's re-run) wins.
+ */
 function chooseMethod(recipe: PrintRecipe, palette: PaletteChoice, stats: SetStats, ctx: SetContext): { method: ScreenMethod; methodReason: string } {
   const colours = palette.entries.filter((e) => e.kind === 'ink' || !ctx.dark).length;
   const inkWord = (k: number): string => `${k} ink${k === 1 ? '' : 's'}`;
@@ -519,13 +524,8 @@ function chooseMethod(recipe: PrintRecipe, palette: PaletteChoice, stats: SetSta
   if (recipe.method === 'spot') {
     return { method: 'spot', methodReason: `The recipe asks for spot colour: ${inkWord(colours)}${palette.fits ? '' : ', the closest the screens allow'}.` };
   }
-  if (recipe.method === 'index' || recipe.method === 'sim_process') {
-    const name = recipe.method === 'index' ? 'index' : 'simulated process';
-    return {
-      method: recipe.method,
-      methodReason: `The recipe asks for ${name}, which is finished by hand for now. The attached spot draft uses ${inkWord(colours)}.`,
-    };
-  }
+  if (recipe.method === 'index') return { method: 'index', methodReason: 'The recipe asks for index separation.' };
+  if (recipe.method === 'sim_process') return { method: 'sim_process', methodReason: 'The recipe asks for simulated process.' };
   if (stats.artPixels === 0) return { method: 'spot', methodReason: 'Nothing prints on this garment colour.' };
   const spotOk = palette.fits && stats.unexplained <= ENGINE_TUNING.unexplainedMax && stats.gradient <= ENGINE_TUNING.gradientMax;
   if (spotOk) {
@@ -541,14 +541,22 @@ function chooseMethod(recipe: PrintRecipe, palette: PaletteChoice, stats: SetSta
     const why = needed !== null ? `It needs ${needed} spot colours and ${budget} fit` : `It needs more spot colours than the ${budget} that fit`;
     return {
       method: 'index',
-      methodReason: `Many flat colours with little shading. ${why}, so index separation would hold them. The spot draft merges the nearest colours into ${inkWord(colours)}.`,
+      methodReason: `Many flat colours with little shading. ${why}, so index separation prints them as square cells, one ink each.`,
+    };
+  }
+  if (stats.unexplained <= ENGINE_TUNING.unexplainedMax && stats.gradient <= ENGINE_TUNING.gradientMax) {
+    // Little shading: what rules spot out is the number of colours, and too little of the art is flat for index.
+    const why = needed !== null ? `It needs ${needed} spot colours and ${budget} fit` : `It needs more spot colours than the ${budget} that fit`;
+    return {
+      method: 'sim_process',
+      methodReason: `${why}, and too little of the art is flat for index, so simulated process mixes the colours from halftoned inks.`,
     };
   }
   const shading = stats.gradient >= stats.unexplained / 2 ? 'Soft shading' : 'Shading and texture';
   const need = needed !== null ? ` Spot colour would need ${needed} inks.` : '';
   return {
     method: 'sim_process',
-    methodReason: `${shading} runs through ${pct(stats.unexplained)} of the art, so solid spot shapes would lose it.${need} The spot draft uses ${inkWord(colours)} for reference.`,
+    methodReason: `${shading} runs through ${pct(stats.unexplained)} of the art, so solid spot shapes would lose it: simulated process builds it from halftoned inks.${need}`,
   };
 }
 

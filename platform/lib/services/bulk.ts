@@ -5,7 +5,9 @@ import { runNumberFor } from '@/lib/services/runs';
 import { db, schema } from '@/lib/db';
 import { createProduct, getProduct, type Placement } from '@/lib/services/products';
 import { createBulkProof, setBulkProofStatus, type ProofDetail, type ProofSpecLine } from '@/lib/services/proofs';
-import { describeServices, printServicesFor, quoteFor } from '@/lib/services/quotes';
+import { describeServices, printServicesFor, quoteFor, quoteScreenLine, techniqueOfService } from '@/lib/services/quotes';
+import { getScreenPriceTable } from '@/lib/services/pricing-admin';
+import { setupCentsFor, type LineScreens, type ScreenPriceTable } from '@/lib/pricing/screen-print';
 import { zoneForCountry } from '@/lib/services/shipping';
 import { getStore } from '@/lib/services/stores';
 import { claimWebhookEvent } from '@/lib/services/orders';
@@ -29,6 +31,13 @@ import type { CheckoutSessionSnapshot } from '@/lib/services/stripe';
 // the product's method (shop products are DTG/DTF only), so a run of a DTG
 // product can be screen printed. Each line carries the service its artist
 // chose; production reads it from there (getRunLinesForOrder).
+//
+// A screen-printed line is priced by the screens its design really uses
+// (Print-Prep-Plan section 10): quoteScreenLine reads the count from the
+// design's print files for that garment colour, or guesses and says so when
+// there are none yet. The line records what it rests on (BulkQuoteLine.screens),
+// the price is worked out again when the proof is sent, and an approval is
+// refused if the screens changed since the proof (approveBulkProof).
 
 /** What a paid run sets in motion outside this module. Tests swap these for
  * stubs; the wrappers look the functions up when called, so an import cycle
@@ -62,15 +71,21 @@ export interface BulkQuoteLine {
   printServiceCode: string;
   printServiceName: string;
   placement: Placement | null;
+  /** screen print only: more print positions on the same garment, after `placement`, each priced at the second-position
+   * rate. Pre-press builds and gates a pack for each of them (resolveOrderRequirements), and the job sheet lists them. */
+  extraPlacements?: Placement[];
   colourCode: string;
   colourName: string;
   /** size code -> quantity */
   sizes: Record<string, number>;
   qty: number;
+  /** what one piece costs, the screen surcharge included */
   unitCents: number;
   totalCents: number;
   label: string;
   mockupUrl: string | null;
+  /** screen print only: the screens the price rests on (from the design's print files, or a guess with its reason) */
+  screens?: LineScreens | null;
 }
 
 /** The shape persisted in bulk_orders.quote — see Platform-Plan.md §3. */
@@ -212,6 +227,8 @@ export interface CreateBulkQuoteLineInput {
   blankCode?: string;
   printServiceCode?: string;
   placement?: Placement;
+  /** screen print only: more print positions on the same garment (at most 3 more) */
+  extraPlacements?: Placement[];
   colourCode: string;
   /** size code -> quantity */
   sizes: Record<string, number>;
@@ -243,7 +260,13 @@ async function designInShop(storeId: string, designId: string): Promise<boolean>
   return design?.storeId === storeId;
 }
 
-async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput): Promise<LineResult> {
+/** The usual place and size for a line that names none, as pre-press reads it for an order (toPrintPlacement in prepress.ts). */
+const DEFAULT_PLACEMENT: Placement = { position: 'front_chest', widthCm: 28 };
+
+/** More print positions on one garment, after the main one. */
+const MAX_EXTRA_PLACEMENTS = 3;
+
+async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, table: ScreenPriceTable, lineKey: string): Promise<LineResult> {
   const sizeEntries = Object.entries(input.sizes ?? {}).filter(([, qty]) => qty > 0);
   if (sizeEntries.length === 0) return { ok: false, error: 'At least one size with a quantity greater than zero is required.' };
   for (const [size, qty] of sizeEntries) {
@@ -332,8 +355,41 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput): Pr
     if (badSizes.length > 0) return { ok: false, error: `Size(s) not available on ${blankName}: ${badSizes.join(', ')}.` };
   }
 
-  const quote = await quoteFor({ blankCode, printServiceCode, qty });
-  if (!quote) return { ok: false, error: `No pricing configured for ${blankCode} with ${printServiceCode}.` };
+  const isScreen = techniqueOfService(printServiceCode) === 'screen';
+
+  // More print positions on the garment: priced for screen print, where each position has its own screens.
+  const extras = input.extraPlacements ?? [];
+  if (extras.length > 0) {
+    if (!isScreen) return { ok: false, error: 'More than one print position is priced for screen print only.' };
+    if (extras.length > MAX_EXTRA_PLACEMENTS) return { ok: false, error: `A garment takes at most ${MAX_EXTRA_PLACEMENTS + 1} print positions.` };
+    const [blankRow] = await db.select({ type: schema.blanks.type }).from(schema.blanks).where(eq(schema.blanks.code, blankCode)).limit(1);
+    const seen = new Set([(placement ?? DEFAULT_PLACEMENT).position]);
+    for (const extra of extras) {
+      const position = checkPlacementPosition(blankRow?.type ?? '', extra.position);
+      if (!position.ok) return { ok: false, error: position.error };
+      if (seen.has(extra.position)) return { ok: false, error: 'A garment can have each print position once.' };
+      // The width print prep can make files for (validateDrop in print-prep.ts).
+      if (!(extra.widthCm >= 2 && extra.widthCm <= 60)) return { ok: false, error: 'A print position must be between 2 and 60 cm wide.' };
+      seen.add(extra.position);
+    }
+  }
+
+  let unitCents: number;
+  let screens: LineScreens | null = null;
+  if (isScreen) {
+    // Priced by the screens the design really uses for this colour, not by the service the artist picked.
+    const priced = await quoteScreenLine(
+      { blankCode, printServiceCode, colourCode: input.colourCode, colourName, qty, designId, placements: [placement ?? DEFAULT_PLACEMENT, ...extras], lineKey },
+      table,
+    );
+    if (!priced.ok) return priced;
+    unitCents = priced.value.unitCents;
+    screens = priced.value.screens;
+  } else {
+    const quote = await quoteFor({ blankCode, printServiceCode, qty });
+    if (!quote) return { ok: false, error: `No pricing configured for ${blankCode} with ${printServiceCode}.` };
+    unitCents = quote.unitBaseCostCents;
+  }
 
   const sizes = Object.fromEntries(sizeEntries);
   return {
@@ -346,24 +402,40 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput): Pr
       printServiceCode,
       printServiceName,
       placement,
+      ...(extras.length > 0 ? { extraPlacements: extras } : {}),
       colourCode: input.colourCode,
       colourName,
       sizes,
       qty,
-      unitCents: quote.unitBaseCostCents,
-      totalCents: quote.unitBaseCostCents * qty,
+      unitCents,
+      totalCents: unitCents * qty,
       label: `${blankName} · ${colourName} · ${qty} pcs`,
       mockupUrl,
+      ...(screens ? { screens } : {}),
     },
   };
 }
 
+/** The one-off cost of a run: each distinct print service's own setup fee, plus the cost of making the screens (each set of
+ * screens once, however many garment colours share it). */
+async function setupCentsOf(lines: BulkQuoteLine[], table: ScreenPriceTable): Promise<number> {
+  const distinctServiceCodes = [...new Set(lines.map((l) => l.printServiceCode))];
+  const serviceRows = await db
+    .select({ code: schema.printServices.code, setupCents: schema.printServices.setupCents })
+    .from(schema.printServices)
+    .where(inArray(schema.printServices.code, distinctServiceCodes));
+  const services = serviceRows.reduce((sum, s) => sum + (s.setupCents ?? 0), 0);
+  const sets = lines.flatMap((l) => l.screens?.placements.map((p) => ({ id: p.setId, screens: p.screens })) ?? []);
+  return services + setupCentsFor(table, sets);
+}
+
 /**
- * Quotes a bulk run: per-line pricing at the seeded quantity breaks, setup
- * once per distinct print service, and shipping by a flat zone rate scaled
- * to a "pallet" factor (ceil(totalUnits / 20)) rather than the retail
- * free-over-X table, which doesn't apply to a bulk run. Persists a new
- * bulk_orders row in 'quoted'.
+ * Quotes a bulk run: per-line pricing at the seeded quantity breaks (a
+ * screen-printed line by the design's real screen count, see quoteScreenLine),
+ * setup once per distinct print service and once for each set of screens, and
+ * shipping by a flat zone rate scaled to a "pallet" factor (ceil(totalUnits /
+ * 20)) rather than the retail free-over-X table, which doesn't apply to a bulk
+ * run. Persists a new bulk_orders row in 'quoted'.
  */
 export async function createBulkQuote(input: CreateBulkQuoteInput): Promise<ServiceResult<BulkOrderDetail>> {
   if (!input.lines || input.lines.length === 0) return { ok: false, error: 'At least one line is required.' };
@@ -371,21 +443,16 @@ export async function createBulkQuote(input: CreateBulkQuoteInput): Promise<Serv
   const shipTo = normaliseShipTo(input.shipTo);
   if (!shipTo) return { ok: false, error: 'A complete shipping address (name, line1, city, postcode, 2-letter country) is required.' };
 
+  const table = await getScreenPriceTable();
   const lines: BulkQuoteLine[] = [];
-  for (const lineInput of input.lines) {
-    const resolved = await resolveLine(input.storeId, lineInput);
+  for (const [index, lineInput] of input.lines.entries()) {
+    const resolved = await resolveLine(input.storeId, lineInput, table, String(index));
     if (!resolved.ok) return resolved;
     lines.push(resolved.value);
   }
 
   const totalUnits = lines.reduce((sum, l) => sum + l.qty, 0);
-
-  const distinctServiceCodes = [...new Set(lines.map((l) => l.printServiceCode))];
-  const serviceRows = await db
-    .select({ code: schema.printServices.code, setupCents: schema.printServices.setupCents })
-    .from(schema.printServices)
-    .where(inArray(schema.printServices.code, distinctServiceCodes));
-  const setupCents = serviceRows.reduce((sum, s) => sum + (s.setupCents ?? 0), 0);
+  const setupCents = await setupCentsOf(lines, table);
 
   const zone = await zoneForCountry(shipTo.country);
   if (!zone) return { ok: false, error: "We don't ship to that country yet." };
@@ -402,14 +469,94 @@ export async function createBulkQuote(input: CreateBulkQuoteInput): Promise<Serv
   return { ok: true, value: toBulkOrderDetail(row) };
 }
 
+// -- the screens, worked out again ------------------------------------------------
+
+interface RepricedRun {
+  lines: BulkQuoteLine[];
+  setupCents: number;
+  totalCents: number;
+}
+
+/** A run's screen-printed lines priced again from the design's print files as they are now, and the price table as it is now.
+ * Other lines are kept. Refuses when a design now needs more screens than the press can print. */
+async function repriceRun(detail: BulkOrderDetail, table: ScreenPriceTable): Promise<ServiceResult<RepricedRun>> {
+  // A run with no screen-printed line keeps the price it was quoted at, setup included, as before screen pricing.
+  if (!detail.lines.some((l) => techniqueOfService(l.printServiceCode) === 'screen')) {
+    return { ok: true, value: { lines: detail.lines, setupCents: detail.setupCents, totalCents: detail.totalCents } };
+  }
+  const lines: BulkQuoteLine[] = [];
+  for (const [index, line] of detail.lines.entries()) {
+    if (techniqueOfService(line.printServiceCode) !== 'screen') {
+      lines.push(line);
+      continue;
+    }
+    const priced = await quoteScreenLine(
+      {
+        blankCode: line.blankCode,
+        printServiceCode: line.printServiceCode,
+        colourCode: line.colourCode,
+        colourName: line.colourName,
+        qty: line.qty,
+        designId: line.designId,
+        placements: [line.placement ?? DEFAULT_PLACEMENT, ...(line.extraPlacements ?? [])],
+        lineKey: String(index),
+      },
+      table,
+    );
+    if (!priced.ok) return priced;
+    lines.push({ ...line, unitCents: priced.value.unitCents, totalCents: priced.value.totalCents, screens: priced.value.screens });
+  }
+  const setupCents = await setupCentsOf(lines, table);
+  return { ok: true, value: { lines, setupCents, totalCents: lines.reduce((sum, l) => sum + l.totalCents, 0) + setupCents + detail.shippingCents } };
+}
+
+/** True when pricing the run again gives other prices or other screens. */
+function priceChanged(detail: BulkOrderDetail, again: RepricedRun): boolean {
+  const key = (lines: BulkQuoteLine[]) => JSON.stringify(lines.map((l) => [l.unitCents, l.totalCents, l.screens ?? null]));
+  return key(detail.lines) !== key(again.lines) || detail.setupCents !== again.setupCents || detail.totalCents !== again.totalCents;
+}
+
+/** The lines whose screens are not what their price rests on any more: a print position that now has another count, whether the
+ * count was a design's or a guess. A guess that turns out to be the real count has not moved. A line quoted before runs recorded
+ * their screens is left alone. */
+function screensMoved(detail: BulkOrderDetail, again: RepricedRun): { was: BulkQuoteLine; now: BulkQuoteLine }[] {
+  const moved: { was: BulkQuoteLine; now: BulkQuoteLine }[] = [];
+  detail.lines.forEach((was, i) => {
+    const now = again.lines[i];
+    if (!was.screens || !now?.screens) return;
+    const counts = (screens: LineScreens) => JSON.stringify(screens.placements.map((p) => [p.position, p.screens]));
+    if (counts(was.screens) !== counts(now.screens)) moved.push({ was, now });
+  });
+  return moved;
+}
+
+async function saveRepriced(bulkOrderId: string, again: RepricedRun): Promise<void> {
+  const [row] = await db.select().from(schema.bulkOrders).where(eq(schema.bulkOrders.id, bulkOrderId)).limit(1);
+  if (!row) return;
+  const quote = (row.quote as PersistedBulkQuote | null) ?? EMPTY_QUOTE;
+  await db
+    .update(schema.bulkOrders)
+    .set({ quote: { ...quote, lines: again.lines, setupCents: again.setupCents, totalCents: again.totalCents }, updatedAt: new Date() })
+    .where(eq(schema.bulkOrders.id, bulkOrderId));
+}
+
 // -- proof round-trip -------------------------------------------------------
 
+/** The method as the proof names it. The number in a screen service's name is only a first guess at the colours, so a
+ * screen-printed line says "Screen print" and the screens below say what the price rests on. */
+function methodName(line: BulkQuoteLine): string {
+  return techniqueOfService(line.printServiceCode) === 'screen' ? 'Screen print' : line.printServiceName;
+}
+
 function buildBulkSpec(detail: BulkOrderDetail): ProofSpecLine[] {
-  const methods = [...new Set(detail.lines.map((l) => l.printServiceName))];
+  const methods = [...new Set(detail.lines.map(methodName))];
   return [
     ...detail.lines.map((l) => ({ label: l.label, value: `€${(l.unitCents / 100).toFixed(2)} / unit` })),
     // The artist chose the method at quote time, so the proof says which one they are approving.
     { label: 'Print method', value: methods.join(', ') },
+    ...detail.lines.flatMap((l) =>
+      l.screens ? [{ label: `Screens · ${blankDisplayName(l.blankCode, l.blankName)} · ${l.colourName}`, value: l.screens.summary }] : [],
+    ),
     { label: 'Setup', value: `€${(detail.setupCents / 100).toFixed(2)}` },
     { label: 'Shipping', value: `€${(detail.shippingCents / 100).toFixed(2)}` },
     { label: 'Total', value: `€${(detail.totalCents / 100).toFixed(2)}` },
@@ -419,10 +566,20 @@ function buildBulkSpec(detail: BulkOrderDetail): ProofSpecLine[] {
 }
 
 export async function submitBulkProof(storeId: string, bulkOrderId: string): Promise<ServiceResult<ProofDetail>> {
-  const detail = await getBulkOrder(storeId, bulkOrderId);
+  let detail = await getBulkOrder(storeId, bulkOrderId);
   if (!detail) return { ok: false, error: 'Bulk order not found for this shop.' };
   if (detail.status !== 'quoted') {
     return { ok: false, error: `A proof can only be submitted from "quoted" (this bulk order is "${detail.status}").` };
+  }
+
+  // The proof is what the artist signs off, so it carries the price the design's screens give now: the print files may have
+  // been made since the quote (a guess becomes the real count), or made again with another count.
+  const again = await repriceRun(detail, await getScreenPriceTable());
+  if (!again.ok) return { ok: false, error: again.error };
+  if (priceChanged(detail, again.value)) {
+    await saveRepriced(bulkOrderId, again.value);
+    const refreshed = await getBulkOrder(storeId, bulkOrderId);
+    if (refreshed) detail = refreshed;
   }
 
   const mockupUrls = detail.lines.map((l) => l.mockupUrl).filter((u): u is string => !!u);
@@ -434,7 +591,42 @@ export async function submitBulkProof(storeId: string, bulkOrderId: string): Pro
   return { ok: true, value: proof };
 }
 
+/** The run a proof belongs to, when it is this shop's. */
+async function bulkOrderOfProof(storeId: string, proofId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ bulkOrderId: schema.proofs.bulkOrderId })
+    .from(schema.proofs)
+    .innerJoin(schema.bulkOrders, eq(schema.proofs.bulkOrderId, schema.bulkOrders.id))
+    .where(and(eq(schema.proofs.id, proofId), eq(schema.bulkOrders.storeId, storeId)))
+    .limit(1);
+  return row?.bulkOrderId ?? null;
+}
+
 export async function approveBulkProof(storeId: string, proofId: string, userId: string): Promise<ServiceResult<ProofDetail>> {
+  // The price on the proof rests on the screens the design had when it was sent. If they changed since (the artist asked for
+  // fewer, pre-press made the files again, a guess became the real count), approving would sign off a price that is no longer
+  // true: the quote is worked out again, the proof goes back, and the artist looks at the new one.
+  const currentRun = await bulkOrderOfProof(storeId, proofId);
+  const detail = currentRun ? await getBulkOrder(storeId, currentRun) : null;
+  if (currentRun && detail?.status === 'proof_pending') {
+    const again = await repriceRun(detail, await getScreenPriceTable());
+    if (!again.ok) return { ok: false, error: again.error };
+    // A job is making a design's screen files while the artist approves: the count, and so the price, can still change.
+    // Nothing is changed; the artist approves once the files are ready (and sees the new price then if it moved).
+    if (again.value.lines.some((l) => l.screens?.placements.some((p) => p.pending))) {
+      return { ok: false, error: 'The print files for this design are being prepared, so the screen count, and the price, can still change. Approve the proof once they are ready.' };
+    }
+    const moved = screensMoved(detail, again.value);
+    if (moved.length > 0) {
+      await saveRepriced(currentRun, again.value);
+      const changes = moved.map(({ was, now }) => `${blankDisplayName(was.blankCode, was.blankName)} in ${was.colourName} was ${was.screens?.summary ?? 'priced differently'}, now ${now.screens?.summary}`).join('; ');
+      const message = `The screens changed since this proof was sent: ${changes}. The price is now €${(again.value.totalCents / 100).toFixed(2)}. The quote is updated, so send the proof again to see it.`;
+      await setBulkProofStatus(storeId, proofId, 'changes_requested', { notes: message });
+      await transitionBulk(currentRun, 'quoted', 'proof_pending');
+      return { ok: false, error: message };
+    }
+  }
+
   const result = await setBulkProofStatus(storeId, proofId, 'approved', { userId });
   if (!result.ok) return result;
   const bulkOrderId = result.value.bulkOrderId;

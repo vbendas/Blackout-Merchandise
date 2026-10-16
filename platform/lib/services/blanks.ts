@@ -1,4 +1,4 @@
-import { and, asc, count, eq, ilike, inArray, or } from 'drizzle-orm';
+import { and, asc, count, eq, ilike, inArray, notLike, or } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 
 export interface ListBlanksInput {
@@ -20,13 +20,17 @@ export interface BlankListItem {
   fromPriceCents: number | null;
 }
 
-/** Cheapest qty_from=1 total across every print service offered for a blank. */
+/** Screen print has no base costs (a run is priced from the screen-print table by its screens); a row an old seed left is a
+ * placeholder, never a "from" price. */
+export const NOT_SCREEN_BASE_COST = notLike(schema.baseCosts.printServiceCode, 'screen\_%');
+
+/** Cheapest qty_from=1 total across every print service offered for a blank (screen print has none). */
 async function minPricesByBlank(blankCodes: string[]): Promise<Map<string, number>> {
   if (blankCodes.length === 0) return new Map();
   const rows = await db
     .select({ blankCode: schema.baseCosts.blankCode, totalCents: schema.baseCosts.totalCents })
     .from(schema.baseCosts)
-    .where(and(inArray(schema.baseCosts.blankCode, blankCodes), eq(schema.baseCosts.qtyFrom, 1)));
+    .where(and(inArray(schema.baseCosts.blankCode, blankCodes), eq(schema.baseCosts.qtyFrom, 1), NOT_SCREEN_BASE_COST));
   const prices = new Map<string, number>();
   for (const row of rows) {
     if (row.totalCents == null) continue;
@@ -156,7 +160,7 @@ export async function getBlank(code: string): Promise<BlankDetail | null> {
     db
       .select({ totalCents: schema.baseCosts.totalCents })
       .from(schema.baseCosts)
-      .where(and(eq(schema.baseCosts.blankCode, code), eq(schema.baseCosts.qtyFrom, 1))),
+      .where(and(eq(schema.baseCosts.blankCode, code), eq(schema.baseCosts.qtyFrom, 1), NOT_SCREEN_BASE_COST)),
   ]);
 
   const prices = baseCostRows.map((r) => r.totalCents).filter((v): v is number => v != null);

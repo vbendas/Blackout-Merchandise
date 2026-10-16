@@ -466,6 +466,17 @@ const DETAIL: Record<string, string> = {
   highlight: 'The brightest points, printed last',
 };
 
+/** What a loupe shows, in the artist's words: halftone dots, or for an index set the square ink cells (its films keep the
+ * cells per inch as their ruling). */
+function loupeCaption(pack: PackRow, technique: PrintTechnique, recipe: PrintJobInput['recipe'] | undefined, garmentName: string): string {
+  if (technique !== 'screen') return `True size · ${recipe?.dtg.fadeLpi ?? 45} lpi dots in fades · on ${garmentName}`;
+  if (pack.method === 'index') {
+    const cells = Math.round(storedManifest(pack)?.inks[0]?.lpi ?? recipe?.indexCellPpi ?? 200);
+    return `True size · square ink cells, ${cells} to the inch · on ${garmentName}`;
+  }
+  return `True size · ${recipe?.halftone.lpi ?? 55} lpi dots · on ${garmentName}`;
+}
+
 function screenSetView(pack: PackRow, garmentNames: Map<string, string>): ApprovalScreenSet | null {
   const manifest = storedManifest(pack);
   const info = packInfo(pack);
@@ -565,7 +576,7 @@ export async function getApprovalView(input: { storeId: string; designId: string
           technique,
           garmentCode: file.garmentCode,
           url: await deps.storage.objectUrl(file.key, file.visibility),
-          caption: technique === 'screen' ? `True size · ${recipe?.halftone.lpi ?? 55} lpi dots · on ${name}` : `True size · ${recipe?.dtg.fadeLpi ?? 45} lpi dots in fades · on ${name}`,
+          caption: loupeCaption(pack, technique, recipe, name),
         });
       }
     }

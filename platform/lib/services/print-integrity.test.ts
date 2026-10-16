@@ -135,6 +135,39 @@ test('the production gate wants a pack for every placement and colour the order 
   assert.deepEqual(await h.prepress.assertPacksApprovedForOrder(sale), { ok: true, value: null }, 'never approved through the print approval: pre-press approval stands alone');
 });
 
+test('a run line that also prints the back needs screen files for the back, built on the same art, before production', async () => {
+  const { designId } = await h.newDesign();
+  const versionId = await prepareColours(designId, [black.code]);
+  assert.ok((await approve(designId, versionId)).ok);
+  const run = await seedRun(h.db, {
+    storeId: h.artist.storeId,
+    designId,
+    lines: [{ colourCode: black.code, qty: 40, printServiceCode: 'screen_2c', extraPlacements: [{ position: 'back', widthCm: 30 }] }],
+  });
+  await h.prepress.markPacksNeededForOrder(run.orderId);
+
+  // The front was prepared and is attached; nothing was made for the back, so pre-press starts it.
+  const front = (await current(versionId)).find((p) => p.technique === 'screen')!;
+  assert.deepEqual(orderIds(await reload(front.id)), [run.orderId]);
+  const [job] = (await h.db.select().from(schema.printJobs).where(eq(schema.printJobs.status, 'queued'))).filter((j) => (j.input as PrintJobInput).designId === designId);
+  assert.ok(job, 'a build for the back');
+  const input = job.input as PrintJobInput;
+  assert.deepEqual(input.placements, [{ position: 'back', widthMm: 300 }]);
+  assert.deepEqual(input.techniques, ['screen']);
+  assert.equal(input.designVersionId, versionId, 'on the art the run was sold with');
+  assert.deepEqual(await h.prepress.assertPacksApprovedForOrder(run.orderId), {
+    ok: false,
+    error: 'The print files for this order are being prepared. Pre-press checks them before production can start.',
+  });
+
+  await h.runJob(job.id);
+  const back = (await current(versionId)).find((p) => p.technique === 'screen' && (p.placement as { position: string }).position === 'back')!;
+  assert.ok(back, 'the back has its own screen pack');
+  assert.deepEqual(orderIds(await reload(back.id)), [run.orderId], 'the run waits on it');
+  const gate = await h.prepress.assertPacksApprovedForOrder(run.orderId);
+  assert.ok(!gate.ok && /^Pre-press hasn't approved the print files yet/.test(gate.error), JSON.stringify(gate));
+});
+
 test('a re-run that changes the proof stops pre-press signing the version off until the artist approves again', async () => {
   const { designId, productId } = await h.newDesign();
   const versionId = await prepareColours(designId, [black.code, white.code, navy.code]);

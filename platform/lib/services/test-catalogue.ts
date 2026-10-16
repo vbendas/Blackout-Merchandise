@@ -17,8 +17,9 @@ const SERVICE_NAMES: Record<string, string> = {
   embroidery: 'Embroidery',
 };
 
-// Placeholder print costs, as in scripts/seed.ts.
-const PRINT_COST_CENTS: Record<string, number> = { screen_1c: 350, screen_2c: 520, screen_3c: 690, dtg: 600, dtf: 600, embroidery: 850 };
+// Placeholder print costs, as in scripts/seed.ts. Screen print has no base-cost rows, as in the seed: a screen-printed run
+// is priced from the screen-print table (lib/pricing/screen-print.ts) by its screens.
+const PRINT_COST_CENTS: Record<string, number> = { dtg: 600, dtf: 600, embroidery: 850 };
 
 const BLANKS = [
   { code: 'STTU169', name: 'T-shirt', type: 'T-shirts' },
@@ -65,7 +66,7 @@ export async function seedTestCatalogue(db: TestDatabase): Promise<typeof TEST_C
     const services = printServiceCodesFor(blank.code);
     await db.insert(schema.blankPrintServices).values(services.map((printServiceCode) => ({ blankCode: blank.code, printServiceCode })));
     await db.insert(schema.baseCosts).values(
-      services.flatMap((printServiceCode) =>
+      services.filter((code) => !code.startsWith('screen_')).flatMap((printServiceCode) =>
         [
           { qtyFrom: 1, printCostCents: PRINT_COST_CENTS[printServiceCode] },
           { qtyFrom: 25, printCostCents: Math.round(PRINT_COST_CENTS[printServiceCode] * 0.92) },

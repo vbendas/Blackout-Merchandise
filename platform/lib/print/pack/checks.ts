@@ -561,8 +561,8 @@ async function screenChecks(input: ChecksInput): Promise<CheckResult[]> {
       }
       films.forEach((f) => {
         const want = expected[f.index - 1];
-        if (want && f.name !== plateLayerName(want, expected.length)) {
-          notes.push(`film ${f.index} is named "${f.name}", expected "${plateLayerName(want, expected.length)}"`);
+        if (want && f.name !== plateLayerName(want, expected.length, set?.method)) {
+          notes.push(`film ${f.index} is named "${f.name}", expected "${plateLayerName(want, expected.length, set?.method)}"`);
           states.push('failed');
         }
         if (!want) {

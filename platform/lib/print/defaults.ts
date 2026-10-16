@@ -5,7 +5,9 @@
 // until the inks are measured.
 import type { InkSystemProfile, PrintRecipe, RecipeOverride } from '@/lib/print/types';
 
-export const ENGINE_VERSION = '1.0.0';
+/** Part of every job's hash and manifest: a new engine makes new bytes, so its packs are new packs. 2.0.0 (Phase 2): index and
+ * simulated-process films instead of spot drafts, and the dot-gain curve on every halftone. */
+export const ENGINE_VERSION = '2.0.0';
 
 export const STANDARD_MAX_SCREENS = 8;
 export const ABSOLUTE_MAX_SCREENS = 15;
@@ -23,6 +25,7 @@ export const DEFAULT_RECIPE: PrintRecipe = {
   minLineMm: 0.3,
   knockoutDeltaE: 10,
   highlightWhite: true,
+  indexCellPpi: 200,
   dtg: { ppi: 300, fadeLpi: 45, fadeAngleDeg: 22.5, edgeBandPx: 2 },
   marks: { marginMm: 25, targetOffsetMm: 15 },
 };
@@ -97,6 +100,12 @@ export const ENGINE_TUNING = {
   loupeMm: 25,
   /** proof images are this wide */
   proofWidthPx: 1000,
+  /** simulated process: colour inks and highlight white printed wet on wet over one spot, summed
+   * (2.5 = 250%, the usual total for wet layers); the flashed underbase is not counted */
+  simInkLimit: 2.5,
+  /** simulated process: the proof is compared with the art over squares this size, several halftone
+   * cells across, so the dots average out as they do to the eye */
+  simAccuracyBlockMm: 3,
 } as const;
 
 /** A recipe with overrides applied in order (later wins); nested groups merge. */

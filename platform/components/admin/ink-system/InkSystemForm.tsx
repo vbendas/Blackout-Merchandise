@@ -1,9 +1,12 @@
 'use client';
 
 import { useId, useState, useTransition, type FormEvent } from 'react';
+import Link from 'next/link';
 import { saveInkSystemAction } from '@/app/(chat)/admin/ink-system/actions';
+import { summariseDotGain } from '@/lib/print/calibration/profile';
 import type { InkSystemProfile } from '@/lib/print/types';
 import { cn } from '@/lib/utils';
+import { formatStamp } from '@/components/admin/prepress/format';
 import { formFromProfile, opacityInks, profileFromForm, type InkFieldKey, type InkFormValues } from './profile-form';
 
 type PlainKey = Exclude<keyof InkFormValues, 'opacity'>;
@@ -81,6 +84,19 @@ const GROUPS: GroupDef[] = [
     ],
   },
 ];
+
+const DOT_GAIN_METHODS = { scan: 'from a scan', manual: 'typed in', spectro: 'from a spectrophotometer' } as const;
+
+/** What the profile says about dot gain, in a sentence. */
+function dotGainLine(profile: InkSystemProfile): string {
+  const gain = profile.dotGain;
+  if (!gain) return 'Not calibrated: films are made with linear coverage.';
+  const summary = summariseDotGain(gain);
+  const when = formatStamp(gain.measuredAt);
+  const base = `Calibrated${when ? ` on ${when}` : ''}, ${DOT_GAIN_METHODS[gain.method]}, at ${gain.lpi} lpi, ${gain.angleDeg}° and mesh ${gain.mesh}.`;
+  if (!summary) return base;
+  return `${base} A 50% tint on the film prints as ${Math.round(summary.printedAt50 * 100)}%, so the engine puts ${Math.round(summary.filmFor50 * 100)}% on the film for a 50% tone.`;
+}
 
 /** The ink system profile (Plan section 5). Anyone with Pre-press "View" reads it;
  * with "Manage" the same rows become boxes. Checks run as you type once a save has
@@ -228,6 +244,17 @@ export function InkSystemForm({ profile, canManage, updatedLabel }: { profile: I
             row({ key: `opacity:${ink}`, label: ink, unit: '%', step: '1' }, shown.opacity[ink] ?? '', (next) => setOpacity(ink, next), `${uid}-opacity-${index}`),
           )}
         </Rows>
+      </fieldset>
+
+      <fieldset className="isy-group">
+        <legend className="mf-label">Dot gain</legend>
+        <p className="pp-dim">Halftone dots print bigger than they are on the film. A calibration from a printed test chart makes the engine put smaller dots on every new film.</p>
+        <p>{dotGainLine(shownProfile)}</p>
+        <p>
+          <Link className="pp-link" href="/admin/ink-system/calibration">
+            {shownProfile.dotGain ? 'Open the dot gain calibration' : 'Calibrate the dot gain'}
+          </Link>
+        </p>
       </fieldset>
 
       <div className="isy-foot">

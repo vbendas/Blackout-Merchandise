@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { requireStaffPage } from '@/lib/auth';
 import { can } from '@/lib/auth/permissions';
@@ -23,7 +24,11 @@ export default async function InkSystemPage() {
 
   return (
     <>
-      <AdminPageHeader title="Ink system" meta={active.profile.name} />
+      <AdminPageHeader title="Ink system" meta={active.profile.name}>
+        <Link className="pp-btn" href="/admin/ink-system/calibration">
+          Dot gain calibration
+        </Link>
+      </AdminPageHeader>
       <div className="pp-page">
         <div className="pp pp-stack isy">
           <p className="pp-lede">The inks and press settings the pre-press packs, proofs and job sheets are made from.</p>

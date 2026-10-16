@@ -20,6 +20,8 @@ function defaultFilm(films: PackFilmView[]): number {
 }
 
 function halftoneLine(film: PackFilmView): string {
+  // An index film has no halftone: square ink cells on a grid (its plates keep the grid's cells per inch as the ruling).
+  if (film.method === 'index') return `Index · ${film.lpi} ppi square cells · ${film.ppi} ppi`;
   return `${film.lpi} lpi · ${film.angleDeg}° · ${film.dotShape === 'ellipse' ? 'elliptical' : 'round'} dot · ${film.ppi} ppi`;
 }
 

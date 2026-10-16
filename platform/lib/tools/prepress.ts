@@ -160,7 +160,7 @@ export const approvePackTool = defineTool({
 export const rerunPackTool = defineTool({
   name: 'rerun_pack',
   description:
-    "Run a pack again with changes: method (spot, index, simulated process), screen count (1 to 15), lines per inch, angle, underbase choke, trap, or a different colour for a film (inkChanges, by film number). The new pack replaces this one and comes back for audit. The artist is asked to approve again only if the proof changes. Leave out anything that should stay as it is.",
+    "Run a pack again with changes: method (spot, index, simulated process), screen count (1 to 15), lines per inch, angle, underbase choke, trap, or a different colour for a film (inkChanges, by film number). Changed inks keep every film the pack has, so don't lower the screen count in the same run: change the inks first, then the count. The new pack replaces this one and comes back for audit. The artist is asked to approve again only if the proof changes. Leave out anything that should stay as it is.",
   input: z
     .object({
       packId,

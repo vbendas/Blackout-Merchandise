@@ -349,7 +349,7 @@ export function makeFakePack(initial: Partial<FakePackOptions> = {}): FakePack {
         ppi: set.canvas.ppi,
         effectsOn: false,
         // WP2's own layer names, so the real matcher and diff work on what this fake writes.
-        plates: set.plates.map((p) => ({ index: p.index, name: plateLayerName(p, set.plates.length), data: Buffer.from(p.plate.data).toString('base64') })),
+        plates: set.plates.map((p) => ({ index: p.index, name: plateLayerName(p, set.plates.length, set.method), data: Buffer.from(p.plate.data).toString('base64') })),
       };
       return writeFakePsd(psd);
     },
@@ -592,7 +592,7 @@ export async function seedShopOrder(db: TestDb, input: { storeId: string; produc
 /** A paid run: a bulk order with its quote lines, the order it became, and a backing product per line. */
 export async function seedRun(
   db: TestDb,
-  input: { storeId: string; designId: string; lines: { colourCode: string; qty: number; printServiceCode: string }[] },
+  input: { storeId: string; designId: string; lines: { colourCode: string; qty: number; printServiceCode: string; extraPlacements?: { position: string; widthCm: number }[] }[] },
 ): Promise<{ orderId: string; bulkOrderId: string }> {
   const [order] = await db
     .insert(schema.orders)
@@ -603,7 +603,16 @@ export async function seedRun(
   for (const line of input.lines) {
     const productId = await seedProduct(db, { storeId: input.storeId, designId: input.designId, name: `Bulk run ${line.colourCode}`, printServiceCode: line.printServiceCode });
     await db.insert(schema.orderItems).values({ orderId: order.id, productId, quantity: line.qty, priceAtPurchase: 900, colourCode: line.colourCode, size: 'M' });
-    quoteLines.push({ productId, designId: input.designId, blankCode: 'STTU169', printServiceCode: line.printServiceCode, placement: { position: 'front_chest', widthCm: 28 }, colourCode: line.colourCode, qty: line.qty });
+    quoteLines.push({
+      productId,
+      designId: input.designId,
+      blankCode: 'STTU169',
+      printServiceCode: line.printServiceCode,
+      placement: { position: 'front_chest', widthCm: 28 },
+      ...(line.extraPlacements ? { extraPlacements: line.extraPlacements } : {}),
+      colourCode: line.colourCode,
+      qty: line.qty,
+    });
   }
   const [bulk] = await db
     .insert(schema.bulkOrders)

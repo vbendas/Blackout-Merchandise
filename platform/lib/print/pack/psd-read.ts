@@ -311,7 +311,7 @@ function matchFilms(original: ScreenSet, parsed: ParsedScreenPsd): Map<number, I
   const used = new Set<number>();
   const match = new Map<number, InkPlate>();
   const identityOf = (p: InkPlate) => {
-    const parsedName = parsePlateLayerName(plateLayerName(p, total));
+    const parsedName = parsePlateLayerName(plateLayerName(p, total, original.method));
     return parsedName ? plateIdentity(parsedName) : '';
   };
   const bare: number[] = [];
@@ -379,7 +379,7 @@ export function diffScreenPsd(original: ScreenSet, parsed: ParsedScreenPsd & { o
   const removed = original.plates
     .filter((p) => !matchedOriginals.has(p.index))
     .sort((a, b) => a.index - b.index)
-    .map((p) => ({ index: p.index, name: plateLayerName(p, total) }));
+    .map((p) => ({ index: p.index, name: plateLayerName(p, total, original.method) }));
   const reordered = [...match.entries()].some(([index, p]) => index !== p.index);
 
   const parts: string[] = [];

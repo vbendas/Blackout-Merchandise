@@ -4,7 +4,6 @@ import type { ApprovalGarment, ApprovalView } from '@/lib/services/print-prep';
 import { MOCK_APPROVAL_VIEW } from '@/lib/print/mock-views';
 import {
   POLL_LIMIT_MS,
-  PRICE_LINE,
   TABS,
   approvalScope,
   barMeta,
@@ -23,7 +22,6 @@ import {
   pickProof,
   pickScreenSet,
   placementPosition,
-  priceNote,
   readableError,
   retryPrompt,
   techniqueOf,
@@ -156,12 +154,6 @@ test('only a sentence is shown as an error; a code becomes the plain fallback', 
   assert.equal(readableError('A newer version is ready.'), 'A newer version is ready.');
   assert.equal(readableError('not_found'), 'That did not go through. Please try again.');
   assert.equal(readableError(undefined), 'That did not go through. Please try again.');
-});
-
-test('the price line falls back to the standard one', () => {
-  assert.equal(priceNote({ priceNote: 'No surcharge. On a run, each screen above 8 adds €1 per piece.' }), 'No surcharge. On a run, each screen above 8 adds €1 per piece.');
-  assert.equal(priceNote({ priceNote: '  ' }), PRICE_LINE);
-  assert.match(PRICE_LINE, /each screen above 8 adds €1 per piece/);
 });
 
 test('the loupe alt text says what it shows', () => {

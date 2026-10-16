@@ -6,7 +6,7 @@
 // coverage, checks screen sets and draws the proofs, so the separation and
 // the proof cannot drift apart. Opacities are estimates until the inks are
 // measured (InkSystemProfile.measured).
-import type { InkSystemProfile } from '@/lib/print/types';
+import type { Hex, InkSystemProfile } from '@/lib/print/types';
 import { ENGINE_TUNING, FALLBACK_OPACITY, WHITE_INK_HEX } from '@/lib/print/defaults';
 import { deltaE2000, hexToLinear, linearToLab, type Vec3 } from './colour';
 
@@ -94,6 +94,18 @@ export interface ModelLayer {
   kind: PlateKind;
   colour: Vec3;
   opacity: number;
+}
+
+/**
+ * The layer a plate prints: the white ink for the underbase and the
+ * highlight, otherwise the plate's ink colour with its base's opacity. The
+ * proofs and the simulated-process separation both build their layers here,
+ * so they print the same model.
+ */
+export function plateLayer(role: PlateKind, hex: Hex, base: string, sys: InkSystemModel): ModelLayer {
+  if (role === 'underbase') return { kind: 'underbase', colour: sys.white, opacity: sys.underbaseOpacity };
+  if (role === 'highlight') return { kind: 'highlight', colour: sys.white, opacity: sys.highlightOpacity };
+  return { kind: 'ink', colour: hexToLinear(hex), opacity: sys.opacityOf(base) };
 }
 
 /** The colour of one spot: garment, then each layer that prints there, in press order. */

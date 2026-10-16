@@ -6,11 +6,12 @@
 // underbase) it is halftoned on the set's one screen. Then traps (each ink
 // spreads under the inks printed after it), the underbase choke, thin-line
 // checks, registration targets and the label strip.
-import type { InkPlate, InkSystemProfile, PlateLabelInfo, PlateRole, PrintRecipe, ScreenSet, Warning } from '@/lib/print/types';
+import type { HalftoneSpec, InkPlate, InkSystemProfile, PlateLabelInfo, PlateRole, PrintRecipe, ScreenSet, Warning } from '@/lib/print/types';
 import { ENGINE_TUNING, STANDARD_MAX_SCREENS, WHITE_INK_HEX } from '@/lib/print/defaults';
 import { clientColourName } from '@/lib/print/colour-names';
+import { dotGainFor } from '@/lib/print/calibration/curve';
 import { deltaE2000, hexToLab, linearToLab, roundLab } from './colour';
-import { makeScreen, makeTransfer, screenRow, transfer } from './halftone';
+import { makeScreen, makeTransfer, screenRow, transfer, type DotGainCurve } from './halftone';
 import { chokeBy, spreadInto, thinPixels, type MaskView } from './morphology';
 import { drawLabelStrip, drawTargets, type LabelLines } from './marks';
 import { FieldResampler, type FieldRowFill } from './raster';
@@ -30,9 +31,18 @@ export interface RenderInput {
   garmentNames: Record<string, string>;
 }
 
-interface PlateStats {
+export interface PlateStats {
   on: number;
   halftoned: number;
+}
+
+/**
+ * The transfer every plate is screened through: the press's dot-gain
+ * compensation (lib/print/calibration, linear until the press is measured),
+ * then the mesh's smallest and largest dot.
+ */
+export function plateTransfer(halftone: Pick<HalftoneSpec, 'minDot' | 'maxDot'>, inks: InkSystemProfile, gain?: DotGainCurve): Float32Array {
+  return makeTransfer(halftone, gain ?? dotGainFor(inks));
 }
 
 function fillFor(rec: Records, factors: Float32Array): FieldRowFill {
@@ -70,28 +80,32 @@ function fillFor(rec: Records, factors: Float32Array): FieldRowFill {
 }
 
 /**
- * Renders one plate into `out` (the canvas) and its footprint into `foot`
- * (print-area sized, 1 where the plate's area is): solid footprint for inks
- * (coverage of at least 50%), any coverage for the underbase.
+ * Renders one coverage field (given row by row on the work grid) into `out`
+ * (the canvas) and its footprint into `foot` (print-area sized, 1 where the
+ * plate's area is): solid footprint for inks (coverage of at least 50%), any
+ * coverage for the underbase. Output pixels whose four nearest source pixels
+ * are all hard are thresholded at 50% (crisp edges at any scale); the rest
+ * are screened through `lut` on the set's one screen.
  */
-function renderPlate(
-  rec: Records,
-  factors: Float32Array,
+export function renderField(
+  fill: FieldRowFill,
+  srcW: number,
+  srcH: number,
   size: PrintSize,
   canvasWidth: number,
   artX: number,
   artY: number,
-  recipe: PrintRecipe,
+  halftone: HalftoneSpec,
+  lut: Float32Array,
   footprint: 'solid' | 'any',
   out: Uint8Array,
   foot: Uint8Array,
 ): PlateStats {
   const Wp = size.widthPx;
   const Hp = size.heightPx;
-  const res = new FieldResampler(rec.width, rec.height, Wp, Hp, fillFor(rec, factors));
-  const screen = makeScreen(recipe.halftone, size.ppi);
-  const lut = makeTransfer(recipe.halftone);
-  const anyLevel = Math.max(1e-3, recipe.halftone.minDot / 2);
+  const res = new FieldResampler(srcW, srcH, Wp, Hp, fill);
+  const screen = makeScreen(halftone, size.ppi);
+  const anyLevel = Math.max(1e-3, halftone.minDot / 2);
   const values = new Float32Array(Wp);
   const th = new Float32Array(Wp);
   const { c0, c1 } = res;
@@ -134,7 +148,24 @@ function renderPlate(
   return { on, halftoned };
 }
 
-function safeClientName(hex: string): string | undefined {
+/** One spot plate from the analysis records. */
+function renderPlate(
+  rec: Records,
+  factors: Float32Array,
+  size: PrintSize,
+  canvasWidth: number,
+  artX: number,
+  artY: number,
+  recipe: PrintRecipe,
+  lut: Float32Array,
+  footprint: 'solid' | 'any',
+  out: Uint8Array,
+  foot: Uint8Array,
+): PlateStats {
+  return renderField(fillFor(rec, factors), rec.width, rec.height, size, canvasWidth, artX, artY, recipe.halftone, lut, footprint, out, foot);
+}
+
+export function safeClientName(hex: string): string | undefined {
   try {
     return clientColourName(hex);
   } catch {
@@ -192,6 +223,7 @@ export function renderSet(input: RenderInput): ScreenSet {
   const area = art.width * art.height;
   const plan = plannedPlates(a);
   const total = plan.length;
+  const lut = plateTransfer(recipe.halftone, inks);
   const datas = plan.map(() => new Uint8Array(W * H));
   const foot = new Uint8Array(area);
   const later = new Uint8Array(area);
@@ -212,7 +244,7 @@ export function renderSet(input: RenderInput): ScreenSet {
   for (const i of order) {
     const p = plan[i];
     const plateView = view(datas[i], W, art.x, art.y, art.width, art.height);
-    const st = renderPlate(a.records, plateFactors(p.key, a.entries), size, W, art.x, art.y, recipe, 'solid', datas[i], foot);
+    const st = renderPlate(a.records, plateFactors(p.key, a.entries), size, W, art.x, art.y, recipe, lut, 'solid', datas[i], foot);
     stats[i].on = st.on;
     stats[i].halftoned = st.halftoned;
     if (thinRadius >= 1) {
@@ -225,7 +257,7 @@ export function renderSet(input: RenderInput): ScreenSet {
   const ub = plan.findIndex((p) => p.key.role === 'underbase');
   if (ub >= 0) {
     const plateView = view(datas[ub], W, art.x, art.y, art.width, art.height);
-    const st = renderPlate(a.records, plateFactors(plan[ub].key, a.entries), size, W, art.x, art.y, recipe, 'any', datas[ub], foot);
+    const st = renderPlate(a.records, plateFactors(plan[ub].key, a.entries), size, W, art.x, art.y, recipe, lut, 'any', datas[ub], foot);
     stats[ub].on = st.on - (chokePx > 0 ? chokeBy(plateView, footView, chokePx) : 0);
     stats[ub].halftoned = st.halftoned;
   }
@@ -267,6 +299,19 @@ export function renderSet(input: RenderInput): ScreenSet {
   };
 }
 
+/** Screens past the press's heads, and past the standard count (the surcharge). */
+export function screenCountWarnings(setName: string, screens: number, inks: InkSystemProfile): Warning[] {
+  const out: Warning[] = [];
+  if (screens > inks.pressHeads) {
+    out.push({ code: 'press_heads', severity: 'review', message: `${setName}: ${screens} screens, more than the ${inks.pressHeads} heads on the press. Plan the run for it.` });
+  }
+  if (screens > STANDARD_MAX_SCREENS) {
+    const extra = screens - STANDARD_MAX_SCREENS;
+    out.push({ code: 'extra_screens', severity: 'info', message: `${setName}: ${screens} screens, ${extra} above the standard ${STANDARD_MAX_SCREENS}. A screen-printed run pays €${extra} per piece more.` });
+  }
+  return out;
+}
+
 function setWarnings(input: RenderInput, plan: PlanPlate[], plates: InkPlate[], stats: { thinMm2: number }[]): Warning[] {
   const { analysis: a, recipe, inks, garmentNames } = input;
   const out: Warning[] = [];
@@ -286,14 +331,7 @@ function setWarnings(input: RenderInput, plan: PlanPlate[], plates: InkPlate[], 
       message: `${setName}: lines under ${formatNumber(recipe.minLineMm)} mm in ${listed.join(', ')}${more} may close up in screen print.`,
     });
   }
-  const screens = plates.length;
-  if (screens > inks.pressHeads) {
-    out.push({ code: 'press_heads', severity: 'review', message: `${setName}: ${screens} screens, more than the ${inks.pressHeads} heads on the press. Plan the run for it.` });
-  }
-  if (screens > STANDARD_MAX_SCREENS) {
-    const extra = screens - STANDARD_MAX_SCREENS;
-    out.push({ code: 'extra_screens', severity: 'info', message: `${setName}: ${screens} screens, ${extra} above the standard ${STANDARD_MAX_SCREENS}. A screen-printed run pays €${extra} per piece more.` });
-  }
+  out.push(...screenCountWarnings(setName, plates.length, inks));
   for (const e of a.entries) {
     if (e.kind !== 'ink') continue;
     const de = deltaE2000(linearToLab(e.appearance[0], e.appearance[1], e.appearance[2]), a.ctx.garmentLab);

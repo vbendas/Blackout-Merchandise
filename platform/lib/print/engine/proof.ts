@@ -7,7 +7,8 @@ import sharp from 'sharp';
 import type { DtgLayer, GarmentColour, InkSystemProfile, LoupeImage, PackshotInput, ProofImage, ScreenSet } from '@/lib/print/types';
 import { ENGINE_TUNING } from '@/lib/print/defaults';
 import { SRGB8_TO_LINEAR, hexToLinear, linearToSrgb8, type Vec3 } from './colour';
-import { inkSystemModel, overlay, stackColour, type ModelLayer } from './model';
+import { inkSystemModel, overlay, plateLayer, stackColour, type ModelLayer } from './model';
+import { printedToneOf, toneScratch, toneShift, ToneTally, type PrintedTone } from './printed-tone';
 import { mulberry32 } from './rng';
 import { resizeRgba, sharpFromPixels } from './raster';
 import { whitesTransparentOn } from './dtg';
@@ -91,6 +92,10 @@ class PrintAverager {
     this.printed = new Float64Array(n);
     this.colOf = new Int32Array(areaW);
     for (let x = 0; x < areaW; x++) this.colOf[x] = Math.min(rect.width - 1, Math.floor((x * rect.width) / areaW));
+  }
+  /** The proof pixel print pixel (x, y) lands in, given its proof row. */
+  regionOf(x: number, oy: number): number {
+    return oy * this.rect.width + this.colOf[x];
   }
   /** The proof row a print row lands in, or -1 when it is past the photo's edge. */
   rowOf(y: number): number {
@@ -202,11 +207,7 @@ function boxBlur(src: Float64Array, w: number, h: number, r: number): Float64Arr
 /** The plates' layers in press order, for the print model. */
 export function screenLayers(set: ScreenSet, inks: InkSystemProfile): ModelLayer[] {
   const sys = inkSystemModel(inks);
-  return set.plates.map((p) => {
-    if (p.role === 'underbase') return { kind: 'underbase', colour: sys.white, opacity: sys.underbaseOpacity };
-    if (p.role === 'highlight') return { kind: 'highlight', colour: sys.white, opacity: sys.highlightOpacity };
-    return { kind: 'ink', colour: hexToLinear(p.target.hex), opacity: sys.opacityOf(p.base) };
-  });
+  return set.plates.map((p) => plateLayer(p.role, p.target.hex, p.base, sys));
 }
 
 /** Colour of every combination of plates, computed once per combination seen. */
@@ -231,23 +232,60 @@ export async function screenProof(set: ScreenSet, garment: GarmentColour, packsh
   const { art, widthPx: W } = set.canvas;
   const { rect, fullHeight, overflow } = printRect(shot, packshot.printBox, art.width, art.height);
   const avg = new PrintAverager(art.width, art.height, rect, fullHeight);
-  const combos = new ComboColours(hexToLinear(garment.hex), screenLayers(set, inks));
+  const ground = hexToLinear(garment.hex);
+  const layers = screenLayers(set, inks);
+  const combos = new ComboColours(ground, layers);
   const plates = set.plates.map((p) => p.plate.data);
   const np = plates.length;
+  // With a calibrated press the films carry compensated (smaller) dots: count them per proof pixel to print them back up.
+  const tone = printedToneOf(set, inks);
+  const tally = tone ? new ToneTally(rect.width * rect.height, np) : null;
+  const above = tally ? new Int32Array(art.width) : null;
   for (let y = 0; y < art.height; y++) {
     const oy = avg.rowOf(y);
     if (oy < 0) continue;
     const row = (art.y + y) * W + art.x;
+    let left = 0;
     for (let x = 0; x < art.width; x++) {
       let mask = 0;
       for (let p = 0; p < np; p++) if (plates[p][row + x] !== 0) mask |= 1 << p;
       if (mask === 0) avg.bare(x, oy);
       else avg.printedAt(x, oy, combos.get(mask));
+      if (tally && above) {
+        tally.add(avg.regionOf(x, oy), mask, x > 0 ? left : mask, y > 0 ? above[x] : mask);
+        above[x] = mask;
+        left = mask;
+      }
     }
   }
   const { colour, share } = avg.finish();
+  if (tone && tally) printTone(tone, tally, layers, ground, colour, share);
   const image = await compose(shot, rect, colour, share);
   return { garmentCode: garment.code, technique: 'screen', image, width: shot.width, height: shot.height, overflow };
+}
+
+/**
+ * The averaged films as the press prints them (printed-tone.ts): each proof
+ * pixel's mean printed colour and inked share moved by the dot gain. `colour`
+ * is the mean over the inked part, so the move is made on the whole pixel
+ * (inked part plus bare garment) and split again.
+ */
+function printTone(tone: PrintedTone, tally: ToneTally, layers: ModelLayer[], ground: Vec3, colour: Float64Array, share: Float64Array): void {
+  const scratch = toneScratch(layers.length);
+  const delta: Vec3 = [0, 0, 0];
+  for (let k = 0; k < share.length; k++) {
+    const grown = toneShift(tone, tally, k, layers, ground, scratch, delta);
+    if (grown === null) continue;
+    const a = share[k];
+    const inked = Math.min(1, Math.max(a, a + grown));
+    if (!(inked > 0)) continue;
+    for (let ch = 0; ch < 3; ch++) {
+      const whole = a * colour[k * 3 + ch] + (1 - a) * ground[ch] + delta[ch];
+      const v = (whole - (1 - inked) * ground[ch]) / inked;
+      colour[k * 3 + ch] = v <= 0 ? 0 : v >= 1 ? 1 : v;
+    }
+    share[k] = inked;
+  }
 }
 
 /** How a DTG pixel prints: over a white base on dark garments, as translucent CMYK on light ones. */

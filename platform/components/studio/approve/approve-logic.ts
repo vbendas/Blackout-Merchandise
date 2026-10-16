@@ -94,12 +94,6 @@ export function dtgFactsFor(facts: Record<string, string[]>, garment: ApprovalGa
   ];
 }
 
-/** Used when the view has no price note of its own. */
-export const PRICE_LINE = 'On a run, each screen above 8 adds €1 per piece.';
-
-export function priceNote(set: Pick<ApprovalScreenSet, 'priceNote'>): string {
-  return set.priceNote.trim() || PRICE_LINE;
-}
 
 // ---------------------------------------------------------------------------
 // Copy that depends on the view

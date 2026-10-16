@@ -3,6 +3,7 @@
 // types, and the server action checks again on what arrives (a browser can send
 // anything). Pure and client-safe. Documentation/Dev/Print-Prep-Plan.md section 5.
 import { z } from 'zod';
+import { dotGainProfileSchema } from '@/lib/print/calibration/profile';
 import type { InkSystemProfile } from '@/lib/print/types';
 
 // ---------------------------------------------------------------------------
@@ -63,6 +64,8 @@ export const inkSystemProfileSchema = z
     squeegee: z.string({ error: 'The squeegee needs a description.' }).trim().max(120, 'The squeegee description is too long.'),
     pressHeads: whole('Press heads', 1, 15),
     measured: z.boolean(),
+    // Not edited here (the calibration page owns it), but the profile keeps it: a schema that dropped it would erase it on every save.
+    dotGain: dotGainProfileSchema.optional(),
   })
   .superRefine((profile, ctx) => {
     const { mesh, cure, offContactMm } = profile;
@@ -203,8 +206,8 @@ function fieldOfPath(path: PropertyKey[]): InkFieldKey | null {
 }
 
 /** The form back to a profile, built on the saved one so what the form doesn't
- * show (whether the inks were measured, an opacity for an ink no longer named)
- * is kept. Each problem is attached to its box. */
+ * show (whether the inks were measured, the dot-gain calibration, an opacity for
+ * an ink no longer named) is kept. Each problem is attached to its box. */
 export function profileFromForm(
   values: InkFormValues,
   saved: InkSystemProfile,
@@ -239,6 +242,7 @@ export function profileFromForm(
     squeegee: values.squeegee,
     pressHeads: parseNumber(values.pressHeads),
     measured: saved.measured,
+    ...(saved.dotGain ? { dotGain: saved.dotGain } : {}),
   };
 
   const parsed = inkSystemProfileSchema.safeParse(candidate);

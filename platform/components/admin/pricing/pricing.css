@@ -1,0 +1,221 @@
+/* The pricing page: the screen-print price table as a grid to read or to edit, a few rows of
+   settings, and example prices. Buttons, fields, tables, the page frame and the type come from
+   components/admin/prepress/prepress.css (the page imports both). It sits in @layer components,
+   so a Tailwind utility on the same element still wins. */
+@layer properties, theme, base, components, utilities, overrides;
+
+@layer components {
+  .prc {
+    max-width: 1040px;
+  }
+
+  .prc-form {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  .prc-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .prc-group > h2 {
+    margin: 0;
+  }
+
+  /* A placeholder is marked in words and a hairline box, never a colour. */
+  .prc-note {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border: var(--hairline-strong);
+    border-radius: 2px;
+    color: var(--pp-soft);
+  }
+
+  .prc-note-title {
+    color: var(--signal);
+    font-weight: 600;
+  }
+
+  .prc-tag {
+    margin-left: 10px;
+    padding: 2px 6px;
+    border: var(--hairline-strong);
+    border-radius: 2px;
+    color: var(--pp-soft);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    vertical-align: 1px;
+  }
+
+  /* ----- The price grid ----- */
+
+  .prc-grid {
+    min-width: 640px;
+  }
+
+  .prc-grid thead th,
+  .prc-grid tbody th {
+    vertical-align: bottom;
+  }
+
+  .prc-grid tbody th {
+    padding: 8px 12px 8px 0;
+    color: var(--signal);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .prc-grid td {
+    padding: 6px 8px;
+  }
+
+  .prc-grid thead th:not(:first-child),
+  .prc-grid td {
+    text-align: left;
+  }
+
+  /* To read, a price sits against the right edge of its column, under a heading that does too. */
+  .prc-grid :is(th, td).prc-num {
+    text-align: right;
+  }
+
+  .prc-head {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* A tier's name, and the box that says where it starts, on one line. */
+  .prc-rowhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 190px;
+  }
+
+  .prc-head-row,
+  .prc-from {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .prc-box {
+    min-width: 0;
+    text-align: right;
+    font-family: var(--pp-mono);
+  }
+
+  .prc-money {
+    width: 96px;
+  }
+
+  .prc-narrow {
+    width: 72px;
+  }
+
+  .prc-box:disabled {
+    opacity: 0.5;
+  }
+
+  .prc-errors {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .prc-error {
+    flex-basis: 100%;
+  }
+
+  /* ----- Rows of settings and size bands ----- */
+
+  .prc-rows {
+    display: flex;
+    flex-direction: column;
+    border-top: var(--hairline);
+  }
+
+  .prc-row {
+    display: grid;
+    grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+    align-items: start;
+    gap: 6px 24px;
+    padding: 12px 0;
+    border-bottom: var(--hairline);
+  }
+
+  .prc-k {
+    color: var(--pp-soft);
+  }
+
+  .prc-hint {
+    display: block;
+    color: var(--pp-dim);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .prc-v {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    min-width: 0;
+  }
+
+  /* ----- Example prices ----- */
+
+  .prc-examples {
+    min-width: 520px;
+  }
+
+  .prc-examples td,
+  .prc-examples tbody th {
+    padding-block: 8px;
+    text-align: left;
+  }
+
+  .prc-examples tbody th {
+    padding-left: 0;
+    color: var(--signal);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .prc-examples :is(th, td).prc-num {
+    text-align: right;
+  }
+
+  /* The screens above 8: the fixed charge reads in white where the rest is dimmer. */
+  .prc-examples tr[data-over='true'] td:nth-child(2) {
+    color: var(--signal);
+    font-weight: 600;
+  }
+
+  .prc-foot {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  @media (max-width: 640px) {
+    .prc-row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}

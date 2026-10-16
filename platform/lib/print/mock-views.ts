@@ -188,6 +188,7 @@ export const MOCK_PACK_DETAIL: PackDetailView = {
     mesh,
     lpi: 55,
     angleDeg: 22.5,
+    method: 'spot',
     dotShape: 'round',
     ppi: 600,
     previewUrl: `${IMG}/film-darks-${i + 1}.png`,

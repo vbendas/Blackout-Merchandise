@@ -1,5 +1,5 @@
 import { unstable_cache } from 'next/cache';
-import { eq, min } from 'drizzle-orm';
+import { and, eq, min, notLike } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import {
   buildCatalogueDetail,
@@ -17,18 +17,20 @@ import {
 // from files already in memory (lib/catalog/catalogue-index.ts).
 
 /** Bump when the shape of the cached prices changes. */
-const SHAPE = 'v1';
+const SHAPE = 'v2';
 const PRICES_REVALIDATE_SECONDS = 3600;
 
 /** Cheapest one-piece base cost per blank across every print service: the same
  * figure lib/services/blanks.ts shows as "from" (qty_from = 1, lowest total),
- * in one grouped query for all blanks instead of one per list. */
+ * in one grouped query for all blanks instead of one per list. Screen print has
+ * no base costs (runs are priced by their screens), so a row an old seed left
+ * for it is not a price. */
 const readPrices = unstable_cache(
   async (): Promise<Record<string, number>> => {
     const rows = await db
       .select({ blankCode: schema.baseCosts.blankCode, cents: min(schema.baseCosts.totalCents) })
       .from(schema.baseCosts)
-      .where(eq(schema.baseCosts.qtyFrom, 1))
+      .where(and(eq(schema.baseCosts.qtyFrom, 1), notLike(schema.baseCosts.printServiceCode, 'screen\_%')))
       .groupBy(schema.baseCosts.blankCode);
     const prices: Record<string, number> = {};
     for (const row of rows) {

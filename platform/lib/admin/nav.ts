@@ -18,6 +18,7 @@ export const ADMIN_NAV: AdminNavEntry[] = [
   { href: '/admin/production', label: 'Production', area: 'production' },
   { href: '/admin/supplier', label: 'Supplier orders', area: 'production' },
   { href: '/admin/ink-system', label: 'Ink system', area: 'prepress' },
+  { href: '/admin/pricing', label: 'Pricing', area: 'catalogue' },
   { href: '/admin/team', label: 'Team', area: 'team', level: 'manage' },
 ];
 

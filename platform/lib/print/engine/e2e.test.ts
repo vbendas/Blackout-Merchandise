@@ -1,5 +1,7 @@
 // End to end on the owner's test design (Assets/test_design.png): painted art
-// at 98 ppi over 28 cm, made for dark shirts. Screen plates render at 300 ppi
+// at 98 ppi over 28 cm, made for dark shirts; and on the print fixtures
+// (scripts/fixtures/print): painted and photographic art separates as
+// simulated process, flat art stays spot. Screen plates render at 300 ppi
 // here to keep the suite quick; the method choice does not depend on it.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,11 +10,13 @@ import path from 'node:path';
 import sharp from 'sharp';
 import type { ProofRequest, ScreenSeparationResult } from '@/lib/print/types';
 import { DEFAULT_INK_SYSTEM, DEFAULT_RECIPE, mergeRecipe } from '@/lib/print/defaults';
+import { hexToLab } from './colour';
 import { decodeArt, prepareDtg, renderDtgLoupe, renderDtgProof, renderScreenLoupe, renderScreenProof, separateScreen } from './index';
 import { BLACK, LABEL, NAVY, WHITE, distinctValues } from './testing';
 
 const ROOT = path.resolve(__dirname, '../../../..');
 const DESIGN = path.join(ROOT, 'Assets/test_design.png');
+const FIXTURES = path.resolve(__dirname, '../../../scripts/fixtures/print');
 const PACKSHOTS = path.resolve(__dirname, '../../../public/packshots');
 const PLACEMENT = { position: 'front_chest', widthMm: 280 };
 const RECIPE = mergeRecipe(DEFAULT_RECIPE, { screenPpi: 300 });
@@ -40,12 +44,12 @@ test('decodes the test design to RGBA with its metadata ppi', async () => {
   assert.equal(art.data.length, 1080 * 1296 * 4);
 });
 
-test('painted art is flagged for simulated process (or index), with a spot draft and a reason', async () => {
+test('painted art separates as simulated process: underbase and inks on darks, inks on lights, with its accuracy', async () => {
   const res = await separate();
-  assert.notEqual(res.method, 'spot');
-  assert.equal(res.needsManual, true);
-  assert.ok(res.methodReason.length > 20);
-  assert.ok(res.warnings.some((w) => (w.code === 'needs_sim_process' || w.code === 'needs_index') && w.severity === 'review'));
+  assert.equal(res.method, 'sim_process', res.methodReason);
+  assert.equal(res.needsManual, false);
+  assert.match(res.methodReason, /simulated process/);
+  assert.ok(!res.warnings.some((w) => w.code === 'needs_sim_process' || w.code === 'needs_index'));
   const lowRes = res.warnings.find((w) => w.code === 'low_resolution');
   assert.ok(lowRes && lowRes.message.includes('98 ppi'), lowRes?.message);
   const darks = res.sets.find((s) => s.key === 'darks');
@@ -55,14 +59,56 @@ test('painted art is flagged for simulated process (or index), with a spot draft
   assert.deepEqual(lights.garmentCodes, ['C001']);
   assert.ok(res.sets.flatMap((s) => s.garmentCodes).sort().join() === 'C001,C002,C727');
   for (const set of res.sets) {
-    assert.ok(set.plates.length >= 2 && set.plates.length <= RECIPE.maxScreens, `${set.key}: ${set.plates.length} plates`);
-    assert.notEqual(set.method, undefined);
+    assert.equal(set.method, 'sim_process');
+    assert.ok(set.plates.length >= 3 && set.plates.length <= RECIPE.maxScreens, `${set.key}: ${set.plates.length} plates`);
     for (const p of set.plates) {
       const values = [...distinctValues(p.plate.data, 7)].sort((a, b) => a - b);
       assert.deepEqual(values, [0, 255]);
     }
+    const accuracy = set.warnings.find((w) => w.code === 'sim_process_accuracy');
+    assert.ok(accuracy && accuracy.severity === 'info', `${set.key}: ${set.warnings.map((w) => w.code).join()}`);
+    const [mean, p95] = [...accuracy.message.matchAll(/ΔE (\d+\.\d)/g)].map((m) => Number(m[1]));
+    assert.ok(mean <= 3 && p95 <= 8, accuracy.message);
   }
   assert.equal(darks.plates[0].role, 'underbase');
+  assert.ok(darks.plates.slice(1).every((p) => p.role !== 'underbase'));
+  assert.ok(lights.plates.every((p) => p.role === 'ink'));
+  // the pink of the lettering is one of the inks, on both sets
+  for (const set of [darks, lights]) assert.ok(set.plates.some((p) => p.role === 'ink' && hexToLab(p.target.hex).a > 30 && hexToLab(p.target.hex).L > 60));
+});
+
+/** Separates one print fixture (scripts/fixtures/print) on black and white at 28 cm. */
+async function fixture(name: string): Promise<ScreenSeparationResult> {
+  const art = await decodeArt(fs.readFileSync(path.join(FIXTURES, `${name}.png`)));
+  return separateScreen({ art, placement: PLACEMENT, garments: [BLACK, WHITE], recipe: RECIPE, inks: DEFAULT_INK_SYSTEM, label: LABEL });
+}
+
+test('photographic gradients separate as simulated process with a sensible plate count', async () => {
+  const res = await fixture('gradient-photo');
+  assert.equal(res.method, 'sim_process', res.methodReason);
+  assert.equal(res.needsManual, false);
+  const darks = res.sets.find((s) => s.key === 'darks');
+  const lights = res.sets.find((s) => s.key === 'lights');
+  assert.ok(darks && lights);
+  // many hues: most of the budget, never past it
+  assert.ok(darks.plates.length >= 5 && darks.plates.length <= RECIPE.maxScreens, `darks ${darks.plates.length}`);
+  assert.ok(lights.plates.length >= 4 && lights.plates.length <= RECIPE.maxScreens, `lights ${lights.plates.length}`);
+  for (const set of [darks, lights]) {
+    assert.equal(set.method, 'sim_process');
+    const accuracy = set.warnings.find((w) => w.code === 'sim_process_accuracy');
+    assert.ok(accuracy);
+    const [mean, p95] = [...accuracy.message.matchAll(/ΔE (\d+\.\d)/g)].map((m) => Number(m[1]));
+    assert.ok(mean <= 3 && p95 <= 7, accuracy.message);
+  }
+});
+
+test('flat fixtures stay spot', async () => {
+  for (const name of ['flat-logo-3c', 'tints-2c', 'lettering-1c']) {
+    const res = await fixture(name);
+    assert.equal(res.method, 'spot', `${name}: ${res.methodReason}`);
+    assert.equal(res.needsManual, false);
+    assert.ok(res.sets.every((s) => s.method === 'spot'));
+  }
 });
 
 test('DTG layers for every garment, alpha strictly binary', async () => {
