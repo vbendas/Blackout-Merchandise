@@ -38,7 +38,7 @@ function Group({ title, who, children }: { title: string; who: string; children:
 }
 
 function Pages({ links }: { links: DemoLinks }) {
-  const { shop, designs } = links;
+  const { shop, designs, jobs } = links;
   return (
     <div className="grid gap-10 md:grid-cols-2">
       <Group title="Artist" who="as Artist">
@@ -53,6 +53,7 @@ function Pages({ links }: { links: DemoLinks }) {
         <Row href={goAs('artist', '/studio')} label="Studio home" note="needs you, shop block" />
         <Row href={goAs('artist', '/studio?prompt=Show%20my%20products')} label="Studio products" note="press Enter to ask" />
         <Row href={goAs('artist', '/studio/billing')} label="Billing" note="payouts, runs" />
+        <Row href={goAs('artist', '/studio/settings')} label="Settings" note="press board opt-in" />
         {shop ? <Row href={`/${shop.slug}`} label={`Fan shop · ${shop.name}`} note={`/${shop.slug}`} /> : null}
       </Group>
 
@@ -72,13 +73,23 @@ function Pages({ links }: { links: DemoLinks }) {
 
       <Group title="Production" who="as Production">
         <Row href={goAs('production', '/admin/production')} label="Production" note="orders and runs" />
+        <Row href={goAs('production', '/station')} label="Station queue" note="the iPads: counts, screens, stages" />
+        {jobs.map((job) => (
+          <Row key={job.jobId} href={goAs('production', `/station/job/${job.jobId}`)} label={`Station · ${job.label}`} note={job.note} />
+        ))}
         <Row href={goAs('production', '/admin/supplier')} label="Supplier orders" />
       </Group>
 
       <Group title="Team" who="as Owner">
+        <Row href={goAs('owner', '/station')} label="Station queue" note="as the owner" />
         <Row href={goAs('owner', '/admin/team')} label="Team" note="access by area" />
-        <Row href={goAs('owner', '/admin/team/activity')} label="Activity" />
+        <Row href={goAs('owner', '/admin/team/activity')} label="Activity" note="counts, screens, stages" />
         <Row href={goAs('owner', '/admin/team/invites')} label="Invites" />
+      </Group>
+
+      <Group title="Website" who="no sign-in">
+        {/* The feed the website's "On the press" board reads: public, no personal data, "Private" unless a shop opted in. */}
+        <Row href="/api/public/on-the-press" label="On the press feed" note="public JSON" />
       </Group>
     </div>
   );

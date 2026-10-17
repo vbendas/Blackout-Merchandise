@@ -70,8 +70,9 @@ export type EngineApi = Pick<
   typeof EngineModule,
   'decodeArt' | 'separateScreen' | 'prepareDtg' | 'renderScreenProof' | 'renderDtgProof' | 'renderScreenLoupe' | 'renderDtgLoupe'
 > & {
-  /** redraws a film's label strip in place, e.g. with its Pantone code (sync in the engine) */
-  relabelPlate: (set: ScreenSet, plateIndex: number, label: PlateLabelInfo, inks: InkSystemProfile, targetOffsetMm: number, inkName?: string, garmentNames?: Record<string, string>) => void | Promise<void>;
+  /** redraws a film's label strip in place, e.g. with its Pantone code (sync in the engine); the recipe's old
+   * targetOffsetMm only places the strip on a film made before engine 3 */
+  relabelPlate: (set: ScreenSet, plateIndex: number, label: PlateLabelInfo, inks: InkSystemProfile, legacyTargetOffsetMm: number | undefined, inkName?: string, garmentNames?: Record<string, string>) => void | Promise<void>;
 };
 export type PackApi = Pick<typeof PackModule, 'writeScreenPsd' | 'writeDtgPsd' | 'writeDtgPng' | 'renderFilmPreview' | 'runChecks'> & {
   /** what the real reader returns is richer; the pipeline only needs the contract's shape */

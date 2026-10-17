@@ -18,6 +18,7 @@ export const RESERVED_SLUGS = new Set([
   'sign-in',
   'sign-up',
   'staff-invite',
+  'station',
   'studio',
   'terms',
   // kept for the app (/chat redirects to /studio in next.config.ts)

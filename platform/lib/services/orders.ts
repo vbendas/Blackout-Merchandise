@@ -360,9 +360,21 @@ export async function refundOrder(orderId: string, opts: RefundOptions = {}): Pr
     .where(eq(schema.orders.id, orderId));
 
   await reconcileLedgerAfterRefund(orderId, wasShipped);
+  if (fullyRefunded) await syncProductionAfterRefund();
 
   const detail = await loadOrderDetail(orderId);
   return detail ? { ok: true, value: detail } : { ok: false, error: 'Order not found after refund.' };
+}
+
+/** A cancelled order's pieces leave the production stations' jobs (lib/services/production-progress.ts, loaded when
+ * called: it imports this module through production.ts). Never throws into the refund. */
+async function syncProductionAfterRefund(): Promise<void> {
+  try {
+    const { syncProductionJobsQuietly } = await import('@/lib/services/production-progress');
+    await syncProductionJobsQuietly('a refund');
+  } catch (err) {
+    console.error('[refund] could not update the production jobs:', err instanceof Error ? err.message : err);
+  }
 }
 
 /** charge.refunded webhook path — Stripe already processed the refund
@@ -382,6 +394,7 @@ export async function handleChargeRefunded(paymentIntentId: string | null, amoun
     .where(eq(schema.orders.id, order.id));
 
   await reconcileLedgerAfterRefund(order.id, wasShipped);
+  if (fullyRefunded) await syncProductionAfterRefund();
 }
 
 // -- sales summary ------------------------------------------------------------

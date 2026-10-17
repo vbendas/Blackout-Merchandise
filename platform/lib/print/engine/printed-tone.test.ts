@@ -36,7 +36,7 @@ const RED = '#C8102E';
 
 /** A W x H print area with a margin, one ink plate: the left half a flat tint at film coverage `film`, the right half solid. */
 function tintAndSolid(film: number, W = 2400, H = 1200): ScreenSet {
-  const canvas = canvasSpec({ widthPx: W, heightPx: H, ppi: PPI, widthMm: (W / PPI) * 25.4, heightMm: (H / PPI) * 25.4 } as never, 5);
+  const canvas = canvasSpec({ widthPx: W, heightPx: H, ppi: PPI, widthMm: (W / PPI) * 25.4, heightMm: (H / PPI) * 25.4, sourcePpi: PPI }, { sideMarginMm: 5, endMarginMm: 5, inkGapMm: 1 });
   const data = new Uint8Array(canvas.widthPx * canvas.heightPx);
   const screen = makeScreen(SCREEN, PPI);
   const th = new Float32Array(W);

@@ -117,9 +117,10 @@ test('a clean screen pack passes every check (inks not measured is for review)',
       assert.equal(c.title, 'Inks not measured');
     } else assert.equal(c.state, 'passed', `${c.id}: ${c.detail}`);
   }
-  assert.match(stateOf(checks, 'size').detail, /^2,127 × 2,316 px at 600 ppi: a 4 × 4\.8 cm print plus a 25 mm margin\.$/);
+  // 60 x 102 mm of film (1417.32 x 2409.45 px, rounded once): the 4 x 4.8 cm print with the A2 film's margins
+  assert.match(stateOf(checks, 'size').detail, /^1,417 × 2,409 px at 600 ppi: a 4 × 4\.8 cm print with margins of 10 mm at the sides and 27 mm above and below\.$/);
   assert.equal(stateOf(checks, 'screens').detail, '5 of 8, so no surcharge.');
-  assert.match(stateOf(checks, 'marks').detail, /^Identical registration marks on every film, \d+(\.\d)? mm or more clear of the art\.$/);
+  assert.match(stateOf(checks, 'marks').detail, /^Identical registration marks at the four corners of every film, 10(\.\d)? mm or more clear of the art, and the ink gap clear\.$/);
 });
 
 test('a solid film fails the films check', async () => {
@@ -153,13 +154,47 @@ test('a mark shifted on one film fails the marks check, with the shift in mm', a
   const shift = mmToPx(1, s.set.canvas.ppi);
   const shifted = withPlates(s.set, (i, d) => {
     if (i !== 3) return;
-    clearTarget(d, s.set.canvas, 15, 'left');
-    drawTargetAt(d, s.set.canvas, 15, 'left', shift, 0);
+    clearTarget(d, s.set.canvas, 'top left');
+    drawTargetAt(d, s.set.canvas, 'top left', shift, 0);
   });
   const { input } = await screenPack({ ...s, set: shifted });
   const marks = stateOf(await runChecks(input), 'marks');
   assert.equal(marks.state, 'failed');
-  assert.match(marks.detail, /the left mark on film 3 sits 1(\.0\d)? mm off film 1's/i);
+  assert.match(marks.detail, /the top left mark on film 3 sits 1(\.0\d)? mm off film 1's/i);
+});
+
+test('a missing corner mark fails, and ink in the ink gap or beside the print is for review', async () => {
+  const s = syntheticScreenSet({ plates: 4 });
+  const { widthPx: W, art, ppi } = s.set.canvas;
+  const faulty = withPlates(s.set, (i, d) => {
+    if (i === 2) clearTarget(d, s.set.canvas, 'bottom right');
+    if (i === 4) {
+      // a speck 4 mm above the print, in the ink gap, and one beside it in the side margin
+      const y = art.y - mmToPx(4, ppi);
+      d.fill(255, y * W + art.x + 40, y * W + art.x + 46);
+      d.fill(255, (art.y + 30) * W + art.x - mmToPx(5, ppi), (art.y + 30) * W + art.x - mmToPx(5, ppi) + 6);
+    }
+  });
+  const { input } = await screenPack({ ...s, set: faulty });
+  const marks = stateOf(await runChecks(input), 'marks');
+  assert.equal(marks.state, 'failed');
+  assert.match(marks.detail, /film 2 has no bottom right mark/i);
+  assert.match(marks.detail, /film 4 has ink in the ink gap or beside the print \(12 px\)/);
+});
+
+test('the size check holds the film to A2 and the print to 40 × 54 cm, and the margins to the layout', async () => {
+  const s = syntheticScreenSet({ plates: 2, widthMm: 20, heightMm: 24 });
+  // the same films on a canvas that claims other margins: for review
+  const claims = { ...s.set, canvas: { ...s.set.canvas, layout: { ...s.set.canvas.layout!, endMarginMm: 30 } } };
+  const size = stateOf(await runChecks((await screenPack({ ...s, set: claims })).input), 'size');
+  assert.equal(size.state, 'review');
+  assert.match(size.detail, /the margins are not 10 mm at the sides and 30 mm above and below/);
+  // a canvas past the sheet and a print past 40 x 54 cm fail (judged on the canvas alone: no films needed)
+  const huge = { ...s.set.canvas, widthPx: 10200, heightPx: 14100, art: { x: 236, y: 638, width: 9728, height: 12824 } };
+  const over = stateOf(await runChecks({ ...(await screenPack(s)).input, expected: { set: { ...s.set, canvas: huge } } }), 'size');
+  assert.equal(over.state, 'failed');
+  assert.match(over.detail, /the print is larger than the 40 × 54 cm an A2 film holds/);
+  assert.match(over.detail, /the film is 43\.2 × 59\.7 cm, larger than an A2 sheet \(42 × 59\.4 cm\)/);
 });
 
 test('a hairline is flagged for review by the fine lines check', async () => {

@@ -45,8 +45,9 @@ const PUBLIC_PATHS = [
   // legal pages
   '/privacy',
   '/terms',
-  // the website's Apply form
+  // the website's Apply form, and its press board
   '/api/apply',
+  '/api/public/on-the-press',
   // an employee's invite link (it sends a signed-out visitor to sign-in itself)
   '/staff-invite',
   // machines with their own signature or bearer secret
@@ -76,11 +77,18 @@ const PROTECTED_PATHS = [
   '/admin/prepress',
   '/admin/prepress/x',
   '/admin/ink-system',
+  '/admin/ink-system/calibration',
+  '/admin/pricing',
+  '/admin/pricing?tab=shop',
   '/admin/team',
   '/admin/team/x',
   '/admin/team/activity',
   '/admin/team/invite',
   '/admin/team/invites',
+  // the production stations' iPads
+  '/station',
+  '/station/',
+  '/station/job/x',
   // the Studio's print approval, and a paused employee's page
   '/studio/approve/x',
   '/staff-invite/paused',
@@ -94,6 +102,10 @@ const PROTECTED_PATHS = [
   '/api/prepress/x/upload-done',
   // the job sheet of a design
   '/api/job-sheets/x',
+  // dot-gain calibration: the chart, and a scan's upload link and reading
+  '/api/calibration/chart',
+  '/api/calibration/scan-url',
+  '/api/calibration/scan',
   // artist APIs
   '/api/agent',
   '/api/agent/history',
@@ -124,6 +136,8 @@ const PROTECTED_PATHS = [
   '/api/orders/tok/refund',
   '/api/stripe',
   '/api/apply/x',
+  '/api/public',
+  '/api/public/on-the-press/x',
   '/mock-checkout',
   '/privacy/x',
   '/register/x',

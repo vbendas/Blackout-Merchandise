@@ -3,6 +3,7 @@
 // several print positions, and the checks a saved table has to pass.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { PLACEMENTS, printPositionLabel } from '@/lib/mockups/placements';
 import {
   ABSOLUTE_MAX_SCREENS,
   EXTRA_SCREEN_CENTS_PER_PIECE,
@@ -11,13 +12,22 @@ import {
   basePrintCents,
   breakIndexFor,
   checkScreenPriceTable,
+  coloursLabel,
   coloursOfService,
   defaultScreenPriceTable,
+  describePositionEffect,
+  describeRunLine,
+  describeRunLines,
   describeScreenEffect,
   estimateScreens,
   euros,
+  eurosFixed,
   isScreenServiceCode,
+  positionLabel,
   priceScreenPrint,
+  runExtrasCents,
+  screenPriceLine,
+  screenPriceLines,
   screenSurchargeCents,
   setupCentsFor,
   sizeBandFor,
@@ -48,11 +58,14 @@ const one = (screens: number, widthCm = 28) => [{ screens, widthCm }];
 // ---------------------------------------------------------------------------
 // The rule
 
-test('the fixed rule is EUR 1 a piece for each screen above 8, up to 15', () => {
+test('the fixed rule is EUR 1 a piece for each screen above 8, on each print position, up to 15', () => {
   assert.equal(STANDARD_MAX_SCREENS, 8);
   assert.equal(ABSOLUTE_MAX_SCREENS, 15);
   assert.equal(EXTRA_SCREEN_CENTS_PER_PIECE, 100);
-  assert.equal(SCREEN_RULE, 'On a run, each screen above 8 adds €1 per piece, up to 15 screens.');
+  assert.equal(
+    SCREEN_RULE,
+    'On a run, each colour above 8 adds €1 per piece on each print position, up to 15 colours on a position. The white underbase and highlight white count as colours.',
+  );
 });
 
 test('the surcharge is nothing up to 8, then a euro for each screen above', () => {
@@ -65,12 +78,12 @@ test('the surcharge is nothing up to 8, then a euro for each screen above', () =
 });
 
 test('the price line names the count and what it does: no surcharge, or the euros a piece', () => {
-  assert.equal(describeScreenEffect(6).line, '6 screens: no surcharge');
-  assert.equal(describeScreenEffect(8).line, '8 screens: no surcharge');
-  assert.equal(describeScreenEffect(9).line, '9 screens: +€1 per piece');
-  assert.equal(describeScreenEffect(11).line, '11 screens: +€3 per piece');
-  assert.equal(describeScreenEffect(15).line, '15 screens: +€7 per piece');
-  assert.equal(describeScreenEffect(1).line, '1 screen: no surcharge');
+  assert.equal(describeScreenEffect(6).line, '6 colours: no surcharge');
+  assert.equal(describeScreenEffect(8).line, '8 colours: no surcharge');
+  assert.equal(describeScreenEffect(9).line, '9 colours: +€1.00 per piece');
+  assert.equal(describeScreenEffect(11).line, '11 colours: +€3.00 per piece');
+  assert.equal(describeScreenEffect(15).line, '15 colours: +€7.00 per piece');
+  assert.equal(describeScreenEffect(1).line, '1 colour: no surcharge');
   assert.equal(describeScreenEffect(11).over, 3);
   assert.equal(describeScreenEffect(11).rule, SCREEN_RULE);
   assert.equal(describeScreenEffect(8).refused, false);
@@ -80,15 +93,22 @@ test('the price line names the count and what it does: no surcharge, or the euro
 test('above 15 screens the line says it can not be printed', () => {
   const effect = describeScreenEffect(16);
   assert.equal(effect.refused, true);
-  assert.equal(effect.line, '16 screens: more than the 15 we can print');
-  assert.equal(describeScreenEffect(0).line, 'No screens to print yet');
+  assert.equal(effect.surchargeCents, 0, 'a count that is refused carries no price');
+  assert.equal(effect.line, '16 colours: more than the 15 we can print');
+  assert.equal(describeScreenEffect(0).line, 'No colours to print yet');
 });
 
-test('money is shown without cents when it is whole euros', () => {
+test('money is shown without cents when it is whole euros; a price line always shows its cents', () => {
   assert.equal(euros(300), '€3');
   assert.equal(euros(150), '€1.50');
   assert.equal(euros(5), '€0.05');
   assert.equal(euros(0), '€0');
+  assert.equal(eurosFixed(200), '€2.00');
+  assert.equal(eurosFixed(150), '€1.50');
+  assert.equal(eurosFixed(0), '€0.00');
+  assert.equal(eurosFixed(-100), '-€1.00');
+  assert.equal(coloursLabel(1), '1 colour');
+  assert.equal(coloursLabel(10), '10 colours');
 });
 
 // ---------------------------------------------------------------------------
@@ -300,6 +320,158 @@ test('three positions: one in full and two at the rate', () => {
 });
 
 // ---------------------------------------------------------------------------
+// The surcharge is counted per print position (owner, 16 Oct 2026)
+
+/** A T-shirt with a front and a back print: the screens on each, priced at a table where every count above 5 costs the same. */
+function frontAndBack(front: number, back: number, patch: Partial<ScreenPriceTable> = {}) {
+  const priced = priceScreenPrint(table(patch), {
+    garmentCents: 1000,
+    qty: 1,
+    placements: [
+      { screens: front, widthCm: 28, position: 'front_chest' },
+      { screens: back, widthCm: 32, position: 'back' },
+    ],
+  });
+  assert.ok(priced.ok, priced.ok ? '' : priced.error);
+  return priced.value;
+}
+
+test("the owner's example: 10 colours on the back is +2 euros, the front at 10 colours too is 2 more, +4 a piece in all", () => {
+  const plain = frontAndBack(8, 8);
+  const backOnly = frontAndBack(8, 10);
+  const both = frontAndBack(10, 10);
+  assert.equal(plain.surchargeCents, 0);
+  assert.equal(backOnly.surchargeCents, 200);
+  assert.equal(both.surchargeCents, 400);
+  // the print itself costs the same in all three (every count above 5 is the last tier): only the colours above 8 move the price
+  assert.equal(backOnly.unitCents - plain.unitCents, 200);
+  assert.equal(both.unitCents - plain.unitCents, 400);
+  // each position carries its own, on its own count
+  assert.deepEqual(backOnly.placements.map((p) => p.surchargeCents), [0, 200]);
+  assert.deepEqual(both.placements.map((p) => p.surchargeCents), [200, 200]);
+});
+
+test('each position counts alone: 9 and 15 are +1 and +7, 6 and 10 are 0 and +2, never one surcharge on the most', () => {
+  assert.equal(frontAndBack(9, 15).surchargeCents, 100 + 700);
+  assert.deepEqual(frontAndBack(9, 15).placements.map((p) => p.surchargeCents), [100, 700]);
+  assert.equal(frontAndBack(6, 10).surchargeCents, 200, 'the front at 6 adds nothing; the back at 10 adds its own 2');
+  assert.equal(frontAndBack(8, 8).surchargeCents, 0, 'at 8 on both, nothing');
+  assert.equal(frontAndBack(15, 15).surchargeCents, 1400);
+  // a position at 8 beside one at 9: only the 9th screen counts
+  assert.equal(frontAndBack(8, 9).surchargeCents, 100);
+});
+
+test('three positions add up one by one: a front, a back and a sleeve at 10 colours each are +6', () => {
+  const priced = priceScreenPrint(table(), {
+    garmentCents: 0,
+    qty: 1,
+    placements: [
+      { screens: 10, widthCm: 28, position: 'front_chest' },
+      { screens: 10, widthCm: 32, position: 'back' },
+      { screens: 10, widthCm: 8, position: 'sleeve_left' },
+    ],
+  });
+  assert.ok(priced.ok);
+  assert.equal(priced.value.surchargeCents, 600);
+});
+
+test('the surcharge is the same at any margin and at any second-position rate: it is added after both and never discounted', () => {
+  const at = (patch: Partial<ScreenPriceTable>) => {
+    const base = frontAndBack(8, 8, patch);
+    const both = frontAndBack(10, 10, patch);
+    return both.unitCents - base.unitCents;
+  };
+  assert.equal(at({}), 400);
+  assert.equal(at({ marginPercent: 50 }), 400, 'no margin on the surcharge');
+  assert.equal(at({ additionalPlacementPercent: 40 }), 400, 'no second-position discount on it');
+  assert.equal(at({ marginPercent: 80, additionalPlacementPercent: 0 }), 400);
+});
+
+test('a position over 15 refuses the whole line, whatever the other needs, and the refusal names the position', () => {
+  const refused = priceScreenPrint(table(), {
+    garmentCents: 1000,
+    qty: 1,
+    placements: [
+      { screens: 6, widthCm: 28, position: 'front_chest' },
+      { screens: 16, widthCm: 32, position: 'back' },
+    ],
+  });
+  assert.deepEqual(refused, { ok: false, error: 'Back: 16 screens is more than the 15 we can print. Use fewer screens.' });
+  // the other way round, and with the cap itself fine
+  const first = priceScreenPrint(table(), { garmentCents: 0, qty: 1, placements: [{ screens: 17, widthCm: 28, position: 'front_chest' }, { screens: 4, widthCm: 32, position: 'back' }] });
+  assert.deepEqual(first, { ok: false, error: 'Front chest: 17 screens is more than the 15 we can print. Use fewer screens.' });
+  assert.ok(priceScreenPrint(table(), { garmentCents: 0, qty: 1, placements: [{ screens: 15, widthCm: 28 }, { screens: 15, widthCm: 32 }] }).ok);
+});
+
+test('the position words are the ones the rest of the platform uses: every position a garment can take', () => {
+  const positions = new Set(['sleeve_left', 'sleeve_right', ...Object.values(PLACEMENTS).flatMap((type) => Object.keys(type.positions))]);
+  assert.ok(positions.size >= 8, 'front chest, full front, left chest, back, centre, leg and both sleeves are all covered');
+  for (const position of positions) assert.equal(positionLabel(position), printPositionLabel(position), position);
+  // a position this file has never heard of reads as words, as printPositionLabel does
+  assert.equal(positionLabel('hood_back'), 'Hood back');
+  assert.equal(positionLabel('hood_back'), printPositionLabel('hood_back'));
+  assert.equal(positionLabel('constructor'), 'Constructor', 'a position called like a built-in is only a word');
+});
+
+test('a position and its words: the count, what it adds, and whether it is a guess', () => {
+  const back = describePositionEffect({ position: 'back', screens: 10 });
+  assert.equal(back.line, 'Back · 10 colours: +€2.00');
+  assert.equal(back.name, 'Back · 10 colours');
+  assert.equal(back.label, 'Back');
+  assert.equal(back.surchargeCents, 200);
+  assert.equal(back.over, 2);
+  assert.equal(describePositionEffect({ position: 'front_full', screens: 10 }).line, 'Front · 10 colours: +€2.00');
+  assert.equal(describePositionEffect({ position: 'front_chest', screens: 6 }).line, 'Front chest · 6 colours: no surcharge');
+  assert.equal(describePositionEffect({ position: 'sleeve_left', screens: 8 }).line, 'Left sleeve · 8 colours: no surcharge');
+  assert.equal(describePositionEffect({ position: 'back', screens: 1 }).line, 'Back · 1 colour: no surcharge');
+  const guess = describePositionEffect({ position: 'back', screens: 4, basis: 'estimate' });
+  assert.equal(guess.line, 'Back · 4 colours (estimate): no surcharge');
+  assert.equal(guess.estimate, true);
+  assert.equal(describePositionEffect({ position: 'back', screens: 4, basis: 'pack' }).estimate, false);
+  assert.equal(describePositionEffect({ position: 'back', screens: 16 }).line, 'Back · 16 colours: more than the 15 we can print');
+  assert.equal(describePositionEffect({ position: 'back', screens: 0 }).line, 'Back · no colours to print yet');
+});
+
+test('the breakdown lines of a screen-printed piece: one for each position, in the order given, with the owner\'s wording', () => {
+  const lines = screenPriceLines([
+    { position: 'back', screens: 10 },
+    { position: 'front_full', screens: 10 },
+  ]);
+  assert.deepEqual(lines.map(describeRunLine), ['Back · 10 colours: +€2.00', 'Front · 10 colours: +€2.00']);
+  assert.deepEqual(lines[0], { key: 'colours', label: 'Back · 10 colours', cents: 200, position: 'back', colours: 10 });
+  assert.equal(runExtrasCents(lines), 400);
+  assert.equal(describeRunLines(lines), 'Back · 10 colours: +€2.00; Front · 10 colours: +€2.00 (+€4.00 per piece in all)');
+
+  // a position with nothing to add keeps its line, so the artist sees its count
+  const plain = screenPriceLine({ position: 'front_chest', screens: 6 });
+  assert.equal(plain.cents, 0);
+  assert.equal(describeRunLine(plain), 'Front chest · 6 colours: no surcharge');
+  assert.equal(describeRunLines([plain]), 'Front chest · 6 colours: no surcharge', 'nothing is charged: nothing is added');
+  assert.equal(describeRunLines([screenPriceLine({ position: 'back', screens: 10 })]), 'Back · 10 colours: +€2.00 per piece');
+
+  // a guess names itself and never charges (a guess is capped at 8)
+  const guess = screenPriceLine({ position: 'back', screens: 4, basis: 'estimate' });
+  assert.deepEqual(guess, { key: 'colours', label: 'Back · 4 colours (estimate)', cents: 0, position: 'back', colours: 4, estimate: true });
+});
+
+test('the line of a position says the same as its effect', () => {
+  for (const screens of [1, 6, 8, 9, 12, 15]) {
+    for (const position of ['front_chest', 'back', 'sleeve_right']) {
+      for (const basis of ['pack', 'estimate'] as const) {
+        assert.equal(describeRunLine(screenPriceLine({ position, screens, basis })), describePositionEffect({ position, screens, basis }).line, `${position} ${screens} ${basis}`);
+      }
+    }
+  }
+});
+
+test('a refused count shows as refused on its line, with no price', () => {
+  const line = screenPriceLine({ position: 'back', screens: 16 });
+  assert.equal(line.cents, 0);
+  assert.equal(line.refused, true);
+  assert.equal(describeRunLine(line), 'Back · 16 colours: more than the 15 we can print');
+});
+
+// ---------------------------------------------------------------------------
 // Setup
 
 test('setup is charged for each set of screens once, however many colours share it', () => {
@@ -335,12 +507,21 @@ test('a guess never goes past the standard 8, so it never carries the surcharge'
   assert.equal(estimateScreens(0, true), 1);
 });
 
-test('a line says how its screens were found, in the words the quote uses', () => {
+test('a line says how its screens were found, in the words the quote uses: each position on its own', () => {
   const pack = (position: string, screens: number) => ({ position, widthCm: 28, screens, basis: 'pack' as const, setId: position, approved: true });
-  assert.equal(summariseLineScreens([pack('front_chest', 6)], 'pack'), '6 screens: no surcharge');
-  assert.equal(summariseLineScreens([pack('front_chest', 11)], 'pack'), '11 screens: +€3 per piece');
-  assert.equal(summariseLineScreens([pack('front_chest', 4)], 'estimate'), 'Estimate: 4 screens: no surcharge');
-  assert.equal(summariseLineScreens([pack('front_chest', 6), pack('back', 10)], 'pack'), 'front chest 6 screens, back 10 screens: +€2 per piece');
+  const guess = (position: string, screens: number) => ({ ...pack(position, screens), basis: 'estimate' as const, approved: false });
+  assert.equal(summariseLineScreens([pack('front_chest', 6)]), 'Front chest · 6 colours: no surcharge');
+  assert.equal(summariseLineScreens([pack('front_chest', 11)]), 'Front chest · 11 colours: +€3.00 per piece');
+  assert.equal(summariseLineScreens([guess('front_chest', 4)]), 'Front chest · 4 colours (estimate): no surcharge');
+  assert.equal(
+    summariseLineScreens([pack('front_chest', 6), pack('back', 10)]),
+    'Front chest · 6 colours: no surcharge; Back · 10 colours: +€2.00 (+€2.00 per piece in all)',
+  );
+  // a guess marks its own position only: the other one is the design's real count
+  assert.equal(
+    summariseLineScreens([pack('front_chest', 10), guess('back', 4)]),
+    'Front chest · 10 colours: +€2.00; Back · 4 colours (estimate): no surcharge (+€2.00 per piece in all)',
+  );
 });
 
 // ---------------------------------------------------------------------------

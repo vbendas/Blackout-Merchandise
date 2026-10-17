@@ -21,8 +21,8 @@ export const metadata = { title: 'Pricing' };
  * - Shop products (DTG/DTF): a base price for each garment, which covers one print area up to A2 on the front or the back, and the
  *   extras for more print areas. A shop product is priced from it when it is created or its print areas change.
  * Catalogue and pricing "View" reads them; "Manage" changes them. The tab lives in the address (?tab=shop). */
-export default async function PricingPage({ searchParams }: { searchParams?: Promise<Record<string, string | string[] | undefined>> } = {}) {
-  const params = (await searchParams) ?? {};
+export default async function PricingPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
   const { actor } = await requireStaffPage('catalogue', 'view', { page: '/admin/pricing' });
   const tab = parsePricingTab(params.tab);
   const canManage = can(actor, 'catalogue', 'manage');

@@ -9,6 +9,7 @@ import { initials as initialsFor } from '@/components/studio/AccountMenu';
 import { ExternalArrow } from '@/components/studio/ExternalArrow';
 import { useStudioSidebar } from '@/components/studio/StudioSidebarProvider';
 import { shopUrl, shopUrlLabel } from '@/lib/format/shop-url';
+import { setPressBoardAction } from '@/app/(chat)/studio/settings/actions';
 import '@/components/studio/studio.css';
 
 interface Props {
@@ -17,11 +18,11 @@ interface Props {
   imageUrl: string | null;
   locale: string;
   discord: { linked: boolean; username: string | null; discordDm: boolean; email: boolean };
-  shop: { name: string; slug: string } | null;
+  shop: { name: string; slug: string; showOnPressBoard: boolean } | null;
   clerkAvailable: boolean;
 }
 
-type NoteKey = 'name' | 'language' | 'discordDm' | 'email';
+type NoteKey = 'name' | 'language' | 'discordDm' | 'email' | 'pressBoard';
 interface Note {
   tone: 'ok' | 'error';
   text: string;
@@ -129,6 +130,7 @@ export function SettingsForm({ displayName, email, imageUrl, locale, discord, sh
   const [savedName, setSavedName] = useState(displayName);
   const [lang, setLang] = useState(locale);
   const [prefs, setPrefsState] = useState({ discordDm: discord.discordDm, email: discord.email });
+  const [pressBoard, setPressBoard] = useState(shop?.showOnPressBoard ?? false);
   const [notes, showNote] = useNotes();
   const [busy, setBusy] = useState(false);
 
@@ -288,6 +290,31 @@ export function SettingsForm({ displayName, email, imageUrl, locale, discord, sh
             <button type="button" className="mf-pill" onClick={() => askStudio('I want to change my shop name or address')}>
               Change name or address
             </button>
+          </div>
+          <div style={{ marginTop: 18 }}>
+            <Toggle
+              id="press-board"
+              label="Show my shop's name on the MerchFrom press board"
+              hint="The live board on merchfrom.com shows what is being printed: the garment, how many, the ink and the stage. When on, it names your shop beside your runs and shop orders. When off, they read Private."
+              checked={pressBoard}
+              disabled={busy}
+              note={notes.pressBoard}
+              onChange={async (v) => {
+                const prev = pressBoard;
+                setPressBoard(v);
+                setBusy(true);
+                showNote('pressBoard', null);
+                const result = await setPressBoardAction(v).catch(() => ({ ok: false as const, error: 'That did not save. Check your connection and try again.' }));
+                setBusy(false);
+                if (!result.ok) {
+                  setPressBoard(prev);
+                  showNote('pressBoard', { tone: 'error', text: result.error });
+                  return;
+                }
+                showNote('pressBoard', { tone: 'ok', text: 'Saved.' });
+                startTransition(() => router.refresh());
+              }}
+            />
           </div>
         </SettingsSection>
       ) : null}

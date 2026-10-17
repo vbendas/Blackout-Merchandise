@@ -1,26 +1,27 @@
 // Synthetic films and DTG layers for the pack tests and the size benchmark,
 // shaped like the engine's output (Print-Prep-Build.md, Engine): full-canvas
-// binary plates with an AM halftone (round dot), the engine's own registration
-// targets, and a label strip in the margin that differs per film. Not used in
-// production.
+// binary plates on the engine's own film (engine/units.ts filmCanvas) with an
+// AM halftone (round dot), the engine's registration targets at the four
+// corners, and a label strip between the bottom ones that differs per film.
+// Not used in production.
 import sharp from 'sharp';
-import { DEFAULT_INK_SYSTEM, DEFAULT_RECIPE } from '@/lib/print/defaults';
+import { DEFAULT_INK_SYSTEM, DEFAULT_RECIPE, filmLayout } from '@/lib/print/defaults';
 import type {
   CanvasSpec,
   DtgLayer,
+  FilmLayout,
   GarmentColour,
   InkPlate,
   InkSystemProfile,
   OriginalArt,
-  PixelRect,
   PlateLabelInfo,
   PlateRole,
   PrintPlacement,
   PrintRecipe,
   ScreenSet,
 } from '@/lib/print/types';
-import { targetBoxes } from '@/lib/print/engine';
-import { drawTargets, targetGeometry } from '@/lib/print/engine/marks';
+import { drawTarget, drawTargets, labelBands, targetBoxes, targetGeometry, type MarkName } from '@/lib/print/engine/marks';
+import { filmCanvas } from '@/lib/print/engine/units';
 import { hexToLab } from './colour';
 
 export const BLACK: GarmentColour = { code: 'C002', name: 'Black', hex: '#1B1C1E', isLight: false };
@@ -31,46 +32,36 @@ export function mmToPx(mm: number, ppi: number): number {
   return Math.round((mm * ppi) / 25.4);
 }
 
-const SIDE_INDEX = { top: 0, bottom: 1, left: 2, right: 3 } as const;
-
 /** One registration target drawn exactly as the engine draws it, moved by
  * (dx, dy) px from where it belongs, for seeding mark faults. */
-export function drawTargetAt(plate: Uint8Array, canvas: CanvasSpec, offsetMm: number, side: keyof typeof SIDE_INDEX, dx = 0, dy = 0): void {
-  const g = targetGeometry(canvas, offsetMm);
-  const c = g.centres[SIDE_INDEX[side]];
-  const half = g.strokePx / 2;
-  const reach = g.armPx + Math.ceil(half);
-  for (let oy = -reach; oy <= reach; oy++) {
-    const y = c.y + dy + oy;
-    if (y < 0 || y >= canvas.heightPx) continue;
-    for (let ox = -reach; ox <= reach; ox++) {
-      const x = c.x + dx + ox;
-      if (x < 0 || x >= canvas.widthPx) continue;
-      const onRing = Math.abs(Math.hypot(ox, oy) - g.ringRadiusPx) <= half;
-      const onH = Math.abs(oy) <= half && Math.abs(ox) <= g.armPx;
-      const onV = Math.abs(ox) <= half && Math.abs(oy) <= g.armPx;
-      if (onRing || onH || onV) plate[y * canvas.widthPx + x] = 255;
-    }
-  }
+export function drawTargetAt(plate: Uint8Array, canvas: CanvasSpec, name: MarkName, dx = 0, dy = 0): void {
+  const g = targetGeometry(canvas);
+  const c = g.centres.find((p) => p.name === name);
+  if (!c) throw new Error(`the canvas has no ${name} target`);
+  drawTarget(plate, canvas, g, c.x + dx, c.y + dy);
 }
 
 /** Clears one target's box (the engine's targetBoxes) on a film. */
-export function clearTarget(plate: Uint8Array, canvas: CanvasSpec, offsetMm: number, side: keyof typeof SIDE_INDEX): void {
-  const box = targetBoxes(canvas, offsetMm)[SIDE_INDEX[side]];
+export function clearTarget(plate: Uint8Array, canvas: CanvasSpec, name: MarkName): void {
+  const box = targetBoxes(canvas).find((b) => b.name === name);
+  if (!box) throw new Error(`the canvas has no ${name} target`);
   for (let y = box.y; y < box.y + box.height; y++) plate.fill(0, y * canvas.widthPx + box.x, y * canvas.widthPx + box.x + box.width);
 }
 
-/** A barcode-like label strip right of the bottom target; different per film. */
-export function drawLabelStrip(plate: Uint8Array, W: number, H: number, art: PixelRect, ppi: number, offsetMm: number, seed: number): void {
-  const cx = art.x + Math.floor(art.width / 2);
-  const y0 = art.y + art.height + mmToPx(offsetMm, ppi) - mmToPx(1.5, ppi);
-  const h = mmToPx(3, ppi);
+/** A barcode-like label strip in the engine's bottom label row, from the bottom
+ * left target; different per film, and never past the row's ends. */
+export function drawLabelStrip(plate: Uint8Array, canvas: CanvasSpec, seed: number): void {
+  const { widthPx: W, heightPx: H, ppi } = canvas;
+  const [row] = labelBands(canvas);
+  const reach = Math.min(mmToPx(1.5, ppi), Math.floor(row.halfHeight));
+  const y0 = Math.max(0, row.centreY - reach);
+  const y1 = Math.min(H, row.centreY + reach);
   const bar = Math.max(1, mmToPx(0.4, ppi));
-  let x = cx + mmToPx(10, ppi);
-  for (let i = 0; i < 24 && x < W; i++) {
+  let x = Math.ceil(row.x0);
+  for (let i = 0; i < 24 && x + bar <= row.x1; i++) {
     const on = ((seed * 2654435761 + i * 40503) >>> 7) & 1 || i % 6 === 0;
     if (on) {
-      for (let y = y0; y < Math.min(H, y0 + h); y++) for (let k = 0; k < bar && x + k < W; k++) plate[y * W + x + k] = 255;
+      for (let y = y0; y < y1; y++) for (let k = 0; k < bar && x + k < W; k++) plate[y * W + x + k] = 255;
     }
     x += bar * 2;
   }
@@ -94,8 +85,8 @@ export interface SyntheticSetOptions {
   widthMm?: number;
   heightMm?: number;
   ppi?: number;
-  marginMm?: number;
-  targetOffsetMm?: number;
+  /** the film's margins and ink gap; the recipe's defaults for anything not given */
+  marks?: Partial<FilmLayout>;
   /** total films including underbase and highlight (2..15) */
   plates?: number;
   garments?: GarmentColour[];
@@ -123,18 +114,15 @@ export function syntheticScreenSet(options: SyntheticSetOptions = {}): Synthetic
   const ppi = options.ppi ?? 600;
   const widthMm = options.widthMm ?? 40;
   const heightMm = options.heightMm ?? 48;
-  const marginMm = options.marginMm ?? 25;
-  const offsetMm = options.targetOffsetMm ?? 15;
+  const layout = filmLayout(options.marks);
   const lpi = options.lpi ?? 55;
   const angleDeg = options.angleDeg ?? 22.5;
   const count = Math.max(2, Math.min(15, options.plates ?? 4));
   const garments = options.garments ?? [BLACK, NAVY];
   const rampShare = options.rampShare ?? 0.18;
 
-  const art: PixelRect = { x: mmToPx(marginMm, ppi), y: mmToPx(marginMm, ppi), width: mmToPx(widthMm, ppi), height: mmToPx(heightMm, ppi) };
-  const W = art.width + 2 * art.x;
-  const H = art.height + 2 * art.y;
-  const canvas: CanvasSpec = { widthPx: W, heightPx: H, ppi, marginMm, art };
+  const canvas = filmCanvas({ widthMm, heightMm, widthPx: mmToPx(widthMm, ppi), heightPx: mmToPx(heightMm, ppi), ppi, sourcePpi: ppi }, layout);
+  const { widthPx: W, heightPx: H, art } = canvas;
   const cell = ppi / lpi;
   const cos = Math.cos((angleDeg * Math.PI) / 180);
   const sin = Math.sin((angleDeg * Math.PI) / 180);
@@ -142,7 +130,7 @@ export function syntheticScreenSet(options: SyntheticSetOptions = {}): Synthetic
     ...DEFAULT_RECIPE,
     screenPpi: ppi,
     halftone: { ...DEFAULT_RECIPE.halftone, lpi, angleDeg },
-    marks: { marginMm, targetOffsetMm: offsetMm },
+    marks: layout,
   };
   const { minDot, maxDot } = recipe.halftone;
   const inks = DEFAULT_INK_SYSTEM;
@@ -184,8 +172,8 @@ export function syntheticScreenSet(options: SyntheticSetOptions = {}): Synthetic
         if (c > 0 && amDot(art.x + x, art.y + y, cell, cos, sin, c)) data[row + x] = 255;
       }
     }
-    drawTargets(data, canvas, offsetMm);
-    drawLabelStrip(data, W, H, art, ppi, offsetMm, i + 1);
+    drawTargets(data, canvas);
+    drawLabelStrip(data, canvas, i + 1);
 
     let ink255 = 0;
     for (let y = art.y; y < art.y + art.height; y++) for (let x = art.x; x < art.x + art.width; x++) if (data[y * W + x]) ink255++;

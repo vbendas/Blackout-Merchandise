@@ -2,7 +2,6 @@
 // 28 cm), returned by the print services when PRINT_MOCK=1 so the Studio and
 // admin pages can be built and checked before the pipeline runs. The images in
 // public/dev/print-mock come from a rough engine prototype. Development only.
-import { COLLAR_DISTANCE_UNSET_NOTE } from '@/lib/mockups/placements';
 import { DEFAULT_INK_SYSTEM } from '@/lib/print/defaults';
 import { jobSheetPath } from '@/lib/print/job-sheet-link';
 import type { JobSheetInput, PackManifestInk } from '@/lib/print/types';
@@ -66,7 +65,7 @@ export const MOCK_APPROVAL_VIEW: ApprovalView = {
       screenCount: 6,
       headline: '6 screens, within the standard 8.',
       shared: 'Black and French Navy print from the same 6 screens, over a white underbase.',
-      priceNote: 'No surcharge. On a run, each screen above 8 adds €1 per piece.',
+      priceNote: 'No surcharge on this print position. On a run, each colour above 8 adds €1.00 per piece on each print position.',
       inks: [
         { n: 1, name: 'White underbase', detail: 'Under the colours so they stay bright', hex: '#F2F2F0' },
         { n: 2, name: 'Orchid pink', detail: '', hex: '#ED90DC' },
@@ -83,7 +82,7 @@ export const MOCK_APPROVAL_VIEW: ApprovalView = {
       screenCount: 5,
       headline: '5 screens, within the standard 8.',
       shared: 'White prints from its own 5 screens, with no underbase. The black linework becomes its own ink.',
-      priceNote: 'No surcharge. On a run, each screen above 8 adds €1 per piece.',
+      priceNote: 'No surcharge on this print position. On a run, each colour above 8 adds €1.00 per piece on each print position.',
       inks: [
         { n: 1, name: 'Orchid pink', detail: '', hex: '#ED90DC' },
         { n: 2, name: 'Violet', detail: '', hex: '#C363DA' },
@@ -239,7 +238,8 @@ export const MOCK_PACK_DETAIL: PackDetailView = {
 // The sample job sheet: one per design, here the Underwriter test design on the T-shirt (a screen
 // run and the shop's DTG/DTF), as lib/services/job-sheets.ts would work it out.
 
-const PLACEMENT = 'Front chest · 28 cm wide · Standard position';
+// The T-shirt's front chest sits 5 cm below the collar (the owner's rule, lib/mockups/placements.ts COLLAR_DISTANCE_CM).
+const PLACEMENT = 'Front chest · 28 cm wide · 5 cm below the collar';
 const SIZE = '280 × 336 mm at 600 ppi';
 
 const sheetInks = (dark: boolean): PackManifestInk[] => {
@@ -282,8 +282,8 @@ const sheetColours = [
 export const MOCK_JOB_SHEET: Omit<JobSheetInput, 'generatedAt' | 'proofs'> = {
   design: { code: 'MF-UNDERWRITER', name: 'Underwriter', shopName: 'Underwriter band shop', versionNumber: 3, approvedAt: '2026-10-15T09:10:00.000Z' },
   packStatus: '2 of 3 files approved by pre-press',
-  // The standard collar distance isn't set yet (lib/mockups/placements.ts), so placements say "Standard position".
-  placementNotes: [COLLAR_DISTANCE_UNSET_NOTE],
+  // Every row gives its distance below the collar, so there is nothing to explain under the garments.
+  placementNotes: [],
   garments: [
     ...sheetColours.map((c) => ({
       blankCode: 'STTU169',

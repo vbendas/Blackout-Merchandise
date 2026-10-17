@@ -160,7 +160,11 @@ function viewData(view: ApprovalView) {
       ? { otherArtworkOnTheseProducts: view.relatedDesigns.map((r) => ({ designId: r.designId, areas: r.areas, approved: r.approved, approvalPage: `/studio/approve/${r.designId}` })) }
       : {}),
     garments: view.garments.map((g) => g.name),
-    screenSets: view.screenSets.map((s) => ({ name: s.name, garments: s.garmentCodes.length, screens: s.screenCount, headline: s.headline, price: s.priceNote, inks: s.inks.map((i) => i.name) })),
+    // Each set is one print position's screens; with several positions, which one (the surcharge is counted on each).
+    screenSets: view.screenSets.map((s) => {
+      const area = view.areas && view.areas.length > 1 ? view.areas.find((a) => a.key === s.areaKey) : undefined;
+      return { name: s.name, ...(area ? { printArea: area.label } : {}), garments: s.garmentCodes.length, screens: s.screenCount, headline: s.headline, price: s.priceNote, inks: s.inks.map((i) => i.name) };
+    }),
     warnings: view.warnings,
     approvedAt: view.approvedAt,
     approvalPage: `/studio/approve/${view.designId}`,
@@ -195,7 +199,7 @@ export const preparePrintTool = defineTool({
         .max(40)
         .optional()
         .describe("Print position: 'front_chest', 'front_full', 'front_left_chest', 'back', 'centre', or 'sleeve_left' / 'sleeve_right' on garments with sleeves. Defaults to the blank's usual spot."),
-      widthCm: z.number().min(2).max(60).optional().describe('Print width in cm. Defaults to the size calibrated for that position.'),
+      widthCm: z.number().min(2).max(40).optional().describe('Print width in cm, at most 40 (a design is at most 40 × 54 cm; a sleeve less). Defaults to the size calibrated for that position.'),
       offsetYcm: z.number().min(-30).max(30).optional().describe('How far the print is moved down (positive) or up from its usual height, in cm, as the product has it.'),
     })
     .strict(),
@@ -332,7 +336,7 @@ interface ScreenCountData {
 export const changeScreenCountTool = defineTool({
   name: 'change_screen_count',
   description:
-    "Change how many screens the screen print uses (1 to 15, the white underbase and the highlight white included) and prepare the screen print again. Fewer screens means fewer colours and a different look, so the artist has to look at the new proof and approve again. Tell them the price effect: 1 to 8 screens is the standard price; on a run, each screen above 8 adds €1 per piece (12 screens add €4 per piece). It never applies to shop products, which print DTG/DTF.",
+    "Change how many screens the screen print of a design uses (1 to 15, the white underbase and the highlight white included) and prepare the screen print again. It changes every print position that prints this design; a position that prints another design keeps its own count (call this with that design's id). Fewer screens means fewer colours and a different look, so the artist has to look at the new proof and approve again. Tell them the price effect in colours: 1 to 8 colours is the standard price; on a run, each colour above 8 adds €1 per piece on each print position, counted on that position's own design (12 colours on the back add €4 per piece; a front and a back of 10 colours each add €2 + €2 = €4). It never applies to shop products, which print DTG/DTF.",
   input: z.object({ designId: z.string().uuid(), screens: z.number().int().min(1).max(15) }).strict(),
   scope: 'artist',
   run: async (ctx, input): Promise<ToolResult<ScreenCountData>> => {
@@ -350,8 +354,8 @@ export const changeScreenCountTool = defineTool({
         // The separation decides how many screens it uses, up to this many: the price note is a ceiling until the new proof is ready.
         note:
           over === 0
-            ? 'No surcharge on a run.'
-            : `The new separation uses up to ${input.screens} screens. On a run, each screen above 8 adds €1 per piece, so up to €${over} per piece; the new proof shows the actual count.`,
+            ? 'No surcharge on a run for the print positions of this design.'
+            : `The new separation uses up to ${input.screens} colours. On a run, each colour above 8 adds €1 per piece on each print position of this design, so up to €${over} per piece on each; the new proof shows the actual count.`,
       },
       ui: { cards: view ? [printProofCard(view, ctx.conversationId)] : undefined, next: nextChips(view) },
     };

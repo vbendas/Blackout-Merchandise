@@ -94,10 +94,13 @@ export function pickGarment(garments: readonly ApprovalGarment[], code: string |
   return garments.find((garment) => garment.code === code) ?? garments[0] ?? null;
 }
 
-/** The screen set that prints this colour. */
-export function pickScreenSet(sets: readonly ApprovalScreenSet[], garment: ApprovalGarment | null): ApprovalScreenSet | null {
+/** The screen set that prints this colour, at the print area on show when the sets say which area they print (a design
+ * printed on the front and the back has a set for each); a set that names no area belongs to every area. */
+export function pickScreenSet(sets: readonly ApprovalScreenSet[], garment: ApprovalGarment | null, areaKey?: string | null): ApprovalScreenSet | null {
   if (!garment) return null;
-  return sets.find((set) => set.key === garment.screenSetKey) ?? sets.find((set) => set.garmentCodes.includes(garment.code)) ?? null;
+  const pick = (from: readonly ApprovalScreenSet[]) => from.find((set) => set.key === garment.screenSetKey && set.garmentCodes.includes(garment.code)) ?? from.find((set) => set.key === garment.screenSetKey) ?? from.find((set) => set.garmentCodes.includes(garment.code)) ?? null;
+  const here = sets.filter((set) => ofArea(set, areaKey));
+  return pick(here) ?? pick(sets);
 }
 
 export function loupeAlt(technique: PrintTechnique): string {

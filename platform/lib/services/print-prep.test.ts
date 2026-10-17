@@ -133,7 +133,7 @@ test('the approval view reads in the artist’s words, and never carries a Panto
     assert.equal(dark.screenCount, 6);
     assert.equal(dark.headline, '6 screens, within the standard 8.');
     assert.equal(dark.shared, 'Black and French Navy print from the same 6 screens, over a white underbase.');
-    assert.equal(dark.priceNote, 'No surcharge. On a run, each screen above 8 adds €1 per piece.');
+    assert.equal(dark.priceNote, 'No surcharge on this print position. On a run, each colour above 8 adds €1.00 per piece on each print position.');
     assert.deepEqual(dark.inks.map((i) => i.name), ['White underbase', 'Orchid pink', 'Violet', 'Indigo', 'Deep purple', 'Highlight white']);
     assert.deepEqual(dark.inks.map((i) => i.detail), ['Under the colours so they stay bright', '', '', '', '', 'The brightest points, printed last']);
     assert.equal(light.name, 'Lights');
@@ -383,7 +383,7 @@ test('changing the screen count queues the screen job, keeps the choice, and sho
     const darks = after.screenSets.find((s) => s.key === 'darks')!;
     assert.equal(darks.screenCount, 12);
     assert.equal(darks.headline, '12 screens, 4 above the standard 8.');
-    assert.equal(darks.priceNote, 'On a run, 4 screens above 8 adds €4 per piece.');
+    assert.equal(darks.priceNote, 'On a run, the 4 colours above 8 on this print position add €4.00 per piece. Each print position is counted on its own.');
     assert.equal(after.versionId, designVersionId);
     assert.equal(after.status, 'ready');
   } finally {
@@ -422,7 +422,9 @@ test('preparePrint says what is wrong with a drop in plain words', async () => {
   assert.match(await message({ placements: [{ position: 'sleeve', widthMm: 100 }] }), /has no "sleeve" print position\. Use one of: front chest, front, left chest, back, left sleeve, right sleeve\./);
   // a sleeve is a position on a tee, up to the short sleeve's size
   assert.match(await message({ placements: [{ position: 'sleeve_left', widthMm: 120 }] }), /A short-sleeve print can be at most 10 × 10 cm\./);
-  assert.equal(await message({ placements: [{ position: 'front_chest', widthMm: 5 }] }), 'The print width must be between 2 and 60 cm.');
+  assert.equal(await message({ placements: [{ position: 'front_chest', widthMm: 5 }] }), 'The print width must be between 2 and 40 cm: a design is at most 40 × 54 cm.');
+  // wider than an A2 film holds with its marks: refused before any work is queued
+  assert.equal(await message({ placements: [{ position: 'back', widthMm: 410 }] }), 'The print width must be between 2 and 40 cm: a design is at most 40 × 54 cm.');
   assert.equal(await message({ designId: '5f6c0f0e-6f83-4c0a-9a53-1d0e1b1d6a11' }), 'Design not found for this shop.');
   assert.equal(await message({ designId: 'not-a-uuid' }), 'Design not found for this shop.');
 

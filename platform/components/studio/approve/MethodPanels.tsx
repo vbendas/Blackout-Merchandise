@@ -1,7 +1,11 @@
 import Link from 'next/link';
-import { describeScreenEffect } from '@/lib/pricing/screen-print';
-import type { ApprovalGarment, ApprovalRelatedDesign, ApprovalScreenSet } from '@/lib/services/print-prep';
+import { SCREEN_RULE, describePositionEffect, describeScreenEffect, eurosFixed } from '@/lib/pricing/screen-print';
+import type { ApprovalArea, ApprovalGarment, ApprovalRelatedDesign, ApprovalScreenSet } from '@/lib/services/print-prep';
 import { joinNames } from './approve-logic';
+
+/** A screen set as the runs tab reads it: the view's set, and the print area it prints when the view says so (`areaKey` is the
+ * area's own key, ApprovalArea.key). A design printed on the front and the back has a set of screens for each. */
+export type AreaScreenSet = ApprovalScreenSet & { areaKey?: string };
 
 /** Shop products · DTG/DTF: how every product in the shop prints, with the
  * facts for the chosen garment colour (what is left out, how fades and whites
@@ -20,21 +24,60 @@ export function ShopPanel({ facts }: { facts: readonly string[] }) {
   );
 }
 
-/** What the screen count does to a run's price: the count and its effect in one
- * line ("6 screens: no surcharge", "11 screens: +€3 per piece"), then the fixed
- * rule behind it. The count is the set's own, read from lib/pricing/screen-print.ts
- * like the quote is, so the page and the run's price cannot disagree. Over the
- * standard 8, it says how to bring the price down. */
-function PriceLine({ screens }: { screens: number }) {
-  const effect = describeScreenEffect(screens);
+/** One print position of this artwork on the chosen garment colour, with the colours its own design prints there. `position` is
+ * left out when the page can't say which one it is. */
+interface PricedPosition {
+  position: string | null;
+  screens: number;
+}
+
+/** The screen sets of the artwork on this garment colour, one for each print area that has one. Sets that name no area (a view
+ * with one) belong to its only area; with several areas and no names the one set on show stands alone, without a position. */
+function positionsOf(set: ApprovalScreenSet, garment: ApprovalGarment | null, sets: readonly AreaScreenSet[], areas: readonly ApprovalArea[]): PricedPosition[] {
+  const named: PricedPosition[] = [];
+  for (const area of areas) {
+    const own = sets.find((candidate) => candidate.areaKey === area.key && (!garment || candidate.garmentCodes.includes(garment.code)));
+    if (own) named.push({ position: area.position, screens: own.screenCount });
+  }
+  if (named.length > 0) return named;
+  return [{ position: areas.length === 1 ? areas[0].position : null, screens: set.screenCount }];
+}
+
+/** What the colours do to a run's price, print position by print position (owner, 16 Oct 2026: the colours above 8 are a euro a
+ * piece on each position, on its own design): 'Front chest · 10 colours: +€2.00 per piece', 'Back · 6 colours: no surcharge', and
+ * what they add together, then the fixed rule behind it. Each count is the set's own, read from lib/pricing/screen-print.ts like
+ * the quote is, so the page and the run's price cannot disagree. Over the standard 8, it says how to bring the price down. Colour
+ * words only: the inks are named elsewhere on the page, never by a code. */
+function PriceLines({ positions }: { positions: readonly PricedPosition[] }) {
+  const rows = positions.map((p) => {
+    if (p.position === null) {
+      const effect = describeScreenEffect(p.screens);
+      return { line: effect.line, over: effect.over, cents: effect.surchargeCents };
+    }
+    const effect = describePositionEffect({ position: p.position, screens: p.screens });
+    return { line: `${effect.line}${effect.surchargeCents > 0 ? ' per piece' : ''}`, over: effect.over, cents: effect.surchargeCents };
+  });
+  const together = rows.reduce((sum, row) => sum + row.cents, 0);
+  const charged = rows.filter((row) => row.cents > 0).length;
   return (
     <>
+      {rows.length === 1 ? (
+        <p className="ap-a8">
+          <span className="font-semibold text-[var(--signal)]">{rows[0].line}.</span>
+        </p>
+      ) : (
+        <ul className="ap-facts">
+          {rows.map((row, index) => (
+            <li key={`${index}-${row.line}`}>
+              <span className="font-semibold text-[var(--signal)]">{row.line}.</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {charged > 1 ? <p className="ap-a8">Together these add {eurosFixed(together)} to each piece.</p> : null}
       <p className="ap-a8">
-        <span className="font-semibold text-[var(--signal)]">{effect.line}.</span>
-      </p>
-      <p className="ap-a8">
-        {effect.rule}
-        {effect.over > 0 ? ' For fewer screens, ask in the chat: the look changes, and you approve the new proof again.' : ''}
+        {SCREEN_RULE}
+        {rows.some((row) => row.over > 0) ? ' For fewer colours, ask in the chat: the look changes, and you approve the new proof again.' : ''}
       </p>
     </>
   );
@@ -43,8 +86,20 @@ function PriceLine({ screens }: { screens: number }) {
 /** Runs · screen print: the screen set that prints the chosen colour, with the
  * screen count against the standard 8, which colours share the screens, the
  * inks in press order by their plain names (never a Pantone code), what the
- * whites are for, and what the count does to the price of a run. */
-export function ScreenPanel({ set, garment }: { set: ApprovalScreenSet | null; garment: ApprovalGarment | null }) {
+ * whites are for, and what the colours do to the price of a run, for each print
+ * position of the artwork. `sets` and `areas` (the view's) let it name every
+ * position; without them it prices the one set on show. */
+export function ScreenPanel({
+  set,
+  garment,
+  sets = [],
+  areas = [],
+}: {
+  set: ApprovalScreenSet | null;
+  garment: ApprovalGarment | null;
+  sets?: readonly AreaScreenSet[];
+  areas?: readonly ApprovalArea[];
+}) {
   if (!set) {
     return (
       <section className="ap-block">
@@ -72,7 +127,7 @@ export function ScreenPanel({ set, garment }: { set: ApprovalScreenSet | null; g
           </li>
         ))}
       </ol>
-      <PriceLine screens={set.screenCount} />
+      <PriceLines positions={positionsOf(set, garment, sets, areas)} />
     </section>
   );
 }

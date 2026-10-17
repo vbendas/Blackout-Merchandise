@@ -2,20 +2,23 @@ import { and, asc, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import {
   ABSOLUTE_MAX_SCREENS,
+  coloursLabel,
   coloursOfService,
   estimateScreens,
   isScreenServiceCode,
   priceScreenPrint,
-  screensLabel,
+  screenPriceLines,
   summariseLineScreens,
   type LineScreenPlacement,
   type LineScreens,
   type PricedPlacement,
+  type RunPriceLine,
   type ScreenPriceTable,
 } from '@/lib/pricing/screen-print';
 import type { PrintJobInput, PrintPlacement, PrintTechnique } from '@/lib/print/types';
 import { podPrice, type PodPlacementInput, type PodPriceBreakdown } from '@/lib/pricing/pod';
-import { getScreenPriceTable } from '@/lib/services/pricing-admin';
+import { runExtraLines } from '@/lib/pricing/pod-table';
+import { getPodPriceTableState, getScreenPriceTable } from '@/lib/services/pricing-admin';
 
 // Pricing over the seeded base_costs table: garment + print + margin per
 // blank x print service x quantity break. Artists never see the components —
@@ -25,7 +28,12 @@ import { getScreenPriceTable } from '@/lib/services/pricing-admin';
 // run is priced from the screen-print price table by the number of screens the
 // design really uses, which is read from the design's print files for that
 // garment colour, not from the service the artist picked. base_costs still
-// supplies the blank's garment cost; it has no screen rows any more.
+// supplies the blank's garment cost; it has no screen rows any more. Each print
+// position counts on its own design (owner, 16 Oct 2026): the screens above 8 are
+// a euro a piece on every position that has them, front and back separately.
+//
+// A DTG/DTF run is priced from the base-cost rows, and pays the shop's extras for
+// more print positions on top (front and back, sleeve prints; quoteRunExtras).
 //
 // A shop product is the other exception. A one-off shop price (a quote that names
 // `shop`) comes from podPrice(): the garment's base price from the shop price table,
@@ -262,9 +270,11 @@ export interface ScreenLineQuote {
   garmentCents: number;
   printCents: number;
   marginCents: number;
-  /** the part of unitCents that is the fixed charge for screens above 8 */
+  /** the part of unitCents that is the fixed charge for screens above 8, all positions */
   surchargeCents: number;
   screens: LineScreens;
+  /** what each print position adds to a piece, one line per position: 'Back · 10 colours: +€2.00' */
+  extras: RunPriceLine[];
 }
 
 /** A stored placement (cm) as print prep names it (mm). What the line didn't say is the usual front chest at 28 cm, the way
@@ -355,7 +365,7 @@ async function findScreenSet(input: {
   return { found: null, busy, missing: anyForBlank ? 'position' : 'files' };
 }
 
-/** What is missing, in the words a quote says it in, up to the 'so its screen count is an estimate'. */
+/** What is missing, in the words a quote says it in, up to the 'so its colour count is an estimate'. */
 function missingFilesReason(missing: MissingFiles, busy: boolean, colour: string, where: string): string {
   if (busy) return `The print files for this design on ${colour}${where} are still being prepared`;
   switch (missing) {
@@ -375,8 +385,10 @@ function positionWords(position: string): string {
 }
 
 /** The price of one line of a screen-printed run. The screens come from the design's print files for this garment colour at
- * each print position, the white underbase and highlight white included; where there are none yet (no artwork, files not
- * ready, being made again) the line is priced on a guess and says so, with the reason. More than 15 screens is refused. */
+ * each print position, each on that position's own design and size, the white underbase and highlight white included; where
+ * there are none yet (no artwork, files not ready, being made again) that position is priced on a guess and says so, with the
+ * reason, while the others keep their real count. The screens above 8 are a surcharge position by position (`extras` has a line
+ * for each). A position over 15 screens is refused. */
 export async function quoteScreenLine(input: ScreenLineInput, table?: ScreenPriceTable): Promise<QuoteResult<ScreenLineQuote>> {
   const prices = table ?? (await getScreenPriceTable());
   const garment = await loadGarmentCosts(input.blankCode);
@@ -389,7 +401,8 @@ export async function quoteScreenLine(input: ScreenLineInput, table?: ScreenPric
   const colour = input.colourName ?? input.colourCode;
   const several = input.placements.length > 1;
 
-  const assumed = `${screensLabel(guess)} (${colours} ${colours === 1 ? 'colour' : 'colours'}${light ? '' : ', plus the white underbase and highlight white'})`;
+  // The guess in the artist's words: the colours of the artwork, and on a dark garment the white underbase and highlight white.
+  const assumed = light ? coloursLabel(guess) : `${coloursLabel(guess)} (${colours} from the artwork, plus the white underbase and highlight white)`;
 
   const placements: LineScreenPlacement[] = [];
   const priced: PricedPlacement[] = [];
@@ -410,7 +423,7 @@ export async function quoteScreenLine(input: ScreenLineInput, table?: ScreenPric
     let setId = `est:${designId ?? `line-${input.lineKey ?? ''}`}:${input.blankCode}:${printPlacement.position}:${printPlacement.widthMm}:${light ? 'light' : 'dark'}`;
 
     if (!designId) {
-      reasons.push(`This line has no artwork yet, so its screen count${where} is an estimate: ${assumed}.`);
+      reasons.push(`This line has no artwork yet, so its colour count${where} is an estimate: ${assumed}.`);
     } else {
       const lookup = await findScreenSet({ designId, blankCode: input.blankCode, colourCode: input.colourCode, placement: printPlacement });
       pending = lookup.busy;
@@ -424,36 +437,47 @@ export async function quoteScreenLine(input: ScreenLineInput, table?: ScreenPric
         // The files that are there are being made again: their count is the best there is, and it may change.
         screens = lookup.found.screens;
         setId = lookup.found.packId;
-        reasons.push(`The print files for this design on ${colour}${where} are being prepared again, so the screen count may change. For now the quote uses ${screensLabel(screens)}.`);
+        reasons.push(`The print files for this design on ${colour}${where} are being prepared again, so the colour count may change. For now the quote uses ${coloursLabel(screens)}.`);
       } else {
-        reasons.push(`${missingFilesReason(lookup.missing, lookup.busy, colour, where)}, so its screen count is an estimate: ${assumed}.`);
+        reasons.push(`${missingFilesReason(lookup.missing, lookup.busy, colour, where)}, so its colour count is an estimate: ${assumed}.`);
       }
     }
 
     if (screens > ABSOLUTE_MAX_SCREENS) {
       return {
         ok: false,
-        error: `The print files for this design need ${screensLabel(screens)} on ${colour}${where}, more than the ${ABSOLUTE_MAX_SCREENS} we can print. Ask for fewer screens and quote again.`,
+        error: `The print files for this design need ${coloursLabel(screens)} on ${colour}${where}, more than the ${ABSOLUTE_MAX_SCREENS} we can print. Ask for fewer colours and quote again.`,
       };
     }
-    placements.push({ position: printPlacement.position, widthCm: printPlacement.widthMm / 10, screens, basis, setId, approved, ...(pending ? { pending: true } : {}) });
-    priced.push({ screens, widthCm: printPlacement.widthMm / 10 });
+    placements.push({
+      position: printPlacement.position,
+      widthCm: printPlacement.widthMm / 10,
+      screens,
+      basis,
+      setId,
+      approved,
+      designId: designId ?? null,
+      ...(pending ? { pending: true } : {}),
+    });
+    priced.push({ screens, widthCm: printPlacement.widthMm / 10, position: printPlacement.position });
   }
 
   const price = priceScreenPrint(prices, { garmentCents, qty: input.qty, placements: priced });
   if (!price.ok) return { ok: false, error: price.error };
+  // Each position records what it was priced at: its own surcharge, on its own count.
+  const recorded: LineScreenPlacement[] = placements.map((p, i) => ({ ...p, surchargeCents: price.value.placements[i].surchargeCents }));
 
   const lineBasis: LineScreens['basis'] = reasons.length > 0 ? 'estimate' : 'pack';
   let note: string | undefined;
   if (reasons.length > 0) note = `${reasons.join(' ')} The price follows the real count once the print files are ready.`;
-  else if (unapproved) note = "These screens come from the design's print files, which haven't been approved yet. If the count changes, the price follows.";
+  else if (unapproved) note = "These colours come from the design's print files, which haven't been approved yet. If the count changes, the price follows.";
 
   const screens: LineScreens = {
     basis: lineBasis,
-    count: Math.max(...placements.map((p) => p.screens)),
+    count: Math.max(...recorded.map((p) => p.screens)),
     surchargeCentsPerPiece: price.value.surchargeCents,
-    placements,
-    summary: summariseLineScreens(placements, lineBasis),
+    placements: recorded,
+    summary: summariseLineScreens(recorded),
     ...(note ? { note } : {}),
   };
   return {
@@ -466,6 +490,20 @@ export async function quoteScreenLine(input: ScreenLineInput, table?: ScreenPric
       marginCents: price.value.marginCents,
       surchargeCents: price.value.surchargeCents,
       screens,
+      extras: screenPriceLines(recorded),
     },
   };
+}
+
+// ---------------------------------------------------------------------------
+// DTG/DTF runs: the shop's extras for more print positions
+
+/** What more print positions add to one piece of a DTG or DTF run: the shop's extras for them (+€1 front and back, +€2 once for
+ * sleeve prints, as the owner saved them in the shop price table), line by line, on top of the run's price for one print. Owner
+ * decision, 16 Oct 2026: "DTG/DTF pays also extras for new print positions". Nothing for any other method (screen print counts
+ * colours instead; embroidery is as it was), nor for a single print position. */
+export async function quoteRunExtras(printServiceCode: string, positions: readonly { position: string }[]): Promise<RunPriceLine[]> {
+  if (techniqueOfService(printServiceCode) !== 'dtg_dtf' || positions.length < 2) return [];
+  const { table } = await getPodPriceTableState();
+  return runExtraLines(table.extras, positions);
 }

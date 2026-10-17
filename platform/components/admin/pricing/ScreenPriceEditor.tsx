@@ -27,6 +27,9 @@ import {
 
 type Message = { tone: 'ok' | 'error'; text: string };
 
+/** The screens of the example in the fixed rule's text: a front and a back of this many. */
+const EXAMPLE_POSITION_SCREENS = 10;
+
 /** The screen-print price table (Plan section 10). Anyone with Catalogue and pricing "View" reads it; with "Manage" the same
  * numbers become boxes. Checks run as you type once a save has been tried, and a failed save moves focus to the first box
  * that needs a look. The table as last saved is kept here, so a save leaves the boxes as they are, the Save button greys
@@ -165,10 +168,12 @@ export function ScreenPriceEditor({
           Fixed rule
         </h2>
         <p className="pp-soft">
-          1 to {STANDARD_MAX_SCREENS} screens is the standard price. Each screen above {STANDARD_MAX_SCREENS} adds {euros(EXTRA_SCREEN_CENTS_PER_PIECE)} per piece, up to {ABSOLUTE_MAX_SCREENS} screens:{' '}
-          {STANDARD_MAX_SCREENS + 1} screens add {euros(screenSurchargeCents(STANDARD_MAX_SCREENS + 1))}, {STANDARD_MAX_SCREENS + 4} add {euros(screenSurchargeCents(STANDARD_MAX_SCREENS + 4))},{' '}
-          {ABSOLUTE_MAX_SCREENS} add {euros(screenSurchargeCents(ABSOLUTE_MAX_SCREENS))}. A design that needs more than {ABSOLUTE_MAX_SCREENS} can&apos;t be quoted. It applies to screen-printed runs only, never to shop
-          products. It is a fixed rule, not a setting.
+          1 to {STANDARD_MAX_SCREENS} screens is the standard price. Each screen above {STANDARD_MAX_SCREENS} adds {euros(EXTRA_SCREEN_CENTS_PER_PIECE)} per piece, up to {ABSOLUTE_MAX_SCREENS} screens, counted per print position on
+          that position&apos;s own design: {STANDARD_MAX_SCREENS + 1} screens add {euros(screenSurchargeCents(STANDARD_MAX_SCREENS + 1))}, {STANDARD_MAX_SCREENS + 4} add{' '}
+          {euros(screenSurchargeCents(STANDARD_MAX_SCREENS + 4))}, {ABSOLUTE_MAX_SCREENS} add {euros(screenSurchargeCents(ABSOLUTE_MAX_SCREENS))} on one position, so a front and a back of {EXAMPLE_POSITION_SCREENS} screens each add{' '}
+          {euros(screenSurchargeCents(EXAMPLE_POSITION_SCREENS))} + {euros(screenSurchargeCents(EXAMPLE_POSITION_SCREENS))} = {euros(2 * screenSurchargeCents(EXAMPLE_POSITION_SCREENS))} in all. A position that needs more than{' '}
+          {ABSOLUTE_MAX_SCREENS} can&apos;t be quoted. It applies to screen-printed runs only, never to shop products; DTG and DTF runs pay the shop extras for more print positions instead. It is a fixed rule, not a
+          setting.
         </p>
       </section>
 
@@ -372,7 +377,8 @@ export function ScreenPriceEditor({
           Example prices
         </h2>
         <p className="pp-dim">
-          What one piece costs the artist: a blank at {euros(EXAMPLE_GARMENT_CENTS)} and one 28 cm print, by number of screens and quantity. {canManage ? 'They follow what is typed above.' : ''}
+          What one piece costs the artist: a blank at {euros(EXAMPLE_GARMENT_CENTS)} and one 28 cm print position, by number of screens and quantity. The fixed charge is for that position alone: a second position adds its own.{' '}
+          {canManage ? 'They follow what is typed above.' : ''}
         </p>
         <div className="pp-scroll">
           <table className="pp-table prc-examples">

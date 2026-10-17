@@ -5,16 +5,15 @@ import { runNumberFor } from '@/lib/services/runs';
 import { db, schema } from '@/lib/db';
 import { createProduct, getProduct, type Placement } from '@/lib/services/products';
 import { createBulkProof, setBulkProofStatus, type ProofDetail, type ProofSpecLine } from '@/lib/services/proofs';
-import { describeServices, printServicesFor, quoteFor, quoteScreenLine, techniqueOfService } from '@/lib/services/quotes';
+import { describeServices, printServicesFor, quoteFor, quoteRunExtras, quoteScreenLine, techniqueOfService } from '@/lib/services/quotes';
 import { getScreenPriceTable } from '@/lib/services/pricing-admin';
-import { setupCentsFor, type LineScreens, type ScreenPriceTable } from '@/lib/pricing/screen-print';
+import { describeRunLines, runExtrasCents, setupCentsFor, type LineScreens, type RunPriceLine, type ScreenPriceTable } from '@/lib/pricing/screen-print';
 import { zoneForCountry } from '@/lib/services/shipping';
 import { getStore } from '@/lib/services/stores';
 import { claimWebhookEvent } from '@/lib/services/orders';
 import { notify } from '@/lib/services/notifications';
 import { markPacksNeededForOrder } from '@/lib/services/prepress';
-import { checkPlacementPosition, defaultPlacementFor } from '@/lib/mockups/placements';
-import { podPrice } from '@/lib/pricing/pod';
+import { MIN_PRINT_WIDTH_CM, areaSide, checkPlacementPosition, defaultPlacementFor, maxPrintCm, printPositionLabel } from '@/lib/mockups/placements';
 import type { CheckoutSessionSnapshot } from '@/lib/services/stripe';
 
 // Bulk orders (service path B, Platform-Plan.md §6): an artist orders a run
@@ -35,10 +34,17 @@ import type { CheckoutSessionSnapshot } from '@/lib/services/stripe';
 //
 // A screen-printed line is priced by the screens its design really uses
 // (Print-Prep-Plan section 10): quoteScreenLine reads the count from the
-// design's print files for that garment colour, or guesses and says so when
-// there are none yet. The line records what it rests on (BulkQuoteLine.screens),
-// the price is worked out again when the proof is sent, and an approval is
-// refused if the screens changed since the proof (approveBulkProof).
+// design's print files for that garment colour at each print position, or
+// guesses and says so when there are none yet. The screens above 8 are a euro a
+// piece on EACH position, on that position's own design (owner, 16 Oct 2026: a
+// back of 10 and a front of 10 are +2 and +2). The line records what it rests on
+// (BulkQuoteLine.screens) and what each position adds (BulkQuoteLine.extras), the
+// price is worked out again when the proof is sent, and an approval is refused
+// if the screens changed since the proof (approveBulkProof).
+//
+// A DTG/DTF line pays the shop's extras for more print positions on top of its
+// run price (+1 front and back, +2 once for sleeve prints), recorded in
+// BulkQuoteLine.extras the same way.
 
 /** What a paid run sets in motion outside this module. Tests swap these for
  * stubs; the wrappers look the functions up when called, so an import cycle
@@ -88,13 +94,17 @@ export interface BulkQuoteLine {
   /** size code -> quantity */
   sizes: Record<string, number>;
   qty: number;
-  /** what one piece costs, the screen surcharge included */
+  /** what one piece costs, the extras below included */
   unitCents: number;
   totalCents: number;
   label: string;
   mockupUrl: string | null;
   /** screen print only: the screens the price rests on (from the design's print files, or a guess with its reason) */
   screens?: LineScreens | null;
+  /** what each print position adds to one piece, already inside unitCents: a screen-printed line has a line for each position
+   * ('Back · 10 colours: +€2.00'); a DTG/DTF line has the shop's extras for more print positions ('Front and back: +€1.00',
+   * 'Sleeve prints: +€2.00'). Absent on a line quoted before this was recorded, and on a DTG/DTF line with one print position. */
+  extras?: RunPriceLine[];
 }
 
 /** The shape persisted in bulk_orders.quote — see Platform-Plan.md §3. */
@@ -273,13 +283,6 @@ async function designInShop(storeId: string, designId: string): Promise<boolean>
   return design?.storeId === storeId;
 }
 
-/** What more print areas add to one DTG/DTF piece: the shop's extras for them (front and back, sleeve prints; podPrice
- * in lib/pricing/pod.ts), on top of the run's price for the garment with one print. */
-async function extraAreasCents(blankCode: string, printServiceCode: string, placements: RunPlacement[]): Promise<number> {
-  const price = await podPrice(blankCode, placements.map((p) => ({ position: p.position, widthCm: p.widthCm })), printServiceCode);
-  return price ? price.lines.filter((l) => l.key !== 'base').reduce((sum, l) => sum + l.cents, 0) : 0;
-}
-
 /** The usual place and size for a line that names none, as pre-press reads it for an order (toPrintPlacement in prepress.ts). */
 const DEFAULT_PLACEMENT: Placement = { position: 'front_chest', widthCm: 28 };
 
@@ -395,18 +398,31 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
       const position = checkPlacementPosition(blankRow?.type ?? '', extra.position, blankCode);
       if (!position.ok) return { ok: false, error: position.error };
       if (seen.has(extra.position)) return { ok: false, error: 'A garment can have each print position once.' };
-      // The width print prep can make files for (validateDrop in print-prep.ts).
-      if (!(extra.widthCm >= 2 && extra.widthCm <= 60)) return { ok: false, error: 'A print position must be between 2 and 60 cm wide.' };
       // A run only ever prints its own shop's art.
       if (extra.designId && extra.designId !== designId && !(await designInShop(storeId, extra.designId))) return { ok: false, error: 'Design not found for this shop.' };
       seen.add(extra.position);
+    }
+    // One front print, as on a shop product (checkPrintAreas): the front chest, the full front and the left chest overlap on
+    // the garment, so a second one is refused, not printed (or charged) twice.
+    const fronts = [...seen].filter((p) => areaSide(p) === 'front');
+    if (fronts.length > 1) {
+      return { ok: false, error: `A garment has one front print, and ${fronts.map((p) => printPositionLabel(p).toLowerCase()).join(' and ')} are both on the front. Keep one of them.` };
+    }
+  }
+  // Every position's width: from 2 cm to what the position takes, 40 × 54 cm (the A2 film keeps room for its marks), a sleeve
+  // its own size. The files of a bigger print can't be made.
+  for (const at of [placement ?? DEFAULT_PLACEMENT, ...extras]) {
+    const max = maxPrintCm(blankCode, at.position);
+    if (!(at.widthCm >= MIN_PRINT_WIDTH_CM && at.widthCm <= max.widthCm)) {
+      return { ok: false, error: `The ${printPositionLabel(at.position).toLowerCase()} print must be between ${MIN_PRINT_WIDTH_CM} and ${max.widthCm} cm wide (at most ${max.widthCm} × ${max.heightCm} cm).` };
     }
   }
 
   let unitCents: number;
   let screens: LineScreens | null = null;
+  let priceLines: RunPriceLine[] = [];
   if (isScreen) {
-    // Priced by the screens the design really uses for this colour, not by the service the artist picked.
+    // Priced by the screens each position's design really uses for this colour, not by the service the artist picked.
     const priced = await quoteScreenLine(
       { blankCode, printServiceCode, colourCode: input.colourCode, colourName, qty, designId, placements: [placement ?? DEFAULT_PLACEMENT, ...extras], lineKey },
       table,
@@ -414,10 +430,14 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
     if (!priced.ok) return priced;
     unitCents = priced.value.unitCents;
     screens = priced.value.screens;
+    priceLines = priced.value.extras;
   } else {
     const quote = await quoteFor({ blankCode, printServiceCode, qty });
     if (!quote) return { ok: false, error: `No pricing configured for ${blankCode} with ${printServiceCode}.` };
-    unitCents = quote.unitBaseCostCents + (extras.length > 0 ? await extraAreasCents(blankCode, printServiceCode, [placement ?? DEFAULT_PLACEMENT, ...extras]) : 0);
+    // DTG/DTF prints every position in the same pass, for the shop's extras (front and back, sleeve prints) on top of the run's
+    // price for the garment with one print.
+    if (extras.length > 0) priceLines = await quoteRunExtras(printServiceCode, [placement ?? DEFAULT_PLACEMENT, ...extras]);
+    unitCents = quote.unitBaseCostCents + runExtrasCents(priceLines);
   }
 
   const sizes = Object.fromEntries(sizeEntries);
@@ -441,6 +461,7 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
       label: `${blankName} · ${colourName} · ${qty} pcs`,
       mockupUrl,
       ...(screens ? { screens } : {}),
+      ...(priceLines.length > 0 ? { extras: priceLines } : {}),
     },
   };
 }
@@ -533,7 +554,7 @@ async function repriceRun(detail: BulkOrderDetail, table: ScreenPriceTable): Pro
       table,
     );
     if (!priced.ok) return priced;
-    lines.push({ ...line, unitCents: priced.value.unitCents, totalCents: priced.value.totalCents, screens: priced.value.screens });
+    lines.push({ ...line, unitCents: priced.value.unitCents, totalCents: priced.value.totalCents, screens: priced.value.screens, extras: priced.value.extras });
   }
   const setupCents = await setupCentsOf(lines, table);
   return { ok: true, value: { lines, setupCents, totalCents: lines.reduce((sum, l) => sum + l.totalCents, 0) + setupCents + detail.shippingCents } };
@@ -577,15 +598,22 @@ function methodName(line: BulkQuoteLine): string {
   return techniqueOfService(line.printServiceCode) === 'screen' ? 'Screen print' : line.printServiceName;
 }
 
+/** What the print positions add to a piece, as a proof row: a screen-printed line's colours on each position and what they add
+ * ('Front chest · 10 colours: +€2.00; Back · 10 colours: +€2.00 (+€4.00 per piece in all)'), a DTG/DTF line's extras for more
+ * print positions ('Front and back: +€1.00; Sleeve prints: +€2.00 (+€3.00 per piece in all)'). Nothing for a line with neither. */
+function printPriceRows(line: BulkQuoteLine): ProofSpecLine[] {
+  const name = `${blankDisplayName(line.blankCode, line.blankName)} · ${line.colourName}`;
+  if (line.screens) return [{ label: `Colours · ${name}`, value: line.screens.summary }];
+  return line.extras && line.extras.length > 0 ? [{ label: `Print areas · ${name}`, value: describeRunLines(line.extras) }] : [];
+}
+
 function buildBulkSpec(detail: BulkOrderDetail): ProofSpecLine[] {
   const methods = [...new Set(detail.lines.map(methodName))];
   return [
     ...detail.lines.map((l) => ({ label: l.label, value: `€${(l.unitCents / 100).toFixed(2)} / unit` })),
     // The artist chose the method at quote time, so the proof says which one they are approving.
     { label: 'Print method', value: methods.join(', ') },
-    ...detail.lines.flatMap((l) =>
-      l.screens ? [{ label: `Screens · ${blankDisplayName(l.blankCode, l.blankName)} · ${l.colourName}`, value: l.screens.summary }] : [],
-    ),
+    ...detail.lines.flatMap(printPriceRows),
     { label: 'Setup', value: `€${(detail.setupCents / 100).toFixed(2)}` },
     { label: 'Shipping', value: `€${(detail.shippingCents / 100).toFixed(2)}` },
     { label: 'Total', value: `€${(detail.totalCents / 100).toFixed(2)}` },
@@ -643,13 +671,13 @@ export async function approveBulkProof(storeId: string, proofId: string, userId:
     // A job is making a design's screen files while the artist approves: the count, and so the price, can still change.
     // Nothing is changed; the artist approves once the files are ready (and sees the new price then if it moved).
     if (again.value.lines.some((l) => l.screens?.placements.some((p) => p.pending))) {
-      return { ok: false, error: 'The print files for this design are being prepared, so the screen count, and the price, can still change. Approve the proof once they are ready.' };
+      return { ok: false, error: 'The print files for this design are being prepared, so the colour count, and the price, can still change. Approve the proof once they are ready.' };
     }
     const moved = screensMoved(detail, again.value);
     if (moved.length > 0) {
       await saveRepriced(currentRun, again.value);
-      const changes = moved.map(({ was, now }) => `${blankDisplayName(was.blankCode, was.blankName)} in ${was.colourName} was ${was.screens?.summary ?? 'priced differently'}, now ${now.screens?.summary}`).join('; ');
-      const message = `The screens changed since this proof was sent: ${changes}. The price is now €${(again.value.totalCents / 100).toFixed(2)}. The quote is updated, so send the proof again to see it.`;
+      const changes = moved.map(({ was, now }) => `${blankDisplayName(was.blankCode, was.blankName)} in ${was.colourName} was ${was.screens?.summary ?? 'priced differently'}, now ${now.screens?.summary}`).join('. ');
+      const message = `The colours changed since this proof was sent: ${changes}. The price is now €${(again.value.totalCents / 100).toFixed(2)}. The quote is updated, so send the proof again to see it.`;
       await setBulkProofStatus(storeId, proofId, 'changes_requested', { notes: message });
       await transitionBulk(currentRun, 'quoted', 'proof_pending');
       return { ok: false, error: message };

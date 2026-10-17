@@ -120,7 +120,7 @@ test('the same input writes the same bytes', async () => {
 
 test('a canvas wider than 30,000 px is written as PSB and still reads back', async () => {
   // 1,280 mm wide at 600 ppi, 4 mm tall: cheap, but past the PSD side limit.
-  const s = syntheticScreenSet({ plates: 2, widthMm: 1280, heightMm: 4, marginMm: 1, targetOffsetMm: 0.5, ppi: 600 });
+  const s = syntheticScreenSet({ plates: 2, widthMm: 1280, heightMm: 4, marks: { sideMarginMm: 1, endMarginMm: 1, inkGapMm: 0.2 }, ppi: 600 });
   const original = await syntheticOriginal(320, 1);
   const { bytes, stats } = await writeScreenPsdWithStats({ set: s.set, garments: s.garments, original, label: s.label, inks: s.inks });
   assert.ok(s.set.canvas.widthPx > 30000);
@@ -312,7 +312,7 @@ test('a film with its marks redrawn elsewhere is a changed film in the diff', as
   const s = syntheticScreenSet({ plates: 3, widthMm: 20, heightMm: 24 });
   const original = await syntheticOriginal(100, 120);
   const moved = { ...s.set, plates: s.set.plates.map((p) => ({ ...p, plate: { ...p.plate, data: new Uint8Array(p.plate.data) } })) };
-  drawTargetAt(moved.plates[2].plate.data, s.set.canvas, 15, 'top', 24, 0);
+  drawTargetAt(moved.plates[2].plate.data, s.set.canvas, 'top left', 24, 0);
   const { bytes } = await writeScreenPsdWithStats({ set: moved, garments: [BLACK, NAVY], original, label: s.label, inks: s.inks });
   const diff = diffScreenPsd(s.set, await readScreenPsdDetail(bytes));
   assert.deepEqual(

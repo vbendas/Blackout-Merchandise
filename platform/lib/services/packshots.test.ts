@@ -169,18 +169,24 @@ test('the cache holds a bounded number of packshots', async () => {
 });
 
 test('loadPackshot: the photo for the side the position prints on, with its calibrated box', async () => {
+  // The box is the type's table box (lib/mockups/placements.ts), whose top is 5 cm below the collar seam.
+  const { PLACEMENTS } = await import('@/lib/mockups/placements');
+  const box = (position: 'front_chest' | 'back') => {
+    const { x, y, w, h } = PLACEMENTS['T-shirts'].positions[position]!;
+    return { x, y, w, h };
+  };
   const front = await loader.loadPackshot('TEST1', 'C002', 'front_chest');
   // The stand-in bytes here are not a picture, so the photo's size is not known (a null, not a guess).
   assert.deepEqual(front, {
     image: FRONT,
-    printBox: { x: 0.2976, y: 0.3465, w: 0.4039, h: 0.4 },
+    printBox: box('front_chest'),
     position: 'front_chest',
     widthCm: 28,
     size: null,
   });
 
   const back = await loader.loadPackshot('TEST1', 'C002', 'back');
-  assert.deepEqual(back, { image: BACK, printBox: { x: 0.2929, y: 0.2896, w: 0.4941, h: 0.526 }, position: 'back', widthCm: 32, size: null });
+  assert.deepEqual(back, { image: BACK, printBox: box('back'), position: 'back', widthCm: 32, size: null });
 
   const leg = await loader.loadPackshot('TEST2', 'C002', 'front_leg');
   assert.equal(leg?.widthCm, 12);

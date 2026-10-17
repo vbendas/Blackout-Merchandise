@@ -21,6 +21,10 @@
 // delete; they live under job-sheets/<design id>/ in print storage, so one lifecycle rule on
 // that prefix can expire them. A cache that cannot be read or written never stops a sheet.
 //
+// The same sheet is also given as data (getJobSheetView, built by lib/print/job-sheet-view.ts, the
+// very view the PDF is drawn from) for the iPads at the production stations: the paper and the
+// screen never disagree.
+//
 // Pantone codes are on it, so only Pre-press or Production View (or the owner) may open it.
 import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
@@ -28,6 +32,8 @@ import { PermissionError, type Actor } from '@/lib/auth/permissions';
 import { blankDisplayName } from '@/lib/catalog/display-names';
 import { canOpenJobSheets, isDesignId, type JobSheetLink } from '@/lib/print/job-sheet-link';
 import { printMockOn } from '@/lib/print/mock-mode';
+import { buildJobSheetView, type JobSheetView } from '@/lib/print/job-sheet-view';
+import { sampleJobSheetView } from '@/lib/print/job-sheet-sample';
 import { MOCK_JOB_SHEET, MOCK_JOB_SHEET_PROOFS } from '@/lib/print/mock-views';
 import { COLLAR_DISTANCE_UNSET_NOTE, describePrintHeight, standardCollarDistanceCm } from '@/lib/mockups/placements';
 import { hashJson } from '@/lib/print/pack/hash';
@@ -107,6 +113,11 @@ export interface CollectedJobSheet {
   contentHash: string;
   /** 'MF-UNDERWRITER-TEE-v3-job-sheet.pdf' */
   filename: string;
+  /** The pack each of source.screenSets was built in, in the same order. Beside the source, not in it: the sheet's
+   * hash (and so its stored PDF) is of what the sheet says, and a pack id says nothing on paper. */
+  setPackIds: string[];
+  /** Where a browser may load each proof from, by proof key (the source keeps only what the PDF needs). */
+  proofVisibility: Record<string, 'public' | 'private'>;
 }
 
 export interface DesignJobSheet {
@@ -483,6 +494,8 @@ export async function collectJobSheet(designId: string): Promise<CollectedJobShe
   // A design printed in several areas (a front and a sleeve) says which area each proof is of.
   const severalAreas = new Set(packInfos.map((p) => placementKey(packPlacement(p.pack)))).size > 1;
   const screenSets: JobSheetScreenSet[] = [];
+  const setPackIds: string[] = [];
+  const proofVisibility: Record<string, 'public' | 'private'> = {};
   const dtgPacks: JobSheetDtgPack[] = [];
   const proofs: JobSheetSource['proofs'] = [];
   const checks: JobSheetChecks[] = [];
@@ -519,6 +532,7 @@ export async function collectJobSheet(designId: string): Promise<CollectedJobShe
         system: await systemOf(info?.jobInput.inkSystemId),
         note: manifest.inks.length === 0 ? (blocking.join(' ') || null) : null,
       });
+      setPackIds.push(pack.id);
     }
     if (!isScreen) {
       const png = (code: string) => files.find((f) => f.kind === 'dtg_png' && f.garmentCode === code);
@@ -553,6 +567,7 @@ export async function collectJobSheet(designId: string): Promise<CollectedJobShe
     for (const file of [...files].filter((f) => f.kind === 'proof' && f.garmentCode).sort((a, b) => colourOrder(a.garmentCode as string) - colourOrder(b.garmentCode as string))) {
       const where = [severalBlanks ? blank : null, severalAreas ? positionLabel(placement.position) : null].filter(Boolean).join(' · ');
       proofs.push({ colourName: colourName(file.garmentCode as string), label: where ? `${technique} · ${where}` : technique, key: file.key, sha256: file.sha256 });
+      proofVisibility[file.key] = file.visibility;
     }
     checks.push({ label, checks: packChecks(pack) });
     audits.push({
@@ -629,6 +644,8 @@ export async function collectJobSheet(designId: string): Promise<CollectedJobShe
     source,
     contentHash: hashJson({ layout: JOB_SHEET_LAYOUT, source }),
     filename: `${fileSlug(code)}${shown === null ? '' : `-v${shown}`}-job-sheet.pdf`,
+    setPackIds,
+    proofVisibility,
   };
 }
 
@@ -701,6 +718,75 @@ export async function getDesignJobSheet(actor: Actor, designId: string): Promise
     console.error('[job sheet] could not store the sheet:', err instanceof Error ? err.message : err);
   }
   return { bytes, filename, contentHash, cached: false };
+}
+
+// ---------------------------------------------------------------------------
+// The sheet as data, for the production stations
+
+/** A proof's address for a browser (the public domain when there is one, else the print files route), or null. */
+async function proofUrl(deps: PrintDeps, key: string, visibility: 'public' | 'private'): Promise<string | null> {
+  try {
+    return await deps.storage.objectUrl(key, visibility);
+  } catch {
+    return null;
+  }
+}
+
+/** The design's job sheet as data: everything the PDF says, in the same words (both are made by buildJobSheetView
+ * from the same collected sheet), with each proof's address and each screen set's pack in place of the images, for
+ * the iPads at the stations to show and to match their counts to. Null when there is no such design. Throws a
+ * PermissionError for anyone without Pre-press or Production View: it carries Pantone codes. */
+export async function getJobSheetView(actor: Actor, designId: string): Promise<JobSheetView | null> {
+  requireAccess(actor);
+  if (printMockOn()) return sampleJobSheetView();
+
+  const collected = await collectJobSheet(designId);
+  if (!collected) return null;
+  const { source, setPackIds, proofVisibility } = collected;
+  const deps = printDeps();
+  const proofs = await Promise.all(source.proofs.map(async (ref) => ({ colourName: ref.colourName, label: ref.label, url: await proofUrl(deps, ref.key, proofVisibility[ref.key] ?? 'public') })));
+  return buildJobSheetView({
+    ...source,
+    generatedAt: new Date().toISOString(),
+    screenSets: source.screenSets.map((set, i) => ({ ...set, packId: setPackIds[i] })),
+    proofs,
+  });
+}
+
+/** A design's proof as a list shows it, for each way the design is printed: screen print, DTG/DTF. */
+export type ProofThumbs = Record<string, { screen: string | null; dtg_dtf: string | null }>;
+
+/** One small proof per design and technique, for the station's queue: the first proof of the newest built version that
+ * has one (Darks before Lights, and the first area built). One read for all the designs, so a queue of many costs the
+ * same as a queue of one. A design that is not an id, or has no proof yet, has nulls. */
+export async function designProofThumbs(actor: Actor, designIds: string[]): Promise<ProofThumbs> {
+  requireAccess(actor);
+  const none = () => ({ screen: null, dtg_dtf: null });
+  const out: ProofThumbs = Object.fromEntries(designIds.map((id) => [id, none()]));
+  const ids = [...new Set(designIds.filter(isDesignId))];
+  if (ids.length === 0) return out;
+  if (printMockOn()) {
+    for (const id of ids) out[id] = { screen: '/dev/print-mock/proof-screen-black.webp', dtg_dtf: '/dev/print-mock/proof-dtg-black.webp' };
+    return out;
+  }
+
+  const rows = await db
+    .select({ designId: schema.designVersions.designId, pack: schema.productionPacks })
+    .from(schema.productionPacks)
+    .innerJoin(schema.designVersions, eq(schema.productionPacks.designVersionId, schema.designVersions.id))
+    .where(and(inArray(schema.designVersions.designId, ids), eq(schema.productionPacks.buildStatus, 'ready')))
+    // Newest version first; within it the first set by name (Darks before Lights) and the first built, so the same list shows the same proof.
+    .orderBy(desc(schema.designVersions.version), asc(schema.productionPacks.screenSetKey), asc(schema.productionPacks.createdAt), asc(schema.productionPacks.id));
+  const deps = printDeps();
+  for (const { designId, pack } of rows) {
+    if (isSuperseded(pack)) continue;
+    const slot = pack.technique === 'screen' ? 'screen' : 'dtg_dtf';
+    const entry = out[designId] ?? (out[designId] = none());
+    if (entry[slot]) continue;
+    const proof = packFiles(pack).find((f) => f.kind === 'proof');
+    if (proof) entry[slot] = await proofUrl(deps, proof.key, proof.visibility);
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------

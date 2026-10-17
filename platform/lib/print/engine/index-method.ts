@@ -22,7 +22,7 @@
 // print model, and index films are just solid ink. indexJoinCheck predicts
 // the print on another garment of the set, for the dispatcher's joins.
 import type { GarmentColour, InkPlate, InkSystemProfile, PlateLabelInfo, PlateRole, ScreenSet, Warning } from '@/lib/print/types';
-import { ABSOLUTE_MAX_SCREENS, ENGINE_TUNING, STANDARD_MAX_SCREENS, WHITE_INK_HEX } from '@/lib/print/defaults';
+import { ABSOLUTE_MAX_SCREENS, ENGINE_TUNING, STANDARD_MAX_SCREENS, WHITE_INK_HEX, filmLayout } from '@/lib/print/defaults';
 import { clientColourName } from '@/lib/print/colour-names';
 import { SRGB8_TO_LINEAR, deltaE2000, hexToLab, hexToLinear, hexToRgb8, linearToHex, linearToLab, roundLab, type Vec3 } from './colour';
 import { GARMENT } from './classify';
@@ -215,7 +215,7 @@ export function renderIndexSet(input: RenderInput & { grid: WorkGrid; separation
   // The joins may have separated the set already (index.ts): the same inputs, so the same cells and inks.
   const sep = input.separation ?? separateIndex({ grid: input.grid, analysis: a, size, recipe });
   const { cells, labels, entries, underbase } = sep;
-  const canvas = canvasSpec(size, recipe.marks.marginMm);
+  const canvas = canvasSpec(size, filmLayout(recipe.marks));
   const W = canvas.widthPx;
   const H = canvas.heightPx;
   const art = canvas.art;
@@ -285,8 +285,8 @@ export function renderIndexSet(input: RenderInput & { grid: WorkGrid; separation
       // index squares need the finer mesh to hold; the underbase is the usual one
       meshSuggestion: role === 'underbase' ? inks.mesh.underbase : inks.mesh.halftone,
     };
-    drawTargets(plate.plate.data, canvas, recipe.marks.targetOffsetMm);
-    drawLabelStrip(plate.plate.data, canvas, recipe.marks.targetOffsetMm, indexPlateLabelLines(label, setName, plate, total, inks));
+    drawTargets(plate.plate.data, canvas);
+    drawLabelStrip(plate.plate.data, canvas, indexPlateLabelLines(label, setName, plate, total, inks));
     return plate;
   });
 

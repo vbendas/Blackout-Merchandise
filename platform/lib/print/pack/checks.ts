@@ -25,7 +25,8 @@ import type { PackManifestDetail } from './manifest';
 import { ORIGINAL_LAYER_NAME, dtgLayerName, formatNumber, garmentLayerName, garmentNameFromLayer, isOriginalLayerName, parsePlateLayerName, plateLayerName } from './names';
 import { parseIccp, parsePhys, ppiToPixelsPerMetre, readPngChunks } from './png';
 import { compareProofs } from './proof-compare';
-import { targetBoxes } from '@/lib/print/engine';
+import { FILM_SHEET_CM, MAX_DESIGN_CM } from '@/lib/print/defaults';
+import { targetBoxes, type MarkName } from '@/lib/print/engine';
 
 type State = CheckResult['state'];
 interface Outcome {
@@ -282,12 +283,11 @@ async function filmFromLayer(layer: WebtoonLayer, W: number, H: number, art: Pix
 // Registration marks
 // ---------------------------------------------------------------------------
 
-type Side = 'top' | 'bottom' | 'left' | 'right';
 const NEIGHBOUR_X = [-1, 0, 1, -1, 1, -1, 0, 1];
 const NEIGHBOUR_Y = [-1, -1, -1, 0, 0, 1, 1, 1];
 
 interface MarkFound {
-  side: Side;
+  name: MarkName;
   /** the mark's pixels in its window, as a key for comparison */
   pixels: Uint8Array;
   cx: number;
@@ -298,21 +298,18 @@ interface MarkFound {
   touchesEdge: boolean;
 }
 
-const SIDES: Side[] = ['top', 'bottom', 'left', 'right'];
-
-/** The engine's own target boxes (top, bottom, left, right), so the check
- * looks exactly where the targets are drawn, including when a narrow margin
- * pulls them in. Boxes squeezed off the canvas are left out. */
-function markWindows(canvas: ScreenSet['canvas'], targetOffsetMm: number): (PixelRect & { side: Side })[] {
-  return targetBoxes(canvas, targetOffsetMm)
-    .map((box, i) => ({ ...box, side: SIDES[i] }))
-    .filter((box) => box.width > 2 && box.height > 2);
+/** The engine's own target boxes (top left, top right, bottom left, bottom
+ * right; the side centres on a film made before engine 3), so the check looks
+ * exactly where the targets are drawn, including when narrow margins shrink
+ * them. Boxes squeezed off the canvas are left out. */
+function markWindows(canvas: ScreenSet['canvas'], legacyTargetOffsetMm: number | undefined): (PixelRect & { name: MarkName })[] {
+  return targetBoxes(canvas, legacyTargetOffsetMm).filter((box) => box.width > 2 && box.height > 2);
 }
 
 /** The target in its box: the ink connected to the pixels within 1 mm of the
  * box centre (circle and crosshair are one shape). Ink that joins it from
  * outside the box means the target runs into something else. */
-function findMark(plate: Uint8Array, W: number, H: number, box: PixelRect & { side: Side }, art: PixelRect, ppi: number): MarkFound | null {
+function findMark(plate: Uint8Array, W: number, H: number, box: PixelRect & { name: MarkName }, art: PixelRect, ppi: number): MarkFound | null {
   const bw = box.width;
   const bh = box.height;
   const cx = Math.floor(bw / 2);
@@ -396,7 +393,25 @@ function findMark(plate: Uint8Array, W: number, H: number, box: PixelRect & { si
   const gapX = Math.max(art.x - bx1, bx0 - (art.x + art.width - 1), 0);
   const gapY = Math.max(art.y - by1, by0 - (art.y + art.height - 1), 0);
   const clearPx = gapX > 0 && gapY > 0 ? Math.hypot(gapX, gapY) : Math.max(gapX, gapY);
-  return { side: box.side, pixels: mark, cx: centreX, cy: centreY, clearMm: mm(clearPx, ppi), touchesEdge };
+  return { name: box.name, pixels: mark, cx: centreX, cy: centreY, clearMm: mm(clearPx, ppi), touchesEdge };
+}
+
+/** Ink where a film with a layout is clear: beside the print, and in the ink gap above and below it (the rows
+ * between the print and the marks). Zero for a film from before engine 3. */
+function inkInClearFilm(data: Uint8Array, canvas: ScreenSet['canvas']): number {
+  const { layout, art, widthPx: W, heightPx: H, ppi } = canvas;
+  if (!layout) return 0;
+  const gap = Math.round((layout.inkGapMm * ppi) / 25.4);
+  let n = 0;
+  for (let y = Math.max(0, art.y - gap); y < Math.min(H, art.y + art.height + gap); y++) {
+    const row = y * W;
+    const beside = y >= art.y && y < art.y + art.height;
+    for (let x = 0; x < W; x++) {
+      if (beside && x === art.x) x = art.x + art.width;
+      if (x < W && data[row + x] !== 0) n++;
+    }
+  }
+  return n;
 }
 
 function samePixels(a: Uint8Array, b: Uint8Array): boolean {
@@ -426,7 +441,9 @@ function canvasOf(input: ChecksInput): ScreenSet['canvas'] | null {
   if (input.expected.set) return input.expected.set.canvas;
   const m = input.manifest as PackManifestDetail;
   if (m.print?.canvasPx && m.print.artPx) {
-    return { widthPx: m.print.canvasPx.width, heightPx: m.print.canvasPx.height, ppi: m.print.ppi, marginMm: m.print.marginMm ?? input.recipe.marks.marginMm, art: m.print.artPx };
+    const base = { widthPx: m.print.canvasPx.width, heightPx: m.print.canvasPx.height, ppi: m.print.ppi, art: m.print.artPx };
+    // a manifest from before engine 3 has the one margin, and its films the side-centre marks
+    return m.print.layout ? { ...base, layout: m.print.layout } : { ...base, marginMm: m.print.marginMm ?? input.recipe.marks.marginMm };
   }
   return null;
 }
@@ -468,17 +485,19 @@ async function screenChecks(input: ChecksInput): Promise<CheckResult[]> {
     marginCoverage: number;
     mismatch: number | null;
     marks: (MarkFound | null)[];
+    /** ink pixels in the ink gap or beside the print */
+    clearInk: number;
     features: FeatureFindings | null;
   }
   const films: FilmRead[] = [];
-  let windowSides: Side[] = [];
+  let windowNames: MarkName[] = [];
   if (psd && canvas) {
     const W = psd.width;
     const H = psd.height;
     const sameCanvas = W === canvas.widthPx && H === canvas.heightPx;
     const art = canvas.art;
     const windows = sameCanvas ? markWindows(canvas, input.recipe.marks.targetOffsetMm) : [];
-    windowSides = windows.map((w) => w.side);
+    windowNames = windows.map((w) => w.name);
     const expectedPlates = set ? [...set.plates].sort((a, b) => a.index - b.index) : [];
     for (const { index, layer } of filmLayers(psd)) {
       const expectedPlate: InkPlate | undefined = expectedPlates[index - 1];
@@ -497,6 +516,7 @@ async function screenChecks(input: ChecksInput): Promise<CheckResult[]> {
         marginCoverage: sameCanvas && marginArea > 0 ? (film.totalInk - film.artInk) / marginArea : 0,
         mismatch: film.mismatch,
         marks: windows.map((w) => findMark(film.data, W, H, w, art, canvas.ppi)),
+        clearInk: sameCanvas ? inkInClearFilm(film.data, canvas) : 0,
         features: sameCanvas
           ? analyseFeatures(film.data, W, art, { ppi: canvas.ppi, lpi: halftone.lpi, minDot: halftone.minDot, minLineMm: input.recipe.minLineMm })
           : null,
@@ -533,17 +553,41 @@ async function screenChecks(input: ChecksInput): Promise<CheckResult[]> {
         problems.push(`the print area is ${formatNumber(Math.round(mm(canvas.art.width, canvas.ppi) * 10) / 10)} mm wide, the placement says ${formatNumber(widthMm)} mm`);
         states.push('failed');
       }
-      const margins = [canvas.art.x, canvas.art.y, canvas.widthPx - canvas.art.x - canvas.art.width, canvas.heightPx - canvas.art.y - canvas.art.height];
-      if (margins.some((m) => Math.abs(m - canvas.marginMm * ppiMm) > 1.5)) {
-        problems.push(`the margin is not ${formatNumber(canvas.marginMm)} mm on every side`);
+      const [left, top] = [canvas.art.x, canvas.art.y];
+      const right = canvas.widthPx - canvas.art.x - canvas.art.width;
+      const bottom = canvas.heightPx - canvas.art.y - canvas.art.height;
+      const off = (px: number, wantMm: number) => Math.abs(px - wantMm * ppiMm) > 1.5;
+      const layout = canvas.layout;
+      // each margin is whole pixels, the right and bottom ones a pixel off at most (engine/units.ts filmCanvas)
+      if (layout && (off(left, layout.sideMarginMm) || off(right, layout.sideMarginMm) || off(top, layout.endMarginMm) || off(bottom, layout.endMarginMm))) {
+        problems.push(`the margins are not ${formatNumber(layout.sideMarginMm)} mm at the sides and ${formatNumber(layout.endMarginMm)} mm above and below`);
         states.push('review');
+      }
+      const legacyMarginMm = canvas.marginMm ?? input.recipe.marks.marginMm ?? 25;
+      if (!layout && [left, top, right, bottom].some((m) => off(m, legacyMarginMm))) {
+        problems.push(`the margin is not ${formatNumber(legacyMarginMm)} mm on every side`);
+        states.push('review');
+      }
+      // A2 portrait at most (owner decision, 16 Oct 2026): the design within 40 × 54 cm, as the engine measures it,
+      // and the film within the sheet (a pixel over is rounding)
+      const wholePx = (vMm: number) => Math.round(vMm * ppiMm);
+      if (canvas.art.width > wholePx(MAX_DESIGN_CM.widthCm * 10) || canvas.art.height > wholePx(MAX_DESIGN_CM.heightCm * 10)) {
+        problems.push(`the print is larger than the ${formatNumber(MAX_DESIGN_CM.widthCm)} × ${formatNumber(MAX_DESIGN_CM.heightCm)} cm an A2 film holds`);
+        states.push('failed');
+      }
+      if (canvas.widthPx > wholePx(FILM_SHEET_CM.widthCm * 10) + 1 || canvas.heightPx > wholePx(FILM_SHEET_CM.heightCm * 10) + 1) {
+        problems.push(`the film is ${cmText(mm(canvas.widthPx, canvas.ppi))} × ${cmText(mm(canvas.heightPx, canvas.ppi))} cm, larger than an A2 sheet (${formatNumber(FILM_SHEET_CM.widthCm)} × ${formatNumber(FILM_SHEET_CM.heightCm)} cm)`);
+        states.push('failed');
       }
       if (entry && entry.bytes.length >= 2 * 1024 ** 3 && entry.bytes.readUInt16BE(4) !== 2) {
         problems.push('the file is over 2 GB but not saved as PSB');
         states.push('failed');
       }
       const state = worst(states);
-      const summary = `${num(psd.width)} × ${num(psd.height)} px at ${formatNumber(canvas.ppi)} ppi: a ${cmText(mm(canvas.art.width, canvas.ppi))} × ${cmText(mm(canvas.art.height, canvas.ppi))} cm print plus a ${formatNumber(canvas.marginMm)} mm margin.`;
+      const print = `${num(psd.width)} × ${num(psd.height)} px at ${formatNumber(canvas.ppi)} ppi: a ${cmText(mm(canvas.art.width, canvas.ppi))} × ${cmText(mm(canvas.art.height, canvas.ppi))} cm print`;
+      const summary = layout
+        ? `${print} with margins of ${formatNumber(layout.sideMarginMm)} mm at the sides and ${formatNumber(layout.endMarginMm)} mm above and below.`
+        : `${print} plus a ${formatNumber(legacyMarginMm)} mm margin.`;
       return { state, detail: state === 'passed' ? summary : `${summary} But ${list(problems)}.` };
     }),
   );
@@ -687,15 +731,23 @@ async function screenChecks(input: ChecksInput): Promise<CheckResult[]> {
       if (!canvas) return { state: 'failed', detail: 'The pack has no canvas to find the marks on.' };
       if (films.length === 0) return { state: 'failed', detail: 'The PSD has no films.' };
       const ppi = canvas.ppi;
-      const sides = windowSides;
-      if (sides.length === 0) return { state: 'failed', detail: 'The margin is too narrow for registration marks, or the PSD is not the size of the films.' };
+      const names = windowNames;
+      if (names.length === 0) return { state: 'failed', detail: 'The margins are too narrow for registration marks, or the PSD is not the size of the films.' };
       const notes: string[] = [];
       const states: State[] = [];
+      if (names.length < 4) {
+        notes.push(`only ${names.length} of the four marks fit on the film`);
+        states.push('review');
+      }
       for (const f of films) {
-        const missing = f.marks.map((m, i) => (m ? null : sides[i])).filter((s): s is Side => !!s);
+        const missing = f.marks.map((m, i) => (m ? null : names[i])).filter((n): n is MarkName => !!n);
         if (missing.length) {
           notes.push(`film ${f.index} has no ${list(missing)} mark`);
           states.push('failed');
+        }
+        if (f.clearInk > 0) {
+          notes.push(`film ${f.index} has ink in the ink gap or beside the print (${num(f.clearInk)} px), where the film is kept clear`);
+          states.push('review');
         }
       }
       const reference = films.find((f) => f.marks.every((m) => m));
@@ -710,8 +762,8 @@ async function screenChecks(input: ChecksInput): Promise<CheckResult[]> {
             const shift = Math.hypot(dx, dy);
             notes.push(
               shift >= 0.05
-                ? `the ${m.side} mark on film ${f.index} sits ${formatNumber(Math.round(shift * 100) / 100)} mm off film ${reference.index}'s`
-                : `the ${m.side} mark on film ${f.index} is not identical to film ${reference.index}'s`,
+                ? `the ${m.name} mark on film ${f.index} sits ${formatNumber(Math.round(shift * 100) / 100)} mm off film ${reference.index}'s`
+                : `the ${m.name} mark on film ${f.index} is not identical to film ${reference.index}'s`,
             );
             states.push('failed');
           });
@@ -719,18 +771,23 @@ async function screenChecks(input: ChecksInput): Promise<CheckResult[]> {
         for (const m of reference.marks) {
           if (!m) continue;
           if (m.touchesEdge) {
-            notes.push(`the ${m.side} mark runs into other ink`);
+            notes.push(`the ${m.name} mark runs into other ink`);
             states.push('failed');
           } else if (m.clearMm < 2) {
-            notes.push(`the ${m.side} mark is ${formatNumber(Math.round(m.clearMm * 10) / 10)} mm from the art`);
+            notes.push(`the ${m.name} mark is ${formatNumber(Math.round(m.clearMm * 10) / 10)} mm from the art`);
             states.push('failed');
           }
         }
       }
       const state = worst(states);
       if (state === 'passed') {
-        const clear = Math.min(...reference!.marks.map((m) => m!.clearMm));
-        return { state, detail: `Identical registration marks on every film, ${formatNumber(Math.round(clear * 10) / 10)} mm or more clear of the art.` };
+        const clear = formatNumber(Math.round(Math.min(...reference!.marks.map((m) => m!.clearMm)) * 10) / 10);
+        return {
+          state,
+          detail: canvas.layout
+            ? `Identical registration marks at the four corners of every film, ${clear} mm or more clear of the art, and the ink gap clear.`
+            : `Identical registration marks on every film, ${clear} mm or more clear of the art.`,
+        };
       }
       return { state, detail: `${list(notes).replace(/^./, (c) => c.toUpperCase())}.` };
     }),

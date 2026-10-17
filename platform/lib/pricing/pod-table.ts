@@ -3,7 +3,7 @@
 // arithmetic that turns a base price and a set of print areas into a breakdown.
 // Owner decision, 16 Oct 2026 (Documentation/Dev/Print-Prep-Plan.md, "Shop
 // prices" and section 10): each garment has its own base price, which includes
-// one print area up to A2 (42 x 59.4 cm) on the front or the back. A second
+// one print area up to A2 (a design up to 40 x 54 cm, which the A2 film holds with its marks) on the front or the back. A second
 // main print (front and back) adds an extra, and sleeve prints add one more,
 // charged ONCE whether one sleeve or both are printed. For example a T-shirt at
 // EUR 17: +1 for front and back, +2 for sleeves.
@@ -12,7 +12,7 @@
 // examples and the podPrice() service all read this one file, so they cannot
 // disagree. lib/pricing/pod.ts holds the contract PL-A calls and re-exports the
 // names below. Money is integer cents, EUR.
-import { euros } from '@/lib/pricing/screen-print';
+import { euros, type RunPriceLine } from '@/lib/pricing/screen-print';
 
 // ---------------------------------------------------------------------------
 // The contract's types
@@ -279,6 +279,18 @@ export function buildPodBreakdown(input: {
   if (kinds.has('front') && kinds.has('back')) lines.push({ key: 'second_main_print', label: POD_LINE_LABELS.second_main_print, cents: extras.secondMainPrintCents });
   if (kinds.has('sleeve')) lines.push({ key: 'sleeves', label: POD_LINE_LABELS.sleeves, cents: extras.sleevesCents });
   return { blankCode: input.blankCode, lines, totalCents: lines.reduce((sum, line) => sum + line.cents, 0), placeholder: input.placeholder };
+}
+
+/** What more print positions add to one piece of a RUN printed DTG or DTF (owner decision, 16 Oct 2026: "DTG/DTF pays also extras
+ * for new print positions"): the same extras as a shop product, with the same words and the same arithmetic, line by line, on top
+ * of the run's own price for the garment with one print. +1 when the run prints front and back; sleeve prints once, whether one
+ * sleeve or both. A line stays when its extra is set to zero. Nothing for a single front or back print. */
+export function runExtraLines(extras: PodExtras, placements: readonly Pick<PodPlacementInput, 'position'>[]): RunPriceLine[] {
+  const lines: RunPriceLine[] = [];
+  for (const line of buildPodBreakdown({ blankCode: '', baseCents: 0, placeholder: false, extras, placements }).lines) {
+    if (line.key !== 'base') lines.push({ key: line.key, label: line.label, cents: line.cents });
+  }
+  return lines;
 }
 
 // ---------------------------------------------------------------------------

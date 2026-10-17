@@ -4,10 +4,13 @@
 //
 // Who may read a file under 'print/<designId>/...':
 //   - Pre-press staff (can(actor, 'prepress', 'view'), the owner included): any file.
+//   - Production staff (can(actor, 'production', 'view')): the public files of
+//     every design (proofs and film previews), which the production stations'
+//     iPads show beside the job sheet; never the PSDs, PNGs or job sheets (403).
 //   - The artist whose shop owns the design: only its public files (proofs and
 //     film previews), never the PSDs, PNGs or job sheets.
 //   - Everyone else: 404 for artists (so keys cannot be probed), 403 for staff
-//     without Pre-press access.
+//     without Pre-press or Production access.
 // Local storage streams the file. R2 answers with a redirect to a presigned URL
 // that lives for about a minute, so a PSD never passes through this process
 // (?ttl= can stretch the link to a public file, never a private one).
@@ -94,15 +97,18 @@ export async function handlePrintFileRequest(req: Request, segments: string[], d
   const session = await deps.getSession();
   const actor = await deps.loadActor(session.userId, session.role);
   const staff = can(actor, 'prepress', 'view');
+  // The stations show every design's proofs: Production reads the public files, and only those.
+  const production = !staff && can(actor, 'production', 'view');
 
-  if (!staff) {
+  if (!staff && !production) {
     if (session.role !== 'artist') return fail(403, 'forbidden');
     const owner = session.storeId && (await deps.designStoreId(parsed.designId)) === session.storeId;
     if (!owner) return fail(404, 'not_found');
   }
 
   const info = await deps.stat(parsed.key);
-  if (!info || (!staff && info.visibility !== 'public')) return fail(404, 'not_found');
+  if (!info) return fail(404, 'not_found');
+  if (!staff && info.visibility !== 'public') return production ? fail(403, 'forbidden') : fail(404, 'not_found');
 
   const url = new URL(req.url);
   const download = url.searchParams.get('download')?.trim().slice(0, 120) || null;

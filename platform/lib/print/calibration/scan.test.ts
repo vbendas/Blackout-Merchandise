@@ -11,7 +11,20 @@ import { buildDotGainCurves } from './curve';
 import { buildDotGainProfile, dotGainProblem } from './profile';
 import { dotGainFor } from './curve';
 import type { ChartSettings, InkKind } from './chart-layout';
-import { applyH, fitHomography, readChartImage, readChartScan, ScanError, SCAN_LIMITS, filmPoints, type FilmReading, type ScanImage, type ScanReading } from './scan';
+import {
+  applyH,
+  filmPoints,
+  fitHomography,
+  readChartImage,
+  readChartScan,
+  readerStopwatch,
+  READ_BUDGET_MS,
+  ScanError,
+  SCAN_LIMITS,
+  type FilmReading,
+  type ScanImage,
+  type ScanReading,
+} from './scan';
 import { TYPICAL_PRESS, printFlatTints, renderSyntheticScan, type SyntheticOptions } from './synthetic-print';
 
 /** 300 ppi at 40 lpi, a dot cell 7.5 pixels across: the house screen's geometry, a little smaller. */
@@ -286,19 +299,74 @@ test('a scan at 150 dpi is flagged as low resolution, and still reads', () => {
   assert.ok(worstError(reading, 'base', scan.truth.base) < 3);
 });
 
+/** A grey ink on a grey garment, barely apart. */
+const DIM: SyntheticOptions = { settings: SMALL, garment: [200, 200, 200], inks: { base: [180, 182, 184] }, seed: 23 };
+/** A plain print, for its corners to be painted out. */
+const BLANK_BAND: SyntheticOptions = { settings: SMALL, garment: WHITE_TEE, inks: { base: [20, 20, 22] }, seed: 29 };
+
+/** The scan with its four corners painted the garment's colour: the corner squares are gone, so the chart can't be found. */
+function wipedCorners(image: ScanImage): ScanImage {
+  const wiped: ScanImage = { ...image, rgb: Uint8Array.from(image.rgb) };
+  const [w, h] = [wiped.width, wiped.height];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if ((x < w * 0.2 || x > w * 0.8) && (y < h * 0.25 || y > h * 0.75)) wiped.rgb.fill(236, (y * w + x) * 3, (y * w + x) * 3 + 3);
+  return wiped;
+}
+
 test('an ink that hardly shows against the garment is read with a warning; one that does not show at all is left out', () => {
-  const dim = printed('dim', { settings: SMALL, garment: [200, 200, 200], inks: { base: [180, 182, 184] }, seed: 23 });
-  const reading = readChartImage(dim.image, SMALL);
+  const reading = readChartImage(printed('dim', DIM).image, SMALL);
   assert.ok(['low_contrast', 'not_printed'].includes(film(reading, 'base').status));
 });
 
 test('nothing printed on a scan means no curve, and the reader says so', () => {
-  const blank = printed('blank-band', { settings: SMALL, garment: WHITE_TEE, inks: { base: [20, 20, 22] }, seed: 29 });
-  // paint the four corner squares out: the chart can't be found
-  const wiped: ScanImage = { ...blank.image, rgb: Uint8Array.from(blank.image.rgb) };
-  const [w, h] = [wiped.width, wiped.height];
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if ((x < w * 0.2 || x > w * 0.8) && (y < h * 0.25 || y > h * 0.75)) wiped.rgb.fill(236, (y * w + x) * 3, (y * w + x) * 3 + 3);
+  const wiped = wipedCorners(printed('blank-band', BLANK_BAND).image);
   assert.throws(() => readChartImage(wiped, SMALL), (err: unknown) => err instanceof ScanError && err.code === 'no_marks' && /four corner squares/.test(err.message));
+});
+
+// ---------------------------------------------------------------------------
+// Time: a read is quick, and one that isn't is stopped
+
+/** What a read gives (a reading or a ScanError) and how long the reader ran, ms, on its own stopwatch: a laptop that sleeps, or a machine busy with the rest of the suite, doesn't count. */
+function timedRead(image: ScanImage, settings: ChartSettings): { ms: number; outcome: ScanReading | ScanError } {
+  const elapsed = readerStopwatch();
+  let outcome: ScanReading | ScanError;
+  try {
+    outcome = readChartImage(image, settings);
+  } catch (err) {
+    if (!(err instanceof ScanError)) throw err;
+    outcome = err;
+  }
+  return { ms: elapsed(), outcome };
+}
+
+test('the hardest scans to read, an ink that hardly shows and a chart with its corners wiped, take the reader well under a few seconds', () => {
+  const dim = timedRead(printed('dim', DIM).image, SMALL);
+  assert.ok(!(dim.outcome instanceof ScanError) && ['low_contrast', 'not_printed'].includes(film(dim.outcome, 'base').status), 'the dim scan is read');
+  const wiped = timedRead(wipedCorners(printed('blank-band', BLANK_BAND).image), SMALL);
+  assert.ok(wiped.outcome instanceof ScanError && wiped.outcome.code === 'no_marks', 'the wiped chart is refused');
+  // Each takes about a tenth of a second; a search that blew up would take minutes.
+  for (const [name, { ms }] of [['dim', dim], ['wiped', wiped]] as const) assert.ok(ms < 3000, `${name}: ${ms.toFixed(0)} ms`);
+});
+
+test('a read that runs past its time budget stops with a ScanError in words, wherever it has got to', async () => {
+  const scan = printed('black-on-white', { settings: SMALL, garment: WHITE_TEE, inks: { base: [20, 20, 22] }, rotationDeg: 0.6, seed: 9 }).image;
+  // How often a whole read looks at the clock: in every step, from the coarse copy to the last patch.
+  let checks = 0;
+  readChartImage(scan, SMALL, { elapsed: () => (checks++, 0) });
+  assert.ok(checks > 50, `${checks} checks`);
+  const outOfTime = (err: unknown): boolean => err instanceof ScanError && err.code === 'too_slow' && /^Reading this scan took longer than 20 seconds, so it was stopped\./.test(err.message);
+  // The budget running out at the first check (in the coarse copy), half way and at the very last one (the last patch).
+  for (const at of [1, Math.ceil(checks / 2), checks]) {
+    let seen = 0;
+    assert.throws(() => readChartImage(scan, SMALL, { elapsed: () => (++seen >= at ? READ_BUDGET_MS + 1 : 0) }), outOfTime, `out of time at check ${at} of ${checks}`);
+    assert.equal(seen, at, 'the read stops at the check that finds the budget spent');
+  }
+  // On the reader's own stopwatch: a budget of a millisecond is spent long before a whole scan is read, whether it is
+  // handed over decoded or as a file.
+  assert.throws(() => readChartImage(scan, SMALL, { budgetMs: 1 }), (err: unknown) => err instanceof ScanError && err.code === 'too_slow');
+  const { width, height, rgb } = scan;
+  const png = await sharp(Buffer.from(rgb.buffer, rgb.byteOffset, rgb.byteLength), { raw: { width, height, channels: 3 } }).png().toBuffer();
+  await assert.rejects(readChartScan(png, SMALL, { budgetMs: 1 }), (err: unknown) => err instanceof ScanError && err.code === 'too_slow');
+  await assert.rejects(readChartScan(png, SMALL, { budgetMs: 0 }), (err: unknown) => err instanceof ScanError && err.code === 'too_slow');
 });
 
 test('files that are not scans of the chart are refused in words', async () => {

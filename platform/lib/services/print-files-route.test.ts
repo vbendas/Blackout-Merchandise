@@ -100,6 +100,17 @@ test('staff without Pre-press access get 403, suspended staff too', async () => 
   }
 });
 
+test('Production staff read the public files of every design (the stations show the proofs), never a private one', async () => {
+  for (const key of [PROOF, printKey(OTHER_DESIGN, 1, 'proof.webp')]) {
+    const res = await get(key, 'productionStaff');
+    assert.equal(res.status, 200, key);
+    assert.deepEqual(await body(res), PROOF_BYTES);
+  }
+  assert.equal((await get(PSD, 'productionStaff')).status, 403, 'the PSD is pre-press’s');
+  assert.equal((await get(printKey(DESIGN, 1, 'nope.webp'), 'productionStaff')).status, 404);
+  assert.equal((await get(PROOF, 'suspendedStaff')).status, 403, 'a paused employee reads nothing');
+});
+
 test('an artist reads the public files of their own designs and nothing else', async () => {
   const proof = await get(PROOF, 'artist');
   assert.equal(proof.status, 200);

@@ -6,6 +6,7 @@
 import { ENGINE_VERSION } from '@/lib/print/defaults';
 import type {
   DtgLayer,
+  FilmLayout,
   GarmentColour,
   InkPlate,
   InkSystemProfile,
@@ -84,6 +85,9 @@ export interface PackManifestDetail extends PackManifest {
     heightMm: number;
     canvasPx?: { width: number; height: number };
     artPx?: PixelRect;
+    /** the film's margins and ink gap (engine 3 on): corner marks above and below the design */
+    layout?: FilmLayout;
+    /** @deprecated packs made before engine 3: one margin on every side */
     marginMm?: number;
   };
   screenSet?: {
@@ -177,7 +181,7 @@ export function buildPackManifest(input: BuildManifestInput): PackManifestDetail
       heightMm: pxToMm(canvas.art.height, canvas.ppi),
       canvasPx: { width: canvas.widthPx, height: canvas.heightPx },
       artPx: canvas.art,
-      marginMm: canvas.marginMm,
+      ...(canvas.layout ? { layout: canvas.layout } : { marginMm: canvas.marginMm }),
     };
     const heads = input.inkSystem?.pressHeads ?? null;
     manifest.screenSet = {

@@ -120,7 +120,9 @@ test('the manifest hashes every input, records sizes, screens and DTG crops, and
   assert.equal(m.inputs.inkSystemVersion, 'ink-1');
   assert.deepEqual(m.screenSet && { screens: m.screenSet.screens, extra: m.screenSet.extraScreens, over: m.screenSet.overPressHeads }, { screens: 10, extra: 2, over: true });
   assert.equal(m.print?.ppi, 600);
-  assert.equal(m.print?.marginMm, 25);
+  assert.deepEqual(m.print?.layout, { sideMarginMm: 10, endMarginMm: 27, inkGapMm: 10 });
+  assert.equal(m.print?.marginMm, undefined, 'the one margin is a field of packs made before engine 3');
+  assert.equal(m.engineVersion, '3.0.0');
   // Same inputs, same manifest bytes; any input change, a different hash.
   assert.ok(manifestJson(m).equals(manifestJson(buildPackManifest(base))));
   const other = buildPackManifest({ ...base, recipe: { ...s.recipe, trapMm: 0.3 } });

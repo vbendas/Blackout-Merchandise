@@ -29,7 +29,8 @@
 //
 // Pure and client-safe.
 import type { CanvasSpec } from '@/lib/print/types';
-import { DEFAULT_INK_SYSTEM, DEFAULT_RECIPE } from '@/lib/print/defaults';
+import { DEFAULT_INK_SYSTEM, DEFAULT_RECIPE, filmLayout } from '@/lib/print/defaults';
+import { filmCanvas } from '@/lib/print/engine/units';
 import { DOT_GAIN_LIMITS } from './profile';
 
 export const INK_KINDS = ['underbase', 'base', 'highlight'] as const;
@@ -61,9 +62,6 @@ export const CHART_GEOMETRY = {
   bottomZoneMm: 26,
   /** a measuring window stays this far inside its patch */
   windowInsetMm: 1.2,
-  /** film margin round the chart area, and the registration targets' distance from it: the same as production films */
-  marginMm: 25,
-  targetOffsetMm: 15,
 } as const;
 
 const G = CHART_GEOMETRY;
@@ -315,10 +313,10 @@ export function mmToPx(mm: number, ppi: number): number {
   return (mm / 25.4) * ppi;
 }
 
-/** The film: the chart area plus the production margin on every side, so the registration targets and the label strip sit where they do on any film. */
+/** The film: the chart area with a production film's margins (the recipe default), so the registration targets
+ * sit at its four corners and the label strip between them, where they do on any film. The scan reader never looks
+ * at them: it finds the chart by its own marks, inside the chart area (CHART_MARKS). */
 export function chartCanvas(ppi: number): CanvasSpec {
-  const margin = Math.round(mmToPx(G.marginMm, ppi));
-  const width = Math.round(mmToPx(CHART_WIDTH_MM, ppi));
-  const height = Math.round(mmToPx(CHART_HEIGHT_MM, ppi));
-  return { widthPx: width + 2 * margin, heightPx: height + 2 * margin, ppi, marginMm: G.marginMm, art: { x: margin, y: margin, width, height } };
+  const size = { widthMm: CHART_WIDTH_MM, heightMm: CHART_HEIGHT_MM, widthPx: Math.round(mmToPx(CHART_WIDTH_MM, ppi)), heightPx: Math.round(mmToPx(CHART_HEIGHT_MM, ppi)), ppi, sourcePpi: ppi };
+  return filmCanvas(size, filmLayout(DEFAULT_RECIPE.marks));
 }

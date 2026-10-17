@@ -103,7 +103,7 @@ test('Pricing is a sidebar entry for Catalogue and pricing View, and for no one 
 
 test('the page: artists go to the Studio, staff without the area to /admin, the paused to their page', async () => {
   const mod = await page();
-  const render = () => mod.default();
+  const render = () => mod.default(tabProps());
 
   await setDev('artist');
   assert.equal(await outcome(render), 'redirect:/studio');
@@ -127,13 +127,18 @@ test('the page: artists go to the Studio, staff without the area to /admin, the 
 
 test('the owner sees the editor, with the placeholder marked until a table is saved', async () => {
   await setDev('admin');
-  const html = renderToStaticMarkup(await (await page()).default());
+  const html = renderToStaticMarkup(await (await page()).default(tabProps()));
   assert.match(html, />Pricing</);
   assert.match(html, /Placeholder prices/);
   assert.match(html, /1 screen €3\.50, 2 screens €5\.20, 3 screens €6\.90/);
   assert.match(html, /Fixed rule/);
   assert.match(html, /Each screen above 8 adds €1 per piece, up to 15 screens/);
   assert.match(html, /9 screens add €1, 12 add €4, 15 add €7/);
+  // owner, 16 Oct 2026: the rule is counted per print position, on that position's own design
+  assert.match(html, /counted per print position on that position(?:'|&#x27;)s own design/);
+  assert.match(html, /so a front and a back of 10 screens each add €2 \+ €2 = €4 in all/);
+  assert.match(html, /A position that needs more than 15 can(?:'|&#x27;)t be quoted/);
+  assert.match(html, /DTG and DTF runs pay the shop extras for more print positions instead/);
   assert.match(html, /Nothing has been saved yet/);
   // boxes to edit, a way to save
   assert.match(html, /<input[^>]*aria-label="Price per piece in euros, 1 screen, 1 pieces or more"[^>]*value="3\.50"/);
@@ -151,7 +156,7 @@ test('a saved table is not marked as a placeholder, and the page says when it wa
   const owner = { userId: devId, role: 'admin' as const };
   const saved = await pricing.setScreenPriceTable(owner, { ...defaultScreenPriceTable(), marginPercent: 41 });
   assert.ok(saved.ok);
-  const html = renderToStaticMarkup(await (await page()).default());
+  const html = renderToStaticMarkup(await (await page()).default(tabProps()));
   assert.doesNotMatch(html, /Placeholder prices/);
   assert.doesNotMatch(html, /Nothing has been saved yet/);
   assert.match(html, /Last saved /);
@@ -160,7 +165,7 @@ test('a saved table is not marked as a placeholder, and the page says when it wa
 
 test('someone who can only read sees the numbers, with no box to change them and no save', async () => {
   await setDev('staff', { catalogue: 'view' });
-  const html = renderToStaticMarkup(await (await page()).default());
+  const html = renderToStaticMarkup(await (await page()).default(tabProps()));
   assert.match(html, /Print price per piece/);
   assert.match(html, /3\.50/);
   assert.doesNotMatch(html, /<input/);
@@ -171,7 +176,7 @@ test('someone who can only read sees the numbers, with no box to change them and
 
 test('an employee\'s page view goes to the activity log; the owner\'s does not', async () => {
   await setDev('staff', { catalogue: 'view' });
-  await page().then((mod) => mod.default());
+  await page().then((mod) => mod.default(tabProps()));
   const views = await t.db.select().from(schema.staffActivity).where(and(eq(schema.staffActivity.actorId, devId), eq(schema.staffActivity.action, 'page.view')));
   assert.equal(views.length, 1);
   assert.equal(views[0].area, 'catalogue');
@@ -179,7 +184,7 @@ test('an employee\'s page view goes to the activity log; the owner\'s does not',
 
   await t.db.delete(schema.staffActivity);
   await setDev('admin');
-  await page().then((mod) => mod.default());
+  await page().then((mod) => mod.default(tabProps()));
   assert.deepEqual(await t.db.select().from(schema.staffActivity), []);
 });
 
@@ -307,8 +312,10 @@ test('the owner sees the shop editor: placeholders marked, the extras at the own
   // the extras, with plain explanations, at +1 and +2
   assert.match(html, /<input[^>]*aria-label="Extra for front and back, in euros"[^>]*value="1\.00"/);
   assert.match(html, /<input[^>]*aria-label="Extra for sleeve prints, in euros"[^>]*value="2\.00"/);
-  assert.match(html, /Added once when a product prints on the front and on the back\. The base price already covers one print area, up to A2 \(42 × 59\.4 cm\), on the front or the back\./);
+  assert.match(html, /Added once when a product prints on the front and on the back\. The base price already covers one print area, up to A2 \(a design up to 40 × 54 cm\), on the front or the back\./);
   assert.match(html, /Added once when a product has sleeve prints, whether it prints one sleeve or both\./);
+  // owner, 16 Oct 2026: DTG and DTF runs pay the same extras for more print positions
+  assert.match(html, /The same two extras are added to a DTG or DTF run that prints more than one position\. Screen-printed runs count colours on each position instead\./);
 
   // the garment table: name, code, type, base price (prefilled from today's one-print cost), DTF price
   assert.match(html, /<th scope="row">Classic tee<\/th><td class="pp-mono">STTU169<\/td><td>T-shirts<\/td>/);

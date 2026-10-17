@@ -4,6 +4,7 @@ import type { InkSystemProfile, PrintRecipe, ScreenSet, SeparationInput } from '
 import { DEFAULT_INK_SYSTEM, DEFAULT_RECIPE, mergeRecipe } from '@/lib/print/defaults';
 import { deltaE2000, hexToLab, rgb8ToLab } from './colour';
 import { separateScreen, targetBoxes } from './index';
+import { labelBands, targetGeometry } from './marks';
 import { mmToPx } from './units';
 import { BLACK, LABEL, NAVY, WHITE, distinctValues, drawArt, sha256, type Rgb, type Shape } from './testing';
 
@@ -86,12 +87,15 @@ test('plates are binary, canvas-sized at the screen ppi, with coverage of the pr
   const res = await flat();
   const set = res.sets[0];
   const { canvas } = set;
-  const m = Math.round(mmToPx(25, 300));
   assert.equal(canvas.ppi, 300);
+  assert.deepEqual(canvas.layout, { sideMarginMm: 10, endMarginMm: 27, inkGapMm: 10 });
   assert.equal(canvas.art.width, Math.round(mmToPx(WIDTH_MM, 300)));
   assert.equal(canvas.art.height, Math.round(mmToPx(WIDTH_MM * 0.75, 300)));
-  assert.equal(canvas.widthPx, canvas.art.width + 2 * m);
-  assert.equal(canvas.heightPx, canvas.art.height + 2 * m);
+  // 10 mm at the sides and 27 mm above and below; the film's size is rounded once
+  assert.equal(canvas.art.x, Math.round(mmToPx(10, 300)));
+  assert.equal(canvas.art.y, Math.round(mmToPx(27, 300)));
+  assert.equal(canvas.widthPx, Math.round(mmToPx(WIDTH_MM + 20, 300)));
+  assert.equal(canvas.heightPx, Math.round(mmToPx(WIDTH_MM * 0.75 + 54, 300)));
   for (const p of set.plates) {
     assert.equal(p.plate.data.length, canvas.widthPx * canvas.heightPx);
     assert.equal(p.plate.ppi, 300);
@@ -104,14 +108,22 @@ test('plates are binary, canvas-sized at the screen ppi, with coverage of the pr
   assert.ok(Math.abs(yellow.coverage - (240 * 330) / (600 * 450)) < 0.02, `yellow ${yellow.coverage}`);
 });
 
-test('registration targets are identical on every plate and clear of the art', async () => {
+test('registration targets sit at the four corners only, above and below the art, identical on every plate', async () => {
   const res = await flat();
   for (const set of res.sets) {
-    const boxes = targetBoxes(set.canvas, RECIPE.marks.targetOffsetMm);
-    const { art, widthPx } = set.canvas;
+    const boxes = targetBoxes(set.canvas);
+    const { art, widthPx, ppi } = set.canvas;
+    assert.deepEqual(boxes.map((b) => b.name), ['top left', 'top right', 'bottom left', 'bottom right']);
+    const gap = Math.round(mmToPx(10, ppi));
+    const g = targetGeometry(set.canvas);
+    for (const c of g.centres) {
+      // centred on the art's left or right edge, in the top or bottom margin, past the 10 mm ink gap
+      assert.ok([art.x, art.x + art.width - 1].includes(c.x), `${c.name} target centred on an edge of the art`);
+      const above = c.y + g.armPx === art.y - gap - 1;
+      const below = c.y - g.armPx === art.y + art.height + gap;
+      assert.ok(above || below, `${c.name} target exactly the ink gap from the art`);
+    }
     for (const b of boxes) {
-      const overlaps = b.x < art.x + art.width && b.x + b.width > art.x && b.y < art.y + art.height && b.y + b.height > art.y;
-      assert.equal(overlaps, false, 'target clear of the art');
       const crop = (data: Uint8Array): Uint8Array => {
         const out = new Uint8Array(b.width * b.height);
         for (let y = 0; y < b.height; y++) out.set(data.subarray((b.y + y) * widthPx + b.x, (b.y + y) * widthPx + b.x + b.width), y * b.width);
@@ -121,11 +133,22 @@ test('registration targets are identical on every plate and clear of the art', a
       assert.ok(first.some((v) => v === 255), 'a target is drawn');
       for (const p of set.plates) assert.equal(sha256(crop(p.plate.data)), sha256(first));
     }
-    // and every plate carries a label strip in the bottom margin
+    // nothing at the sides: the film beside the art and in the ink gap is clear on every plate
+    for (const p of set.plates) {
+      for (let y = art.y - gap; y < art.y + art.height + gap; y++) {
+        const beside = y >= art.y && y < art.y + art.height;
+        for (let x = 0; x < widthPx; x++) {
+          if (beside && x >= art.x && x < art.x + art.width) continue;
+          if (p.plate.data[y * widthPx + x]) assert.fail(`film ${p.index} has ink at (${x}, ${y}), beside the art or in the ink gap`);
+        }
+      }
+    }
+    // and every plate carries a label strip in the bottom row, between the targets
+    const [bottom] = labelBands(set.canvas);
     for (const p of set.plates) {
       let ink = 0;
-      for (let y = art.y + art.height + 1; y < set.canvas.heightPx; y++) {
-        for (let x = 0; x < widthPx; x++) if (p.plate.data[y * widthPx + x]) ink++;
+      for (let y = Math.floor(bottom.centreY - bottom.halfHeight); y <= bottom.centreY + bottom.halfHeight; y++) {
+        for (let x = Math.ceil(bottom.x0); x < bottom.x1; x++) if (p.plate.data[y * widthPx + x]) ink++;
       }
       assert.ok(ink > 500, 'label strip drawn');
     }

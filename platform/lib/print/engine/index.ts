@@ -40,11 +40,11 @@ import { dtgLoupe, dtgProof, screenLoupe, screenProof } from './proof';
 import { decodeToRaster, toRgba } from './raster';
 import { plateLabelLines, renderSet, setTitle, type RenderInput } from './render';
 import { planSimProcess, renderSimProcessSet, simJoinCheck, type SimProcessPlan, type SimRenderInput } from './sim-process';
-import { printSize, type PrintSize } from './units';
+import { assertFitsFilm, printSize, type PrintSize } from './units';
 
 export { ENGINE_VERSION } from '@/lib/print/defaults';
 export { deltaE2000, hexToLab, hexToRgb8, linearToLab, rgb8ToHex, rgb8ToLab } from './colour';
-export { targetBoxes } from './marks';
+export { targetBoxes, type MarkName } from './marks';
 
 /** Decode artwork (png, jpeg, webp) to RGBA sRGB; ppi from metadata or 72. */
 export async function decodeArt(bytes: Buffer): Promise<Raster> {
@@ -124,6 +124,8 @@ export async function separateScreen(input: SeparationInput, renderers: SetRende
   if (garments.length === 0) throw new Error('separateScreen: no garment colours');
   const art = toRgba(input.art);
   const size = printSize(placement, art.width, art.height, recipe.screenPpi);
+  // films are A2 at most: a bigger print is refused before any work is done
+  assertFitsFilm(size);
   const grid = await makeWorkGrid(art, size);
   const sys = inkSystemModel(inks);
   const warnings: Warning[] = artWarnings(art, size.sourcePpi);
@@ -336,13 +338,15 @@ export async function renderDtgLoupe(layer: DtgLayer, garmentHex: string, sizeMm
 
 /**
  * Redraws a plate's label strip, e.g. with its Pantone code once pre-press
- * names the ink. The targets are untouched.
+ * names the ink. The targets are untouched. The strip goes where the set's
+ * canvas says; `legacyTargetOffsetMm` (the recipe's old field) only places it
+ * on a film made before engine 3, whose canvas has no layout.
  */
-export function relabelPlate(set: ScreenSet, plateIndex: number, label: PlateLabelInfo, inks: InkSystemProfile, targetOffsetMm: number, inkName?: string, garmentNames: Record<string, string> = {}): void {
+export function relabelPlate(set: ScreenSet, plateIndex: number, label: PlateLabelInfo, inks: InkSystemProfile, legacyTargetOffsetMm?: number, inkName?: string, garmentNames: Record<string, string> = {}): void {
   const plate = set.plates.find((p) => p.index === plateIndex);
   if (!plate) throw new Error(`relabelPlate: no plate ${plateIndex} in set ${set.key}`);
   // an index film names its cell grid, not a halftone screen
   const lines = set.method === 'index' ? indexPlateLabelLines : plateLabelLines;
-  clearLabelStrip(plate.plate.data, set.canvas, targetOffsetMm);
-  drawLabelStrip(plate.plate.data, set.canvas, targetOffsetMm, lines(label, setTitle(set.key, garmentNames), plate, set.plates.length, inks, inkName));
+  clearLabelStrip(plate.plate.data, set.canvas, legacyTargetOffsetMm);
+  drawLabelStrip(plate.plate.data, set.canvas, lines(label, setTitle(set.key, garmentNames), plate, set.plates.length, inks, inkName), legacyTargetOffsetMm);
 }

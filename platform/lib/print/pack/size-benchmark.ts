@@ -1,7 +1,7 @@
 // Size, time and memory of the screen PSD at production size (Plan 6.1, 15):
-// a full front (28 x 33.6 cm print, 25 mm margin) at 600 ppi with 8 films and
-// a 4K original. Not a test; run one case per process so peak memory is that
-// case's own:
+// a full front (28 x 33.6 cm print; 10 mm margins at the sides, 27 mm above and
+// below) at 600 ppi with 8 films and a 4K original. Not a test; run one case per
+// process so peak memory is that case's own:
 //
 //   npx tsx lib/print/pack/size-benchmark.ts typical rle --check
 //   npx tsx lib/print/pack/size-benchmark.ts heavy zip
@@ -40,8 +40,8 @@ function heavy(base: SyntheticSet): ScreenSet {
         if (amDot(art.x + x, art.y + y, cell, cos, sin, c)) data[row + x] = 255;
       }
     }
-    drawTargets(data, base.set.canvas, base.recipe.marks.targetOffsetMm);
-    drawLabelStrip(data, W, base.set.canvas.heightPx, art, ppi, base.recipe.marks.targetOffsetMm, i + 1);
+    drawTargets(data, base.set.canvas);
+    drawLabelStrip(data, base.set.canvas, i + 1);
     let ink = 0;
     for (let y = art.y; y < art.y + art.height; y++) for (let x = art.x; x < art.x + art.width; x++) if (data[y * W + x]) ink++;
     return { ...p, plate: { ...p.plate, data }, coverage: ink / (art.width * art.height) };

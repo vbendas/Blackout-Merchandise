@@ -15,7 +15,10 @@
 //     the 313 MB folder into the function bundle.
 //  2. For each print on that side: look up the calibrated print-area box for
 //     the blank's type + position (lib/mockups/placements.ts) and convert the
-//     requested widthCm to px.
+//     requested widthCm to px. The top of the box is where the print starts: 5 cm
+//     below the collar seam where the table is calibrated to it (owner decision,
+//     16 Oct 2026; "Collar calibration" in placements.ts), moved by the product's
+//     offsetYcm, and the same in the proof (printBoxFor in lib/print/pipeline.ts).
 //  3. Fetch and resize the design, decide multiply-vs-over blending from
 //     design luminance vs garment colour, and composite it onto the packshot.
 //  4. Lay a faint greyscale copy of the same packshot region back over the

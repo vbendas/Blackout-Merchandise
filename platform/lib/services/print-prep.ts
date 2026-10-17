@@ -9,6 +9,7 @@ import { blankDisplayName } from '@/lib/catalog/display-names';
 import { defaultAreaWidthCm, getTypePlacement, isSleevePosition, maxPrintCm, positionsFor, productAreasOf, sleeveKindFor, sortAreas, type ProductArea } from '@/lib/mockups/placements';
 import { ABSOLUTE_MAX_SCREENS, DEFAULT_RECIPE, EXTRA_SCREEN_CENTS_PER_PIECE, STANDARD_MAX_SCREENS, mergeRecipe } from '@/lib/print/defaults';
 import { MOCK_APPROVAL_VIEW } from '@/lib/print/mock-views';
+import { eurosFixed } from '@/lib/pricing/screen-print';
 import type { GarmentColour, Hex, PrintJobInput, PrintPlacement, PrintTechnique, RecipeOverride, Warning } from '@/lib/print/types';
 import {
   approvalCovers,
@@ -111,6 +112,9 @@ export interface ApprovalScreenInk {
 
 export interface ApprovalScreenSet {
   key: string;
+  /** the print area the set prints (ApprovalArea.key): a design printed on the front and the back has a set of screens for
+   * each, and the colours above 8 are charged on each position (owner, 16 Oct 2026). Absent on a view that names no area. */
+  areaKey?: string;
   /** 'Darks', 'Lights' */
   name: string;
   garmentCodes: string[];
@@ -369,10 +373,12 @@ async function validateDrop(input: PreparePrintInput): Promise<ServiceResult<{ b
       if (sleeve) return { ok: false, error: `The ${blankName} has no sleeves to print on.${known ? ` Use one of: ${known}.` : ''}` };
       return { ok: false, error: `The ${blankName} has no "${p.position}" print position. Use one of: ${known}.` };
     }
-    if (!Number.isFinite(p.widthMm) || p.widthMm < 20 || p.widthMm > 600) return { ok: false, error: 'The print width must be between 2 and 60 cm.' };
-    if (sleeve) {
-      const max = maxPrintCm(blank.code, p.position);
-      if (p.widthMm > max.widthCm * 10) return { ok: false, error: `A ${sleeveKindFor(blank.code)}-sleeve print can be at most ${max.widthCm} × ${max.heightCm} cm.` };
+    // At most what the position takes: 40 × 54 cm (the A2 film keeps room for its marks; lib/print/engine/units.ts refuses
+    // anything bigger), or the sleeve's own size. The height follows the art's shape, which the engine checks.
+    const max = maxPrintCm(blank.code, p.position);
+    if (!Number.isFinite(p.widthMm) || p.widthMm < 20 || p.widthMm > max.widthCm * 10) {
+      if (sleeve && Number.isFinite(p.widthMm) && p.widthMm > max.widthCm * 10) return { ok: false, error: `A ${sleeveKindFor(blank.code)}-sleeve print can be at most ${max.widthCm} × ${max.heightCm} cm.` };
+      return { ok: false, error: `The print width must be between 2 and ${max.widthCm} cm: a design is at most ${max.widthCm} × ${max.heightCm} cm.` };
     }
     placements.push({ position: p.position, widthMm: Math.round(p.widthMm), ...(p.offsetYMm === undefined ? {} : { offsetYMm: Math.round(p.offsetYMm) }) });
   }
@@ -537,6 +543,7 @@ function screenSetView(pack: PackRow, garmentNames: Map<string, string>): Approv
 
   return {
     key,
+    areaKey: placementKey(packPlacement(pack)),
     name: key === 'darks' ? 'Darks' : key === 'lights' ? 'Lights' : (garmentNames.get(key) ?? key.charAt(0).toUpperCase() + key.slice(1)),
     garmentCodes: codes,
     screenCount: count,
@@ -545,10 +552,11 @@ function screenSetView(pack: PackRow, garmentNames: Map<string, string>): Approv
       names.length > 1
         ? `${joinNames(names)} print from the same ${screens(count)}${underbase}.`
         : `${names[0] ?? 'This colour'} prints from its own ${screens(count)}${info.needsUnderbase ? ', over a white underbase' : ', with no underbase'}.`,
+    // Counted on this print position alone (owner, 16 Oct 2026): a front and a back each carry their own.
     priceNote:
       over === 0
-        ? `No surcharge. On a run, each screen above ${STANDARD_MAX_SCREENS} adds €${EXTRA_SCREEN_CENTS_PER_PIECE / 100} per piece.`
-        : `On a run, ${over} ${over === 1 ? 'screen' : 'screens'} above ${STANDARD_MAX_SCREENS} adds €${(over * EXTRA_SCREEN_CENTS_PER_PIECE) / 100} per piece.`,
+        ? `No surcharge on this print position. On a run, each colour above ${STANDARD_MAX_SCREENS} adds ${eurosFixed(EXTRA_SCREEN_CENTS_PER_PIECE)} per piece on each print position.`
+        : `On a run, the ${over} ${over === 1 ? 'colour' : 'colours'} above ${STANDARD_MAX_SCREENS} on this print position add ${eurosFixed(over * EXTRA_SCREEN_CENTS_PER_PIECE)} per piece. Each print position is counted on its own.`,
     inks: manifest.inks.map((ink) => ({
       n: ink.index,
       // The client name only: a Pantone code or name never reaches this view.

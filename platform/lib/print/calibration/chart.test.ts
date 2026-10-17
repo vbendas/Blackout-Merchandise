@@ -5,9 +5,11 @@ import { parsePsdIndependently } from '@/lib/print/pack/independent';
 import { readScreenPsdDetail } from '@/lib/print/pack/psd-read';
 import { parsePlateLayerName } from '@/lib/print/pack/names';
 import { pdfLines, shows } from '@/lib/print/pack/test-pdf';
-import { DEFAULT_INK_SYSTEM } from '@/lib/print/defaults';
+import { DEFAULT_INK_SYSTEM, DEFAULT_RECIPE } from '@/lib/print/defaults';
+import { targetBoxes } from '@/lib/print/engine/marks';
 import type { CanvasSpec, Plate } from '@/lib/print/types';
 import { buildChartFile, clearChartCache, renderChartFilms, renderChartPdf, renderChartPsd } from './chart';
+import { readChartImage } from './scan';
 import {
   CHART_GEOMETRY,
   CHART_HEIGHT_MM,
@@ -130,6 +132,30 @@ test('each film carries its own band, the marks and the registration targets, an
   }
   // Binary, and the targets and marks are identical from film to film.
   for (const f of films) for (const v of f.plate.data) if (v !== 0 && v !== 255) assert.fail(`not binary: ${v}`);
+});
+
+test('the chart is on a production film: corner targets outside the chart area, and the reader still finds its own marks with them printed', () => {
+  const settings: ChartSettings = { ...FAST, films: ['base'] };
+  const { canvas, films } = renderChartFilms(settings);
+  assert.deepEqual(canvas.layout, DEFAULT_RECIPE.marks);
+  const { art, widthPx: W, heightPx: H } = canvas;
+  for (const box of targetBoxes(canvas)) {
+    assert.ok(box.y + box.height <= art.y || box.y >= art.y + art.height, `the ${box.name} target is above or below the chart area`);
+  }
+  // The whole film printed, targets and label strip included, black on a white tee with no dot gain, and scanned at
+  // the film's resolution: the reader frames the chart by its own squares and reads the wedge as the film has it.
+  const tee = [236, 234, 228];
+  const ink = [22, 22, 24];
+  const rgb = new Uint8Array(W * H * 3);
+  const film = films[0].plate.data;
+  for (let i = 0; i < W * H; i++) rgb.set(film[i] ? ink : tee, i * 3);
+  const reading = readChartImage({ width: W, height: H, rgb }, settings);
+  assert.equal(reading.geometry.marksFound, 8, 'the four corner squares and the four edge marks');
+  assert.ok(Math.abs(reading.geometry.dpi - 300) < 1.5, `dpi ${reading.geometry.dpi}`);
+  const base = reading.films.find((f) => f.kind === 'base');
+  assert.ok(base && base.status === 'ok', JSON.stringify(base?.status));
+  assert.equal(base.points.length, 21);
+  for (const p of base.points) assert.ok(Math.abs(p.printed - p.input) < 0.03, `${p.input * 100}% reads ${(p.printed * 100).toFixed(1)}%`);
 });
 
 test('the wedge images coverage linearly: each step carries the share of ink it names, 5% dots included', () => {

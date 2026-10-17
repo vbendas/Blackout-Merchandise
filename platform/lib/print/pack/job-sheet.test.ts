@@ -11,10 +11,10 @@ import type { CheckResult, JobSheetGarment, JobSheetInput, JobSheetScreenSet, Pa
 import { renderJobSheet } from './index';
 import { pdfLines, shows } from './test-pdf';
 
-// The standard collar distance isn't set yet, so a placement says "Standard position" and, if the print was moved, how far.
+// A placement with no collar distance (a garment the 5 cm rule doesn't cover) says "Standard position" and, if the print was moved, how far.
 const PLACEMENT = 'Front chest · 28 cm wide · Standard position';
 const LOWER = 'Front · 32 cm wide · Standard position, 2 cm lower';
-// Once it is set, the sheet gives the real distance: the standard plus the offset.
+// With one, the sheet gives the real distance: the standard plus the offset.
 const MEASURED = 'Front chest · 28 cm wide · 8.5 cm below the collar';
 const COLOURS = [
   { code: 'C002', name: 'Black', hex: '#1B1C1E' },
@@ -395,5 +395,28 @@ test('the sample sheet that PRINT_MOCK shows renders, with both methods and a si
   const doc = await PDFDocument.load(pdf);
   assert.ok(doc.getPageCount() >= 2);
   const lines = pdfLines(pdf);
-  for (const phrase of ['MF-UNDERWRITER · v3', 'Screen · Darks', 'Screen · Lights', 'DTG/DTF', 'PANTONE 237 C', 'Sample Owner', 'Waiting for audit', 'Front chest · 28 cm wide · Standard position', COLLAR_DISTANCE_UNSET_NOTE]) assert.ok(shows(lines, phrase), phrase);
+  for (const phrase of ['MF-UNDERWRITER · v3', 'Screen · Darks', 'Screen · Lights', 'DTG/DTF', 'PANTONE 237 C', 'Sample Owner', 'Waiting for audit', 'Front chest · 28 cm wide · 5 cm below the collar']) assert.ok(shows(lines, phrase), phrase);
+  // the T-shirt's distance below the collar is the owner's rule: nothing to explain under the garments
+  assert.ok(!shows(lines, COLLAR_DISTANCE_UNSET_NOTE));
+});
+
+test('the PDF reader keeps a page whose deflated text ends in a carriage return or a line feed (it reads each stream by its length)', async () => {
+  const zlib = await import('node:zlib');
+  const pdfWith = (data: Buffer) =>
+    Buffer.concat([
+      Buffer.from(`%PDF-1.3\n1 0 obj\n<<\n/Length ${data.length}\n/Filter /FlateDecode\n>>\nstream\n`, 'latin1'),
+      data,
+      Buffer.from('\nendstream\nendobj\n%%EOF\n', 'latin1'),
+    ]);
+  for (const last of [0x0d, 0x0a]) {
+    // One page in 256 ends in each: find a text whose deflated bytes do.
+    let found: { text: string; data: Buffer } | null = null;
+    for (let i = 0; i < 20_000 && !found; i++) {
+      const text = `Run ${i} · Front chest`;
+      const data = zlib.deflateSync(Buffer.from(`BT [<${Buffer.from(text, 'latin1').toString('hex')}>] TJ ET`, 'latin1'));
+      if (data[data.length - 1] === last) found = { text, data };
+    }
+    assert.ok(found, `a stream ending in 0x${last.toString(16)}`);
+    assert.deepEqual(pdfLines(pdfWith(found.data)), [found.text]);
+  }
 });

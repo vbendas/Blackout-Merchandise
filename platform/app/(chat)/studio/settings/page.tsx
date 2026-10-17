@@ -22,7 +22,7 @@ export default async function SettingsPage() {
           imageUrl={user.imageUrl}
           locale={locale}
           discord={{ linked: discord.linked, username: discord.username, discordDm: discord.discordDm, email: discord.email }}
-          shop={store ? { name: store.name, slug: store.slug } : null}
+          shop={store ? { name: store.name, slug: store.slug, showOnPressBoard: store.showOnPressBoard } : null}
           clerkAvailable={!DEV_BYPASS}
         />
       </main>

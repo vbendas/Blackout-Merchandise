@@ -1,5 +1,5 @@
 // Products carry a list of print areas (owner decision, 16 Oct 2026): at most one front, one back and the sleeves,
-// each with its own design and no bigger than A2 (a sleeve: its own size). The base cost is podPrice() for those areas
+// each with its own design and no bigger than 40 x 54 cm, portrait (a sleeve: its own size). The base cost is podPrice() for those areas
 // and follows them; the price never goes below it. Migration 0005 copies the old single placement into the list.
 // PGlite only (scripts/test/pglite.ts): nothing here touches Neon.
 import { after, before, test } from 'node:test';
@@ -15,7 +15,6 @@ import * as schema from '@db/schema';
 import { seedUser, setupTestDb, type TestDb } from '@/scripts/test/pglite';
 import { seedTestCatalogue, type TEST_CATALOGUE } from '@/lib/services/test-catalogue';
 import {
-  A2_CM,
   SLEEVE_PRINTS,
   SLEEVE_PRINT_MAX_CM,
   areaSide,
@@ -27,6 +26,7 @@ import {
   sleeveKindFor,
   sortAreas,
 } from '@/lib/mockups/placements';
+import { MAX_DESIGN_CM } from '@/lib/print/defaults';
 import { placementKind } from '@/lib/pricing/pod-table';
 import { PRODUCTS } from '@/lib/catalog/products';
 import { typeFor } from '@/lib/catalog/catalog-filters';
@@ -197,7 +197,7 @@ test('a side is what pricing calls it: placementKind and areaSide agree on every
   }
 });
 
-test('the area rules: one front, one back, sleeves where there are sleeves, each at most A2 (a sleeve its own size)', () => {
+test('the area rules: one front, one back, sleeves where there are sleeves, each at most 40 x 54 cm (a sleeve its own size)', () => {
   const tee = { code: 'STTU169', type: 'T-shirts' };
   const hoodie = { code: 'STSU177', type: 'Sweats & Hoodies' };
   const ok = (blank: typeof tee, areas: Parameters<typeof checkPrintAreas>[1]) => checkPrintAreas(blank, areas);
@@ -217,10 +217,11 @@ test('the area rules: one front, one back, sleeves where there are sleeves, each
   assert.match(refused({ code: 'STAU771', type: 'Bags & Accessories' }, [{ position: 'sleeve_left', widthCm: 8 }]), /no sleeves to print on/);
   assert.match(refused({ code: 'STBU070', type: 'Bottoms' }, [{ position: 'front_leg', widthCm: 12 }, { position: 'sleeve_right', widthCm: 8 }]), /no sleeves to print on/);
 
-  // A2: 42 x 59.4 cm, in width and in height
-  assert.deepEqual(ok(tee, [{ position: 'front_full', widthCm: A2_CM.widthCm, heightCm: A2_CM.heightCm }]), { ok: true }, 'exactly A2');
-  assert.match(refused(tee, [{ position: 'front_full', widthCm: 43 }]), /^A print area can be at most A2, 42 × 59\.4 cm: the front print would be 43 cm wide\. Make it narrower\.$/);
-  assert.match(refused(tee, [{ position: 'back', widthCm: 38, heightCm: 60.8 }]), /at most A2, 42 × 59\.4 cm: the back print would be 38 × 60\.8 cm/);
+  // 40 x 54 cm, portrait, in width and in height: what an A2 film holds with its reg marks and ink margin
+  assert.deepEqual(ok(tee, [{ position: 'front_full', widthCm: MAX_DESIGN_CM.widthCm, heightCm: MAX_DESIGN_CM.heightCm }]), { ok: true }, 'exactly 40 x 54');
+  assert.match(refused(tee, [{ position: 'front_full', widthCm: 41 }]), /^A print area can be at most 40 × 54 cm, so the reg marks and ink margin fit an A2 film: the front print would be 41 cm wide\. Make it narrower\.$/);
+  assert.match(refused(tee, [{ position: 'back', widthCm: 38, heightCm: 54.1 }]), /at most 40 × 54 cm, so the reg marks and ink margin fit an A2 film: the back print would be 38 × 54\.1 cm/);
+  assert.match(refused(tee, [{ position: 'front_full', widthCm: 54, heightCm: 40 }]), /at most 40 × 54 cm.*would be 54 × 40 cm/, 'landscape is refused');
   assert.match(refused(tee, [{ position: 'front_chest', widthCm: 1.5 }]), /at least 2 cm wide/);
 
   // sleeves: short 10 x 10, long 8 x 40
@@ -234,7 +235,7 @@ test('the area rules: one front, one back, sleeves where there are sleeves, each
   assert.equal(defaultAreaWidthCm(tee, 'sleeve_left', 2), 5);
   assert.equal(defaultAreaWidthCm(hoodie, 'sleeve_left', 6), 6.6);
   assert.equal(defaultAreaWidthCm(tee, 'front_chest', 1.2), 28);
-  assert.equal(defaultAreaWidthCm(tee, 'front_full', 1.6), 37.1, 'narrowed so the height stays within A2');
+  assert.equal(defaultAreaWidthCm(tee, 'front_full', 1.6), 33.7, 'narrowed so the height stays within 54 cm');
 });
 
 test('a product is made with several print areas, each with its own design, and the rules are kept', async () => {
@@ -271,8 +272,8 @@ test('a product is made with several print areas, each with its own design, and 
   const refusals: [Parameters<typeof products.createProduct>[0]['areas'], RegExp, string?][] = [
     [[{ position: 'front_chest' }, { position: 'front_full' }], /A product has one front print/],
     [[{ position: 'sleeve_left' }], /no sleeves to print on/, TANK],
-    [[{ position: 'back', widthCm: 45 }], /at most A2, 42 × 59\.4 cm: the back print would be 45 × 54 cm/],
-    [[{ position: 'front_full', widthCm: 38, designId: tall }], /at most A2, 42 × 59\.4 cm: the front print would be 38 × 76 cm/],
+    [[{ position: 'back', widthCm: 45 }], /at most 40 × 54 cm, so the reg marks and ink margin fit an A2 film: the back print would be 45 × 54 cm/],
+    [[{ position: 'front_full', widthCm: 38, designId: tall }], /at most 40 × 54 cm, so the reg marks and ink margin fit an A2 film: the front print would be 38 × 76 cm/],
     [[{ position: 'sleeve_left', widthCm: 9, designId: tall }], /A short-sleeve print can be at most 10 × 10 cm: the left sleeve print would be 9 × 18 cm/],
     [[{ position: 'back', designId: foreign }], /^Design not found for this shop\.$/],
   ];

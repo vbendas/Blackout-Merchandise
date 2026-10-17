@@ -7,19 +7,20 @@
 // codes appear here: this is an admin and production document.
 //
 // A pure function of JobSheetInput (lib/print/types.ts): the service
-// (lib/services/job-sheets.ts) works out what goes on the sheet and its words.
+// (lib/services/job-sheets.ts) works out what goes on the sheet, and
+// buildJobSheetView (lib/print/job-sheet-view.ts) puts it in words. This file
+// only lays those words out (fonts, columns, page breaks): the iPads at the
+// production stations show the same view, so the two never disagree.
 import PDFDocument from 'pdfkit';
 import sharp from 'sharp';
-import type { CheckResult, JobSheetAuditState, JobSheetDtgPack, JobSheetInput, JobSheetScreenSet, PackManifestInk } from '@/lib/print/types';
-import { compensationFor } from '@/lib/print/calibration/curve';
-import { displayPantone, formatNumber, screenRulingText } from './names';
+import type { JobSheetInput } from '@/lib/print/types';
+import { buildJobSheetView, EMPTY_AUDITS, NOTHING_PRINTS, stateWord, type JobSheetView, type JobSheetViewDtgPack, type JobSheetViewSet } from '@/lib/print/job-sheet-view';
 
 const PAGE = { width: 841.89, height: 595.28, margin: 36 };
 const CONTENT_WIDTH = PAGE.width - 2 * PAGE.margin;
 const INK = '#000000';
 const GREY = '#555555';
 const RULE = '#9A9A9A';
-const STANDARD_SCREENS = 8;
 
 // The standard PDF fonts encode WinAnsi only; anything else would print as
 // garbage, so map the few symbols we use and drop the rest.
@@ -38,15 +39,6 @@ function pdfText(text: string): string {
     })
     .join('');
 }
-
-const pct = (v: number) => `${(v * 100).toFixed(v >= 0.1 ? 0 : 1)}%`;
-// Hundredths: traps and chokes are a quarter or a fifth of a millimetre.
-const mm = (v: number) => `${formatNumber(Math.round(v * 100) / 100)} mm`;
-const threadsPerCm = (tpi: number) => Math.round(tpi / 2.54);
-/** 2026-10-15T14:32:10.000Z -> '2026-10-15' */
-const dateOf = (iso: string) => iso.slice(0, 10);
-/** 2026-10-15T14:32:10.000Z -> '2026-10-15 14:32 UTC' */
-const stampOf = (iso: string) => `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`;
 
 interface Cell {
   text: string;
@@ -229,23 +221,6 @@ class Sheet {
   }
 }
 
-function inkLabel(ink: PackManifestInk): string {
-  if (ink.role === 'underbase') return 'Underbase';
-  if (ink.role === 'highlight') return 'Highlight white';
-  return ink.pantone ? displayPantone(ink.pantone) : `${ink.hex} (no Pantone yet)`;
-}
-
-function stateWord(state: CheckResult['state']): string {
-  return state === 'passed' ? 'PASSED' : state === 'review' ? 'REVIEW' : 'FAILED';
-}
-
-const AUDIT_WORDS: Record<JobSheetAuditState, string> = {
-  approved: 'Approved',
-  waiting: 'Waiting for audit',
-  being_fixed: 'Being fixed',
-  sent_back: 'Sent back to the artist',
-  idle: 'Not needed yet',
-};
 
 async function thumbnail(image: Buffer): Promise<Buffer | null> {
   try {
@@ -255,13 +230,11 @@ async function thumbnail(image: Buffer): Promise<Buffer | null> {
   }
 }
 
-const METHOD_WORDS: Record<string, string> = { spot: 'spot colours', index: 'index', sim_process: 'simulated process' };
-
-function drawGarments(s: Sheet, input: JobSheetInput): void {
-  const n = input.garments.length;
-  s.section(`Garments${n > 0 ? ` (${n})` : ''}`, 60);
-  if (n === 0) {
-    s.paragraph('No shop product or open run uses this design yet.', { colour: GREY });
+function drawGarments(s: Sheet, view: JobSheetView): void {
+  const { garments } = view;
+  s.section(garments.heading, 60);
+  if (garments.empty) {
+    s.paragraph(garments.empty, { colour: GREY });
   } else {
     s.table(
       [
@@ -272,7 +245,7 @@ function drawGarments(s: Sheet, input: JobSheetInput): void {
         { header: 'File to use', width: 187 },
         { header: 'For', width: 74.89 },
       ],
-      input.garments.map((g) => ({
+      garments.rows.map((g) => ({
         cells: [
           { text: `${g.blankName}\n${g.blankCode}`, bold: false },
           { text: `${g.colourName}\n${g.colourCode}`, bold: true },
@@ -286,8 +259,7 @@ function drawGarments(s: Sheet, input: JobSheetInput): void {
     );
     s.y += 2;
   }
-  // Small print under the table, such as why a placement says "Standard position" and not a distance.
-  for (const note of input.placementNotes) s.paragraph(note, { size: 8, colour: GREY });
+  for (const note of garments.notes) s.paragraph(note, { size: 8, colour: GREY });
 }
 
 const INK_COLUMNS: Column[] = [
@@ -300,7 +272,7 @@ const INK_COLUMNS: Column[] = [
   { header: 'Cover', width: 39.89 },
 ];
 
-/** A screen set worked out before it is drawn, so the sheet knows how tall it is and keeps it on one page. */
+/** A screen set laid out before it is drawn, so the sheet knows how tall it is and keeps it on one page. */
 interface SetPlan {
   title: string;
   where: string;
@@ -308,102 +280,31 @@ interface SetPlan {
   settings: [string, string][];
 }
 
-function planScreenSet(set: JobSheetScreenSet): SetPlan {
-  const sys = set.system;
-  const ordered = [...set.inks].sort((a, b) => a.index - b.index);
-  const screens = ordered.length;
-  const where = [`${set.blankName} (${set.blankCode})`, set.placement, `prints on ${set.colours.join(', ') || 'no colour'}`];
-  if (set.printSize) where.push(set.printSize);
-
+function planScreenSet(set: JobSheetViewSet): SetPlan {
   const rows: TableRow[] = [];
-  for (const ink of ordered) {
+  for (const film of set.films) {
     rows.push({
-      cells: [
-        { text: `${ink.index}/${screens}`, mono: true },
-        { text: inkLabel(ink), bold: true },
-        ink.base,
-        ink.role === 'ink' && ink.clientName ? `${ink.clientName} · ${ink.hex}` : ink.hex,
-        screenRulingText(ink.lpi, ink.angleDeg, set.method),
-        ink.mesh ? `${ink.mesh} (${threadsPerCm(ink.mesh)}T)` : '-',
-        pct(ink.coverage),
-      ],
-      swatch: { col: 3, hex: ink.hex },
+      cells: [{ text: film.position, mono: true }, { text: film.label, bold: true }, film.base, film.colour, film.ruling, film.meshText, film.cover],
+      swatch: { col: 3, hex: film.hex },
     });
-    if (ink.role === 'underbase') {
-      rows.push({ cells: [], note: `Flash ${formatNumber(sys.underbase.flash.seconds)} s at ${formatNumber(sys.underbase.flash.celsius)} °C, then the colours wet on wet` });
-    }
+    if (film.flash) rows.push({ cells: [], note: film.flash });
   }
-
-  const heads = sys.pressHeads;
-  const extra = Math.max(0, screens - STANDARD_SCREENS);
-  // Only what this set has: a light garment's set has no underbase to flash and no highlight white.
-  const hasUnderbase = ordered.some((i) => i.role === 'underbase');
-  const hasHighlight = ordered.some((i) => i.role === 'highlight');
-  const colourBases = [...new Set(ordered.filter((i) => i.role === 'ink').map((i) => i.base))];
-  const settings: [string, string][] = [];
-  if (hasUnderbase) {
-    settings.push(['Underbase', `${sys.underbase.ink}${set.underbaseChokeMm !== null ? `, choked ${mm(set.underbaseChokeMm)}` : ''}, flash ${formatNumber(sys.underbase.flash.seconds)} s at ${formatNumber(sys.underbase.flash.celsius)} °C`]);
-  }
-  settings.push([
-    'Colour base',
-    colourBases.length > 0 ? `${colourBases.join(', ')}${hasUnderbase ? ', wet on wet over the underbase' : ''}` : `${sys.bases.dark} on dark garments (wet on wet over the underbase), ${sys.bases.light} on light`,
-  ]);
-  settings.push(['Traps', trapsText(set)]);
-  if (hasHighlight) settings.push(['Highlight white', `${sys.highlightWhite.ink}, last screen`]);
-  settings.push(
-    ['Cure', `${formatNumber(sys.cure.minutesMin)} to ${formatNumber(sys.cure.minutesMax)} min at ${formatNumber(sys.cure.celsius)} °C`],
-    ['Mesh', `${sys.mesh.min} to ${sys.mesh.max} tpi; halftones ${sys.mesh.halftone}, solids ${sys.mesh.solid}, underbase ${sys.mesh.underbase}`],
-    ['Off-contact', `${formatNumber(sys.offContactMm[0])} to ${formatNumber(sys.offContactMm[1])} mm`],
-    ['Squeegee', sys.squeegee],
-    ['Screens', `${screens} on a ${heads}-head press${screens > heads ? ': more than the heads, plan the run' : ''}`],
-  );
-  if (extra > 0) settings.push(['Surcharge', `${extra} ${extra === 1 ? 'screen' : 'screens'} above ${STANDARD_SCREENS}: €${extra} per piece on runs`]);
-  settings.push(['Dot gain', dotGainText(set)]);
-  if (!sys.measured) settings.push(['Inks', 'Not measured yet: the proof uses target colours']);
-
-  return {
-    title: `${set.setName} · ${screens} ${screens === 1 ? 'screen' : 'screens'} · ${METHOD_WORDS[set.method] ?? set.method}`,
-    where: where.join(' · '),
-    rows,
-    settings,
-  };
-}
-
-/** Traps as the method makes them: spot spreads the lighter ink under the darker; index cells and simulated-process
- * halftones overlap by design, so they have none (plan 4.3 step 6). */
-function trapsText(set: JobSheetScreenSet): string {
-  if (set.method === 'index') return 'None: index cells sit side by side';
-  if (set.method === 'sim_process') return 'None: the halftones overlap by design';
-  return set.trapMm !== null ? `${mm(set.trapMm)}, lighter ink spread under darker` : 'Not recorded with this set';
-}
-
-const GAIN_METHOD_WORDS: Record<string, string> = { scan: 'from a scan', manual: 'typed in', spectro: 'from a spectrophotometer' };
-
-/** The dot-gain curve the films were made with: that of the ink system the set was built with. A saved curve the engine
- * can't fit is linear to it (dotGainFor), so the sheet says linear too. Index films have no halftone dots to compensate. */
-function dotGainText(set: JobSheetScreenSet): string {
-  if (set.method === 'index') return 'Not used: index films have no halftone dots';
-  const gain = set.system.dotGain;
-  if (!gain || !compensationFor(gain)) return 'Not calibrated: linear, the films carry the tones as they are';
-  const how = GAIN_METHOD_WORDS[gain.method] ?? gain.method;
-  return `Calibrated ${dateOf(gain.measuredAt)} (${how}) at ${formatNumber(gain.lpi)} lpi ${formatNumber(gain.angleDeg)}°, mesh ${formatNumber(gain.mesh)}: tones compensated`;
+  return { title: set.title, where: set.where, rows, settings: set.settings.map((x) => [x.label, x.value]) };
 }
 
 /** The height of a screen set: its heading, its films and its press settings. */
-function setHeight(s: Sheet, set: JobSheetScreenSet, plan: SetPlan): number {
+function setHeight(s: Sheet, set: JobSheetViewSet, plan: SetPlan): number {
   const head = 6 + 16 + s.measure(plan.where, CONTENT_WIDTH, { size: 8.5 }) + 6;
-  if (set.inks.length === 0) return head + s.measure(set.note ?? NOTHING_PRINTS, CONTENT_WIDTH, { size: 8.5, bold: true }) + 8;
+  if (set.films.length === 0) return head + s.measure(set.nothingPrints ?? NOTHING_PRINTS, CONTENT_WIDTH, { size: 8.5, bold: true }) + 8;
   return head + s.tableHeight(INK_COLUMNS, plan.rows) + 2 + s.factsHeight(plan.settings, 3) + 4;
 }
 
-const NOTHING_PRINTS = 'Nothing prints on this set, so it has no films.';
-
 /** The room the first set needs, for the section heading to stay with it (never more than a page). */
-function firstSetKeep(s: Sheet, set: JobSheetScreenSet): number {
+function firstSetKeep(s: Sheet, set: JobSheetViewSet): number {
   return Math.min(setHeight(s, set, planScreenSet(set)), s.bottom - PAGE.margin - 40);
 }
 
-function drawScreenSet(s: Sheet, set: JobSheetScreenSet): void {
+function drawScreenSet(s: Sheet, set: JobSheetViewSet): void {
   const plan = planScreenSet(set);
   // A set is read on one page when it fits on one: its films and its settings belong together.
   s.ensure(Math.min(setHeight(s, set, plan), s.bottom - PAGE.margin));
@@ -413,20 +314,14 @@ function drawScreenSet(s: Sheet, set: JobSheetScreenSet): void {
   s.y += Math.max(16, titleHeight + 2);
   s.paragraph(plan.where, { size: 8.5, colour: GREY, gap: 6 });
 
-  if (set.inks.length === 0) {
-    s.paragraph(set.note ?? NOTHING_PRINTS, { size: 8.5, bold: true, gap: 8 });
+  if (set.films.length === 0) {
+    s.paragraph(set.nothingPrints ?? NOTHING_PRINTS, { size: 8.5, bold: true, gap: 8 });
     return;
   }
   s.table(INK_COLUMNS, plan.rows);
   s.y += 2;
   s.facts(plan.settings, 3);
   s.y += 4;
-}
-
-function dtgNotes(file: JobSheetDtgPack['files'][number], fadeLpi: number | null): string {
-  const notes = [file.whitesTransparent ? 'White areas print no ink on this colour.' : 'RGB 255 prints white ink.'];
-  if (file.fadeShare > 0.005) notes.push(`Fades are halftoned${fadeLpi ? ` (${formatNumber(fadeLpi)} lpi)` : ''}, so no white lies under soft edges.`);
-  return notes.join(' ');
 }
 
 const DTG_COLUMNS: Column[] = [
@@ -438,51 +333,47 @@ const DTG_COLUMNS: Column[] = [
   { header: 'Notes', width: 142.89 },
 ];
 
-function dtgRows(pack: JobSheetDtgPack): TableRow[] {
+function dtgRows(pack: JobSheetViewDtgPack): TableRow[] {
   return pack.files.map((f) => ({
     cells: [
       { text: f.colourName, bold: true },
       f.file ? { text: f.file, mono: true, size: 7.5 } : { text: '-', grey: true },
-      `${formatNumber(f.widthPx)} × ${formatNumber(f.heightPx)} px`,
-      `${formatNumber(f.sizeMm.width)} × ${formatNumber(f.sizeMm.height)} mm`,
-      `${formatNumber(f.offsetMm.x)}, ${formatNumber(f.offsetMm.y)} mm`,
-      { text: dtgNotes(f, pack.fadeLpi), size: 8 },
+      f.pixels,
+      f.size,
+      f.offset,
+      { text: f.notes, size: 8 },
     ],
   }));
 }
 
-function dtgWhere(pack: JobSheetDtgPack): string {
-  const colours = `${pack.files.length} garment ${pack.files.length === 1 ? 'colour' : 'colours'}`;
-  return [colours, pack.printSize].filter(Boolean).join(' · ');
+function dtgHeight(s: Sheet, pack: JobSheetViewDtgPack): number {
+  return 6 + 16 + s.measure(pack.where, CONTENT_WIDTH, { size: 8.5 }) + 6 + s.tableHeight(DTG_COLUMNS, dtgRows(pack)) + 4;
 }
 
-function dtgHeight(s: Sheet, pack: JobSheetDtgPack): number {
-  return 6 + 16 + s.measure(dtgWhere(pack), CONTENT_WIDTH, { size: 8.5 }) + 6 + s.tableHeight(DTG_COLUMNS, dtgRows(pack)) + 4;
-}
-
-function drawDtgPack(s: Sheet, pack: JobSheetDtgPack): void {
+function drawDtgPack(s: Sheet, pack: JobSheetViewDtgPack): void {
   s.ensure(Math.min(dtgHeight(s, pack), s.bottom - PAGE.margin));
   s.y += 6;
-  s.text(`${pack.blankName} (${pack.blankCode}) · ${pack.placement}`, PAGE.margin, s.y, { size: 10.5, bold: true, width: CONTENT_WIDTH });
+  s.text(pack.title, PAGE.margin, s.y, { size: 10.5, bold: true, width: CONTENT_WIDTH });
   s.y += 16;
-  s.paragraph(dtgWhere(pack), { size: 8.5, colour: GREY, gap: 6 });
+  s.paragraph(pack.where, { size: 8.5, colour: GREY, gap: 6 });
   s.table(DTG_COLUMNS, dtgRows(pack));
   s.y += 4;
 }
 
-async function drawProofs(s: Sheet, input: JobSheetInput): Promise<void> {
-  if (input.proofs.length === 0) return;
+/** The proofs are the view's, in its order; `images` are their bytes, the same length and order. */
+async function drawProofs(s: Sheet, view: JobSheetView, images: Buffer[]): Promise<void> {
+  if (view.proofs.length === 0) return;
   s.section('Proofs', 170);
   const perRow = 6;
   const gap = 10;
   const w = (CONTENT_WIDTH - gap * (perRow - 1)) / perRow;
   const h = Math.min(150, w * 1.25);
-  for (let i = 0; i < input.proofs.length; i += perRow) {
+  for (let i = 0; i < view.proofs.length; i += perRow) {
     s.ensure(h + 34);
-    const row = input.proofs.slice(i, i + perRow);
+    const row = view.proofs.slice(i, i + perRow);
     for (let j = 0; j < row.length; j++) {
       const x = PAGE.margin + j * (w + gap);
-      const jpeg = await thumbnail(row[j].image);
+      const jpeg = await thumbnail(images[i + j]);
       if (jpeg) s.doc.image(jpeg, x, s.y, { fit: [w, h], align: 'center', valign: 'center' });
       s.doc.rect(x, s.y, w, h).lineWidth(0.4).strokeColor(RULE).stroke();
       s.text(row[j].colourName, x, s.y + h + 3, { size: 8, bold: true, width: w });
@@ -492,31 +383,30 @@ async function drawProofs(s: Sheet, input: JobSheetInput): Promise<void> {
   }
 }
 
-function drawChecks(s: Sheet, input: JobSheetInput): void {
-  if (input.checks.length === 0) return;
+function drawChecks(s: Sheet, view: JobSheetView): void {
+  if (view.checks.length === 0) return;
   s.section('Checks', 50);
-  for (const group of input.checks) {
+  for (const group of view.checks) {
     s.ensure(30);
     s.text(group.label, PAGE.margin, s.y, { size: 8.5, bold: true, width: CONTENT_WIDTH });
     s.y += 13;
-    if (group.checks.length === 0) {
-      s.y += s.text('No checks recorded.', PAGE.margin, s.y, { colour: GREY, size: 8.5 }) + 4;
+    if (group.empty) {
+      s.y += s.text(group.empty, PAGE.margin, s.y, { colour: GREY, size: 8.5 }) + 4;
       continue;
     }
     // What passed is one line of titles; only what needs a person (review, failed) is spelled out.
-    const passed = group.checks.filter((c) => c.state === 'passed');
-    if (passed.length > 0) {
-      const titles = passed.map((c) => c.title).join(', ');
+    if (group.passed.length > 0) {
+      const titles = group.passed.join(', ');
       const h = Math.max(12, s.measure(titles, CONTENT_WIDTH - 52, { size: 8.5 }));
       s.ensure(h + 6);
       s.text(stateWord('passed'), PAGE.margin, s.y, { mono: true, bold: true, size: 8 });
       s.text(titles, PAGE.margin + 52, s.y, { size: 8.5, width: CONTENT_WIDTH - 52, colour: GREY });
       s.y += h + 5;
     }
-    for (const c of group.checks.filter((x) => x.state !== 'passed')) {
+    for (const c of group.attention) {
       const h = Math.max(12, s.measure(c.detail, CONTENT_WIDTH - 170, { size: 8.5 }));
       s.ensure(h + 6);
-      s.text(stateWord(c.state), PAGE.margin, s.y, { mono: true, bold: true, size: 8 });
+      s.text(c.stateWord, PAGE.margin, s.y, { mono: true, bold: true, size: 8 });
       s.text(c.title, PAGE.margin + 52, s.y, { bold: true, size: 8.5, width: 112 });
       s.text(c.detail, PAGE.margin + 170, s.y, { size: 8.5, width: CONTENT_WIDTH - 170 });
       s.y += h + 5;
@@ -525,11 +415,11 @@ function drawChecks(s: Sheet, input: JobSheetInput): void {
   }
 }
 
-function drawPieces(s: Sheet, input: JobSheetInput): void {
-  const { pieces } = input;
-  if (pieces.rows.length === 0) {
+function drawPieces(s: Sheet, view: JobSheetView): void {
+  const { pieces } = view;
+  if (pieces.empty) {
     s.section('Pieces waiting', 40);
-    s.paragraph('No open order for this design. Open orders are paid and not yet packed.', { colour: GREY });
+    s.paragraph(pieces.empty, { colour: GREY });
     return;
   }
 
@@ -556,16 +446,14 @@ function drawPieces(s: Sheet, input: JobSheetInput): void {
       ...pieces.sizes.map((size) => qty(r.sizes[size])),
       { text: String(r.total), bold: true },
       '',
-      { text: r.from.map((f) => `${f.ref} (${f.qty})`).join('\n'), size: 7.5, grey: true },
+      { text: r.from.join('\n'), size: 7.5, grey: true },
     ],
   }));
-  const totals = pieces.sizes.map((size) => pieces.rows.reduce((n, r) => n + (r.sizes[size] ?? 0), 0));
-  rows.push({ cells: [{ text: 'Total', bold: true }, '', ...totals.map((t) => ({ text: qty(t), bold: true })), { text: String(pieces.total), bold: true }, '', ''] });
+  rows.push({ cells: [{ text: 'Total', bold: true }, '', ...pieces.sizes.map((size) => ({ text: qty(pieces.totals[size]), bold: true })), { text: String(pieces.total), bold: true }, '', ''] });
 
   // A short table is read whole: the heading, its line and the table stay on one page when they fit on one.
   s.section('Pieces waiting', Math.min(26 + s.tableHeight(columns, rows), s.bottom - PAGE.margin - 40));
-  const line = `${pieces.total} ${pieces.total === 1 ? 'piece' : 'pieces'} in ${pieces.orders} open ${pieces.orders === 1 ? 'order' : 'orders'}, counted ${stampOf(input.generatedAt)}. Open means paid and not yet packed.`;
-  s.paragraph(line, { size: 8.5, colour: GREY, gap: 6 });
+  s.paragraph(pieces.line ?? '', { size: 8.5, colour: GREY, gap: 6 });
   s.table(columns, rows);
 }
 
@@ -579,9 +467,9 @@ const AUDIT_COLUMNS: Column[] = [
 /** The two lines of blanks for the pressroom to fill in, which take this much room. */
 const SIGNATURE_LINES = 80;
 
-function drawSignOff(s: Sheet, input: JobSheetInput): void {
-  const rows: TableRow[] = input.audits.map((a) => ({
-    cells: [a.label, { text: AUDIT_WORDS[a.state], bold: a.state === 'approved' }, a.by ?? '-', a.at ? dateOf(a.at) : '-'],
+function drawSignOff(s: Sheet, view: JobSheetView): void {
+  const rows: TableRow[] = view.audits.map((a) => ({
+    cells: [a.label, { text: a.stateWord, bold: a.approved }, a.by, a.date],
   }));
   // The sign-off is one block: the files' audit state and the lines under it stay on a page together.
   const table = rows.length > 0 ? s.tableHeight(AUDIT_COLUMNS, rows) + 10 : 20;
@@ -590,7 +478,7 @@ function drawSignOff(s: Sheet, input: JobSheetInput): void {
     s.table(AUDIT_COLUMNS, rows);
     s.y += 10;
   } else {
-    s.paragraph('No production file yet, so nothing to audit.', { colour: GREY });
+    s.paragraph(view.auditsEmpty ?? EMPTY_AUDITS, { colour: GREY });
   }
 
   const line = (label: string, x: number, width: number) => {
@@ -611,9 +499,9 @@ function drawSignOff(s: Sheet, input: JobSheetInput): void {
 
 /** The job sheet as an A4 landscape PDF. */
 export async function renderJobSheetPdf(input: JobSheetInput): Promise<Buffer> {
-  const { design } = input;
-  const version = design.versionNumber === null ? '' : ` · v${design.versionNumber}`;
-  const title = `${design.code}${version}`;
+  // Every word on the sheet comes from the view; `input` only adds the proof images.
+  const view = buildJobSheetView(input);
+  const { design, title } = view;
 
   const doc = new PDFDocument({
     size: 'A4',
@@ -632,39 +520,32 @@ export async function renderJobSheetPdf(input: JobSheetInput): Promise<Buffer> {
 
   // Header
   s.label('MerchFrom · Job sheet', PAGE.margin, s.y);
-  s.label(`Generated ${stampOf(input.generatedAt)}`, PAGE.margin, s.y, CONTENT_WIDTH, 'right');
+  s.label(`Generated ${view.generated}`, PAGE.margin, s.y, CONTENT_WIDTH, 'right');
   s.y += 12;
   const titleHeight = s.text(title, PAGE.margin, s.y, { size: 20, bold: true, width: CONTENT_WIDTH });
   s.y += Math.max(28, titleHeight + 4);
-  s.y += s.text(`${design.name} · ${design.shopName}`, PAGE.margin, s.y, { size: 10, colour: GREY, width: CONTENT_WIDTH }) + 6;
-  s.facts(
-    [
-      ['Design', design.code],
-      ['Version', design.versionNumber === null ? 'Nothing prepared yet' : `v${design.versionNumber}`],
-      ['Artist approved', design.approvedAt ? dateOf(design.approvedAt) : 'Not approved by the artist yet'],
-      ['Pre-press', input.packStatus],
-    ],
-    4,
+  s.y += s.text(view.subtitle, PAGE.margin, s.y, { size: 10, colour: GREY, width: CONTENT_WIDTH }) + 6;
+  s.facts(view.facts, 4);
+
+  drawGarments(s, view);
+
+  if (view.screenSets.length > 0) {
+    s.section('Screen sets', firstSetKeep(s, view.screenSets[0]));
+    for (const set of view.screenSets) drawScreenSet(s, set);
+  }
+  if (view.dtg.packs.length > 0) {
+    s.section('DTG/DTF files', Math.min(dtgHeight(s, view.dtg.packs[0]), s.bottom - PAGE.margin - 40));
+    for (const pack of view.dtg.packs) drawDtgPack(s, pack);
+    if (view.dtg.footnote) s.paragraph(view.dtg.footnote, { size: 8, colour: GREY });
+  }
+  await drawProofs(
+    s,
+    view,
+    input.proofs.map((p) => p.image),
   );
-
-  drawGarments(s, input);
-
-  if (input.screenSets.length > 0) {
-    s.section('Screen sets', firstSetKeep(s, input.screenSets[0]));
-    for (const set of input.screenSets) drawScreenSet(s, set);
-  }
-  if (input.dtgPacks.length > 0) {
-    s.section('DTG/DTF files', Math.min(dtgHeight(s, input.dtgPacks[0]), s.bottom - PAGE.margin - 40));
-    for (const pack of input.dtgPacks) drawDtgPack(s, pack);
-    s.paragraph(
-      'Open each PNG in GTX Graphics Lab at 100% (no scaling). The offset is from the top left of the print area. DTF uses the same file through Brother’s DTF print path, which mirrors it and lays the white.',
-      { size: 8, colour: GREY },
-    );
-  }
-  await drawProofs(s, input);
-  drawChecks(s, input);
-  drawPieces(s, input);
-  drawSignOff(s, input);
+  drawChecks(s, view);
+  drawPieces(s, view);
+  drawSignOff(s, view);
 
   // Footer on every page
   const range = doc.bufferedPageRange();

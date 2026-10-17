@@ -937,7 +937,8 @@ export function routeUrl(key: string, opts?: { expiresInSeconds?: number; downlo
 
 /** A URL the browser can load: the public domain for public R2 objects when one
  * is configured, otherwise /api/print-files, which checks access (Pre-press
- * access for staff, ownership for an artist's own proofs) before it serves. */
+ * access for staff, Production access for public files such as proofs,
+ * ownership for an artist's own proofs) before it serves. */
 export async function objectUrl(
   key: string,
   visibility: Visibility,

@@ -81,7 +81,12 @@ export function ApproveWorkspace({ view, sessionId, initialTab }: { view: Approv
           placementLabel={view.placementLabel}
         />
         <aside className="ap-aside" aria-label="Print details and approval">
-          {tab === 'runs' ? <ScreenPanel set={pickScreenSet(view.screenSets, garment)} garment={garment} /> : <ShopPanel facts={dtgFactsFor(view.dtgFacts, garment)} />}
+          {/* The runs tab prices the colours of every print position of the artwork, each on its own (sets and areas). */}
+          {tab === 'runs' ? (
+            <ScreenPanel set={pickScreenSet(view.screenSets, garment, area?.key)} garment={garment} sets={view.screenSets} areas={areas} />
+          ) : (
+            <ShopPanel facts={dtgFactsFor(view.dtgFacts, garment)} />
+          )}
           <WarningsPanel warnings={view.warnings} />
           <RelatedPanel related={view.relatedDesigns ?? []} sessionId={sessionId} />
           {/* Keyed by version: a newer version arriving starts the box over, so an

@@ -6,15 +6,39 @@ import * as zlib from 'node:zlib';
 // WinAnsi bytes 0x80-0x9F that differ from Latin-1.
 const WIN_ANSI: Record<number, string> = { 0x80: '€', 0x91: '‘', 0x92: '’', 0x93: '“', 0x94: '”', 0x96: '–', 0x97: '—' };
 
+/** The data of every stream in the file. Each is cut at the /Length its dictionary gives (pdfkit writes it as a number), so
+ * deflated data that happens to end in a carriage return or a line feed (about one page in 256) is read whole: the
+ * end-of-line before `endstream` would otherwise take that byte and the page's text would be lost. A stream whose length is
+ * not a plain number ends at the line break before `endstream`, as before. */
+function streamData(raw: string): string[] {
+  const out: string[] = [];
+  // 'stream' as a word: never the end of 'endstream'
+  const start = /\bstream(\r\n|\n)/g;
+  for (let m = start.exec(raw); m; m = start.exec(raw)) {
+    const begin = m.index + m[0].length;
+    const objectStart = raw.lastIndexOf(' obj', m.index);
+    const dictionary = raw.slice(Math.max(0, objectStart), m.index);
+    const length = /\/Length\s+(\d+)\b(?!\s+\d+\s+R\b)/.exec(dictionary);
+    let end = length ? begin + Number(length[1]) : -1;
+    if (end < begin || end > raw.length || !/^\s*endstream/.test(raw.slice(end, end + 32))) {
+      const close = /\r?\nendstream/.exec(raw.slice(begin));
+      end = close ? begin + close.index : -1;
+    }
+    if (end < begin) break;
+    out.push(raw.slice(begin, end));
+    start.lastIndex = end;
+  }
+  return out;
+}
+
 /** Every line of text drawn in the PDF, rebuilt from the TJ arrays. */
 export function pdfLines(pdf: Buffer): string[] {
   const raw = pdf.toString('latin1');
   const lines: string[] = [];
-  const streams = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
-  for (let m = streams.exec(raw); m; m = streams.exec(raw)) {
+  for (const data of streamData(raw)) {
     let content: string;
     try {
-      content = zlib.inflateSync(Buffer.from(m[1], 'latin1')).toString('latin1');
+      content = zlib.inflateSync(Buffer.from(data, 'latin1')).toString('latin1');
     } catch {
       continue;
     }

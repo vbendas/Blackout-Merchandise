@@ -3,16 +3,27 @@
 // included). The ink system comes from the MagnaPrint HB data sheet
 // (Documentation/Dev/Print-Prep-Plan.md section 5). Opacities are estimates
 // until the inks are measured.
-import type { InkSystemProfile, PrintRecipe, RecipeOverride } from '@/lib/print/types';
+import type { FilmLayout, InkSystemProfile, PrintRecipe, RecipeOverride } from '@/lib/print/types';
 
 /** Part of every job's hash and manifest: a new engine makes new bytes, so its packs are new packs. 2.0.0 (Phase 2): index and
- * simulated-process films instead of spot drafts, and the dot-gain curve on every halftone. */
-export const ENGINE_VERSION = '2.0.0';
+ * simulated-process films instead of spot drafts, and the dot-gain curve on every halftone. 3.0.0 (16 Oct 2026): A2
+ * portrait films, 10 mm margins at the sides and 27 mm above and below, registration marks at the four corners, and
+ * no design over 40 × 54 cm. */
+export const ENGINE_VERSION = '3.0.0';
 
 export const STANDARD_MAX_SCREENS = 8;
 export const ABSOLUTE_MAX_SCREENS = 15;
 /** €1 per piece for each screen above 8, screen-printed runs only. */
 export const EXTRA_SCREEN_CENTS_PER_PIECE = 100;
+
+/** Owner decision, 16 Oct 2026: films and screens are A2 portrait at most, and the A2 sheet holds the reg marks
+ * and a margin for ink deposit around the design, so the design itself is at most 40 cm wide and 54 cm tall.
+ * Reg marks sit at the four corners, top and bottom only. */
+export const FILM_SHEET_CM = { widthCm: 42, heightCm: 59.4 } as const;
+export const MAX_DESIGN_CM = { widthCm: 40, heightCm: 54 } as const;
+
+/** Owner decision, 16 Oct 2026: the top of a front or back print sits 5 cm below the collar seam. */
+export const COLLAR_DISTANCE_CM = 5;
 
 export const DEFAULT_RECIPE: PrintRecipe = {
   method: 'auto',
@@ -27,8 +38,17 @@ export const DEFAULT_RECIPE: PrintRecipe = {
   highlightWhite: true,
   indexCellPpi: 200,
   dtg: { ppi: 300, fadeLpi: 45, fadeAngleDeg: 22.5, edgeBandPx: 2 },
-  marks: { marginMm: 25, targetOffsetMm: 15 },
+  // 10 + 400 + 10 = 420 mm and 27 + 540 + 27 = 594 mm: a MAX_DESIGN_CM design fills FILM_SHEET_CM (A2) exactly
+  marks: { sideMarginMm: 10, endMarginMm: 27, inkGapMm: 10 },
 };
+
+/** The film layout of a recipe's marks, with the defaults for anything a recipe stored before engine 3 lacks
+ * (those carry only marginMm and targetOffsetMm, which films no longer use). */
+export function filmLayout(marks?: Partial<PrintRecipe['marks']> | null): FilmLayout {
+  const d = DEFAULT_RECIPE.marks;
+  const mm = (v: unknown, fallback: number): number => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : fallback);
+  return { sideMarginMm: mm(marks?.sideMarginMm, d.sideMarginMm), endMarginMm: mm(marks?.endMarginMm, d.endMarginMm), inkGapMm: mm(marks?.inkGapMm, d.inkGapMm) };
+}
 
 export const DEFAULT_INK_SYSTEM: InkSystemProfile = {
   name: 'MagnaPrint HB',
@@ -108,7 +128,8 @@ export const ENGINE_TUNING = {
   simAccuracyBlockMm: 3,
 } as const;
 
-/** A recipe with overrides applied in order (later wins); nested groups merge. */
+/** A recipe with overrides applied in order (later wins); nested groups merge. The marks come out as the
+ * film layout alone: a stored recipe's engine 2 fields are dropped and the defaults fill what it lacks. */
 export function mergeRecipe(base: PrintRecipe, ...overrides: (RecipeOverride | null | undefined)[]): PrintRecipe {
   let out: PrintRecipe = { ...base, halftone: { ...base.halftone }, dtg: { ...base.dtg }, marks: { ...base.marks } };
   for (const o of overrides) {
@@ -122,5 +143,6 @@ export function mergeRecipe(base: PrintRecipe, ...overrides: (RecipeOverride | n
     };
   }
   out.maxScreens = Math.max(1, Math.min(ABSOLUTE_MAX_SCREENS, Math.round(out.maxScreens)));
+  out.marks = filmLayout(out.marks);
   return out;
 }

@@ -18,8 +18,10 @@ import {
   garmentPriceOf,
   placementKind,
   podExampleRows,
+  runExtraLines,
   type PodPriceTable,
 } from './pod-table';
+import { describeRunLine, describeRunLines, runExtrasCents } from './screen-print';
 
 const EXTRAS = { secondMainPrintCents: 100, sleevesCents: 200 };
 
@@ -361,5 +363,57 @@ test('the examples use the same arithmetic as a product price, whatever the base
   for (const example of POD_EXAMPLES) {
     const priced = buildPodBreakdown({ blankCode: '', baseCents: 2149, placeholder: false, extras: { secondMainPrintCents: 175, sleevesCents: 0 }, placements: example.positions.map((position) => ({ position })) });
     assert.equal(rows.find((r) => r.key === example.key)?.totalCents, priced.totalCents, example.key);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Runs: a DTG/DTF run pays the same extras for more print positions (owner, 16 Oct 2026: "DTG/DTF pays also extras for new
+// print positions"), on top of its own price for the garment with one print
+
+const runLines = (extras: typeof EXTRAS, ...positions: string[]) => runExtraLines(extras, positions.map((position) => ({ position })));
+
+test('a run with one print position pays no extra, front or back', () => {
+  assert.deepEqual(runLines(EXTRAS, 'front_chest'), []);
+  assert.deepEqual(runLines(EXTRAS, 'back'), []);
+  assert.deepEqual(runLines(EXTRAS, 'front_full', 'front_left_chest'), [], 'two fronts are not a back: nothing is added for them');
+  assert.deepEqual(runLines(EXTRAS), []);
+});
+
+test('front and back on a run is +1 euro', () => {
+  const lines = runLines(EXTRAS, 'front_chest', 'back');
+  assert.deepEqual(lines, [{ key: 'second_main_print', label: 'Front and back', cents: 100 }]);
+  assert.equal(describeRunLine(lines[0]), 'Front and back: +€1.00');
+  assert.deepEqual(runLines(EXTRAS, 'back', 'front_full'), lines, 'in either order');
+});
+
+test('sleeve prints on a run are +2 euros ONCE, for one sleeve or both', () => {
+  const one = runLines(EXTRAS, 'front_chest', 'sleeve_left');
+  assert.deepEqual(one, [{ key: 'sleeves', label: 'Sleeve prints', cents: 200 }]);
+  assert.equal(describeRunLine(one[0]), 'Sleeve prints: +€2.00');
+  assert.deepEqual(runLines(EXTRAS, 'front_chest', 'sleeve_left', 'sleeve_right'), one, 'both sleeves cost what one does');
+  assert.deepEqual(runLines(EXTRAS, 'back', 'sleeve_right'), one);
+});
+
+test('front, back and sleeves on a run are +3 euros: the +1 and the +2, front and back first', () => {
+  const lines = runLines(EXTRAS, 'front_chest', 'back', 'sleeve_left', 'sleeve_right');
+  assert.deepEqual(lines.map((line) => line.key), ['second_main_print', 'sleeves']);
+  assert.equal(runExtrasCents(lines), 300);
+  assert.equal(describeRunLines(lines), 'Front and back: +€1.00; Sleeve prints: +€2.00 (+€3.00 per piece in all)');
+});
+
+test('the run extras are the shop\'s own: the owner changing them changes runs too, and a zero keeps its line', () => {
+  const changed = runExtraLines({ secondMainPrintCents: 150, sleevesCents: 350 }, [{ position: 'front_chest' }, { position: 'back' }, { position: 'sleeve_left' }]);
+  assert.deepEqual(changed.map((line) => line.cents), [150, 350]);
+  const none = runExtraLines({ secondMainPrintCents: 0, sleevesCents: 0 }, [{ position: 'front_chest' }, { position: 'back' }, { position: 'sleeve_left' }]);
+  assert.deepEqual(none.map((line) => [line.key, line.cents]), [['second_main_print', 0], ['sleeves', 0]]);
+  assert.equal(describeRunLine(none[0]), 'Front and back: no extra charge');
+});
+
+test('for every example the admin page shows, a run pays what a shop product adds on top of its base', () => {
+  for (const example of POD_EXAMPLES) {
+    const shop = buildPodBreakdown({ blankCode: '', baseCents: 1700, placeholder: false, extras: EXTRAS, placements: example.positions.map((position) => ({ position })) });
+    const run = runExtraLines(EXTRAS, example.positions.map((position) => ({ position })));
+    assert.deepEqual(run, shop.lines.filter((line) => line.key !== 'base'), example.key);
+    assert.ok(run.every((line) => (line.key as string) !== 'base'));
   }
 });

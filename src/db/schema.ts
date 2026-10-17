@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, integer, serial, jsonb, timestamp, uuid, pgEnum, index, primaryKey, unique, uniqueIndex, real } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, integer, serial, jsonb, timestamp, uuid, pgEnum, index, primaryKey, unique, uniqueIndex, real, check } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
 // ============================================================================
@@ -66,6 +66,11 @@ export const packBuildStatusEnum = pgEnum('pack_build_status', ['building', 'rea
 // idle: built, no order needs it yet; waiting: in the pre-press queue.
 export const packAuditStatusEnum = pgEnum('pack_audit_status', ['idle', 'waiting', 'being_fixed', 'approved', 'sent_back']);
 
+// Production progress Enums (the stations' iPads and the website's "On the press" board)
+export const productionStageEnum = pgEnum('production_stage', ['queued', 'screens', 'printing', 'curing', 'folding', 'shipped']);
+export const productionMethodEnum = pgEnum('production_method', ['screen', 'dtg', 'dtf']);
+export const screenStatusEnum = pgEnum('screen_status', ['waiting', 'film_printed', 'screen_ready', 'on_press', 'reclaimed']);
+
 // Agent runtime Enums
 export const messageRoleEnum = pgEnum('message_role', ['user', 'assistant', 'tool']);
 export const notificationChannelEnum = pgEnum('notification_channel', ['email', 'discord', 'inapp']);
@@ -109,6 +114,8 @@ export const artistStores = pgTable('artist_stores', {
     locale: text('locale').default('en'),
     memory: jsonb('memory'), // Agent's remembered facts about this store
     customDomain: text('custom_domain').unique(),
+    // The artist's opt-in to the website's "On the press" board: off, their runs read "Private" there.
+    showOnPressBoard: boolean('show_on_press_board').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
@@ -524,6 +531,73 @@ export const designApprovals = pgTable('design_approvals', {
     invalidatedReason: text('invalidated_reason'),
 }, (table) => [
     index('design_approvals_design_id_idx').on(table.designId),
+]);
+
+// ============================================================================
+// PRODUCTION PROGRESS (platform/lib/services/production-progress.ts)
+// ============================================================================
+
+// Production Jobs Table (one design's batch for one method: the pieces of the paid orders and runs whose
+// files pre-press approved). Built by syncProductionJobs; the stations move it through its stages.
+export const productionJobs = pgTable('production_jobs', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    designId: uuid('design_id').references(() => designs.id, { onDelete: 'cascade' }).notNull(),
+    storeId: uuid('store_id').references(() => artistStores.id, { onDelete: 'cascade' }).notNull(),
+    method: productionMethodEnum('method').notNull(),
+    stage: productionStageEnum('stage').default('queued').notNull(),
+    hiddenFromBoard: boolean('hidden_from_board').default(false).notNull(),
+    stageChangedAt: timestamp('stage_changed_at').defaultNow().notNull(),
+    shippedAt: timestamp('shipped_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+    // One batch per design and method takes new pieces: the one not yet off the press.
+    uniqueIndex('production_jobs_open_unique').on(table.designId, table.method).where(sql`${table.stage} in ('queued', 'screens', 'printing')`),
+    index('production_jobs_stage_idx').on(table.stage),
+]);
+
+// Production Lines Table (one countable line of a job: a garment, colour, size and print position from one order or run)
+export const productionLines = pgTable('production_lines', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    jobId: uuid('job_id').references(() => productionJobs.id, { onDelete: 'cascade' }).notNull(),
+    // stable: a hash of the design, method, order, blank, colour, size and position, so one line never lands in two jobs
+    lineKey: text('line_key').notNull(),
+    orderId: uuid('order_id').references(() => orders.id, { onDelete: 'cascade' }).notNull(),
+    orderRef: text('order_ref').notNull(), // 'Run 3 · ORD-1A2B3C4D' or 'ORD-1A2B3C4D'
+    blankCode: text('blank_code').notNull(),
+    colourCode: text('colour_code').notNull(), // '' when the order named no colour
+    size: text('size').notNull(), // 'OS' when the order named no size
+    placement: text('placement'), // placementKey of the print positions, '+'-joined: 'front_chest:280:0+back:300:0'
+    total: integer('total').notNull(),
+    printed: integer('printed').default(0).notNull(),
+    flag: text('flag'), // plain words, set when the order came to ask for fewer pieces than were printed
+    flaggedAt: timestamp('flagged_at'),
+    updatedBy: uuid('updated_by').references(() => users.id, { onDelete: 'set null' }),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+    uniqueIndex('production_lines_line_key_unique').on(table.lineKey),
+    index('production_lines_job_id_idx').on(table.jobId),
+    index('production_lines_order_id_idx').on(table.orderId),
+    check('production_lines_counts_check', sql`${table.total} >= 0 and ${table.printed} >= 0 and ${table.printed} <= ${table.total}`),
+]);
+
+// Screen Progress Table (one screen of a screen-print job: a film of one of its approved packs)
+export const screenProgress = pgTable('screen_progress', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    jobId: uuid('job_id').references(() => productionJobs.id, { onDelete: 'cascade' }).notNull(),
+    screenKey: text('screen_key').notNull(), // '<pack id>:<film number>'
+    packId: uuid('pack_id').references(() => productionPacks.id, { onDelete: 'cascade' }).notNull(),
+    filmNumber: integer('film_number').notNull(), // 1-based press position
+    filmCount: integer('film_count').notNull(),
+    setName: text('set_name').notNull(), // 'Darks', 'Lights', 'French Navy'
+    inkName: text('ink_name').notNull(), // 'Underbase', 'PANTONE 186 C · Red', 'Highlight white'
+    inkRole: text('ink_role').default('ink').notNull(), // PlateRole: 'underbase' | 'ink' | 'highlight'
+    status: screenStatusEnum('status').default('waiting').notNull(),
+    updatedBy: uuid('updated_by').references(() => users.id, { onDelete: 'set null' }),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+    unique('screen_progress_job_screen_unique').on(table.jobId, table.screenKey),
 ]);
 
 // ============================================================================
@@ -1361,3 +1435,6 @@ export type StaffPermissionRow = typeof staffPermissions.$inferSelect;
 export type StaffInvite = typeof staffInvites.$inferSelect;
 export type StaffActivityEntry = typeof staffActivity.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
+export type ProductionJobRow = typeof productionJobs.$inferSelect;
+export type ProductionLineRow = typeof productionLines.$inferSelect;
+export type ScreenProgressRow = typeof screenProgress.$inferSelect;

@@ -6,9 +6,10 @@
 // the house screen's lpi, angle and ppi (the recipe defaults unless staff pick
 // another, with the ink system's halftone mesh), and with no dot-gain curve and
 // no minimum or maximum dot: the chart has to show what the press does to raw
-// film coverage, 5% dots included. Registration targets and the label strip
-// are the engine's too (engine/marks.ts), the PSD is the pack's screen PSD
-// writer and the film layers are named the way production layers are.
+// film coverage, 5% dots included. The film's margins, the registration targets
+// at its four corners and the label strip are the engine's too (engine/units.ts,
+// engine/marks.ts), the PSD is the pack's screen PSD writer and the film layers
+// are named the way production layers are.
 //
 // Server only (the pack writers load sharp and ag-psd); the page imports the
 // layout and the curve maths, never this file.
@@ -96,8 +97,8 @@ function drawFilm(canvas: CanvasSpec, settings: ChartSettings, kind: InkKind, or
   const thresholds = new Float32Array(W);
 
   // Registration targets and the label strip, as on a production film.
-  drawTargets(data, canvas, G.targetOffsetMm);
-  drawLabelStrip(data, canvas, G.targetOffsetMm, {
+  drawTargets(data, canvas);
+  drawLabelStrip(data, canvas, {
     left: 'MERCHFROM DOT GAIN CHART',
     right: `${order.index}/${order.total} ${INK_KIND_LABELS[kind]} · ${formatNumber(settings.lpi)} lpi ${degrees(settings.angleDeg)}`,
     topLeft: `Mesh ${settings.mesh}`,

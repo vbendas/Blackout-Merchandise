@@ -108,6 +108,17 @@ test('a colour finds its screen set by key, then by the colours a set lists', ()
   assert.equal(pickScreenSet([], black), null);
 });
 
+test('with a front and a back, the colour finds the set of the print area on show', () => {
+  const [darks] = MOCK_APPROVAL_VIEW.screenSets;
+  const front = { ...darks, areaKey: 'front_chest:280:0', screenCount: 10 };
+  const back = { ...darks, areaKey: 'back:300:0', screenCount: 6 };
+  assert.equal(pickScreenSet([front, back], black, 'back:300:0'), back);
+  assert.equal(pickScreenSet([front, back], black, 'front_chest:280:0'), front);
+  assert.equal(pickScreenSet([front, back], black), front, 'no area on show: the first');
+  assert.equal(pickScreenSet([front, back], black, 'sleeve_left:90:0'), front, 'an area with no set of its own falls back to any set of the colour');
+  assert.equal(pickScreenSet([darks], black, 'back:300:0'), darks, 'a set that names no area belongs to every area');
+});
+
 test('the DTG/DTF facts are the view\'s own, with a plain fallback for a colour that has none', () => {
   assert.deepEqual(dtgFactsFor({ C002: ['one', 'two'] }, black), ['one', 'two']);
   const dark = dtgFactsFor({}, black);

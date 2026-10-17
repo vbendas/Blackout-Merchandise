@@ -5,9 +5,10 @@
 // edges come out smooth at any scale; elsewhere (fades, tints, a partial
 // underbase) it is halftoned on the set's one screen. Then traps (each ink
 // spreads under the inks printed after it), the underbase choke, thin-line
-// checks, registration targets and the label strip.
+// checks, registration targets at the four corners and the label strip
+// (marks.ts), on a film with the recipe's margins (units.ts filmCanvas).
 import type { HalftoneSpec, InkPlate, InkSystemProfile, PlateLabelInfo, PlateRole, PrintRecipe, ScreenSet, Warning } from '@/lib/print/types';
-import { ENGINE_TUNING, STANDARD_MAX_SCREENS, WHITE_INK_HEX } from '@/lib/print/defaults';
+import { ENGINE_TUNING, STANDARD_MAX_SCREENS, WHITE_INK_HEX, filmLayout } from '@/lib/print/defaults';
 import { clientColourName } from '@/lib/print/colour-names';
 import { dotGainFor } from '@/lib/print/calibration/curve';
 import { deltaE2000, hexToLab, linearToLab, roundLab } from './colour';
@@ -216,7 +217,7 @@ function view(data: Uint8Array, stride: number, x: number, y: number, width: num
 /** All plates of one screen set, with marks, labels and warnings. */
 export function renderSet(input: RenderInput): ScreenSet {
   const { analysis: a, size, recipe, inks, label } = input;
-  const canvas = canvasSpec(size, recipe.marks.marginMm);
+  const canvas = canvasSpec(size, filmLayout(recipe.marks));
   const W = canvas.widthPx;
   const H = canvas.heightPx;
   const art = canvas.art;
@@ -283,8 +284,8 @@ export function renderSet(input: RenderInput): ScreenSet {
       halftone: { ...recipe.halftone },
       meshSuggestion: role === 'underbase' ? inks.mesh.underbase : halftoneShare > 0.05 ? inks.mesh.halftone : inks.mesh.solid,
     };
-    drawTargets(plate.plate.data, canvas, recipe.marks.targetOffsetMm);
-    drawLabelStrip(plate.plate.data, canvas, recipe.marks.targetOffsetMm, plateLabelLines(label, setName, plate, total, inks));
+    drawTargets(plate.plate.data, canvas);
+    drawLabelStrip(plate.plate.data, canvas, plateLabelLines(label, setName, plate, total, inks));
     return plate;
   });
 

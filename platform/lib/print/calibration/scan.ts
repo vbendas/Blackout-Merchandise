@@ -22,6 +22,13 @@
 //     patches on the same scan (murray-davies.ts): where the colour of a patch
 //     sits between the two.
 //
+// A read has a time budget (READ_BUDGET_MS, 20 s; a scan reads in well under a
+// second). It is checked between the steps and inside the longer loops, the
+// decode included, and when it runs out the reader stops with a ScanError, so
+// a request never hangs on a scan. The budget counts the time the reader
+// actually runs: a laptop that sleeps in the middle of a read, or a machine
+// busy with other work, doesn't use it up.
+//
 // Everything after the decode works on a plain pixel array, so the tests can
 // feed it pictures without going through a file format. Server only (sharp).
 import sharp, { type OutputInfo } from 'sharp';
@@ -55,7 +62,7 @@ export interface ScanImage {
   rgb: Uint8Array;
 }
 
-export type ScanErrorCode = 'unreadable' | 'too_small' | 'no_marks' | 'bad_frame';
+export type ScanErrorCode = 'unreadable' | 'too_small' | 'no_marks' | 'bad_frame' | 'too_slow';
 
 /** Why a scan could not be read, in words for the person who scanned it. */
 export class ScanError extends Error {
@@ -146,6 +153,58 @@ export const SCAN_LIMITS = {
 } as const;
 
 // ---------------------------------------------------------------------------
+// The time budget
+// ---------------------------------------------------------------------------
+
+/** The longest a read may run, decode included. A 600 dpi scan reads in well under a second; the scan route allows 120 s for the whole request. */
+export const READ_BUDGET_MS = 20_000;
+
+export interface ReadOptions {
+  /** the longest the read may run, ms (READ_BUDGET_MS when left out) */
+  budgetMs?: number;
+  /** the read's running time so far, ms; left out, a readerStopwatch() started with the read (tests pass their own) */
+  elapsed?: () => number;
+}
+
+/**
+ * A stopwatch of the time the reader actually runs, in ms: the lesser of the time
+ * that has passed and the CPU time the process has used since it started. A
+ * laptop that sleeps in the middle of a read stops neither the wall clock nor a
+ * test's timer, and a busy machine slows a read down, but neither uses CPU
+ * time; a scan that keeps the reader busy uses both.
+ */
+export function readerStopwatch(): () => number {
+  const wall = performance.now();
+  const cpu = process.cpuUsage();
+  return () => {
+    const used = process.cpuUsage(cpu);
+    return Math.min(performance.now() - wall, (used.user + used.system) / 1000);
+  };
+}
+
+function tooSlow(budgetMs: number): ScanError {
+  const seconds = budgetMs / 1000;
+  return new ScanError(
+    'too_slow',
+    `Reading this scan took longer than ${seconds === 1 ? '1 second' : `${Number(seconds.toFixed(3))} seconds`}, so it was stopped. A scan of the chart at 300 to 600 dpi reads in a second or two: scan it again at 600 dpi or less, flat, and upload that.`,
+  );
+}
+
+/** A read's budget and stopwatch: the options' own, or READ_BUDGET_MS and a stopwatch started now. */
+function budgetOf(options: ReadOptions): { budgetMs: number; elapsed: () => number } {
+  const budgetMs = typeof options.budgetMs === 'number' && options.budgetMs >= 0 ? options.budgetMs : READ_BUDGET_MS;
+  return { budgetMs, elapsed: options.elapsed ?? readerStopwatch() };
+}
+
+/** The check the reader calls between its steps and inside its longer loops: it throws the 'too_slow' ScanError once the budget is spent. */
+function budgetCheck(options: ReadOptions): () => void {
+  const { budgetMs, elapsed } = budgetOf(options);
+  return () => {
+    if (elapsed() > budgetMs) throw tooSlow(budgetMs);
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Decoding
 // ---------------------------------------------------------------------------
 
@@ -153,18 +212,21 @@ export const SCAN_LIMITS = {
  * of the file itself, so a bigger image (or a small file that claims to be one) is refused before it is decoded. */
 const MAX_INPUT_PIXELS = 160_000_000;
 
-/** Decodes a scan to 8-bit sRGB (an embedded profile is applied, a grey or CMYK scan is converted, alpha dropped). */
-export async function decodeScan(bytes: Buffer | Uint8Array): Promise<ScanImage> {
+/** Decodes a scan to 8-bit sRGB (an embedded profile is applied, a grey or CMYK scan is converted, alpha dropped). With
+ * `timeoutSeconds`, libvips stops after that long (whole seconds, an hour at most) and the decode fails with the
+ * 'too_slow' ScanError. */
+export async function decodeScan(bytes: Buffer | Uint8Array, timeoutSeconds = 0): Promise<ScanImage> {
+  const seconds = timeoutSeconds > 0 ? Math.min(3600, Math.ceil(timeoutSeconds)) : 0;
   let data: Buffer;
   let info: OutputInfo;
   try {
-    ({ data, info } = await sharp(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength), { autoOrient: true, limitInputPixels: MAX_INPUT_PIXELS })
-      .toColourspace('srgb')
-      .removeAlpha()
-      .raw({ depth: 'uchar' })
-      .toBuffer({ resolveWithObject: true }));
+    let pipeline = sharp(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength), { autoOrient: true, limitInputPixels: MAX_INPUT_PIXELS });
+    if (seconds > 0) pipeline = pipeline.timeout({ seconds });
+    ({ data, info } = await pipeline.toColourspace('srgb').removeAlpha().raw({ depth: 'uchar' }).toBuffer({ resolveWithObject: true }));
   } catch (err) {
     const message = err instanceof Error ? err.message : 'unknown error';
+    // libvips says 'timeout: 96% complete' when sharp's timeout stops it
+    if (seconds > 0 && /^timeout\b/i.test(message)) throw tooSlow(seconds * 1000);
     if (/pixel limit/i.test(message)) throw new ScanError('unreadable', 'That scan is too large to read. Scan the chart at 600 dpi or less: the reader needs 300 to 600 dpi.');
     throw new ScanError('unreadable', `That file can't be read as an image (${message}). Save the scan as TIFF, PNG or JPEG.`);
   }
@@ -200,8 +262,8 @@ export interface Coarse {
   y: Float32Array;
 }
 
-/** A copy of the scan at about 1600 px on its long side, each pixel the linear-light luminance mean of a block. */
-export function coarseOf(img: ScanImage): Coarse {
+/** A copy of the scan at about 1600 px on its long side, each pixel the linear-light luminance mean of a block. `check` (the time budget) is called every 64 rows. */
+export function coarseOf(img: ScanImage, check?: () => void): Coarse {
   const f = Math.max(1, Math.round(Math.max(img.width, img.height) / COARSE_LONG_SIDE));
   const w = Math.floor(img.width / f);
   const h = Math.floor(img.height / f);
@@ -210,6 +272,7 @@ export function coarseOf(img: ScanImage): Coarse {
   const rgb = img.rgb;
   const inv = 1 / (f * f);
   for (let by = 0; by < h; by++) {
+    if (check && (by & 63) === 0) check();
     const out = by * w;
     for (let dy = 0; dy < f; dy++) {
       let p = (by * f + dy) * stride;
@@ -433,9 +496,10 @@ function median(values: Float32Array, n: number): number {
  * the mark's) inside a disc just wider than the square. Pixels between ink
  * and garment count in proportion, so the answer is a fraction of a pixel and
  * the blur of the scan or of dot gain, being symmetric, does not move it.
- * Null when the mark doesn't stand out from the garment.
+ * Null when the mark doesn't stand out from the garment. `check` (the time
+ * budget) is called every 64 rows.
  */
-function refineMark(img: ScanImage, cx: number, cy: number, sidePx: number): { x: number; y: number; contrast: number } | null {
+function refineMark(img: ScanImage, cx: number, cy: number, sidePx: number, check: () => void): { x: number; y: number; contrast: number } | null {
   let x = cx;
   let y = cy;
   let contrast = 0;
@@ -451,6 +515,7 @@ function refineMark(img: ScanImage, cx: number, cy: number, sidePx: number): { x
     let rings = 0;
     let cores = 0;
     for (let py = y0; py <= y1; py++) {
+      if (((py - y0) & 63) === 0) check();
       for (let px = x0; px <= x1; px++) {
         const d = Math.hypot(px + 0.5 - x, py + 0.5 - y);
         if (d >= 1.0 * sidePx && d <= 1.5 * sidePx && (px + py) % 2 === 0) ring[rings++] = lumaAt(img, px, py);
@@ -468,6 +533,7 @@ function refineMark(img: ScanImage, cx: number, cy: number, sidePx: number): { x
     let sy = 0;
     const disc = 0.8 * sidePx;
     for (let py = y0; py <= y1; py++) {
+      if (((py - y0) & 63) === 0) check();
       for (let px = x0; px <= x1; px++) {
         if (Math.hypot(px + 0.5 - x, py + 0.5 - y) > disc) continue;
         const w = Math.min(1, Math.max(0, (lumaAt(img, px, py) - garment) / span));
@@ -691,7 +757,7 @@ function strongContrast(deviation: Float32Array, top: number): number {
 }
 
 /** The coarse scan's four corner marks, or a ScanError in words. */
-function findFrame(coarse: Coarse): Frame {
+function findFrame(coarse: Coarse, check: () => void): Frame {
   const radius = Math.max(30, Math.min(150, Math.round(0.06 * Math.max(coarse.w, coarse.h))));
   const background = boxMean(coarse.y, coarse.w, coarse.h, radius);
   const deviation = new Float32Array(coarse.y.length);
@@ -707,6 +773,7 @@ function findFrame(coarse: Coarse): Frame {
   // squareness and isolation tests then throw out.
   const strong = strongContrast(deviation, top);
   for (const share of [0.5, 0.3, 0.18, 0.1]) {
+    check();
     const mask = new Uint8Array(deviation.length);
     const threshold = share * strong;
     for (let i = 0; i < mask.length; i++) mask[i] = deviation[i] > threshold ? 1 : 0;
@@ -731,16 +798,16 @@ interface Located {
 }
 
 /** Steps 2 and 3: finds the chart and maps it. Throws ScanError when it can't. */
-function locateChart(img: ScanImage, settings: ScanSettings): Located {
-  const coarse = coarseOf(img);
-  const frame = findFrame(coarse);
+function locateChart(img: ScanImage, settings: ScanSettings, check: () => void): Located {
+  const coarse = coarseOf(img, check);
+  const frame = findFrame(coarse, check);
 
   // Corner marks on the full-resolution pixels. A coarse pixel (i, j) covers full pixels [i f, (i + 1) f), so a coarse coordinate times f is a full-resolution one.
   const scalePx = frame.scale * coarse.f;
   const refinedCorners: Point[] = [];
   for (const [i, mark] of CORNER_MARKS.entries()) {
     const blob = frame.corners[i];
-    const found = refineMark(img, blob.x * coarse.f, blob.y * coarse.f, mark.sizeMm * scalePx);
+    const found = refineMark(img, blob.x * coarse.f, blob.y * coarse.f, mark.sizeMm * scalePx, check);
     if (!found) throw new ScanError('no_marks', `The ${['top left', 'top right', 'bottom left', 'bottom right'][i]} corner square is not clear enough on this scan to measure from.`);
     refinedCorners.push({ x: found.x, y: found.y });
   }
@@ -760,7 +827,7 @@ function locateChart(img: ScanImage, settings: ScanSettings): Located {
   };
   for (const mark of CHECK_MARKS) {
     const predicted = applyH(corner, mark.centre);
-    const found = refineMark(img, predicted.x, predicted.y, mark.sizeMm / mmPerPxAt(mark.centre));
+    const found = refineMark(img, predicted.x, predicted.y, mark.sizeMm / mmPerPxAt(mark.centre), check);
     if (!found) continue;
     const error = Math.hypot(found.x - predicted.x, found.y - predicted.y) * mmPerPxAt(mark.centre);
     // A mark that isn't near where it should be is something else (a wrinkle, a stray speck).
@@ -807,13 +874,14 @@ function locateChart(img: ScanImage, settings: ScanSettings): Located {
 }
 
 /** Steps 4 and 5 for one film's band: the patches measured, the wedge by Murray-Davies, and what the band says about itself. */
-function readBand(img: ScanImage, chart: Located, settings: ScanSettings, kind: InkKind): { film: FilmReading; warnings: ReadingWarning[] } {
+function readBand(img: ScanImage, chart: Located, settings: ScanSettings, kind: InkKind, check: () => void): { film: FilmReading; warnings: ReadingWarning[] } {
   const { h, hInv } = chart;
   const label = INK_KIND_LABELS[kind];
   const warnings: ReadingWarning[] = [];
   const band = chartPatches().filter((p) => p.film === kind);
   const read = new Map<ChartPatch, WindowReading>();
   for (const patch of band) {
+    check();
     const window = readWindow(img, h, hInv, patch, settings);
     if (!window || window.filled < 0.5) throw new ScanError('bad_frame', `The ${label.toLowerCase()} band falls outside this scan. Scan the whole chart.`);
     read.set(patch, window);
@@ -918,15 +986,16 @@ function readBand(img: ScanImage, chart: Located, settings: ScanSettings, kind: 
   return { film: { kind, status, contrast, shading: Math.round(shading * 10000) / 10000, points }, warnings };
 }
 
-/** Reads the chart in a decoded scan. Throws ScanError when the chart can't be found. */
-export function readChartImage(img: ScanImage, settings: ScanSettings): ScanReading {
+/** Reads the chart in a decoded scan. Throws ScanError when the chart can't be found, or when the read runs past its time budget ('too_slow'). */
+export function readChartImage(img: ScanImage, settings: ScanSettings, options: ReadOptions = {}): ScanReading {
   if (Math.min(img.width, img.height) < 400) throw new ScanError('too_small', 'That scan is too small to read the chart from. Scan the whole chart at 300 dpi or more.');
 
-  const chart = locateChart(img, settings);
+  const check = budgetCheck(options);
+  const chart = locateChart(img, settings, check);
   const films: FilmReading[] = [];
   const warnings: ReadingWarning[] = [...chart.warnings];
   for (const kind of INK_KINDS) {
-    const band = readBand(img, chart, settings, kind);
+    const band = readBand(img, chart, settings, kind, check);
     films.push(band.film);
     warnings.push(...band.warnings);
   }
@@ -944,9 +1013,13 @@ export function readChartImage(img: ScanImage, settings: ScanSettings): ScanRead
   };
 }
 
-/** Decodes a scan file and reads the chart in it. */
-export async function readChartScan(bytes: Buffer | Uint8Array, settings: ScanSettings): Promise<ScanReading> {
-  return readChartImage(await decodeScan(bytes), settings);
+/** Decodes a scan file and reads the chart in it, the decode and the read sharing one time budget. */
+export async function readChartScan(bytes: Buffer | Uint8Array, settings: ScanSettings, options: ReadOptions = {}): Promise<ScanReading> {
+  const { budgetMs, elapsed } = budgetOf(options);
+  const left = budgetMs - elapsed();
+  if (!(left > 0)) throw tooSlow(budgetMs);
+  const img = await decodeScan(bytes, left / 1000);
+  return readChartImage(img, settings, { budgetMs, elapsed });
 }
 
 /** The reading's wedge for one film as curve points, or null when that film wasn't read. */

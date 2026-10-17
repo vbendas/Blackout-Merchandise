@@ -8,13 +8,15 @@
 // spot, not a bare front_chest that trousers and bags would now refuse.
 import { after, before, beforeEach, mock, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
 import { eq } from 'drizzle-orm';
 import * as schema from '@db/schema';
-import { UnknownPositionError } from '@/lib/mockups/placements';
+import { COLLAR_SEAM_ROW_PX, HOODIE_POCKET_LINE_FRAC, PLACEMENTS, UnknownPositionError, pxPerCm, type PrintPosition } from '@/lib/mockups/placements';
+import { COLLAR_DISTANCE_CM } from '@/lib/print/defaults';
+import { REPRESENTATIVES, packshotFile, readingRow, type Side } from '@/scripts/measure-collar-seam';
 import { seedUser, setupTestDb, type TestDb } from '@/scripts/test/pglite';
 
 let t: TestDb;
@@ -247,16 +249,18 @@ test('a product with a front and a back composites each area on its own photo, w
   assert.deepEqual(saved.mockupViews, { front, back });
 
   // The front photo shows the red design in the chest box, the back photo the blue one in the back box.
+  const chest = PLACEMENTS['T-shirts'].positions.front_chest!;
+  const backBox = PLACEMENTS['T-shirts'].positions.back!;
   const pixel = async (image: Uint8Array, x: number, y: number) => {
     const { data, info } = await sharp(Buffer.from(image)).raw().toBuffer({ resolveWithObject: true });
     const i = (Math.round(y) * info.width + Math.round(x)) * info.channels;
     return [data[i], data[i + 1], data[i + 2]];
   };
-  const [fr, fg, fb] = await pixel(stored[0].data, 600, 0.3465 * 1500 + 120);
+  const [fr, fg, fb] = await pixel(stored[0].data, 600, chest.y * 1500 + 120);
   assert.ok(fr > fg + 60 && fr > fb + 60, `red on the front, got ${[fr, fg, fb]}`);
-  const [br, bg, bb] = await pixel(stored[1].data, (0.2929 + 0.4941 / 2) * 1200, 0.2896 * 1500 + 150);
+  const [br, bg, bb] = await pixel(stored[1].data, (backBox.x + backBox.w / 2) * 1200, backBox.y * 1500 + 150);
   assert.ok(bb > br + 60 && bb > bg + 60, `blue on the back, got ${[br, bg, bb]}`);
-  const [cr, cg, cb] = await pixel(stored[1].data, 600, 0.3465 * 1500 + 120 + 300);
+  const [cr, cg, cb] = await pixel(stored[1].data, 600, chest.y * 1500 + 120 + 300);
   assert.ok(Math.abs(cr - cg) < 20 && Math.abs(cg - cb) < 20 && cr < 160, `no red on the back, got ${[cr, cg, cb]}`);
 });
 
@@ -347,4 +351,134 @@ test('a print a product moved is at the same height in the mockup and in the pro
     assert.ok(same(higher.mockup, higher.proof), `${blankCode}: 2 cm higher, the mockup is at ${higher.mockup} and the proof at ${higher.proof}`);
     assert.ok(standard.proof - higher.proof > 25 / 1500, `${blankCode}: the proof moved up`);
   }
+});
+
+// -- the collar rule: a print starts 5 cm below the collar seam (owner, 16 Oct 2026) -----------------------------
+// On the real photos of the blank with the most colours in each garment type (the black packshot from public/), not on a
+// stand-in: where the print starts, and that it is on the garment. lib/mockups/placements.ts says how the seam was measured.
+
+const FLAGSHIPS: { blank: string; type: string; positions: PrintPosition[] }[] = [
+  { blank: 'STTU169', type: 'T-shirts', positions: ['front_chest', 'front_full', 'front_left_chest', 'back'] },
+  { blank: 'STSU177', type: 'Sweats & Hoodies', positions: ['front_chest', 'front_full', 'front_left_chest'] },
+  { blank: 'STPU222', type: 'Polos', positions: ['front_chest', 'front_full', 'front_left_chest', 'back'] },
+  { blank: 'STTK184', type: 'Kids & Baby', positions: ['front_chest', 'front_full', 'front_left_chest'] },
+];
+const photoFile = (blank: string, side: Side) => `${side === 'front' ? 'PFM0' : 'PBM0'}_${blank}_C002.png`;
+let flagshipsReady = false;
+
+/** The flagship blanks in the test database, with their real photos in the test's public folder. */
+async function ensureFlagships(): Promise<void> {
+  if (flagshipsReady) return;
+  flagshipsReady = true;
+  for (const { blank, type } of FLAGSHIPS) {
+    for (const side of ['front', 'back'] as const) await copyFile(packshotFile(blank, side), path.join(publicDir, 'packshots', photoFile(blank, side)));
+    await t.db.insert(schema.blanks).values({ code: blank, name: blank, type });
+    await t.db.insert(schema.blankColours).values({ blankCode: blank, colourCode: 'C002', frontImageUrl: `/packshots/${photoFile(blank, 'front')}`, backImageUrl: `/packshots/${photoFile(blank, 'back')}` });
+  }
+  // a red bar as wide as a print and 1/10 as tall: its top edge is where the print starts, and its width the box's
+  const bar = await sharp({ create: { width: 400, height: 40, channels: 4, background: { r: 230, g: 60, b: 90, alpha: 1 } } }).png().toBuffer();
+  await writeFile(path.join(publicDir, 'dev', 'bar.png'), bar);
+}
+
+/** Where the red of the print is in a mockup: its first and last row, and every pixel of it as an index into the picture. */
+async function redOf(image: Uint8Array): Promise<{ top: number; bottom: number; pixels: number[]; width: number }> {
+  const { data, info } = await sharp(Buffer.from(image)).raw().toBuffer({ resolveWithObject: true });
+  const pixels: number[] = [];
+  for (let i = 0; i < info.width * info.height; i++) {
+    const at = i * info.channels;
+    if (data[at] > data[at + 1] + 60 && data[at] > data[at + 2] + 40) pixels.push(i);
+  }
+  assert.ok(pixels.length > 0, 'no print in the picture');
+  return { top: Math.floor(pixels[0] / info.width), bottom: Math.floor(pixels[pixels.length - 1] / info.width), pixels, width: info.width };
+}
+
+/** The garment's own pixels on a photo: its alpha, 1200 x 1500. */
+async function garmentAlpha(blank: string, side: Side): Promise<Uint8Array> {
+  return sharp(packshotFile(blank, side)).ensureAlpha().extractChannel(3).raw().toBuffer();
+}
+
+test('a print starts at the top of its box, 5 cm below the collar seam on the real photo, and its top band is on the garment', async () => {
+  await ensureFlagships();
+  for (const { blank, type, positions } of FLAGSHIPS) {
+    for (const position of positions) {
+      const area = PLACEMENTS[type].positions[position]!;
+      const side = area.image;
+      stored.length = 0;
+      await mockups.renderDesignOnBlank({ designUrl: '/dev/bar.png', blankCode: blank, colourCode: 'C002', placement: { position, widthCm: area.widthCm } });
+      const red = await redOf(stored[0].data);
+
+      // at the top of its box, whatever the offset: none here
+      assert.ok(Math.abs(red.top - area.y * 1500) <= 2, `${blank} ${position}: the print starts at row ${red.top}, its box top is ${area.y * 1500}`);
+
+      // 5 cm below the collar seam this photo shows (the same reading the box was calibrated on), at the box's own scale
+      const reading = (REPRESENTATIVES[type][side] ?? []).find((r) => r.style === blank)!;
+      const seam = (await readingRow(reading, side))!;
+      const gap = (red.top - seam) / pxPerCm(area, 1200);
+      assert.ok(Math.abs(gap - COLLAR_DISTANCE_CM) <= 1.5, `${blank} ${position}: the print starts ${gap.toFixed(1)} cm below the collar seam (row ${seam.toFixed(0)})`);
+
+      // as wide as its box, centred on it
+      const columns = red.pixels.map((i) => i % red.width);
+      const [left, right] = [Math.min(...columns), Math.max(...columns)];
+      assert.ok(Math.abs(left - area.x * 1200) <= 3 && Math.abs(right + 1 - (area.x + area.w) * 1200) <= 3, `${blank} ${position}: the print spans ${left} to ${right}, its box ${area.x * 1200} to ${(area.x + area.w) * 1200}`);
+
+      // and on the garment: no pixel of it over the background
+      const alpha = await garmentAlpha(blank, side);
+      const off = red.pixels.filter((i) => alpha[i] < 128).length;
+      assert.equal(off, 0, `${blank} ${position}: ${off} pixels of the print are off the garment`);
+    }
+  }
+});
+
+test('a whole print a little narrower than its box is on the garment, and a hoodie\'s clears its pocket', async () => {
+  await ensureFlagships();
+  // the test design (4:3, landscape) at 90% of the usual width of each chest and back box, all of it, down to its bottom edge. A
+  // full front is wider than a tee's body below its sleeves (775 px in a 595 px body), as it was before the collar rule: not asked
+  const cases: [string, string, PrintPosition][] = [
+    ['STTU169', 'T-shirts', 'front_chest'],
+    ['STTU169', 'T-shirts', 'front_left_chest'],
+    ['STTU169', 'T-shirts', 'back'],
+    ['STSU177', 'Sweats & Hoodies', 'front_chest'],
+    ['STPU222', 'Polos', 'front_chest'],
+    ['STPU222', 'Polos', 'back'],
+    ['STTK184', 'Kids & Baby', 'front_chest'],
+  ];
+  for (const [blank, type, position] of cases) {
+    const area = PLACEMENTS[type].positions[position]!;
+    stored.length = 0;
+    await mockups.renderDesignOnBlank({ designUrl: '/dev/design.png', blankCode: blank, colourCode: 'C002', placement: { position, widthCm: Math.round(area.widthCm * 9) / 10 } });
+    const red = await redOf(stored[0].data);
+    const alpha = await garmentAlpha(blank, area.image);
+    assert.equal(red.pixels.filter((i) => alpha[i] < 128).length, 0, `${blank} ${position}: the print is off the garment`);
+    assert.ok(Math.abs(red.top - area.y * 1500) <= 2, `${blank} ${position}: starts at its box top`);
+  }
+
+  // a hoodie's full front is taller than its box above the pocket: the mockup shrinks it so it ends above the pocket line
+  const full = PLACEMENTS['Sweats & Hoodies'].positions.front_full!;
+  stored.length = 0;
+  await mockups.renderDesignOnBlank({ designUrl: '/dev/design.png', blankCode: 'STSU177', colourCode: 'C002', placement: { position: 'front_full', widthCm: full.widthCm } });
+  const red = await redOf(stored[0].data);
+  assert.ok(red.bottom <= HOODIE_POCKET_LINE_FRAC * 1500 + 2, `the print ends at row ${red.bottom}, the pocket starts at ${HOODIE_POCKET_LINE_FRAC * 1500}`);
+  assert.ok(Math.abs(red.top - full.y * 1500) <= 2, 'and still starts at the top of its box');
+  const alpha = await garmentAlpha('STSU177', 'front');
+  assert.equal(red.pixels.filter((i) => alpha[i] < 128).length, 0, 'on the garment');
+});
+
+test('a print a product moved is that far from where it would start: the offset is from the 5 cm position', async () => {
+  await ensureFlagships();
+  const area = PLACEMENTS['T-shirts'].positions.front_chest!;
+  const startsAt = async (offsetYcm?: number) => {
+    stored.length = 0;
+    await mockups.renderDesignOnBlank({ designUrl: '/dev/bar.png', blankCode: 'STTU169', colourCode: 'C002', placement: { position: 'front_chest', widthCm: 28, ...(offsetYcm === undefined ? {} : { offsetYcm }) } });
+    return (await redOf(stored[0].data)).top;
+  };
+  const standard = await startsAt();
+  const lower = await startsAt(2);
+  const higher = await startsAt(-2);
+  const perCm = pxPerCm(area, 1200);
+  assert.ok(Math.abs(lower - standard - 2 * perCm) <= 2, `2 cm lower is ${lower - standard} px, not ${2 * perCm}`);
+  assert.ok(Math.abs(standard - higher - 2 * perCm) <= 2, `2 cm higher is ${standard - higher} px`);
+  // the sheet's distance below the collar for that print is the standard 5 plus the offset: 7 cm, 3 cm
+  const seam = COLLAR_SEAM_ROW_PX['T-shirts'].front;
+  assert.ok(Math.abs((lower - seam) / perCm - (COLLAR_DISTANCE_CM + 2)) < 1.5);
+  assert.ok(Math.abs((higher - seam) / perCm - (COLLAR_DISTANCE_CM - 2)) < 1.5);
 });

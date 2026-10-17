@@ -4,13 +4,17 @@
 // lands the print where a real print sits — centred on the chest, clear of
 // collars and kangaroo pockets — without per-blank tuning.
 //
-// Every box is expressed as a fraction of the packshot image (1200x1500 for
-// every packshot we have), plus `widthCm`: the physical width, in cm, that
+// Every box is expressed as a fraction of the packshot image (the black PNGs
+// are 1200x1500, the colour webps 900x1125: the same 4:5 frame), plus `widthCm`: the physical width, in cm, that
 // the box's fractional width represents. That pair is what lets a caller
 // convert a design's `placement.widthCm` into pixels: pxPerCm = (w * imageWidthPx) / widthCm.
 // The box's own height is a usable-area guide (how far a print can extend
 // before it runs into a hem, pocket or collar) — the design itself keeps its
 // own aspect ratio and is only ever scaled by width.
+//
+// The top of a box is the standard position of a print: COLLAR_DISTANCE_CM below the collar seam (owner decision,
+// 16 Oct 2026). "Collar calibration", just above the table, says how the tops were measured and where they are not.
+import { COLLAR_DISTANCE_CM, MAX_DESIGN_CM } from '@/lib/print/defaults';
 
 export type PrintPosition = 'front_chest' | 'front_full' | 'front_left_chest' | 'back' | 'centre' | 'front_leg' | 'sleeve_left' | 'sleeve_right';
 
@@ -27,10 +31,13 @@ export interface PrintArea {
   widthCm: number;
   /** which packshot image this box is measured against */
   image: 'front' | 'back';
-  /** How far below the collar seam the top of the print sits at the standard position (this box), in cm,
-   * measured on a real garment. Unset until someone has measured it: nothing is guessed, and the job sheet
-   * says "Standard position" instead of a distance. A product's `offsetYcm` moves the print from here
-   * (positive = lower), so the real distance below the collar is this plus the offset. */
+  /** How far below the collar seam the top of the print sits at the standard position (this box), in cm: the owner's rule,
+   * COLLAR_DISTANCE_CM (16 Oct 2026), set on the front and back positions of the garments that have a collar or neck seam
+   * (T-shirts, polos, sweats and hoodies, kids' tees and sweats). Unset where there is no collar to measure from (bags,
+   * accessories, trousers) and on the types the owner has not ruled on (jackets, woven shirts): the job sheet then says
+   * "Standard position" instead of a distance. A product's `offsetYcm` moves the print from here (positive = lower), so
+   * the real distance below the collar is this plus the offset. The box on the photo shows it where "Collar calibration"
+   * below says it was measured. */
   collarDistanceCm?: number;
 }
 
@@ -56,23 +63,94 @@ export const HOODIE_POCKET_LINE_FRAC = 0.6041;
 // does (resolvePrintArea, checkPlacementPosition); it is never moved to the
 // default spot (Print-Prep-Plan section 13).
 
+/** Every packshot we have is this size or a smaller copy of it (900 x 1125), and the boxes above are fractions of it. For
+ * a caller with no photo to measure (a stand-in in a test). */
+export const STANDARD_PACKSHOT = { widthPx: 1200, heightPx: 1500 } as const;
+
+// ---------------------------------------------------------------------------
+// Collar calibration (owner decision, 16 Oct 2026)
+//
+// The top of a front or back print sits COLLAR_DISTANCE_CM (5 cm) below the collar seam, and the mockup and the proof
+// show it: the top of a box IS that standard position. So on the types below `y` is not tuned by eye. It is the collar
+// seam's row on the photo plus 5 cm at the box's own scale (pxPerCm: its width in px over its widthCm), and the usable
+// area keeps the bottom edge it had (the hem, or a hoodie's pocket line), so `h` is what is left of it. x, w and widthCm are
+// as calibrated before: only the top moved (and the T-shirts' back box, below, was centred as well).
+//
+// How the seam was measured (scripts/measure-collar-seam.ts reproduces every number here):
+//  - Photos: the black packshot (C002, a 1200 x 1500 PNG, the catalogue's own photo of every blank) of 3 to 10
+//    representative blanks per garment type: those with the most colours, unisex and women's cuts, a long sleeve, hoodies
+//    and crews.
+//  - The seam is the lowest point of the neck seam at the centre column: the outer edge of the rib on a tee, a sweatshirt or
+//    a kids' garment; the seam under the hood, below its V, on the front of a hoodie; the V where a polo's collar meets its
+//    placket. A person read each one on a 3x crop with a 5 px ruler; the script then snapped it to the strongest horizontal
+//    edge of the 21 px strip at the centre within 25 px (a polo's V is the reading itself, the button's edge being stronger).
+//    Every line was looked at drawn on its crop, and on mockups made with it. A type's seam is the median of its
+//    representatives' rows.
+//
+// Rows measured (px of 1200 x 1500), lowest to highest, and the median in COLLAR_SEAM_ROW_PX:
+//   T-shirts          front 354 380 391 396 404 407 441 458         -> 400    back 248 281 283 289 297 304 316 331  -> 293
+//   Sweats & Hoodies  front 322 331 333 388 397 401 418 422 424 482 -> 399
+//   Polos             front 296 352 355                             -> 352    back 200 245 260                      -> 245
+//   Kids & Baby       front 285 369 393 443 481                     -> 393
+//
+// What this does not do, and why:
+//  - One row per type. The blanks of a type are framed differently on their photos (a women's tee sits lower in the frame
+//    than a unisex one, a long sleeve higher, a kids' garment fills it), so the box top is 5 cm below the seam at the median
+//    blank and 2 to 9 cm below it on the others. On the representatives: T-shirts front 1.7 to 7.7 cm, back 3.0 to 7.4;
+//    Sweats & Hoodies front 0.2 to 9.4; Polos front 4.8 to 8.5, back 4.1 to 7.4; Kids & Baby front 1.4 to 9.4. The blank with
+//    the most colours of each type is within 1 cm of 5 (STTU169 4.8 front and 5.5 back, STSU177 4.9, STPU222 4.8 and 4.1,
+//    STTK184 5.0; the test holds them to 1.5). A box per blank would be exact: the script prints every blank's gap.
+//  - Sweats & Hoodies back and Kids & Baby back are as they were, with the distance set (the rule is the owner's) but the
+//    box not moved. From behind a hood hides the neck seam of a hooded garment and its tip hangs far below it (STSU177: tip at
+//    row 420, against a crew's neckband at 227 on STSU178), so no one box is 5 cm below the collar of both. The Sweats back
+//    box happens to be 4.9 cm below the median neckband of the five most popular crews, and 4 to 6 cm above the hood tip of
+//    the hoodies; the Kids back box is 7.3 cm below the kids' tee and sweatshirt neckbands. They need a hooded/crew split of
+//    the type (or a box per blank).
+//  - Jackets and Shirts (woven) have a collar, but the owner's list is T-shirts, long sleeves, polos, sweats and hoodies, and
+//    kids' tees and sweats: they keep their boxes and have no distance, so the sheet says "Standard position" for them.
+//  - Bags, accessories and trousers have no collar. The Kids & Baby table also serves the kids' joggers and shorts.
+//  - The cm are the box's, as the print beside them is drawn: the photos are not at one true scale. A tee's body is about
+//    14.3 px per cm down its photo (STTU169 size M: 73 cm from shoulder to hem over 1041 px) and the boxes draw 17.3 to 20.4.
+
+export const COLLAR_SEAM_ROW_PX = {
+  'T-shirts': { front: 400, back: 293 },
+  'Sweats & Hoodies': { front: 399 },
+  Polos: { front: 352, back: 245 },
+  'Kids & Baby': { front: 393 },
+} as const;
+const SEAM = COLLAR_SEAM_ROW_PX;
+
+const round4 = (n: number) => Math.round(n * 1e4) / 1e4;
+
+/** A print box whose top is COLLAR_DISTANCE_CM below the collar seam (`seamRowPx`, px of a STANDARD_PACKSHOT), at the box's own
+ * scale, keeping its usable area's `bottom` (a fraction of the photo's height). */
+function belowCollar(seamRowPx: number, box: { x: number; w: number; bottom: number; widthCm: number; image: 'front' | 'back' }): PrintArea {
+  const perCmPx = (box.w * STANDARD_PACKSHOT.widthPx) / box.widthCm;
+  const y = round4((seamRowPx + COLLAR_DISTANCE_CM * perCmPx) / STANDARD_PACKSHOT.heightPx);
+  return { x: box.x, y, w: box.w, h: round4(box.bottom - y), widthCm: box.widthCm, image: box.image, collarDistanceCm: COLLAR_DISTANCE_CM };
+}
+
 export const PLACEMENTS: Record<string, TypePlacement> = {
   'T-shirts': {
     defaultPosition: 'front_chest',
     positions: {
-      front_chest: { x: 0.2976, y: 0.3465, w: 0.4039, h: 0.4, widthCm: 28, image: 'front' },
-      front_full: { x: 0.1764, y: 0.3047, w: 0.6462, h: 0.5439, widthCm: 38, image: 'front' },
-      front_left_chest: { x: 0.535, y: 0.3187, w: 0.1443, h: 0.1732, widthCm: 10, image: 'front' },
-      back: { x: 0.2929, y: 0.2896, w: 0.4941, h: 0.526, widthCm: 32, image: 'back' },
+      front_chest: belowCollar(SEAM['T-shirts'].front, { x: 0.2976, w: 0.4039, bottom: 0.7465, widthCm: 28, image: 'front' }),
+      front_full: belowCollar(SEAM['T-shirts'].front, { x: 0.1764, w: 0.6462, bottom: 0.8486, widthCm: 38, image: 'front' }),
+      front_left_chest: belowCollar(SEAM['T-shirts'].front, { x: 0.535, w: 0.1443, bottom: 0.4919, widthCm: 10, image: 'front' }),
+      // x was 0.2929: 48 px right of the middle of every T-shirt back photo (all are centred at 600), so a print
+      // hung off the body on that side. Centred now, like every other back box.
+      back: belowCollar(SEAM['T-shirts'].back, { x: 0.2529, w: 0.4941, bottom: 0.8156, widthCm: 32, image: 'back' }),
     },
   },
   'Sweats & Hoodies': {
     defaultPosition: 'front_chest',
     positions: {
-      front_chest: { x: 0.2973, y: 0.3614, w: 0.4046, h: 0.22, widthCm: 28, image: 'front' },
-      front_full: { x: 0.2298, y: 0.3267, w: 0.5395, h: 0.2574, widthCm: 38, image: 'front' },
-      front_left_chest: { x: 0.5353, y: 0.3267, w: 0.1445, h: 0.1734, widthCm: 10, image: 'front' },
-      back: { x: 0.2537, y: 0.2304, w: 0.4918, h: 0.55, widthCm: 32, image: 'back' },
+      // the bottoms are where they were, above a hoodie's pocket line (HOODIE_POCKET_LINE_FRAC)
+      front_chest: belowCollar(SEAM['Sweats & Hoodies'].front, { x: 0.2973, w: 0.4046, bottom: 0.5814, widthCm: 28, image: 'front' }),
+      front_full: belowCollar(SEAM['Sweats & Hoodies'].front, { x: 0.2298, w: 0.5395, bottom: 0.5841, widthCm: 38, image: 'front' }),
+      front_left_chest: belowCollar(SEAM['Sweats & Hoodies'].front, { x: 0.5353, w: 0.1445, bottom: 0.5001, widthCm: 10, image: 'front' }),
+      // not moved: see "What this does not do"
+      back: { x: 0.2537, y: 0.2304, w: 0.4918, h: 0.55, widthCm: 32, image: 'back', collarDistanceCm: COLLAR_DISTANCE_CM },
     },
   },
   Jackets: {
@@ -88,10 +166,10 @@ export const PLACEMENTS: Record<string, TypePlacement> = {
     defaultPosition: 'front_chest',
     positions: {
       // narrower than a tee (placket + collar eat into the usable chest area)
-      front_chest: { x: 0.3145, y: 0.344, w: 0.371, h: 0.3, widthCm: 28, image: 'front' },
-      front_full: { x: 0.2571, y: 0.3128, w: 0.4858, h: 0.5472, widthCm: 38, image: 'front' },
-      front_left_chest: { x: 0.5398, y: 0.3128, w: 0.1325, h: 0.159, widthCm: 10, image: 'front' },
-      back: { x: 0.2525, y: 0.2696, w: 0.495, h: 0.4608, widthCm: 32, image: 'back' },
+      front_chest: belowCollar(SEAM.Polos.front, { x: 0.3145, w: 0.371, bottom: 0.644, widthCm: 28, image: 'front' }),
+      front_full: belowCollar(SEAM.Polos.front, { x: 0.2571, w: 0.4858, bottom: 0.86, widthCm: 38, image: 'front' }),
+      front_left_chest: belowCollar(SEAM.Polos.front, { x: 0.5398, w: 0.1325, bottom: 0.4718, widthCm: 10, image: 'front' }),
+      back: belowCollar(SEAM.Polos.back, { x: 0.2525, w: 0.495, bottom: 0.7304, widthCm: 32, image: 'back' }),
     },
   },
   Shirts: {
@@ -108,10 +186,11 @@ export const PLACEMENTS: Record<string, TypePlacement> = {
     defaultPosition: 'front_chest',
     positions: {
       // smaller reference widths across the board — kids garments are printed smaller
-      front_chest: { x: 0.3104, y: 0.3589, w: 0.3675, h: 0.3, widthCm: 18, image: 'front' },
-      front_full: { x: 0.2287, y: 0.323, w: 0.5309, h: 0.437, widthCm: 24, image: 'front' },
-      front_left_chest: { x: 0.5105, y: 0.335, w: 0.1633, h: 0.196, widthCm: 8, image: 'front' },
-      back: { x: 0.2938, y: 0.3165, w: 0.4142, h: 0.3576, widthCm: 20, image: 'back' },
+      front_chest: belowCollar(SEAM['Kids & Baby'].front, { x: 0.3104, w: 0.3675, bottom: 0.6589, widthCm: 18, image: 'front' }),
+      front_full: belowCollar(SEAM['Kids & Baby'].front, { x: 0.2287, w: 0.5309, bottom: 0.76, widthCm: 24, image: 'front' }),
+      front_left_chest: belowCollar(SEAM['Kids & Baby'].front, { x: 0.5105, w: 0.1633, bottom: 0.531, widthCm: 8, image: 'front' }),
+      // not moved: see "What this does not do"
+      back: { x: 0.2938, y: 0.3165, w: 0.4142, h: 0.3576, widthCm: 20, image: 'back', collarDistanceCm: COLLAR_DISTANCE_CM },
     },
   },
   Bottoms: {
@@ -361,8 +440,10 @@ export function defaultPlacementFor(blankType: string): { position: PrintPositio
 // ---------------------------------------------------------------------------
 // Print areas: the rules a product's areas follow (owner decision, 16 Oct 2026)
 
-/** The biggest print area: A2, portrait. A shop product's base price includes one area up to this size. */
-export const A2_CM = { widthCm: 42, heightCm: 59.4 } as const;
+// The biggest print area is MAX_DESIGN_CM (lib/print/defaults.ts), 40 x 54 cm, portrait only (owner, 16 Oct 2026). Films and
+// screens are A2 portrait at most, 42 x 59.4 cm, and the sheet holds the reg marks and a margin for ink deposit around the
+// design, so the design itself is 2 cm narrower and 5.4 cm shorter. A landscape design is too wide, whichever way it is turned.
+// A shop product's base price includes one area up to this size.
 
 /** The narrowest print the print files can be made at (validateDrop in lib/services/print-prep.ts). */
 export const MIN_PRINT_WIDTH_CM = 2;
@@ -396,10 +477,10 @@ export function printPositionLabel(position: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-/** The biggest print a position takes on a blank: the sleeve's size for a sleeve, A2 for everything else. */
+/** The biggest print a position takes on a blank: the sleeve's size for a sleeve, 40 x 54 cm (MAX_DESIGN_CM) for everything else. */
 export function maxPrintCm(blankCode: string | null | undefined, position: string): { widthCm: number; heightCm: number } {
   const kind = isSleevePosition(position) ? sleeveKindFor(blankCode) : null;
-  return kind ? SLEEVE_PRINT_MAX_CM[kind] : A2_CM;
+  return kind ? SLEEVE_PRINT_MAX_CM[kind] : MAX_DESIGN_CM;
 }
 
 const tenth = (n: number) => Math.round(n * 10) / 10;
@@ -428,7 +509,7 @@ function sideList(labels: string[]): string {
 
 /** The rules for a product's print areas (owner, 16 Oct 2026): at least one; each a position the garment takes (sleeves
  * only on a blank with sleeves); each position once; at most one front area (front chest, full front or left chest)
- * and one back; and each no bigger than A2, 42 x 59.4 cm (a sleeve: its own size). In plain words when one fails.
+ * and one back; and each no bigger than 40 x 54 cm, portrait (MAX_DESIGN_CM; a sleeve: its own size). In plain words when one fails.
  * A run's backing product (`forRun`) keeps the run's own positions, which were checked when it was quoted: only the
  * sizes are checked. */
 export function checkPrintAreas(blank: BlankRef, areas: readonly AreaSize[], opts: { forRun?: boolean } = {}): AreaCheck {
@@ -456,7 +537,9 @@ export function checkPrintAreas(blank: BlankRef, areas: readonly AreaSize[], opt
     if (!tooWide && !tooTall) continue;
     const size = height !== null && Number.isFinite(height) ? `${tenth(area.widthCm)} × ${tenth(height)} cm` : `${tenth(area.widthCm)} cm wide`;
     const kind = isSleevePosition(area.position) ? sleeveKindFor(blank.code) : null;
-    const limit = kind ? `A ${kind}-sleeve print can be at most ${max.widthCm} × ${max.heightCm} cm` : `A print area can be at most A2, ${A2_CM.widthCm} × ${A2_CM.heightCm} cm`;
+    const limit = kind
+      ? `A ${kind}-sleeve print can be at most ${max.widthCm} × ${max.heightCm} cm`
+      : `A print area can be at most ${max.widthCm} × ${max.heightCm} cm, so the reg marks and ink margin fit an A2 film`;
     return { ok: false, error: `${limit}: the ${label} print would be ${size}. Make it narrower.` };
   }
   return { ok: true };
@@ -514,8 +597,9 @@ export function productAreasOf(
 }
 
 /** The standard collar distance of a blank type's print position, in cm: how far below the collar seam
- * the top of the print sits at the standard position. Undefined when it isn't set (not measured yet),
- * and for a blank type or position that has no box, which is not an error here. */
+ * the top of the print sits at the standard position (COLLAR_DISTANCE_CM, set on the front and back positions of T-shirts,
+ * polos, sweats and hoodies and kids' garments). Undefined where there is no rule (bags, accessories, trousers, jackets,
+ * woven shirts), and for a blank type or position that has no box, which is not an error here. */
 export function standardCollarDistanceCm(blankType: string | undefined, position: string): number | undefined {
   const table = blankType === undefined ? undefined : tableFor(blankType);
   if (!table || !Object.hasOwn(table.positions, position)) return undefined;
@@ -545,9 +629,10 @@ export function describePrintHeight(standardCm: number | undefined, offsetCm: nu
   return { text: `Standard position, ${Math.abs(offset)} cm ${offset > 0 ? 'lower' : 'higher'}`, collarKnown: false };
 }
 
-/** The line under a sheet's garments when some row could only say "Standard position". */
+/** The line under a sheet's garments when some row could only say "Standard position": a garment with no collar to measure
+ * from (a bag, a cap, trousers), or a type the owner's 5 cm rule doesn't cover (jackets, woven shirts). */
 export const COLLAR_DISTANCE_UNSET_NOTE =
-  "Standard position is the usual place for that garment and position. The standard collar distance isn't set yet, so these rows give the offset from it, not a distance below the collar.";
+  "Standard position is the usual place for that garment and position. These garments have no standard distance below the collar, so these rows give the offset from it, not a distance below the collar.";
 
 /** Pixels-per-cm implied by a print area measured against an image of the given width. */
 export function pxPerCm(area: PrintArea, imageWidthPx: number): number {
@@ -559,13 +644,10 @@ export function pxPerCm(area: PrintArea, imageWidthPx: number): number {
 // product moved sits at the same height in both. Only the print is placed here: a mockup also shrinks a
 // print to clear a hoodie's pocket (a picture can), a proof never does (it shows the print as made).
 
-/** Every packshot we have is this size, and the boxes above are fractions of it. For a caller with no
- * photo to measure (a stand-in in a test). */
-export const STANDARD_PACKSHOT = { widthPx: 1200, heightPx: 1500 } as const;
-
 /** How far a product's vertical offset moves a print, in packshot pixels (positive = lower). A cm on the
  * photo is `pxPerCm` px: the box is `widthCm` wide and spans `w` of the photo's width. The offset is from
- * the box's own top, the standard position; it is not a distance from the collar. */
+ * the box's own top, the standard position (COLLAR_DISTANCE_CM below the collar seam where "Collar
+ * calibration" says so); it is not itself a distance from the collar. */
 export function printOffsetPx(area: PrintArea, imageWidthPx: number, offsetYcm: number | undefined): number {
   return (offsetYcm ?? 0) * pxPerCm(area, imageWidthPx);
 }

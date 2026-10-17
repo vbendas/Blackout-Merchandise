@@ -25,6 +25,15 @@
  *     prints 2.00 = 20.00", priced at 39 euros. It stays a draft: the sleeve's design waits for the artist, so
  *     publishing names the left sleeve print, and the Sunset star's approval page shows two print areas, the
  *     sleeve as its flat, true-size proof. Approve the Sunset star, then publish the tour tee.
+ *   - the production stations (/station) worked as Production (Marc) works them, through the same services:
+ *       the Underwriter run   on the press: 56 of 160 printed, the darks screens on the press and the lights
+ *                             screens still being made (one ready, one film printed, the rest waiting), so the move
+ *                             to printing was forced and is in the activity log; the order moved to printing itself;
+ *       the Underwriter shop  sale (Jordi's): a DTG job queued; the earlier sale shipped, so its job reads shipped;
+ *       a second shop         Low Tide, with its own artist and lettering: a DTG run of 40 white tees, every piece
+ *                             counted and the job in curing;
+ *     and the website's "On the press" board (/api/public/on-the-press): the Underwriter shop opted in, so its
+ *     rows carry its name; Low Tide did not, so its row reads "Private".
  *
  * Orders, products, runs and approvals go through the real services (checkout and the mock Stripe,
  * quotes and proofs, the publishing gate), the same calls the app makes. Running it takes a few minutes
@@ -151,7 +160,7 @@ function pinEnvironment({ db, storage }: Folders): void {
 // The build
 
 interface ArtSpec {
-  key: 'underwriter' | 'sunset-star' | 'tour-back';
+  key: 'underwriter' | 'sunset-star' | 'tour-back' | 'low-tide';
   file: string;
 }
 
@@ -291,7 +300,7 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
   if (sizes.length === 0) throw new Error(`The ${BLANK} has none of the sizes ${SIZES.join(', ')} in the catalogue.`);
 
   // -- the designs: art in print storage, named by the route that serves it ----------
-  async function addDesign(spec: ArtSpec): Promise<string> {
+  async function addDesign(spec: ArtSpec, storeId: string = store.id): Promise<string> {
     const bytes = await readFile(path.join(__dirname, 'fixtures', 'print', spec.file));
     const meta = await sharp(bytes).metadata();
     const id = randomUUID();
@@ -301,7 +310,7 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
     const widthPx = meta.width ?? 0;
     await db.insert(schema.designs).values({
       id,
-      storeId: store.id,
+      storeId,
       source: 'upload',
       originalUrl: url,
       printUrl: url,
@@ -423,13 +432,60 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
     return { bulkOrderId: quote.id, orderId: paid.orderId };
   }
   const runA = await run([
-    { productId: tee, colourCode: BLACK, sizes: { S: 10, M: 30, L: 20 } },
-    { productId: tee, colourCode: NAVY, sizes: { M: 20, L: 10 } },
-    { productId: teeWhite, colourCode: WHITE, sizes: { M: 15, L: 10, XL: 5 } },
+    { productId: tee, colourCode: BLACK, sizes: { S: 10, M: 30, L: 30, XL: 10 } },
+    { productId: tee, colourCode: NAVY, sizes: { M: 20, L: 20 } },
+    { productId: teeWhite, colourCode: WHITE, sizes: { M: 15, L: 15, XL: 10 } },
   ]);
-  must(await production.advance(runA.orderId, 'printing'), 'the run goes on the press');
-  await recordStaffActivity(marc, { area: 'production', action: 'production.advance', itemType: 'order', itemId: runA.orderId, detail: { to: 'printing', summary: 'Moved a run to printing' } });
-  log('Underwriter: a screen-printed run on the press');
+  log('Underwriter: a screen-printed run of 160 paid');
+
+  // -- the production stations, worked as Production works them (the same services as the iPads' actions) ------------
+  const progress = await import('../lib/services/production-progress');
+  const asMarc = { actor: marc };
+  /** The job at the stations that prints this design by this method (the payment and approval hooks made it). */
+  async function stationJob(designId: string, method: 'screen' | 'dtg' | 'dtf') {
+    await progress.syncProductionJobs();
+    const listed = must(await progress.listStationJobs(asMarc, 'all'), 'list the station jobs');
+    const found = listed.find((job) => job.designId === designId && job.method === method);
+    if (!found) throw new Error(`No ${method} job for design ${designId} at the stations.`);
+    return must(await progress.getStationJob(asMarc, found.jobId), 'open a station job');
+  }
+
+  // The run on the press: the darks screens (black and French Navy) are on it, the lights (white) are still being made.
+  // (Should the engine ever make one set only, its first half is on the press and the rest is being made.)
+  let press = await stationJob(underwriter, 'screen');
+  if (press.screens.length < 2) throw new Error('The Underwriter run has too few screens to show in mixed states.');
+  const setNames = new Set(press.screens.map((screen) => screen.setName));
+  const beingMade = setNames.has('Lights') && setNames.size > 1 ? press.screens.filter((screen) => screen.setName === 'Lights') : press.screens.slice(Math.ceil(press.screens.length / 2));
+  for (const screen of press.screens.filter((s) => !beingMade.includes(s))) press = must(await progress.setScreenStatus(asMarc, press.jobId, screen.key, 'on_press'), 'a darks screen on the press');
+  const madeStates = ['screen_ready', 'film_printed'] as const;
+  for (const [i, screen] of beingMade.entries()) {
+    if (madeStates[i]) press = must(await progress.setScreenStatus(asMarc, press.jobId, screen.key, madeStates[i]), 'a lights screen being made');
+  }
+  // The darks print while the lights screens are made: a forced move, which the activity log keeps.
+  press = must(await progress.setJobStage(asMarc, press.jobId, 'printing', { force: true }), 'the run goes on the press');
+  // Counted tap by tap, as the press runs: black S and M all printed, 16 of the 20 French Navy M (56 of 160).
+  const lineOf = (colourName: string, size: string) => {
+    const line = press.lines.find((l) => l.colourName === colourName && l.size === size);
+    if (!line) throw new Error(`The press job has no ${colourName} ${size} line.`);
+    return line;
+  };
+  const taps: [string, string, number[]][] = [
+    ['Black', 'S', [5, 5]],
+    ['Black', 'M', [10, 10, 10]],
+    ['French Navy', 'M', [10, 6]],
+  ];
+  for (const [colourName, size, counts] of taps) {
+    for (const n of counts) press = must(await progress.adjustPrintedCount(asMarc, press.jobId, lineOf(colourName, size).key, n), `count ${colourName} ${size}`);
+  }
+  if (press.printed !== 56 || press.total !== 160 || press.stage !== 'printing') throw new Error(`The press job reads ${press.printed} of ${press.total} (${press.stage}), not 56 of 160 printing.`);
+  const [runOrder] = await db.select({ status: schema.orders.productionStatus }).from(schema.orders).where(eq(schema.orders.id, runA.orderId));
+  if (runOrder?.status !== 'printing') throw new Error(`The run's order is ${runOrder?.status}, not printing: its first printed piece moves it.`);
+  log(`Underwriter: the run on the press, ${press.printed} of ${press.total} printed, ${press.screensReady} of ${press.screensTotal} screens ready (darks on the press, lights being made)`);
+
+  // Jordi's sale: a DTG job waiting at the DTG station. The earlier sale shipped, so its job reads shipped (on the board for 48 h).
+  const queuedDtg = await stationJob(underwriter, 'dtg');
+  if (queuedDtg.stage !== 'queued') throw new Error(`The Underwriter DTG job is ${queuedDtg.stage}, not queued.`);
+  log(`Underwriter: a DTG job queued, ${queuedDtg.total} pieces`);
 
   const sheetA = await jobSheets.getDesignJobSheet(owner, underwriter);
   if (!sheetA) throw new Error('The Underwriter has no job sheet.');
@@ -521,6 +577,63 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
   }
   log('Underwriter tour tee: front and back pictures from the proofs');
 
+  // =========================================================================
+  // Low Tide: a second shop, a DTG run printed and curing, "Private" on the board
+  // =========================================================================
+  const [lowTideArtist] = await db
+    .insert(schema.users)
+    .values({ clerkId: 'demo:low-tide', email: 'lowtide@merchfrom.test', displayName: 'Mar Puig', role: 'artist' })
+    .returning({ id: schema.users.id });
+  const [lowTide] = await db
+    .insert(schema.artistStores)
+    .values({ artistId: lowTideArtist.id, slug: 'low-tide', name: 'Low Tide', isPublished: true, publishedAt: new Date(), country: 'ES', currency: 'EUR', about: 'Low Tide: surf rock from the coast north of Barcelona.' })
+    .returning();
+  await db.insert(schema.stripeAccounts).values({ storeId: lowTide.id, accountId: 'acct_demo_low_tide', chargesEnabled: true, payoutsEnabled: true, requirements: [], lastSyncedAt: new Date() });
+  // The lettering is near-black, so on a black tee nothing would print (and the set would block approval): white tees only.
+  const lowTideArt = await addDesign({ key: 'low-tide', file: 'lettering-1c.png' }, lowTide.id);
+  const lowTideTee = must(
+    await products.createProduct({ storeId: lowTide.id, designId: lowTideArt, blankCode: BLANK, printServiceCode: 'dtg', placement: PLACEMENT, colours: [WHITE], sizes, name: 'Low Tide lettering tee' }),
+    'create "Low Tide lettering tee"',
+  );
+  must(await printPrep.preparePrint({ storeId: lowTide.id, userId: lowTideArtist.id, designId: lowTideArt, blankCode: BLANK, garmentCodes: [WHITE], placements }), 'prepare the Low Tide lettering');
+  log('Low Tide: the engine is running...');
+  await drainPrintQueue('local-demo', (line) => log(`Low Tide: ${line}`));
+  const lowTideView = await printPrep.getApprovalView({ storeId: lowTide.id, designId: lowTideArt });
+  if (!lowTideView?.canApprove) throw new Error('The Low Tide lettering is not ready for its artist to approve.');
+  must(await printPrep.approveDesign({ storeId: lowTide.id, userId: lowTideArtist.id, designId: lowTideArt, versionId: lowTideView.versionId }), 'Low Tide approves its lettering');
+  const lowTideDtg = (await pipeline.loadCurrentPacks(lowTideView.versionId)).find((pack) => pack.technique === 'dtg_dtf');
+  if (!lowTideDtg) throw new Error('The Low Tide lettering has no DTG/DTF files.');
+  must(await prepress.approvePack(ines, lowTideDtg.id), 'pre-press approves the Low Tide DTG files');
+
+  // The run: 40 white tees printed DTG, quoted, proofed, approved and paid as an artist does it.
+  const lowTideQuote = must(
+    await bulk.createBulkQuote({
+      storeId: lowTide.id,
+      shipTo: { name: 'Low Tide', line1: 'Passeig Maritim 12', city: 'Mataro', postcode: '08301', country: 'ES' },
+      lines: [{ productId: lowTideTee.id, printServiceCode: 'dtg', colourCode: WHITE, sizes: { S: 10, M: 15, L: 10, XL: 5 } }],
+    }),
+    'quote the Low Tide run',
+  );
+  const lowTideProof = must(await bulk.submitBulkProof(lowTide.id, lowTideQuote.id), 'submit the Low Tide proof');
+  must(await bulk.approveBulkProof(lowTide.id, lowTideProof.id, lowTideArtist.id), 'Low Tide approves its proof');
+  const lowTideCheckout = must(await buildBulkCheckout(lowTide.id, lowTideQuote.id), 'Low Tide checkout');
+  const lowTidePaid = must(await bulk.markBulkPaid(lowTideCheckout.sessionId, await gateway.retrieveCheckoutSession(lowTideCheckout.sessionId)), 'pay the Low Tide run');
+
+  // At the DTG station: every piece printed, then into curing (all printed, so no force).
+  let curing = await stationJob(lowTideArt, 'dtg');
+  for (const line of curing.lines) curing = must(await progress.setPrintedCount(asMarc, curing.jobId, line.key, line.total), 'count a Low Tide line');
+  curing = must(await progress.setJobStage(asMarc, curing.jobId, 'curing'), 'the Low Tide run into curing');
+  if (curing.stage !== 'curing' || curing.printed !== curing.total) throw new Error(`The Low Tide job reads ${curing.printed} of ${curing.total} (${curing.stage}), not every piece in curing.`);
+  log(`Low Tide: a DTG run of ${curing.total} printed and curing`);
+
+  // -- the website's board: the Underwriter shop opted in, Low Tide did not ---------------------------------------------
+  const stores = await import('../lib/services/stores');
+  if (!(await stores.setPressBoardOptIn(store.id, true))) throw new Error('The Underwriter shop could not opt in to the press board.');
+  const board = await progress.onThePressFeed();
+  for (const row of board) log(`press board: ${row.client} · ${row.piece} · ${row.printed}/${row.total} · ${row.ink} · ${row.stage}`);
+  if (!board.some((row) => row.client === store.name && row.stage === 'ON THE PRESS')) throw new Error('The press board does not show the Underwriter run on the press by name.');
+  if (!board.some((row) => row.client === 'Private' && row.stage === 'CURING')) throw new Error('The press board does not show the Low Tide run as Private, curing.');
+
   // -- what the build left ----------------------------------------------------
   const packRows = await db.select().from(schema.productionPacks);
   const byAudit: Record<string, number> = {};
@@ -534,6 +647,12 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
     jobSheets: { underwriter: sheetA.filename, sunset: sheetB.filename },
     shopPrices: priced,
     tourTee: { id: tourTee.id, basePrice: tourBase, retailCents: 3900, designs: { front: underwriter, back: tourBack, sleeveLeft: sunset }, publishable: tourGate.ok },
+    stations: {
+      onThePress: { jobId: press.jobId, printed: press.printed, total: press.total, screensReady: press.screensReady, screensTotal: press.screensTotal },
+      dtgQueued: { jobId: queuedDtg.jobId, total: queuedDtg.total },
+      curing: { jobId: curing.jobId, shop: lowTide.slug, total: curing.total, run: lowTidePaid.id },
+    },
+    pressBoard: board.map((row) => `${row.client} · ${row.piece} · ${row.printed}/${row.total} · ${row.stage}`),
   };
 }
 

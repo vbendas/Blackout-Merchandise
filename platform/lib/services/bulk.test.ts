@@ -181,7 +181,7 @@ test('the proof says which print method the artist is approving', async () => {
   const row = proof.value.spec.find((s) => s.label === 'Print method');
   // A screen line says "Screen print": the number in its service name is only a first guess at the colours.
   assert.equal(row?.value, 'Screen print, Direct-to-film print');
-  assert.match(proof.value.spec.find((s) => /^Screens · .* · Black$/.test(s.label))?.value ?? '', /^Estimate: 4 screens: no surcharge$/);
+  assert.match(proof.value.spec.find((s) => /^Colours · .* · Black$/.test(s.label))?.value ?? '', /^Front chest · 4 colours \(estimate\): no surcharge$/);
 });
 
 // -- paying -------------------------------------------------------------------------------

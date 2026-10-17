@@ -658,7 +658,20 @@ export async function approvePack(actor: Actor, packId: string): Promise<Service
 
   // The design's job sheet shows the sign-off (who and when are on the pack row), so the next time it is opened it says so.
   await printDeps().recordActivity(actor, { area: 'prepress', action: 'pack.approve', itemType: 'production_pack', itemId: pack.id });
+  // The orders waiting on it reach the stations (and the press board) once all their files are approved.
+  await syncProductionJobsAfter('a pack was approved');
   return { ok: true, value: null };
+}
+
+/** Brings the production stations' jobs up to date (lib/services/production-progress.ts, loaded when called: it imports
+ * this module). Never throws. */
+async function syncProductionJobsAfter(reason: string): Promise<void> {
+  try {
+    const { syncProductionJobsQuietly } = await import('@/lib/services/production-progress');
+    await syncProductionJobsQuietly(reason);
+  } catch (err) {
+    console.error(`[prepress] could not update the production jobs after ${reason}:`, err instanceof Error ? err.message : err);
+  }
 }
 
 /** Production stages past the queue: once an order is in one of them, the shirts are being made from the pack's files. */
@@ -1223,6 +1236,8 @@ export async function markPacksNeededForOrder(orderId: string): Promise<void> {
   } catch (err) {
     console.error(`[prepress] could not work out the packs order ${orderId} needs:`, err instanceof Error ? err.message : err);
   }
+  // A shop sale or a run whose files pre-press already approved goes straight to the stations' queue.
+  await syncProductionJobsAfter('an order was paid');
 }
 
 /** The same, for orders already waiting when a build finishes: attaches what exists and builds nothing more. */

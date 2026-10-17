@@ -300,12 +300,12 @@ test('changing the screen count tells the artist the price effect, in the same w
     assert.equal(proofCard(r.ui)!.status, 'preparing', 'the screen print is being made again');
     return r.data.note;
   };
-  assert.equal(await note(6), 'No surcharge on a run.');
-  assert.equal(await note(8), 'No surcharge on a run.');
+  assert.equal(await note(6), 'No surcharge on a run for the print positions of this design.');
+  assert.equal(await note(8), 'No surcharge on a run for the print positions of this design.');
   // A ceiling: the separation may use fewer screens than allowed, and the new proof says how many.
-  assert.equal(await note(9), 'The new separation uses up to 9 screens. On a run, each screen above 8 adds €1 per piece, so up to €1 per piece; the new proof shows the actual count.');
-  assert.equal(await note(12), 'The new separation uses up to 12 screens. On a run, each screen above 8 adds €1 per piece, so up to €4 per piece; the new proof shows the actual count.');
-  assert.equal(await note(15), 'The new separation uses up to 15 screens. On a run, each screen above 8 adds €1 per piece, so up to €7 per piece; the new proof shows the actual count.');
+  assert.equal(await note(9), 'The new separation uses up to 9 colours. On a run, each colour above 8 adds €1 per piece on each print position of this design, so up to €1 per piece on each; the new proof shows the actual count.');
+  assert.equal(await note(12), 'The new separation uses up to 12 colours. On a run, each colour above 8 adds €1 per piece on each print position of this design, so up to €4 per piece on each; the new proof shows the actual count.');
+  assert.equal(await note(15), 'The new separation uses up to 15 colours. On a run, each colour above 8 adds €1 per piece on each print position of this design, so up to €7 per piece on each; the new proof shows the actual count.');
 });
 
 // -- the pre-press team's tools --------------------------------------------------------

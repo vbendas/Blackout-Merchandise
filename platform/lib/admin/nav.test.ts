@@ -171,9 +171,12 @@ test('every admin page checks access before it reads anything', () => {
 
 test('each sidebar page asks for the same area and level as its sidebar entry', () => {
   const problems: string[] = [];
+  const checked: string[] = [];
   for (const entry of ADMIN_NAV) {
-    const file = path.join(ROOT, 'app/(chat)', entry.href, 'page.tsx');
-    if (!fs.existsSync(file)) continue; // a page still being built elsewhere
+    // Admin pages live under app/(chat); the production stations (/station) are an app of their own under app/.
+    const file = [path.join(ROOT, 'app/(chat)', entry.href, 'page.tsx'), path.join(ROOT, 'app', entry.href, 'page.tsx')].find((candidate) => fs.existsSync(candidate));
+    if (!file) continue; // a page still being built elsewhere
+    checked.push(entry.href);
     const sourceFile = parse(file);
     const fn = defaultExport(sourceFile);
     const found = fn?.body ? firstGate(fn.body, sourceFile) : { problem: 'no page function' };
@@ -187,6 +190,7 @@ test('each sidebar page asks for the same area and level as its sidebar entry', 
     }
   }
   assert.deepEqual(problems, []);
+  assert.ok(checked.includes('/station'), 'the Stations entry is checked against app/station/page.tsx');
 });
 
 test('every admin server action checks access before anything else', () => {

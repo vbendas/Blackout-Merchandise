@@ -58,6 +58,18 @@ export async function updateStore(storeId: string, patch: UpdateStorePatch): Pro
   return { ok: true, store: updated };
 }
 
+/** The artist's choice for the website's "On the press" board: on, what is printed for their shop (runs and shop orders)
+ * shows the shop's name there beside the piece, the quantity, the ink and the stage; off (the default), it reads
+ * "Private". Scoped to the shop, which the caller takes from the session. False when there is no such shop. */
+export async function setPressBoardOptIn(storeId: string, show: boolean): Promise<boolean> {
+  const updated = await db
+    .update(schema.artistStores)
+    .set({ showOnPressBoard: show === true, updatedAt: new Date() })
+    .where(eq(schema.artistStores.id, storeId))
+    .returning({ id: schema.artistStores.id });
+  return updated.length > 0;
+}
+
 export interface StoreSummary {
   id: string;
   name: string;

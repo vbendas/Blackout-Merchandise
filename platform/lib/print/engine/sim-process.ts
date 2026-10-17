@@ -13,7 +13,7 @@
 // art (ΔE2000 over small squares of the films, as an info warning), and the
 // proof is drawn from the same films with the same model (proof.ts).
 import type { GarmentColour, Hex, InkPlate, PlateRole, PrintRecipe, ScreenSet, Warning } from '@/lib/print/types';
-import { ENGINE_TUNING, WHITE_INK_HEX } from '@/lib/print/defaults';
+import { ENGINE_TUNING, WHITE_INK_HEX, filmLayout } from '@/lib/print/defaults';
 import { SRGB8_TO_LINEAR, deltaE2000, hexToLab, hexToRgb8, linearToLab, roundLab, type Vec3 } from './colour';
 import { compositeOver, type JoinCheck, type SetAnalysis, type WorkGrid } from './analyse';
 import type { DotGainCurve } from './halftone';
@@ -192,7 +192,7 @@ export type SimRenderInput = RenderInput & {
 export function renderSimProcessSet(input: SimRenderInput): ScreenSet {
   const { analysis: a, size, recipe, inks, label, grid } = input;
   const plan = input.sim ?? planSimProcess(grid, a, recipe);
-  const canvas = canvasSpec(size, recipe.marks.marginMm);
+  const canvas = canvasSpec(size, filmLayout(recipe.marks));
   const W = canvas.widthPx;
   const H = canvas.heightPx;
   const art = canvas.art;
@@ -248,8 +248,8 @@ export function renderSimProcessSet(input: SimRenderInput): ScreenSet {
       halftone: { ...recipe.halftone },
       meshSuggestion: p.role === 'underbase' ? inks.mesh.underbase : halftonedShare[i] > 0.05 ? inks.mesh.halftone : inks.mesh.solid,
     };
-    drawTargets(data, canvas, recipe.marks.targetOffsetMm);
-    drawLabelStrip(data, canvas, recipe.marks.targetOffsetMm, plateLabelLines(label, setName, plate, total, inks));
+    drawTargets(data, canvas);
+    drawLabelStrip(data, canvas, plateLabelLines(label, setName, plate, total, inks));
     return plate;
   });
 

@@ -233,12 +233,13 @@ export function ShopPriceEditor({
         <h2 id={id('extras')} className="mf-label">
           Extras for more print areas
         </h2>
+        <p className="pp-dim">The same two extras are added to a DTG or DTF run that prints more than one position. Screen-printed runs count colours on each position instead.</p>
         <div className="prc-rows">
           <div className="prc-row">
             <div className="prc-k">
               <label htmlFor={id('extras.secondMain')}>Front and back</label>
               <span className="prc-hint">
-                Added once when a product prints on the front and on the back. The base price already covers one print area, up to A2 (42 × 59.4 cm), on the front or the back.
+                Added once when a product prints on the front and on the back. The base price already covers one print area, up to A2 (a design up to 40 × 54 cm), on the front or the back.
               </span>
             </div>
             <div className="prc-v">

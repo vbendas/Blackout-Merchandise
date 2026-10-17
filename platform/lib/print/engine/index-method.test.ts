@@ -400,11 +400,11 @@ test('marks and label strips are the spot films’ own', async () => {
     for (let y = 0; y < b.height; y++) out.set(data.subarray((b.y + y) * W + b.x, (b.y + y) * W + b.x + b.width), y * b.width);
     return sha256(out);
   };
-  for (const b of targetBoxes(index.canvas, r.input.recipe.marks.targetOffsetMm)) {
+  for (const b of targetBoxes(index.canvas)) {
     const want = crop(spot.plates[0].plate.data, b);
     for (const p of index.plates) assert.equal(crop(p.plate.data, b), want, `target on film ${p.index}`);
   }
-  // the top margin (top target and the 'Top' and 'Print as is' labels) is the same on every film of both
+  // the top margin (the top targets and the 'Top' and 'Print as is' labels) is the same on every film of both
   const top = { x: 0, y: 0, width: W, height: index.canvas.art.y };
   const want = crop(spot.plates[0].plate.data, top);
   for (const p of index.plates) assert.equal(crop(p.plate.data, top), want, `top margin on film ${p.index}`);

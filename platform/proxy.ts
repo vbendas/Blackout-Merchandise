@@ -24,6 +24,8 @@ export const APP_SEGMENTS: ReadonlySet<string> = new Set([
   'sign-in',
   'sign-up',
   'staff-invite',
+  // the production stations' iPads (app/station): Production access, never a shop address
+  'station',
   'studio',
   'terms',
   // reserved by registration only (/chat redirects to /studio in next.config.ts)
@@ -51,8 +53,9 @@ const PUBLIC_ROUTES = [
   '/mock-checkout/:sessionId',
   '/api/stripe/checkout',
   '/api/orders/:token',
-  // The website's Apply form.
+  // The website's Apply form, and its "On the press" board (no personal data).
   '/api/apply',
+  '/api/public/on-the-press',
   // Employees: the invite link answers a signed-out visitor itself, sending
   // them to sign-in with the invited address filled in and the link to come
   // back to. Accepting needs a session (app/staff-invite/actions.ts).

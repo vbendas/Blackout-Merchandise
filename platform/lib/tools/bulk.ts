@@ -19,7 +19,7 @@ import { listRunsForStore, runNumberFor } from '@/lib/services/runs';
 import { blankDisplayName } from '@/lib/catalog/display-names';
 import { runLabel } from '@/lib/format/runs';
 import { humanStatus } from '@/lib/format/status';
-import { EXTRA_SCREEN_CENTS_PER_PIECE, SCREEN_RULE, STANDARD_MAX_SCREENS, euros as eurosShort, screensLabel } from '@/lib/pricing/screen-print';
+import { SCREEN_RULE, STANDARD_MAX_SCREENS, coloursLabel, describeRunLine, eurosFixed, positionLabel, runExtrasCents, screenPriceLine, screenSurchargeCents } from '@/lib/pricing/screen-print';
 import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
 
 // Run tools (service path B — Platform-Plan.md §0/§4/§6). A run is what the
@@ -37,11 +37,15 @@ import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
 // card, kind 'bulk_order'), mirroring how lib/tools/products.ts resolves an
 // omitted productId.
 //
-// A screen-printed line is priced by the screens its design really uses
-// (Print-Prep-Plan section 10). The quote explains it: each such line's count and
-// price effect go back to the model (`screenPrint`), a surcharge or a guess gets a
-// notice card, and the next steps offer fewer screens (change_screen_count, in
-// lib/tools/print.ts) or preparing the print files.
+// A screen-printed line is priced by the screens each print position's design
+// really uses (Print-Prep-Plan section 10), and the screens above 8 are a euro a
+// piece on EACH position (owner, 16 Oct 2026). The quote explains it position by
+// position: each such line's colours and price effect go back to the model
+// (`screenPrint`, with a `positions` list), a surcharge or a guess gets a notice
+// card, and the next steps offer fewer colours on a position (change_screen_count,
+// in lib/tools/print.ts, with that position's own design) or preparing the print
+// files. A DTG/DTF line that prints more than one position pays the shop's extras
+// for them (`printAreas`), which a notice explains too.
 
 // -- words ---------------------------------------------------------------
 
@@ -83,8 +87,8 @@ function infoNotice(id: string, text: string): Card {
   return { id, kind: 'notice', tone: 'info', text };
 }
 
-/** The message approveBulkProof gives when the design's screens changed after the proof was sent. */
-const SCREENS_MOVED = /^The screens changed since this proof was sent/;
+/** The message approveBulkProof gives when the design's colours (screens) changed after the proof was sent. */
+const SCREENS_MOVED = /^The colours changed since this proof was sent/;
 
 /** The message a quote gives when a design needs more screens than the press can print (quoteScreenLine). */
 const TOO_MANY_SCREENS = /more than the \d+ we can print/;
@@ -369,23 +373,59 @@ function runFacts(detail: BulkOrderDetail, run: RunRef) {
 
 // -- screens ---------------------------------------------------------------
 
+/** One print position of a screen-printed line, as the model gets it. */
+interface PositionFact {
+  /** 'Back' */
+  position: string;
+  /** 'Back · 10 colours: +€2.00' */
+  line: string;
+  /** the design printed at this position, which can differ from the line's: what change_screen_count takes to bring ITS count down */
+  designId: string | null;
+  /** the colours (screens) this position's design prints */
+  colours: number;
+  surchargeCentsPerPiece: number;
+  /** a guess, not the design's print files */
+  estimate: boolean;
+  /** what fewer colours on this position would do, when it carries a surcharge */
+  fewerScreens?: { screens: number; savesCentsPerPiece: number };
+}
+
 /** One screen-printed line, as the model gets it. */
 interface ScreenFact {
   /** 'Tee · Black' */
   line: string;
-  /** what change_screen_count takes to bring the count down */
+  /** the line's own design (a position can print another: see positions) */
   designId: string | null;
   /** the most screens any print position of the line uses */
   screens: number;
-  /** '11 screens: +€3 per piece', 'Estimate: 4 screens: no surcharge' */
+  /** every position's line, joined: 'Front chest · 10 colours: +€2.00; Back · 10 colours: +€2.00 (+€4.00 per piece in all)' */
   effect: string;
+  /** all positions */
   surchargeCentsPerPiece: number;
-  /** a guess, not the design's print files */
+  /** a guess on at least one position, not the design's print files */
   estimate: boolean;
   /** why it is a guess, or what to know about the count */
   note?: string;
-  /** what fewer screens would do, on a line that carries a surcharge */
+  /** what fewer screens on every surcharged position would do, on a line that carries a surcharge */
   fewerScreens?: { screens: number; savesCentsPerPiece: number };
+  /** each print position with its own colours, its own surcharge and its own design: the surcharge is counted per position */
+  positions: PositionFact[];
+}
+
+function positionFacts(line: BulkOrderDetail['lines'][number]): PositionFact[] {
+  return (line.screens?.placements ?? []).map((p): PositionFact => {
+    // A line quoted before positions recorded their own surcharge has it worked out from the count, by the same fixed rule.
+    const surcharge = p.surchargeCents ?? screenSurchargeCents(p.screens);
+    return {
+      position: positionLabel(p.position),
+      line: describeRunLine(screenPriceLine(p)),
+      designId: p.designId ?? line.designId,
+      colours: p.screens,
+      surchargeCentsPerPiece: surcharge,
+      estimate: p.basis === 'estimate',
+      ...(surcharge > 0 ? { fewerScreens: { screens: STANDARD_MAX_SCREENS, savesCentsPerPiece: surcharge } } : {}),
+    };
+  });
 }
 
 function screenFacts(detail: BulkOrderDetail): ScreenFact[] {
@@ -402,36 +442,70 @@ function screenFacts(detail: BulkOrderDetail): ScreenFact[] {
         estimate: l.screens.basis === 'estimate',
         ...(l.screens.note ? { note: l.screens.note } : {}),
         ...(surcharge > 0 ? { fewerScreens: { screens: STANDARD_MAX_SCREENS, savesCentsPerPiece: surcharge } } : {}),
+        positions: positionFacts(l),
       },
     ];
   });
 }
 
-/** What the model is told about a run's screens: each line's count and effect, and the rule to explain it by. Nothing for a run
- * with no screen-printed line. */
-function screenData(detail: BulkOrderDetail): Pick<RunData, 'screenPrint' | 'estimate' | 'screenRule'> {
+/** A DTG/DTF line that prints more than one position, as the model gets it: the shop's extras it pays for them. */
+interface PrintAreaFact {
+  /** 'Tee · Black' */
+  line: string;
+  /** 'Front and back: +€1.00', 'Sleeve prints: +€2.00' */
+  extras: string[];
+  extraCentsPerPiece: number;
+}
+
+function printAreaFacts(detail: BulkOrderDetail): PrintAreaFact[] {
+  return detail.lines.flatMap((l): PrintAreaFact[] => {
+    if (l.screens || !l.extras || l.extras.length === 0) return [];
+    return [{ line: `${lineName(l)} · ${l.colourName}`, extras: l.extras.map(describeRunLine), extraCentsPerPiece: runExtrasCents(l.extras) }];
+  });
+}
+
+/** What the model is told about a run's price per print position: each screen-printed line's colours and effect position by
+ * position, and the rule to explain it by; each DTG/DTF line's extras for more positions. Nothing for a run with neither. */
+function screenData(detail: BulkOrderDetail): Pick<RunData, 'screenPrint' | 'estimate' | 'screenRule' | 'printAreas'> {
   const facts = screenFacts(detail);
-  if (facts.length === 0) return {};
+  const areas = printAreaFacts(detail);
   return {
-    screenPrint: facts,
-    estimate: facts.some((f) => f.estimate),
-    screenRule: `${SCREEN_RULE} Fewer screens change the look, and the artist approves the new proof again.`,
+    ...(facts.length > 0
+      ? {
+          screenPrint: facts,
+          estimate: facts.some((f) => f.estimate),
+          screenRule: `${SCREEN_RULE} Fewer colours change the look, and the artist approves the new proof again.`,
+        }
+      : {}),
+    ...(areas.length > 0 ? { printAreas: areas } : {}),
   };
 }
 
-/** Notices the artist should read next to the quote: a surcharge for screens above 8, and a price that is a guess. */
+/** Notices the artist should read next to the quote: what the colours above 8 add on each print position, what a DTG/DTF line pays
+ * for more print positions, and a price that is a guess. */
 function screenNotices(detail: BulkOrderDetail): Card[] {
   const facts = screenFacts(detail);
   const cards: Card[] = [];
 
   const surcharged = facts.filter((f) => f.surchargeCentsPerPiece > 0);
   if (surcharged.length > 0) {
-    const lines = surcharged.map((f) => `${f.line} prints from ${screensLabel(f.screens)}, so each piece costs ${eurosShort(f.surchargeCentsPerPiece)} more`);
+    const lines = surcharged.map((f) => `${f.line}: ${f.positions.map((p) => p.line).join('; ')}. That is ${eurosFixed(f.surchargeCentsPerPiece)} more for each piece`);
     cards.push({
       id: `bulk_screens_${detail.id}`,
       kind: 'notice',
       tone: 'warning',
-      text: `${lines.join('. ')}. Each screen above ${STANDARD_MAX_SCREENS} adds ${eurosShort(EXTRA_SCREEN_CENTS_PER_PIECE)} per piece. With ${STANDARD_MAX_SCREENS} screens or fewer there is no surcharge, but the look changes and you would approve the new proof again.`,
+      text: `${lines.join('. ')}. ${SCREEN_RULE} With ${STANDARD_MAX_SCREENS} colours or fewer on a position there is no surcharge there, but the look changes and you would approve the new proof again.`,
+    });
+  }
+
+  const areas = printAreaFacts(detail);
+  if (areas.length > 0) {
+    const lines = areas.map((f) => `${f.line}: ${f.extras.join('; ')}${f.extras.length > 1 ? ` (+${eurosFixed(f.extraCentsPerPiece)} per piece in all)` : ' per piece'}`);
+    cards.push({
+      id: `bulk_areas_${detail.id}`,
+      kind: 'notice',
+      tone: 'info',
+      text: `${lines.join('. ')}. DTG and DTF runs pay the same extras as shop products for more print positions.`,
     });
   }
 
@@ -443,13 +517,38 @@ function screenNotices(detail: BulkOrderDetail): Card[] {
   return cards;
 }
 
-/** Next steps for the screens: fewer of them when there is a surcharge, the print files when the price is a guess. */
+/** 'the back', 'the front chest and the back', 'the front chest, the back and the left sleeve'. */
+function thePositions(labels: string[]): string {
+  const named = labels.map((label) => `the ${label.toLowerCase()}`);
+  return named.length <= 1 ? (named[0] ?? '') : `${named.slice(0, -1).join(', ')} and ${named[named.length - 1]}`;
+}
+
+/** The offers of fewer colours: one for each design that carries a surcharge on some position (the design is what
+ * change_screen_count changes), naming the positions it prints. Past two designs, or a name too long for a chip, one offer for
+ * every position. */
+function fewerChips(facts: ScreenFact[], run: RunRef): Chip[] {
+  const byDesign = new Map<string, string[]>();
+  for (const fact of facts) {
+    for (const p of fact.positions) {
+      if (p.surchargeCentsPerPiece <= 0) continue;
+      const key = p.designId ?? '';
+      const labels = byDesign.get(key) ?? [];
+      if (!labels.includes(p.position)) labels.push(p.position);
+      byDesign.set(key, labels);
+    }
+  }
+  if (byDesign.size === 0) return [];
+
+  const target = coloursLabel(STANDARD_MAX_SCREENS);
+  const chips = [...byDesign.values()].map((labels): Chip => ({ label: `Use ${target} on ${thePositions(labels)}`, prompt: `Use ${target} on ${thePositions(labels)} for ${run.label}, then quote it again` }));
+  if (chips.length <= 2 && chips.every((chip) => chip.label.length <= 48)) return chips;
+  return [{ label: `Use ${target} on every print`, prompt: `Use ${target} on every print position for ${run.label}, then quote it again` }];
+}
+
+/** Next steps for the screens: fewer colours on a position that has a surcharge, the print files when the price is a guess. */
 function screenChips(detail: BulkOrderDetail, run: RunRef): Chip[] {
   const facts = screenFacts(detail);
-  const chips: Chip[] = [];
-  if (facts.some((f) => f.surchargeCentsPerPiece > 0)) {
-    chips.push({ label: `Use ${STANDARD_MAX_SCREENS} screens instead`, prompt: `Use ${STANDARD_MAX_SCREENS} screens for ${run.label}, then quote it again` });
-  }
+  const chips = fewerChips(facts, run);
   if (facts.some((f) => f.estimate)) {
     chips.push({ label: 'Prepare the print files', prompt: `Prepare the print files for ${run.label}` });
   }
@@ -474,6 +573,10 @@ const bulkPlacementSchema = z.object({
   offsetYcm: z.number().optional(),
 });
 
+const bulkExtraPlacementSchema = bulkPlacementSchema.extend({
+  designId: z.string().uuid().optional().describe("The design printed at this position when it isn't the line's own, for example a different back."),
+});
+
 const bulkLineSchema = z
   .object({
     productId: z.string().uuid().optional().describe("Reuse an existing shop product for this line: its blank and every print area it has (a front, a back, sleeves, each with its own design). Its print method too, unless printServiceCode says otherwise."),
@@ -488,6 +591,13 @@ const bulkLineSchema = z
         "How this line prints: 'screen_1c', 'screen_2c' or 'screen_3c' (screen print; the number is only a first guess at the colours, the price follows the design's real screen count) or 'dtg' / 'dtf'. A run chooses its own method: it can screen print a product the shop sells as DTG. Required without productId; with one, leave it out to print the way the product does.",
       ),
     placement: bulkPlacementSchema.optional(),
+    extraPlacements: z
+      .array(bulkExtraPlacementSchema)
+      .max(3)
+      .optional()
+      .describe(
+        "More print positions on the same garment, after placement: a back print, a sleeve (at most 3 more, each position once). Screen print counts each position's colours on its own design; DTG/DTF pays the shop's extras (+€1 front and back, +€2 once for sleeve prints). With productId, leave it out to print the product's own other print areas.",
+      ),
     colourCode: z.string().min(1).max(10),
     sizes: bulkSizesSchema.describe('Size code -> quantity, e.g. { "S": 8, "M": 8, "L": 8, "XL": 8, "XXL": 8 }.'),
   })
@@ -514,12 +624,14 @@ interface RunData {
   stage?: string;
   pieces?: number;
   totalCents?: number;
-  /** screen-printed lines: the screens each prints from and what that does to the price */
+  /** screen-printed lines: the colours each print position prints from and what that does to the price, position by position */
   screenPrint?: ScreenFact[];
   /** true when a price rests on a guess at the screens, not on the design's print files */
   estimate?: boolean;
   /** the rule behind screenPrint, for the model to explain */
   screenRule?: string;
+  /** DTG/DTF lines that print more than one position: the shop's extras they pay for them */
+  printAreas?: PrintAreaFact[];
   /** the one-off cost of making the screens and any other setup, when there is one */
   setupCents?: number;
 }
@@ -527,7 +639,7 @@ interface RunData {
 export const createBulkQuoteTool = defineTool({
   name: 'create_bulk_quote',
   description:
-    'Quote a run: a batch of printed pieces the artist orders for themselves (also called a bulk order), shipped to their own address and paid 100% up front, no Stripe split. Each line is either an existing shop product (productId) or new artwork on a blank (blankCode + printServiceCode + placement, optionally designId), plus a colour and a size -> quantity map. A run chooses its print method when it is quoted, screen print or DTG/DTF, so set printServiceCode on each line to the method that suits the quantity and the look (screen print for a bigger run of flat art, DTG/DTF for a small one or a detailed image), even for a product the shop sells as DTG. Pricing uses quantity breaks per line and flat-zone shipping scaled to the total unit count. Screen print is priced by the number of screens the design really uses for that garment colour, the white underbase and the highlight white included (the number in screen_1c, screen_2c or screen_3c is only a first guess at the colours): 1 to 8 screens is the standard price, and each screen above 8 adds €1 per piece, up to 15. The screenPrint list in the result gives the count of each screen-printed line and what it does to the price: tell the artist in a sentence. If a line has a surcharge, offer fewer screens: call change_screen_count with the designId of that line (fewer screens changes the look and the artist approves the new proof again), then quote again. If a line is an estimate, its design has no print files for that colour yet: say the price is an estimate and offer to prepare the print files first. Numbers the run ("Run 3" in the result) and shows its quote, and sets it as the conversation\'s active run, so later tools (submit_bulk_proof, approve_bulk_proof, pay_bulk_order, ...) can omit runNumber. Call it by its number when you talk to the artist; never say "bulk order" and never show an id.',
+    'Quote a run: a batch of printed pieces the artist orders for themselves (also called a bulk order), shipped to their own address and paid 100% up front, no Stripe split. Each line is either an existing shop product (productId) or new artwork on a blank (blankCode + printServiceCode + placement, optionally designId), plus a colour and a size -> quantity map. A run chooses its print method when it is quoted, screen print or DTG/DTF, so set printServiceCode on each line to the method that suits the quantity and the look (screen print for a bigger run of flat art, DTG/DTF for a small one or a detailed image), even for a product the shop sells as DTG. Pricing uses quantity breaks per line and flat-zone shipping scaled to the total unit count. Screen print is priced by the number of screens each print position\'s design really uses for that garment colour, the white underbase and the highlight white included (the number in screen_1c, screen_2c or screen_3c is only a first guess at the colours): 1 to 8 screens is the standard price, and each screen above 8 adds €1 per piece, up to 15, counted separately for each print position on its own design (a back of 10 and a front of 10 add €2 + €2 = €4 per piece; a position over 15 is refused). Artists hear the screens as colours. A DTG/DTF line that prints more than one position pays the shop\'s extras for them on top of its price: +€1 front and back, +€2 once for sleeve prints. A line prints more than one position with a product\'s own print areas, or with extraPlacements (a back, a sleeve). The screenPrint list in the result gives each screen-printed line\'s colours on every print position (positions) and what each adds to the price, and printAreas gives a DTG/DTF line\'s extras: tell the artist in a sentence, position by position. If a position has a surcharge, offer fewer screens on that position: call change_screen_count with that position\'s designId (fewer screens changes the look and the artist approves the new proof again; positions that print the same design change together), then quote again. If a position is an estimate, its design has no print files for that colour and position yet: say the price is an estimate and offer to prepare the print files first. Numbers the run ("Run 3" in the result) and shows its quote, and sets it as the conversation\'s active run, so later tools (submit_bulk_proof, approve_bulk_proof, pay_bulk_order, ...) can omit runNumber. Call it by its number when you talk to the artist; never say "bulk order" and never show an id.',
   input: z.object({ lines: z.array(bulkLineSchema).min(1), shipTo: bulkShipToSchema }).strict(),
   scope: 'artist',
   run: async (ctx, input): Promise<ToolResult<RunData>> => {
@@ -544,7 +656,7 @@ export const createBulkQuoteTool = defineTool({
       const failed = failure('bulk_quote', result.error);
       // Too many screens to print at all: the way out is fewer of them.
       if (!TOO_MANY_SCREENS.test(result.error)) return failed;
-      const fewer: Chip = { label: `Use ${STANDARD_MAX_SCREENS} screens instead`, prompt: `Use ${STANDARD_MAX_SCREENS} screens for this design, then quote the run again` };
+      const fewer: Chip = { label: `Use ${coloursLabel(STANDARD_MAX_SCREENS)} instead`, prompt: `Use ${coloursLabel(STANDARD_MAX_SCREENS)} for this design, then quote the run again` };
       return { ...failed, ui: { ...failed.ui, next: [fewer] } };
     }
 
@@ -574,7 +686,7 @@ interface GetRunData extends RunData {
 export const getBulkOrderTool = defineTool({
   name: 'get_bulk_order',
   description:
-    'Show where one run stands: its stage (quote, proof, payment, production, shipping), what is in it, the price and where it ships. Pass runNumber (3 for "Run 3"); omit it to show the run open in this conversation. Set includeQuote to also show the price breakdown (lines, setup, shipping), e.g. when the artist asks what is in the run or what it costs: it also gives, for each screen-printed line, how many screens it prints from and what that does to the price (screenPrint).',
+    'Show where one run stands: its stage (quote, proof, payment, production, shipping), what is in it, the price and where it ships. Pass runNumber (3 for "Run 3"); omit it to show the run open in this conversation. Set includeQuote to also show the price breakdown (lines, setup, shipping), e.g. when the artist asks what is in the run or what it costs: it also gives, for each screen-printed line, the colours on each print position and what each adds to the price (screenPrint), and for a DTG/DTF line its extras for more print positions (printAreas).',
   input: z.object({ ...runTarget, includeQuote: z.boolean().optional() }).strict(),
   scope: 'artist',
   readOnly: true,

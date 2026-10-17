@@ -91,7 +91,7 @@ export function formatEuros(cents: number): string {
 
 /** The sentence under "Run again": the standing rule, plus the price when the count goes past 8. */
 export function surchargeNote(screens: number): string {
-  const rule = `On a run, each screen above ${STANDARD_MAX_SCREENS} adds ${formatEuros(EXTRA_SCREEN_CENTS_PER_PIECE)} per piece. The artist is asked again only if the proof changes.`;
+  const rule = `On a run, each screen above ${STANDARD_MAX_SCREENS} adds ${formatEuros(EXTRA_SCREEN_CENTS_PER_PIECE)} per piece on each print position (this pack is one). The artist is asked again only if the proof changes.`;
   const extra = extraScreenCents(screens);
   if (extra === 0) return rule;
   return `${screens} screens add ${formatEuros(extra)} per piece on a run. ${rule}`;

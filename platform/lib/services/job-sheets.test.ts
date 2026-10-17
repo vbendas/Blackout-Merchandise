@@ -2,18 +2,20 @@
 // use, the screen sets, the pieces waiting in open orders, the audit sign-off), when it is made again
 // (only when what it says changes), and who may open it. On PGlite with fakes for the engine, the pack
 // writers (except where the real renderer is wanted), storage and queue; nothing here touches Neon.
-import { after, before, test } from 'node:test';
+import { after, before, mock, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { and, eq } from 'drizzle-orm';
 import { PDFDocument } from 'pdf-lib';
 import sharp from 'sharp';
 import * as schema from '@db/schema';
 import { PermissionError, type Actor } from '@/lib/auth/permissions';
-import { COLLAR_DISTANCE_UNSET_NOTE, PLACEMENTS } from '@/lib/mockups/placements';
+import { COLLAR_DISTANCE_UNSET_NOTE, describePrintHeight, PLACEMENTS, standardCollarDistanceCm } from '@/lib/mockups/placements';
 import { isValidKey } from '@/lib/services/print-storage';
 import type { ToolContext } from '@/lib/tools/types';
 import type { PackFile } from '@/lib/print/types';
 import { pdfLines, shows } from '@/lib/print/pack/test-pdf';
+import { buildJobSheetView } from '@/lib/print/job-sheet-view';
+import { compareWithPdf } from '@/lib/print/job-sheet-view.test-support';
 import { bootstrapPrint, seedRun, seedShopOrder, type Harness, type TestDb } from '@/lib/print/test-support';
 
 let h: Harness;
@@ -39,6 +41,11 @@ after(async () => {
 // -- helpers -------------------------------------------------------------------------------
 
 const TEE = 'Classic tee';
+
+/** How the sheet words where a tee's front-chest print sits, taken from the placement data as it is now. The standard collar distance has been
+ * set for T-shirts since the owner's rule of 16 Oct 2026 (before that the sheet said "Standard position"): what these tests are about is the
+ * sheet's own wording, so they hold whatever the data says; the one test of the unset and measured states sets them itself. */
+const teeChest = (offsetCm?: number) => `Front chest · 28 cm wide · ${describePrintHeight(standardCollarDistanceCm('T-shirts', 'front_chest'), offsetCm).text}`;
 const ref = (orderId: string) => `ORD-${orderId.slice(0, 8).toUpperCase()}`;
 
 /** 'Run 3': a run is named by its place among the shop's runs, and every test here adds some. */
@@ -128,8 +135,8 @@ test('one sheet covers every shop product and run line: several blanks and colou
   const { source } = await collect(designId);
   const rows = source.garments;
   const dtgFiles = dtg.files as PackFile[];
-  // No standard collar distance is set yet, so a placement says "Standard position", and how far a product moved it.
-  const placement = 'Front chest · 28 cm wide · Standard position';
+  // A placement says how far below the collar the print sits (or "Standard position" and how far a product moved it, where no distance is set).
+  const placement = teeChest();
 
   // The shop product prints DTG/DTF in all three colours, with the colour's PNG; a draft is not on the sheet.
   for (const code of ['C002', 'C727', 'C001']) {
@@ -218,7 +225,7 @@ test('a design nothing is prepared for has a sheet that says so, with its garmen
   assert.equal(source.design.code, `MF-${designId.replace(/-/g, '').slice(0, 6).toUpperCase()}`);
   assert.equal(source.packStatus, 'No print files yet');
   assert.deepEqual([source.screenSets, source.dtgPacks, source.proofs, source.checks, source.audits], [[], [], [], [], []]);
-  assert.deepEqual(source.garments.map((g) => [g.colourCode, g.file, g.note, g.placement]), [['C002', null, 'No print file yet', 'Front chest · 28 cm wide · Standard position']]);
+  assert.deepEqual(source.garments.map((g) => [g.colourCode, g.file, g.note, g.placement]), [['C002', null, 'No print file yet', teeChest()]]);
   assert.match(filename, /^MF-[0-9A-F]{6}-job-sheet\.pdf$/);
 
   // A design that does not exist has no sheet.
@@ -227,6 +234,19 @@ test('a design nothing is prepared for has a sheet that says so, with its garmen
 });
 
 test('a placement says how far below the collar it is once the standard collar distance is set, and only "Standard position" until then', async () => {
+  // Start from "not set", whatever the data says now, and put it back after.
+  const area = PLACEMENTS['T-shirts'].positions.front_chest!;
+  const standard = area.collarDistanceCm;
+  delete area.collarDistanceCm;
+  try {
+    await placementWording();
+  } finally {
+    if (standard === undefined) delete area.collarDistanceCm;
+    else area.collarDistanceCm = standard;
+  }
+});
+
+async function placementWording(): Promise<void> {
   const { designId } = await liveDesign({ colours: ['C002'] });
   // A second tee product with its print moved 2 cm lower than standard (no pack for it: only its wording is looked at).
   const lower = await h.db
@@ -262,7 +282,7 @@ test('a placement says how far below the collar it is once the standard collar d
   }
   // Unset again: back to the first sheet, found by its hash.
   assert.equal((await collect(designId)).contentHash, unset.contentHash);
-});
+}
 
 // -- what else is on the sheet ----------------------------------------------------------------
 
@@ -286,7 +306,7 @@ test('the sheet carries the screen sets, the DTG/DTF files, the proofs, the chec
   assert.deepEqual([set.underbaseChokeMm, set.trapMm, set.system.pressHeads, set.system.underbase.flash.seconds], [0.2, 0.25, 8, 4]);
   assert.equal(set.file, fileOf(darks.files as PackFile[], 'screen_psd'));
   assert.ok(set.printSize?.endsWith('ppi'));
-  assert.equal(set.placement, 'Front chest · 28 cm wide · Standard position');
+  assert.equal(set.placement, teeChest());
   assert.equal(set.blankName, TEE);
 
   // The DTG/DTF files, a PNG per garment colour.
@@ -735,4 +755,116 @@ test('PRINT_MOCK answers every request with the sample sheet, from no database a
   } finally {
     delete process.env.PRINT_MOCK;
   }
+});
+
+// -- the sheet as data, for the production stations ------------------------------------------
+
+test('the sheet as data is the PDF’s own view: the same words, the proofs as addresses, each screen set with its pack', async () => {
+  const { designId, darks, lights, dtg } = await liveDesign();
+  const { source, setPackIds } = await collect(designId);
+  const view = (await jobSheets.getJobSheetView(owner, designId))!;
+  assert.ok(view);
+
+  // Made by the same builder from the same collected sheet: what differs is only the time and the proofs' addresses.
+  const expected = buildJobSheetView({
+    ...source,
+    generatedAt: view.generatedAt,
+    screenSets: source.screenSets.map((set, i) => ({ ...set, packId: setPackIds[i] })),
+    proofs: source.proofs.map((p) => ({ colourName: p.colourName, label: p.label, url: `/fake-files/public/${p.key}` })),
+  });
+  assert.deepEqual(view, expected);
+
+  assert.deepEqual([view.title, view.subtitle], ['MF-UNDERWRITER-TEE · v1', 'Underwriter tee · artist']);
+  assert.deepEqual(view.screenSets.map((s) => [s.setName, s.packId]), [['Darks', darks.id], ['Lights', lights.id]]);
+  assert.deepEqual(setPackIds, [darks.id, lights.id]);
+  assert.equal(view.screenSets[0].films.length, 6);
+  assert.equal(view.dtg.packs.length, 1);
+  assert.equal(view.proofs.length, 6);
+  for (const proof of view.proofs) assert.match(proof.url ?? '', /^\/fake-files\/public\/print\//, 'a proof is loaded from where print storage serves it');
+  assert.ok(dtg.id);
+  // JSON all the way: a server page can hand it to the browser as it is.
+  assert.deepEqual(JSON.parse(JSON.stringify(view)), view);
+});
+
+test('the view and the PDF of a real design say the same, phrase for phrase: the iPad never disagrees with the paper', async () => {
+  const { renderJobSheet } = await import('@/lib/print/pack');
+  const { designId, productId, dtg } = await liveDesign();
+  const worker = await h.staff({ prepress: 'work' }, { name: 'Pat Presser' });
+  assert.ok((await h.prepress.approvePack(worker, dtg.id)).ok);
+  await seedOrder(h.db, { items: [{ productId, colourCode: 'C002', size: 'M', qty: 2 }, { productId, colourCode: 'C001', size: 'XL', qty: 1 }] });
+  await seedRun(h.db, { storeId: h.artist.storeId, designId, lines: [{ colourCode: 'C002', qty: 60, printServiceCode: 'screen_2c' }, { colourCode: 'C001', qty: 20, printServiceCode: 'screen_2c' }] });
+
+  h.pipeline.overridePrintDeps({ ...h.fakes.deps, pack: { ...h.fakes.pack.pack, renderJobSheet } });
+  // The same instant for both, so the time the sheet was made reads the same on paper and on screen.
+  mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-10-16T09:41:07.000Z') });
+  try {
+    const sheet = (await jobSheets.getDesignJobSheet(owner, designId))!;
+    const view = (await jobSheets.getJobSheetView(owner, designId))!;
+    assert.equal(view.generated, '2026-10-16 09:41 UTC');
+    const { missing, extra } = compareWithPdf(view, sheet.bytes);
+    assert.deepEqual(missing, [], 'what the screen says and the paper does not');
+    assert.deepEqual(extra, [], 'what the paper says and the screen does not');
+    assert.ok(view.pieces.total === 83 && view.pieces.line?.startsWith('83 pieces in 2 open orders'));
+  } finally {
+    mock.timers.reset();
+    h.pipeline.overridePrintDeps(h.fakes.deps);
+  }
+});
+
+test('the sheet as data is for Pre-press or Production View, or the owner, like the PDF: nothing is read for anyone else', async () => {
+  const { designId } = await liveDesign({ colours: ['C002'] });
+  const artist: Actor = { userId: h.artist.userId, role: 'artist' };
+  for (const actor of [artist, await h.staff({}), await h.staff({ shop_orders: 'manage', runs: 'manage' }), await h.staff({ production: 'work' }, { suspended: true })]) {
+    await assert.rejects(jobSheets.getJobSheetView(actor, designId), (err) => err instanceof PermissionError, `${actor.role} ${JSON.stringify(actor.permissions)}`);
+  }
+  for (const actor of [owner, await h.staff({ prepress: 'view' }), await h.staff({ production: 'view' })]) {
+    assert.ok(await jobSheets.getJobSheetView(actor, designId), JSON.stringify(actor.permissions));
+  }
+  assert.equal(await jobSheets.getJobSheetView(owner, '3f2b6c1e-9d4a-4c1f-8a7e-0b5d2c9e1a44'), null, 'no such design');
+  assert.equal(await jobSheets.getJobSheetView(owner, 'not-an-id'), null);
+});
+
+test('PRINT_MOCK answers the sheet as data with the sample, whose proofs are the sample images', async () => {
+  process.env.PRINT_MOCK = '1';
+  try {
+    const view = (await jobSheets.getJobSheetView(owner, '00000000-0000-4000-8000-000000000000'))!;
+    assert.equal(view.title, 'MF-UNDERWRITER · v3');
+    assert.deepEqual(view.screenSets.map((s) => [s.setName, s.packId]), [['Darks', 'mock-pack-darks'], ['Lights', 'mock-pack-lights']]);
+    assert.deepEqual(view.proofs.map((p) => p.url), [
+      '/dev/print-mock/proof-dtg-black.webp',
+      '/dev/print-mock/proof-dtg-navy.webp',
+      '/dev/print-mock/proof-dtg-white.webp',
+      '/dev/print-mock/proof-screen-black.webp',
+      '/dev/print-mock/proof-screen-navy.webp',
+      '/dev/print-mock/proof-screen-white.webp',
+    ]);
+    await assert.rejects(jobSheets.getJobSheetView({ userId: h.artist.userId, role: 'artist' }, '00000000-0000-4000-8000-000000000000'), (err) => err instanceof PermissionError);
+  } finally {
+    delete process.env.PRINT_MOCK;
+  }
+});
+
+test('a list asks for one small proof per design and technique, in one read, from the newest built version', async () => {
+  const first = await liveDesign({ colours: ['C002'] });
+  const second = await h.newDesign(); // nothing prepared: no proof yet
+  const thumbs = await jobSheets.designProofThumbs(owner, [first.designId, second.designId, 'not-an-id', first.designId]);
+  const proofOf = (pack: { files: unknown }) => (pack.files as PackFile[]).find((f) => f.kind === 'proof')!.key;
+  assert.deepEqual(thumbs[first.designId], { screen: `/fake-files/public/${proofOf(first.darks)}`, dtg_dtf: `/fake-files/public/${proofOf(first.dtg)}` });
+  assert.deepEqual(thumbs[second.designId], { screen: null, dtg_dtf: null });
+  assert.deepEqual(thumbs['not-an-id'], { screen: null, dtg_dtf: null });
+  assert.deepEqual(Object.keys(thumbs).sort(), [first.designId, second.designId, 'not-an-id'].sort());
+  assert.deepEqual(await jobSheets.designProofThumbs(owner, []), {});
+
+  // New artwork makes a newer version with files of its own: its proofs are the ones a list shows.
+  h.fakes.setArt(first.designId, Buffer.from('a redrawn design'));
+  const next = await h.prepare(first.designId);
+  const newer = (await h.packs(next.designVersionId)).find((p) => p.technique === 'dtg_dtf')!;
+  const again = await jobSheets.designProofThumbs(owner, [first.designId]);
+  assert.equal(again[first.designId].dtg_dtf, `/fake-files/public/${proofOf(newer)}`);
+  assert.notEqual(again[first.designId].dtg_dtf, thumbs[first.designId].dtg_dtf);
+
+  // Who may ask is the sheet's rule: Pre-press or Production View, or the owner.
+  await assert.rejects(jobSheets.designProofThumbs({ userId: h.artist.userId, role: 'artist' }, [first.designId]), (err) => err instanceof PermissionError);
+  await assert.rejects(jobSheets.designProofThumbs(await h.staff({ support: 'manage' }), [first.designId]), (err) => err instanceof PermissionError);
+  assert.ok(await jobSheets.designProofThumbs(await h.staff({ production: 'view' }), [first.designId]));
 });

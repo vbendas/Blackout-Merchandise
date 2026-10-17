@@ -110,7 +110,7 @@ test('euros drop the cents when there are none', () => {
 test('the surcharge note names the price only past 8 screens', () => {
   assert.equal(
     surchargeNote(6),
-    'On a run, each screen above 8 adds €1 per piece. The artist is asked again only if the proof changes.',
+    'On a run, each screen above 8 adds €1 per piece on each print position (this pack is one). The artist is asked again only if the proof changes.',
   );
   assert.match(surchargeNote(12), /^12 screens add €4 per piece on a run\. On a run, each screen above 8/);
 });

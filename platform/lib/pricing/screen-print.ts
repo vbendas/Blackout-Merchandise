@@ -1,11 +1,14 @@
 // Screen-print pricing for runs (Documentation/Dev/Print-Prep-Plan.md section 10).
 //
-// A screen-printed run is priced on the number of screens its design really
-// uses (the white underbase and the highlight white included), its print
-// positions, the print size and the quantity. 1 to 8 screens is standard; from
-// 9 to 15, each screen above 8 adds EXTRA_SCREEN_CENTS_PER_PIECE (EUR 1) per
-// piece. That surcharge is a fixed rule, not a setting. Everything else lives
-// in a table the owner edits at /admin/pricing.
+// A screen-printed run is priced on the number of screens each print position's
+// design really uses (the white underbase and the highlight white included), its
+// print positions, the print size and the quantity. 1 to 8 screens is standard;
+// from 9 to 15, each screen above 8 adds EXTRA_SCREEN_CENTS_PER_PIECE (EUR 1) per
+// piece. Owner decision, 16 Oct 2026: that surcharge is counted PER PRINT
+// POSITION, on that position's own design. A back of 10 screens is +EUR 2 and a
+// front of 10 screens is +EUR 2 more: +EUR 4 a piece. Each position is capped at
+// 15 and refused above. The surcharge is a fixed rule, not a setting. Everything
+// else lives in a table the owner edits at /admin/pricing.
 //
 // Pure functions only, no server imports: the Studio's price line, the admin
 // editor and the quote service all read this one file, so they cannot disagree.
@@ -108,8 +111,40 @@ export function euros(cents: number): string {
   return `${sign}€${rest === 0 ? whole : `${whole}.${String(rest).padStart(2, '0')}`}`;
 }
 
+/** 200 -> '€2.00': a line of a price breakdown always shows its cents ('+€1.00', '+€2.00'). */
+export function eurosFixed(cents: number): string {
+  const sign = cents < 0 ? '-' : '';
+  return `${sign}€${(Math.abs(Math.round(cents)) / 100).toFixed(2)}`;
+}
+
 export function screensLabel(n: number): string {
   return `${n} ${n === 1 ? 'screen' : 'screens'}`;
+}
+
+/** The same count in the artist's word: the screens of a design are the colours it prints, the white underbase and the highlight
+ * white included. */
+export function coloursLabel(n: number): string {
+  return `${n} ${n === 1 ? 'colour' : 'colours'}`;
+}
+
+const POSITION_LABELS: Record<string, string> = {
+  front_chest: 'Front chest',
+  front_full: 'Front',
+  front_left_chest: 'Left chest',
+  back: 'Back',
+  centre: 'Centre',
+  front_leg: 'Leg',
+  sleeve_left: 'Left sleeve',
+  sleeve_right: 'Right sleeve',
+};
+
+/** 'Front chest', 'Back', 'Left sleeve': a print position in an artist's words. The same words as printPositionLabel in
+ * lib/mockups/placements.ts, which a test keeps in step: this file takes nothing from there, so the price lines stay light for
+ * the browser (the admin editor and the approval page both read them) and do not move with that file. */
+export function positionLabel(position: string): string {
+  if (Object.hasOwn(POSITION_LABELS, position)) return POSITION_LABELS[position];
+  const words = position.replace(/_/g, ' ').trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
 // ---------------------------------------------------------------------------
@@ -247,7 +282,7 @@ export function basePrintCents(table: ScreenPriceTable, screens: number, qty: nu
 }
 
 // ---------------------------------------------------------------------------
-// The fixed rule: each screen above 8 adds EUR 1 a piece, up to 15
+// The fixed rule: each screen above 8 adds EUR 1 a piece, on each print position, up to 15
 
 export function isPrintableScreenCount(screens: number): boolean {
   return Number.isInteger(screens) && screens >= 1 && screens <= ABSOLUTE_MAX_SCREENS;
@@ -257,7 +292,8 @@ export function screensAboveStandard(screens: number): number {
   return Math.max(0, Math.floor(screens) - STANDARD_MAX_SCREENS);
 }
 
-/** Cents a piece added for the screens above 8. */
+/** Cents a piece added for the screens above 8 on ONE print position, counted on that position's own design. A run adds it up
+ * position by position: 10 screens on the back and 10 on the front are +EUR 2 and +EUR 2. */
 export function screenSurchargeCents(screens: number): number {
   return screensAboveStandard(screens) * EXTRA_SCREEN_CENTS_PER_PIECE;
 }
@@ -270,26 +306,121 @@ export interface ScreenEffect {
   surchargeCents: number;
   /** more than the press can print */
   refused: boolean;
-  /** '6 screens: no surcharge', '11 screens: +€3 per piece' */
+  /** '6 colours: no surcharge', '11 colours: +€3.00 per piece' */
   line: string;
   /** the fixed rule, in a sentence */
   rule: string;
 }
 
-/** The fixed rule in a sentence: 'On a run, each screen above 8 adds €1 per piece, up to 15 screens.' */
-export const SCREEN_RULE = `On a run, each screen above ${STANDARD_MAX_SCREENS} adds ${euros(EXTRA_SCREEN_CENTS_PER_PIECE)} per piece, up to ${ABSOLUTE_MAX_SCREENS} screens.`;
+/** The fixed rule in a sentence, in the artist's words. */
+export const SCREEN_RULE = `On a run, each colour above ${STANDARD_MAX_SCREENS} adds ${euros(EXTRA_SCREEN_CENTS_PER_PIECE)} per piece on each print position, up to ${ABSOLUTE_MAX_SCREENS} colours on a position. The white underbase and highlight white count as colours.`;
 
-/** What a screen count does to a run's price, in the words the Studio and the assistant use. */
+/** The words after the colon: what a count does to the price. */
+function effectWords(over: number, refused: boolean, perPiece: boolean): string {
+  if (refused) return `more than the ${ABSOLUTE_MAX_SCREENS} we can print`;
+  if (over === 0) return 'no surcharge';
+  return `+${eurosFixed(over * EXTRA_SCREEN_CENTS_PER_PIECE)}${perPiece ? ' per piece' : ''}`;
+}
+
+/** What one count of screens does to a run's price, in the words the Studio and the assistant use. For a count with no print
+ * position to name; describePositionEffect names one. */
 export function describeScreenEffect(screens: number): ScreenEffect {
   const count = Number.isFinite(screens) ? Math.floor(screens) : 0;
   const over = screensAboveStandard(count);
   const refused = count > ABSOLUTE_MAX_SCREENS;
-  let line: string;
-  if (count < 1) line = 'No screens to print yet';
-  else if (refused) line = `${screensLabel(count)}: more than the ${ABSOLUTE_MAX_SCREENS} we can print`;
-  else if (over === 0) line = `${screensLabel(count)}: no surcharge`;
-  else line = `${screensLabel(count)}: +${euros(over * EXTRA_SCREEN_CENTS_PER_PIECE)} per piece`;
+  const line = count < 1 ? 'No colours to print yet' : `${coloursLabel(count)}: ${effectWords(over, refused, true)}`;
   return { screens: count, over, surchargeCents: refused ? 0 : over * EXTRA_SCREEN_CENTS_PER_PIECE, refused, line, rule: SCREEN_RULE };
+}
+
+// ---------------------------------------------------------------------------
+// Per print position: the breakdown of what a piece costs on top of its price
+//
+// The surcharge belongs to a print position: 'Back · 10 colours: +€2.00', then 'Front · 10 colours: +€2.00'. A line of the
+// breakdown is the same thing for DTG/DTF runs, which pay the shop's extras for more print positions instead ('Front and
+// back: +€1.00', 'Sleeve prints: +€2.00'; pod-table.ts runExtraLines). Artists read these lines on the quote, the proof and
+// the approval page: colour words, never an ink code.
+
+export interface PositionEffect extends ScreenEffect {
+  position: string;
+  /** 'Front chest', 'Back' */
+  label: string;
+  /** the count is a guess, not the design's print files */
+  estimate: boolean;
+  /** the line without its effect: 'Back · 10 colours', 'Back · 4 colours (estimate)' */
+  name: string;
+}
+
+/** What one print position's own count does to the price, as a line of the breakdown:
+ * 'Back · 10 colours: +€2.00', 'Front chest · 6 colours: no surcharge', 'Back · 4 colours (estimate): no surcharge'. */
+export function describePositionEffect(input: { position: string; screens: number; basis?: 'pack' | 'estimate' }): PositionEffect {
+  const effect = describeScreenEffect(input.screens);
+  const label = positionLabel(input.position);
+  const estimate = input.basis === 'estimate';
+  if (effect.screens < 1) {
+    const name = `${label} · no colours to print yet`;
+    return { ...effect, position: input.position, label, estimate, name, line: name };
+  }
+  const name = `${label} · ${coloursLabel(effect.screens)}${estimate ? ' (estimate)' : ''}`;
+  return { ...effect, position: input.position, label, estimate, name, line: `${name}: ${effectWords(effect.over, effect.refused, false)}` };
+}
+
+/** One line of what a piece costs on top of its price: a print position's colours above 8 (screen print), or the shop's extra for
+ * more print positions (DTG/DTF: front and back, sleeve prints). */
+export interface RunPriceLine {
+  key: 'colours' | 'second_main_print' | 'sleeves';
+  /** plain words for artists: 'Back · 10 colours', 'Front and back', 'Sleeve prints' */
+  label: string;
+  /** cents added to every piece; 0 for a position with no surcharge */
+  cents: number;
+  /** screen print: the print position */
+  position?: string;
+  /** screen print: the colours (screens) on that position's design */
+  colours?: number;
+  /** screen print: that count is a guess, not the design's print files */
+  estimate?: boolean;
+  /** screen print: more than the press can print (never on a quote: it is refused first) */
+  refused?: boolean;
+}
+
+/** The breakdown line of one print position: its own colours on its own design. A count above 15 can't be printed, so it gets
+ * no surcharge here: a quote refuses it before it gets this far. */
+export function screenPriceLine(input: { position: string; screens: number; basis?: 'pack' | 'estimate' }): RunPriceLine {
+  const effect = describePositionEffect(input);
+  return {
+    key: 'colours',
+    label: effect.name,
+    cents: effect.surchargeCents,
+    position: input.position,
+    colours: effect.screens,
+    ...(effect.estimate ? { estimate: true } : {}),
+    ...(effect.refused ? { refused: true } : {}),
+  };
+}
+
+/** One line for each print position, in the order given. */
+export function screenPriceLines(placements: readonly { position: string; screens: number; basis?: 'pack' | 'estimate' }[]): RunPriceLine[] {
+  return placements.map(screenPriceLine);
+}
+
+/** 'Back · 10 colours: +€2.00', 'Front chest · 6 colours: no surcharge', 'Front and back: +€1.00', 'Sleeve prints: +€2.00'. */
+export function describeRunLine(line: RunPriceLine): string {
+  if (line.refused) return `${line.label}: ${effectWords(0, true, false)}`;
+  if (line.cents > 0) return `${line.label}: +${eurosFixed(line.cents)}`;
+  return `${line.label}: ${line.key === 'colours' ? 'no surcharge' : 'no extra charge'}`;
+}
+
+/** What the lines add to each piece, in all. */
+export function runExtrasCents(lines: readonly Pick<RunPriceLine, 'cents'>[]): number {
+  return lines.reduce((sum, line) => sum + line.cents, 0);
+}
+
+/** The lines in one sentence, for a proof row or a notice: 'Back · 10 colours: +€2.00 per piece', or with several lines 'Front
+ * chest · 10 colours: +€2.00; Back · 10 colours: +€2.00 (+€4.00 per piece in all)'. Nothing is added when nothing is charged. */
+export function describeRunLines(lines: readonly RunPriceLine[]): string {
+  const text = lines.map(describeRunLine).join('; ');
+  const total = runExtrasCents(lines);
+  if (total <= 0) return text;
+  return lines.length === 1 ? `${text} per piece` : `${text} (+${eurosFixed(total)} per piece in all)`;
 }
 
 // ---------------------------------------------------------------------------
@@ -298,6 +429,8 @@ export function describeScreenEffect(screens: number): ScreenEffect {
 export interface PricedPlacement {
   screens: number;
   widthCm: number;
+  /** the print position, so a refusal can name it */
+  position?: string;
 }
 
 export interface ScreenPriceInput {
@@ -338,14 +471,17 @@ export type PriceResult = { ok: true; value: ScreenPrice } | { ok: false; error:
 
 /** What one piece of a screen-printed run costs: garment, plus the print at each position (tier by its own screen count, quantity
  * break, size band; every position after the dearest at the second-position rate), plus the margin on those, plus the fixed
- * surcharge for screens above 8. A position that needs more than 15 screens is refused. */
+ * surcharge for the screens above 8, added up position by position (each on its own count: 10 screens on the back and 10 on the
+ * front are +EUR 2 and +EUR 2, not one surcharge on the most). The surcharge is added after the margin and is never discounted
+ * at the second-position rate. A position that needs more than 15 screens is refused, whatever the others need. */
 export function priceScreenPrint(table: ScreenPriceTable, input: ScreenPriceInput): PriceResult {
   if (input.placements.length === 0) return { ok: false, error: 'Say where the print goes.' };
   for (const placement of input.placements) {
+    const where = placement.position ? `${positionLabel(placement.position)}: ` : '';
     if (placement.screens > ABSOLUTE_MAX_SCREENS) {
-      return { ok: false, error: `${screensLabel(placement.screens)} is more than the ${ABSOLUTE_MAX_SCREENS} we can print. Use fewer screens.` };
+      return { ok: false, error: `${where}${screensLabel(placement.screens)} is more than the ${ABSOLUTE_MAX_SCREENS} we can print. Use fewer screens.` };
     }
-    if (!isPrintableScreenCount(placement.screens)) return { ok: false, error: 'A print needs at least one screen.' };
+    if (!isPrintableScreenCount(placement.screens)) return { ok: false, error: `${where}A print needs at least one screen.` };
   }
 
   const sized = input.placements.map((placement) =>
@@ -415,6 +551,11 @@ export interface LineScreenPlacement {
   approved: boolean;
   /** the design's screen files are being made (again) while this was priced, so the count can still change */
   pending?: boolean;
+  /** the design printed at this position (its own, which can differ from the line's): what change_screen_count takes to bring
+   * THIS position's count down. Absent on a line quoted before positions carried their own. */
+  designId?: string | null;
+  /** cents a piece for this position's screens above 8, as priced (absent before positions carried their own) */
+  surchargeCents?: number;
 }
 
 export interface LineScreens {
@@ -425,21 +566,14 @@ export interface LineScreens {
   /** cents a piece, all positions */
   surchargeCentsPerPiece: number;
   placements: LineScreenPlacement[];
-  /** '6 screens: no surcharge', 'Estimate: 4 screens: no surcharge' */
+  /** the line of each position, joined: 'Front chest · 6 colours: no surcharge; Back · 4 colours (estimate): no surcharge' */
   summary: string;
   /** why it is a guess, or what to know about the count; absent when there is nothing to add */
   note?: string;
 }
 
-function positionWords(position: string): string {
-  return position.replace(/_/g, ' ');
-}
-
-/** The one line a quote shows for a line's screens. */
-export function summariseLineScreens(placements: readonly LineScreenPlacement[], basis: 'pack' | 'estimate'): string {
-  const surcharge = placements.reduce((sum, p) => sum + screenSurchargeCents(p.screens), 0);
-  const prefix = basis === 'estimate' ? 'Estimate: ' : '';
-  if (placements.length === 1) return `${prefix}${describeScreenEffect(placements[0].screens).line}`;
-  const parts = placements.map((p) => `${positionWords(p.position)} ${screensLabel(p.screens)}`).join(', ');
-  return `${prefix}${parts}: ${surcharge > 0 ? `+${euros(surcharge)} per piece` : 'no surcharge'}`;
+/** The one line a quote shows for a line's screens: each print position with its own colours and what they add, a guess marked
+ * as an estimate on its own position, and the total when more than one position adds something. */
+export function summariseLineScreens(placements: readonly Pick<LineScreenPlacement, 'position' | 'screens' | 'basis'>[]): string {
+  return describeRunLines(screenPriceLines(placements));
 }

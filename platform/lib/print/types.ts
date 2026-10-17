@@ -124,13 +124,30 @@ export interface PrintRecipe {
     /** width of the hard-edge band thresholded at 50% instead of halftoned */
     edgeBandPx: number;
   };
-  marks: {
-    /** clear margin around the art on screen PSDs */
-    marginMm: Mm;
-    /** registration targets sit this far outside the art */
-    targetOffsetMm: Mm;
-  };
+  marks: RecipeMarks;
 }
+
+/** Where a screen film puts its margins, marks and label strip (owner decision, 16 Oct 2026): films are A2
+ * portrait at most, the design fills the sheet but for these margins, and the registration marks sit at the four
+ * corners, above and below the design only. The defaults (10 and 27 mm) make a 40 × 54 cm design an A2 film. */
+export interface FilmLayout {
+  /** clear film left and right of the design */
+  sideMarginMm: Mm;
+  /** film above and below the design: the ink-deposit gap, then the corner marks and the label strip */
+  endMarginMm: Mm;
+  /** clear film between the design and the marks and labels, where ink is deposited */
+  inkGapMm: Mm;
+}
+
+/** A recipe's film layout. Recipes stored before engine 3 carry only the two old fields; they stay readable, but
+ * new films take their layout from the three new ones (defaults filled in by filmLayout in lib/print/defaults.ts). */
+export type RecipeMarks = FilmLayout & {
+  /** @deprecated engine 2: one margin on every side of the art. Films no longer use it. */
+  marginMm?: Mm;
+  /** @deprecated engine 2: targets at the four side centres, this far outside the art. Read only to redraw the
+   * label strip of a film made before engine 3. */
+  targetOffsetMm?: Mm;
+};
 
 /** A partial recipe: capsule defaults, a print_recipes row, a re-run. */
 export type RecipeOverride = Partial<Omit<PrintRecipe, 'halftone' | 'dtg' | 'marks'>> & {
@@ -202,7 +219,11 @@ export interface CanvasSpec {
   widthPx: number;
   heightPx: number;
   ppi: Ppi;
-  marginMm: Mm;
+  /** the film layout the canvas was made with: corner marks in the top and bottom margins. Absent on a canvas
+   * stored before engine 3, whose marks sit at the side centres of a `marginMm` margin (lib/print/engine/marks.ts) */
+  layout?: FilmLayout;
+  /** @deprecated engine 2 canvases: one margin on every side */
+  marginMm?: Mm;
   /** where the print area sits inside the canvas */
   art: PixelRect;
 }
@@ -455,7 +476,7 @@ export interface JobSheetGarment {
   colourCode: string;
   colourName: string;
   colourHex: Hex | null;
-  /** 'Front chest · 28 cm wide · Standard position, 2 cm lower', or '... · 8.5 cm below the collar' once the standard collar distance is set */
+  /** 'Front chest · 28 cm wide · 5 cm below the collar' (7 cm with the print moved 2 cm lower), or '... · Standard position, 2 cm lower' on a garment with no collar distance */
   placement: string;
   method: JobSheetMethod;
   /** 'DTG/DTF', 'Screen · Darks', 'Embroidery' */
@@ -581,7 +602,7 @@ export interface JobSheetInput {
   /** pre-press' progress over the design's files, in a phrase */
   packStatus: string;
   garments: JobSheetGarment[];
-  /** small notes under the garments table (the standard collar distance isn't set, so placements say "Standard position") */
+  /** small notes under the garments table (a garment with no collar distance, so its placements say "Standard position") */
   placementNotes: string[];
   screenSets: JobSheetScreenSet[];
   dtgPacks: JobSheetDtgPack[];

@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { getOrder, type OrderDetail } from '@/lib/services/orders';
 import { getStore } from '@/lib/services/stores';
@@ -135,13 +135,15 @@ async function loadOrderRow(orderId: string): Promise<OrderRow | null> {
  * the current status (a tracking-only update, used by setTracking); passing
  * `to` validates it's exactly the next step (no skipping, no going back) and
  * fires the shipped notification the first time an order reaches 'shipped'. */
-async function transition(orderId: string, opts: { to?: ProductionStatus; tracking?: OrderTrackingInput }): Promise<ServiceResult<OrderDetail>> {
+async function transition(orderId: string, opts: { to?: ProductionStatus; tracking?: OrderTrackingInput; from?: ProductionStatus }): Promise<ServiceResult<OrderDetail>> {
   const order = await loadOrderRow(orderId);
   if (!order) return { ok: false, error: 'Order not found.' };
   if (order.status !== 'paid') return { ok: false, error: `Order is "${order.status}", not paid — nothing to advance.` };
 
   const current = (order.productionStatus ?? 'queued') as ProductionStatus;
   const target = opts.to ?? current;
+  // An automatic move (advanceFrom) is for one step only, from where its caller saw the order.
+  if (opts.from && current !== opts.from) return { ok: false, error: `The order is "${current}" now, not "${opts.from}".` };
 
   if (target !== current) {
     const expectedNext = NEXT_STATUS[current];
@@ -161,12 +163,31 @@ async function transition(orderId: string, opts: { to?: ProductionStatus; tracki
 
   const becomingShipped = target === 'shipped' && current !== 'shipped';
 
-  await db
+  // Only if nobody moved the order meanwhile: the production stations move orders on their own (a first printed piece,
+  // a job reaching Folding), so two calls can race. The second finds the order changed and says so, instead of writing
+  // the same step twice (and sending the shipped notification twice).
+  const written = await db
     .update(schema.orders)
     .set({ productionStatus: target, tracking, updatedAt: new Date() })
-    .where(eq(schema.orders.id, orderId));
+    .where(
+      and(
+        eq(schema.orders.id, orderId),
+        eq(schema.orders.status, 'paid'),
+        order.productionStatus === null ? isNull(schema.orders.productionStatus) : eq(schema.orders.productionStatus, order.productionStatus),
+      ),
+    )
+    .returning({ id: schema.orders.id });
+  if (written.length === 0) return { ok: false, error: 'The order changed while it was being updated. Look at it again.' };
 
   if (becomingShipped) {
+    // A job on the stations reads shipped once every order in it has (lib/services/production-progress.ts, loaded when
+    // called: it imports this module). Never throws into the shipment.
+    try {
+      const { syncProductionJobsQuietly } = await import('@/lib/services/production-progress');
+      await syncProductionJobsQuietly('an order shipped');
+    } catch (err) {
+      console.error('[production] could not update the production jobs:', err instanceof Error ? err.message : err);
+    }
     const store = await getStore(order.storeId);
     if (store) {
       try {
@@ -199,11 +220,26 @@ async function transition(orderId: string, opts: { to?: ProductionStatus; tracki
  * needs tracking, either passed here or already set via setTracking.
  * Printing can't start until pre-press has approved the pack the order needs. */
 export async function advance(orderId: string, to?: ProductionStatus, tracking?: OrderTrackingInput): Promise<ServiceResult<OrderDetail>> {
+  return advanceOrder(orderId, { to, tracking });
+}
+
+/** One step, `from` to the next, and only from `from`: the move the production stations make on their own (an order's first
+ * printed piece, its jobs reaching Folding). Several iPads can trigger the same move at once; exactly one of them moves the
+ * order, and the others are told it is no longer at `from` (so the move is recorded once). The same production gate and
+ * the same one-step rule as advance(). */
+export async function advanceFrom(orderId: string, from: ProductionStatus, to: ProductionStatus): Promise<ServiceResult<OrderDetail>> {
+  if (NEXT_STATUS[from] !== to) return { ok: false, error: `Can't move from "${from}" to "${to}" — production advances one step at a time.` };
+  return advanceOrder(orderId, { to, from });
+}
+
+async function advanceOrder(orderId: string, opts: { to?: ProductionStatus; tracking?: OrderTrackingInput; from?: ProductionStatus }): Promise<ServiceResult<OrderDetail>> {
+  const { tracking, from } = opts;
   const order = await loadOrderRow(orderId);
   if (!order) return { ok: false, error: 'Order not found.' };
   const current = (order.productionStatus ?? 'queued') as ProductionStatus;
+  if (from && current !== from) return { ok: false, error: `The order is "${current}" now, not "${from}".` };
 
-  let target = to;
+  let target = opts.to;
   if (!target) {
     const next = NEXT_STATUS[current];
     if (!next) return { ok: false, error: `Order is already "${current}" — nothing further to advance.` };
@@ -215,7 +251,7 @@ export async function advance(orderId: string, to?: ProductionStatus, tracking?:
     const gate = await assertPacksApprovedForOrder(orderId);
     if (!gate.ok) return { ok: false, error: gate.error };
   }
-  return transition(orderId, { to: target, tracking });
+  return transition(orderId, { to: target, tracking, ...(from ? { from } : {}) });
 }
 
 /** Attach or update tracking without changing production status. */

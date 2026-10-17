@@ -120,7 +120,7 @@ test('the screens come from the design\'s print files for that garment colour, b
   const [onBlack, onWhite] = run.lines;
   assert.equal(onBlack.screens?.basis, 'pack');
   assert.equal(onBlack.screens?.count, 6);
-  assert.equal(onBlack.screens?.summary, '6 screens: no surcharge');
+  assert.equal(onBlack.screens?.summary, 'Front chest · 6 colours: no surcharge');
   assert.equal(onBlack.screens?.placements[0].setId, darks.id);
   // 6 screens, 30 pieces: tier 6 at the 25 break is 9.00, on a blank that costs 6.00 from 25
   assert.equal(onBlack.unitCents, 600 + 900);
@@ -169,23 +169,23 @@ test('8 screens carry no surcharge; 9 add a euro a piece; 12 add four; 15 add se
   const eight = await at(null);
   assert.equal(eight.screens?.count, 8);
   assert.equal(eight.screens?.surchargeCentsPerPiece, 0);
-  assert.equal(eight.screens?.summary, '8 screens: no surcharge');
+  assert.equal(eight.screens?.summary, 'Front chest · 8 colours: no surcharge');
   assert.equal(eight.unitCents, 600 + 900);
 
   const nine = await at(9);
   assert.equal(nine.screens?.count, 9);
   assert.equal(nine.screens?.surchargeCentsPerPiece, 100);
-  assert.equal(nine.screens?.summary, '9 screens: +€1 per piece');
+  assert.equal(nine.screens?.summary, 'Front chest · 9 colours: +€1.00 per piece');
   assert.equal(nine.unitCents, 600 + 900 + 100, '9 screens use the last tier plus the fixed charge');
 
   const twelve = await at(12);
-  assert.equal(twelve.screens?.summary, '12 screens: +€4 per piece');
+  assert.equal(twelve.screens?.summary, 'Front chest · 12 colours: +€4.00 per piece');
   assert.equal(twelve.unitCents, 600 + 900 + 400);
   assert.equal(twelve.totalCents, 30 * (600 + 900 + 400));
 
   const fifteen = await at(15);
   assert.equal(fifteen.screens?.count, 15);
-  assert.equal(fifteen.screens?.summary, '15 screens: +€7 per piece');
+  assert.equal(fifteen.screens?.summary, 'Front chest · 15 colours: +€7.00 per piece');
   assert.equal(fifteen.unitCents, 600 + 900 + 700);
 });
 
@@ -197,9 +197,9 @@ test('a design that needs more than 15 screens is refused, and the answer says w
   const refused = await bulk.createBulkQuote({ storeId: h.artist.storeId, lines: [line(designId, black.code)], shipTo });
   assert.equal(refused.ok, false);
   if (!refused.ok) {
-    assert.match(refused.error, /need 16 screens/);
+    assert.match(refused.error, /need 16 colours/);
     assert.match(refused.error, /more than the 15 we can print/);
-    assert.match(refused.error, /Ask for fewer screens/);
+    assert.match(refused.error, /Ask for fewer colours/);
     assert.doesNotMatch(refused.error, /pack|separation|plate|psd|pantone/i);
   }
   // the lights set is fine
@@ -216,9 +216,9 @@ test('with no print files the line is an estimate: the colours named by the serv
 
   assert.equal(onBlack.screens?.basis, 'estimate');
   assert.equal(onBlack.screens?.count, 4, '2 colours, the white underbase and the highlight white');
-  assert.equal(onBlack.screens?.summary, 'Estimate: 4 screens: no surcharge');
+  assert.equal(onBlack.screens?.summary, 'Front chest · 4 colours (estimate): no surcharge');
   assert.match(onBlack.screens?.note ?? '', /print files for this design on Black aren't ready yet/);
-  assert.match(onBlack.screens?.note ?? '', /screen count is an estimate: 4 screens \(2 colours, plus the white underbase and highlight white\)/);
+  assert.match(onBlack.screens?.note ?? '', /colour count is an estimate: 4 colours \(2 from the artwork, plus the white underbase and highlight white\)/);
   assert.match(onBlack.screens?.note ?? '', /follows the real count once the print files are ready/);
   assert.equal(onBlack.unitCents, 600 + 600);
 
@@ -229,7 +229,7 @@ test('with no print files the line is an estimate: the colours named by the serv
 test('a line with no artwork says so', async () => {
   const run = await quote([line(undefined, black.code)]);
   assert.equal(run.lines[0].screens?.basis, 'estimate');
-  assert.match(run.lines[0].screens?.note ?? '', /This line has no artwork yet, so its screen count is an estimate/);
+  assert.match(run.lines[0].screens?.note ?? '', /This line has no artwork yet, so its colour count is an estimate/);
 });
 
 test('files for another print position or size do not stand in: the line is an estimate, and the reason names the position', async () => {
@@ -237,7 +237,7 @@ test('files for another print position or size do not stand in: the line is an e
   // a different print width is a different position: there are files for the design, but none for this
   const narrow = await quote([line(designId, black.code, { placement: { position: 'front_chest', widthCm: 20 } })]);
   assert.equal(narrow.lines[0].screens?.basis, 'estimate');
-  assert.match(narrow.lines[0].screens?.note ?? '', /There are no print files for this design at this print position and size yet, so its screen count is an estimate/);
+  assert.match(narrow.lines[0].screens?.note ?? '', /There are no print files for this design at this print position and size yet, so its colour count is an estimate/);
   const back = await quote([line(designId, black.code, { placement: { position: 'back', widthCm: 32 } })]);
   assert.match(back.lines[0].screens?.note ?? '', /no print files for this design at this print position and size yet/);
 });
@@ -254,7 +254,7 @@ test('files that do not cover the garment colour do not stand in either, and the
   assert.equal(onBlack.lines[0].screens?.basis, 'pack');
   const onWhite = await quote([line(designId, white.code)]);
   assert.equal(onWhite.lines[0].screens?.basis, 'estimate');
-  assert.match(onWhite.lines[0].screens?.note ?? '', /The print files for this design don't cover White yet, so its screen count is an estimate: 2 screens/);
+  assert.match(onWhite.lines[0].screens?.note ?? '', /The print files for this design don't cover White yet, so its colour count is an estimate: 2 colours/);
 });
 
 test('a colour the design prints nothing on is an estimate with that reason, not a count of nothing', async () => {
@@ -263,7 +263,7 @@ test('a colour the design prints nothing on is an estimate with that reason, not
     const { designId } = await prepared(4);
     const onBlack = await quote([line(designId, black.code)]);
     assert.equal(onBlack.lines[0].screens?.basis, 'estimate');
-    assert.match(onBlack.lines[0].screens?.note ?? '', /The print files for this design print nothing on Black, so its screen count is an estimate/);
+    assert.match(onBlack.lines[0].screens?.note ?? '', /The print files for this design print nothing on Black, so its colour count is an estimate/);
     // the lights still have their screens
     assert.equal((await quote([line(designId, white.code)])).lines[0].screens?.basis, 'pack');
   } finally {
@@ -286,8 +286,8 @@ test('files being made again are used for now and flagged: the count may change'
   const waiting = await quote([line(designId, black.code)]);
   assert.equal(waiting.lines[0].screens?.basis, 'estimate');
   assert.equal(waiting.lines[0].screens?.count, 8);
-  assert.match(waiting.lines[0].screens?.note ?? '', /being prepared again, so the screen count may change/);
-  assert.match(waiting.lines[0].screens?.note ?? '', /For now the quote uses 8 screens/);
+  assert.match(waiting.lines[0].screens?.note ?? '', /being prepared again, so the colour count may change/);
+  assert.match(waiting.lines[0].screens?.note ?? '', /For now the quote uses 8 colours/);
 
   await h.runJob(changed.value.jobId);
   const done = await quote([line(designId, black.code)]);
@@ -326,7 +326,7 @@ test('a second print position is priced with its own screens and the second-posi
     assert.deepEqual(only.screens?.placements.map((p) => [p.position, p.screens, p.basis]), [['front_chest', 6, 'pack'], ['back', 6, 'pack']]);
     // both 6 screens at 9.00 (25 break): the first pays in full, the second 80%
     assert.equal(only.unitCents, 600 + 900 + 720);
-    assert.equal(only.screens?.summary, 'front chest 6 screens, back 6 screens: no surcharge');
+    assert.equal(only.screens?.summary, 'Front chest · 6 colours: no surcharge; Back · 6 colours: no surcharge');
     assert.deepEqual(only.extraPlacements, [{ position: 'back', widthCm: 32 }]);
   } finally {
     await pricing.setScreenPriceTable(h.owner, TABLE);
@@ -339,7 +339,7 @@ test('a position with no files yet is guessed while the other is read: the line 
   const only = run.lines[0];
   assert.deepEqual(only.screens?.placements.map((p) => [p.position, p.basis]), [['front_chest', 'pack'], ['back', 'estimate']]);
   assert.equal(only.screens?.basis, 'estimate');
-  assert.match(only.screens?.note ?? '', /There are no print files for this design at this print position and size \(back\) yet, so its screen count is an estimate: 4 screens/);
+  assert.match(only.screens?.note ?? '', /There are no print files for this design at this print position and size \(back\) yet, so its colour count is an estimate: 4 colours/);
 });
 
 test('a second position that the blank does not take or a repeat is refused; on a DTG line it adds the shop extra', async () => {
@@ -364,7 +364,12 @@ test('a second position that the blank does not take or a repeat is refused; on 
   assert.deepEqual(dtg.value.lines[0].extraPlacements, [{ position: 'back', widthCm: 30 }]);
 
   const huge = await bulk.createBulkQuote({ ...base, lines: [line(designId, black.code, { extraPlacements: [{ position: 'back', widthCm: 100 }] })] });
-  assert.deepEqual(huge, { ok: false, error: 'A print position must be between 2 and 60 cm wide.' });
+  assert.deepEqual(huge, { ok: false, error: 'The back print must be between 2 and 40 cm wide (at most 40 × 54 cm).' });
+  // A run holds to the product rules too: one front print (the front chest and the left chest overlap), every print within 40 cm.
+  const twoFronts = await bulk.createBulkQuote({ ...base, lines: [line(designId, black.code, { printServiceCode: 'dtg', extraPlacements: [{ position: 'front_left_chest', widthCm: 10 }] })] });
+  assert.deepEqual(twoFronts, { ok: false, error: 'A garment has one front print, and front chest and left chest are both on the front. Keep one of them.' });
+  const wideFront = await bulk.createBulkQuote({ ...base, lines: [line(designId, black.code, { placement: { position: 'front_full', widthCm: 42 } })] });
+  assert.deepEqual(wideFront, { ok: false, error: 'The front print must be between 2 and 40 cm wide (at most 40 × 54 cm).' });
 
   const tooMany = await bulk.createBulkQuote({
     ...base,
@@ -402,15 +407,15 @@ test('no setup fee until one is set', async () => {
 
 // -- the proof and the approval -----------------------------------------------------------------
 
-test('the proof says "Screen print" and gives each line its screens', async () => {
+test('the proof says "Screen print" and gives each line its colours', async () => {
   const { designId } = await prepared(4);
   const run = await quote([line(designId, black.code), line(designId, white.code)]);
   const proof = await bulk.submitBulkProof(h.artist.storeId, run.id);
   assert.ok(proof.ok, proof.ok ? '' : proof.error);
   const spec = proof.value.spec;
   assert.equal(spec.find((row) => row.label === 'Print method')?.value, 'Screen print');
-  assert.equal(spec.find((row) => /^Screens · .* · Black$/.test(row.label))?.value, '6 screens: no surcharge');
-  assert.equal(spec.find((row) => /^Screens · .* · White$/.test(row.label))?.value, '4 screens: no surcharge');
+  assert.equal(spec.find((row) => /^Colours · .* · Black$/.test(row.label))?.value, 'Front chest · 6 colours: no surcharge');
+  assert.equal(spec.find((row) => /^Colours · .* · White$/.test(row.label))?.value, 'Front chest · 4 colours: no surcharge');
 });
 
 test('the run is priced again when the proof is sent: a guess becomes the real count once the files exist', async () => {
@@ -476,8 +481,8 @@ test('an approval is refused when the screens changed since the proof: the quote
   const refused = await bulk.approveBulkProof(h.artist.storeId, proof.value.id, h.artist.userId);
   assert.equal(refused.ok, false);
   if (!refused.ok) {
-    assert.match(refused.error, /^The screens changed since this proof was sent/);
-    assert.match(refused.error, /was 8 screens: no surcharge, now 12 screens: \+€4 per piece/);
+    assert.match(refused.error, /^The colours changed since this proof was sent/);
+    assert.match(refused.error, /was Front chest · 8 colours: no surcharge, now Front chest · 12 colours: \+€4\.00 per piece/);
     assert.match(refused.error, /send the proof again/);
   }
 
@@ -487,7 +492,7 @@ test('an approval is refused when the screens changed since the proof: the quote
   assert.equal(now?.lines[0].unitCents, 600 + 900 + 400);
   const latest = await h.db.select().from(schema.proofs).where(eq(schema.proofs.bulkOrderId, run.id));
   assert.equal(latest[0].status, 'changes_requested');
-  assert.match(latest[0].notes ?? '', /The screens changed/);
+  assert.match(latest[0].notes ?? '', /The colours changed/);
 
   // sent again and approved, the artist signs off the new price
   const second = await bulk.submitBulkProof(h.artist.storeId, run.id);
@@ -509,7 +514,7 @@ test('an approval waits while the design\'s screen files are being made again: t
   const waiting = await bulk.approveBulkProof(h.artist.storeId, proof.value.id, h.artist.userId);
   assert.deepEqual(waiting, {
     ok: false,
-    error: 'The print files for this design are being prepared, so the screen count, and the price, can still change. Approve the proof once they are ready.',
+    error: 'The print files for this design are being prepared, so the colour count, and the price, can still change. Approve the proof once they are ready.',
   });
   const still = await bulk.getBulkOrder(h.artist.storeId, run.id);
   assert.equal(still?.status, 'proof_pending', 'nothing moved: the proof stays out');
@@ -518,7 +523,7 @@ test('an approval waits while the design\'s screen files are being made again: t
   // once the files are made, the new count stops the approval as any change does
   await h.runJob(changed.value.jobId);
   const refused = await bulk.approveBulkProof(h.artist.storeId, proof.value.id, h.artist.userId);
-  assert.ok(!refused.ok && /^The screens changed since this proof was sent/.test(refused.error), JSON.stringify(refused));
+  assert.ok(!refused.ok && /^The colours changed since this proof was sent/.test(refused.error), JSON.stringify(refused));
 });
 
 test('a guess that became the real count after the proof also stops the approval', async () => {
@@ -764,13 +769,13 @@ test('the quote tool gives the model each screen line\'s count and effect, and s
   const result = await toolQuote([line(designId, black.code)]);
   const [fact] = result.data.screenPrint ?? [];
   assert.equal(fact.screens, 6);
-  assert.equal(fact.effect, '6 screens: no surcharge');
+  assert.equal(fact.effect, 'Front chest · 6 colours: no surcharge');
   assert.equal(fact.estimate, false);
   assert.equal(fact.surchargeCentsPerPiece, 0);
   assert.equal(fact.fewerScreens, undefined);
   assert.equal(fact.designId, designId);
   assert.equal(result.data.estimate, false);
-  assert.match(result.data.screenRule ?? '', /each screen above 8 adds €1 per piece, up to 15 screens/);
+  assert.match(result.data.screenRule ?? '', /each colour above 8 adds €1 per piece on each print position, up to 15 colours on a position/);
   // no notice, no chip about screens
   assert.deepEqual((result.ui?.cards ?? []).map((c) => c.kind), ['bulk_quote']);
   assert.deepEqual((result.ui?.next ?? []).map((c) => c.label), ['Send the proof', 'Change the address']);
@@ -781,7 +786,7 @@ test('with a surcharge the tool explains it in a notice and offers fewer screens
   await withScreens(designId, 11);
   const result = await toolQuote([line(designId, black.code)]);
   const [fact] = result.data.screenPrint ?? [];
-  assert.equal(fact.effect, '11 screens: +€3 per piece');
+  assert.equal(fact.effect, 'Front chest · 11 colours: +€3.00 per piece');
   assert.equal(fact.surchargeCentsPerPiece, 300);
   assert.deepEqual(fact.fewerScreens, { screens: 8, savesCentsPerPiece: 300 });
   assert.equal(fact.designId, designId, 'what change_screen_count needs');
@@ -789,15 +794,15 @@ test('with a surcharge the tool explains it in a notice and offers fewer screens
   const notice = (result.ui?.cards ?? []).find((c) => c.kind === 'notice') as { tone: string; text: string } | undefined;
   assert.ok(notice);
   assert.equal(notice.tone, 'warning');
-  assert.match(notice.text, /prints from 11 screens, so each piece costs €3 more/);
-  assert.match(notice.text, /Each screen above 8 adds €1 per piece/);
+  assert.match(notice.text, /Front chest · 11 colours: \+€3\.00\. That is €3\.00 more for each piece/);
+  assert.match(notice.text, /each colour above 8 adds €1 per piece on each print position/);
   assert.match(notice.text, /the look changes and you would approve the new proof again/);
   assert.doesNotMatch(notice.text, /pack|separation|plate|psd|pantone|change_screen_count/i);
 
   const labels = (result.ui?.next ?? []).map((c) => c.label);
-  assert.deepEqual(labels, ['Send the proof', 'Use 8 screens instead', 'Change the address']);
-  const offer = (result.ui?.next ?? []).find((c) => c.label === 'Use 8 screens instead');
-  assert.match(offer?.prompt ?? '', /^Use 8 screens for Run \d+, then quote it again$/);
+  assert.deepEqual(labels, ['Send the proof', 'Use 8 colours on the front chest', 'Change the address']);
+  const offer = (result.ui?.next ?? []).find((c) => c.label === 'Use 8 colours on the front chest');
+  assert.match(offer?.prompt ?? '', /^Use 8 colours on the front chest for Run \d+, then quote it again$/);
 });
 
 test('with a guess the tool says it is an estimate and offers to prepare the print files', async () => {
@@ -806,7 +811,7 @@ test('with a guess the tool says it is an estimate and offers to prepare the pri
   assert.equal(result.data.estimate, true);
   const notice = (result.ui?.cards ?? []).find((c) => c.kind === 'notice') as { tone: string; text: string } | undefined;
   assert.equal(notice?.tone, 'info');
-  assert.match(notice?.text ?? '', /screen count is an estimate/);
+  assert.match(notice?.text ?? '', /colour count is an estimate/);
   assert.ok((result.ui?.next ?? []).some((c) => c.label === 'Prepare the print files'));
 });
 
@@ -816,9 +821,9 @@ test('a design that needs more than 15 screens is refused by the tool, which off
   await h.db.update(schema.productionPacks).set({ screenCount: 17 }).where(eq(schema.productionPacks.id, darks.id));
   const result = await tools.createBulkQuoteTool.run(ctx, { lines: [line(designId, black.code)], shipTo } as never);
   assert.equal(result.data.ok, false);
-  assert.match(result.data.error ?? '', /need 17 screens on Black, more than the 15 we can print/);
-  assert.deepEqual((result.ui?.next ?? []).map((c) => c.label), ['Use 8 screens instead']);
-  assert.match(result.ui?.next?.[0].prompt ?? '', /^Use 8 screens for this design, then quote the run again$/);
+  assert.match(result.data.error ?? '', /need 17 colours on Black, more than the 15 we can print/);
+  assert.deepEqual((result.ui?.next ?? []).map((c) => c.label), ['Use 8 colours instead']);
+  assert.match(result.ui?.next?.[0].prompt ?? '', /^Use 8 colours for this design, then quote the run again$/);
   // any other refusal offers nothing
   const other = await tools.createBulkQuoteTool.run(ctx, { lines: [line(designId, 'C999')], shipTo } as never);
   assert.equal(other.data.ok, false);
@@ -865,13 +870,13 @@ test('sending the proof tells the model when the price moved, and approving afte
   const proof = await h.db.select().from(schema.proofs).where(eq(schema.proofs.bulkOrderId, card.bulkOrderId));
   const refused = await tools.approveBulkProofTool.run(ctx, { bulkOrderId: card.bulkOrderId, proofId: proof[0].id } as never);
   assert.equal(refused.data.ok, false);
-  assert.match(refused.data.error ?? '', /^The screens changed since this proof was sent/);
+  assert.match(refused.data.error ?? '', /^The colours changed since this proof was sent/);
   assert.deepEqual((refused.ui?.next ?? []).map((c) => c.label), ['Send the proof again']);
 });
 
 test('tool text about screens stays in the artist\'s words', async () => {
   const text = [tools.createBulkQuoteTool.description, tools.submitBulkProofTool.description].join(' ');
   assert.match(text, /change_screen_count/);
-  assert.match(text, /each screen above 8 adds €1 per piece, up to 15/);
+  assert.match(text, /each screen above 8 adds €1 per piece, up to 15, counted separately for each print position/);
   assert.doesNotMatch(text, /pantone/i);
 });

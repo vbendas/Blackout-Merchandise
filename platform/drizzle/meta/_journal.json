@@ -43,6 +43,13 @@
       "when": 1792148399377,
       "tag": "0005_products_print_areas",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792186323896,
+      "tag": "0006_production_progress",
+      "breakpoints": true
     }
   ]
 }

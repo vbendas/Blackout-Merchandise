@@ -16,6 +16,8 @@ export interface AdminNavEntry {
 export const ADMIN_NAV: AdminNavEntry[] = [
   { href: '/admin/prepress', label: 'Pre-press', area: 'prepress' },
   { href: '/admin/production', label: 'Production', area: 'production' },
+  // The production stations: the iPads' own full-screen app (app/station), outside the admin frame.
+  { href: '/station', label: 'Stations', area: 'production' },
   { href: '/admin/supplier', label: 'Supplier orders', area: 'production' },
   { href: '/admin/ink-system', label: 'Ink system', area: 'prepress' },
   { href: '/admin/pricing', label: 'Pricing', area: 'catalogue' },
