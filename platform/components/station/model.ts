@@ -31,6 +31,13 @@ export function parseStation(value: unknown): StationKind | null {
 
 export const METHOD_LABEL: Record<StationJobSummary['method'], string> = { screen: 'Screen print', dtg: 'DTG', dtf: 'DTF' };
 
+/** A job's number as the floor says it: "No. 1001". Never "Run 1001" (so not runLabel of lib/format/runs.ts, which says "Run 3"): here a
+ * Run is an artist's Run 1, Run 2, the order refs on a job's lines. Null for anything that is not a whole number, so a screen never reads
+ * "No. undefined". */
+export function jobNumberLabel(runNumber: number | null | undefined): string | null {
+  return typeof runNumber === 'number' && Number.isInteger(runNumber) && runNumber > 0 ? `No. ${runNumber}` : null;
+}
+
 /** The jobs a station works: its own method, or every one. */
 export function jobsFor(jobs: StationJobSummary[], station: StationKind): StationJobSummary[] {
   return station === 'all' ? jobs : jobs.filter((job) => job.method === station);

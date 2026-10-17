@@ -32,6 +32,8 @@ const MAX_COUNT = 100_000;
 
 interface MockJob {
   jobId: string;
+  /** 1001 and up, oldest job first, as the database numbers the real ones */
+  runNumber: number;
   designId: string;
   designTitle: string;
   shopName: string;
@@ -140,6 +142,7 @@ function seeds(now: Date): MockJob[] {
 
   add({
     jobId: id(1),
+    runNumber: 1003,
     designId: id(11),
     designTitle: 'Underwriter · v3',
     shopName: 'Underwriter band shop',
@@ -165,6 +168,7 @@ function seeds(now: Date): MockJob[] {
   });
   add({
     jobId: id(2),
+    runNumber: 1005,
     designId: id(12),
     designTitle: 'Thornfield wordmark · v1',
     shopName: 'Thornfield',
@@ -187,6 +191,7 @@ function seeds(now: Date): MockJob[] {
   });
   add({
     jobId: id(3),
+    runNumber: 1006,
     designId: id(13),
     designTitle: 'Woodcut crow · v2',
     shopName: 'Night Orchard',
@@ -207,6 +212,7 @@ function seeds(now: Date): MockJob[] {
   });
   add({
     jobId: id(4),
+    runNumber: 1004,
     designId: id(14),
     designTitle: 'Moth wings tee · v1',
     shopName: 'Night Orchard',
@@ -229,6 +235,7 @@ function seeds(now: Date): MockJob[] {
   });
   add({
     jobId: id(5),
+    runNumber: 1002,
     designId: id(15),
     designTitle: 'Kiln badge · v2',
     shopName: 'Kiln Studio',
@@ -245,6 +252,7 @@ function seeds(now: Date): MockJob[] {
   });
   add({
     jobId: id(6),
+    runNumber: 1001,
     designId: id(16),
     designTitle: 'Atlas Choir · v1',
     shopName: 'Atlas Choir',
@@ -284,6 +292,7 @@ function summaryOf(job: MockJob): StationJobSummary {
   const { total, printed } = totalsOf(job);
   return {
     jobId: job.jobId,
+    runNumber: job.runNumber,
     designId: job.designId,
     designTitle: job.designTitle,
     shopName: job.shopName,

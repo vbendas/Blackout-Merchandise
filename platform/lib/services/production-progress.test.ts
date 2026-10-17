@@ -532,7 +532,8 @@ test('the board shows "Private" until the shop opts in, the stage words, and not
 
   await stores.setPressBoardOptIn(h.artist.storeId, false);
   let row = await rowFor(job.jobId);
-  assert.deepEqual(row && { ...row, updatedAt: 'x' }, { id: hashId(job.jobId), client: 'Private', piece: 'Classic tee', printed: 0, total: 3, ink: 'Full colour (DTG)', stage: 'QUEUED', updatedAt: 'x' });
+  assert.deepEqual(row && { ...row, updatedAt: 'x' }, { id: hashId(job.jobId), run: job.runNumber, client: 'Private', piece: 'Classic tee', printed: 0, total: 3, ink: 'Full colour (DTG)', stage: 'QUEUED', updatedAt: 'x' });
+  assert.ok(Number.isInteger(job.runNumber) && job.runNumber >= 1001, `the job has its number (${job.runNumber})`);
 
   // Opted in: the shop's name, and only that.
   assert.equal(await stores.setPressBoardOptIn(h.artist.storeId, true), true);
@@ -560,7 +561,7 @@ test('the board shows "Private" until the shop opts in, the stage words, and not
   for (const secret of ['private.fan@example.com', 'artist@merchfrom.test', '@', sale, sale.slice(0, 8).toUpperCase(), 'ORD-', run.orderId, run.bulkOrderId, 'Mallorca', '08013', job.jobId, screenJob.jobId, designId, h.artist.storeId]) {
     assert.ok(!everything.includes(secret), `the board leaks ${secret}`);
   }
-  for (const r of await pp.onThePressFeed()) assert.deepEqual(Object.keys(r).sort(), ['client', 'id', 'ink', 'piece', 'printed', 'stage', 'total', 'updatedAt']);
+  for (const r of await pp.onThePressFeed()) assert.deepEqual(Object.keys(r).sort(), ['client', 'id', 'ink', 'piece', 'printed', 'run', 'stage', 'total', 'updatedAt']);
 
   // Hidden by staff: off the board, still at the station.
   ok(await pp.setHiddenFromBoard(owner, job.jobId, true));

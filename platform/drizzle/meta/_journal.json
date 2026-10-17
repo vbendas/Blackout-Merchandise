@@ -50,6 +50,13 @@
       "when": 1792186323896,
       "tag": "0006_production_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792266450031,
+      "tag": "0007_production_run_numbers",
+      "breakpoints": true
     }
   ]
 }

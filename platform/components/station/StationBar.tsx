@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 /** The bar at the top of every station screen: the way back, what this screen is, and the screen's own state and controls at
  * the right. It stays at the top while the page scrolls under it. */
-export function StationBar({ lead, title, subtitle, children }: { lead?: ReactNode; title: string; subtitle?: string; children?: ReactNode }) {
+export function StationBar({ lead, title, subtitle, children }: { lead?: ReactNode; title: string; subtitle?: ReactNode; children?: ReactNode }) {
   return (
     <header className="st-bar">
       <div className="st-bar-left">

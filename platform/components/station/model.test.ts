@@ -3,10 +3,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { ProgressLine, StationJobSummary } from '@/lib/services/production-progress';
-import { groupJobs, groupLines, initialsOf, jobsFor, nextStage, nextStageLabel, parseStation, percent, screenCanPrint, screenIsReady, SCREEN_STATUSES, screensBlocking, sortJobs, stageWarnings, stepsFor, timeAgo } from './model';
+import { groupJobs, groupLines, initialsOf, jobNumberLabel, jobsFor, nextStage, nextStageLabel, parseStation, percent, screenCanPrint, screenIsReady, SCREEN_STATUSES, screensBlocking, sortJobs, stageWarnings, stepsFor, timeAgo } from './model';
 
 const job = (id: string, stage: StationJobSummary['stage'], updatedAt: string, overrides: Partial<StationJobSummary> = {}): StationJobSummary => ({
   jobId: id,
+  runNumber: 1001,
   designId: `design-${id}`,
   designTitle: `Design ${id}`,
   shopName: 'Band shop',
@@ -123,4 +124,13 @@ test('a move forward is asked about when the service would hold it up: screens n
   assert.deepEqual(stageWarnings({ ...base, lines: [{ total: 100, printed: 100 }], stage: 'printing' }, 'curing'), []);
   // DTG and DTF jobs have no screens to wait for.
   assert.deepEqual(stageWarnings({ method: 'dtg', screens: [], lines, stage: 'queued' }, 'printing'), []);
+});
+
+test('a job’s number is worded "No. 1001", never as a Run, and what is not a whole number is not worded at all', () => {
+  assert.equal(jobNumberLabel(1001), 'No. 1001');
+  assert.equal(jobNumberLabel(1), 'No. 1');
+  assert.equal(jobNumberLabel(12345), 'No. 12345');
+  for (const bad of [0, -3, 1.5, Number.NaN, Number.POSITIVE_INFINITY, null, undefined, '1001' as never]) assert.equal(jobNumberLabel(bad), null, String(bad));
+  // On this platform a Run is an artist's Run 1, Run 2 (the order refs on a job's lines): the floor never reads a job's number as one.
+  assert.doesNotMatch(jobNumberLabel(1001) ?? '', /run/i);
 });

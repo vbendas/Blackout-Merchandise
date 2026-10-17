@@ -566,7 +566,7 @@ test('the job page opens a job with its job sheet; a job that is not there is a 
 
 test('the job page still opens a job whose job sheet cannot be read: the counts are what the floor needs', async () => {
   await setDev('staff', { production: 'work' });
-  const job = { jobId: 'job-9', designId: 'not-a-design-id', designTitle: 'Odd job', shopName: 'Shop', method: 'dtg', stage: 'queued', total: 5, printed: 0, updatedAt: '2026-10-16T09:00:00.000Z', hiddenFromBoard: false, flaggedLines: 0, lines: [], screens: [], jobSheetUrl: '/api/job-sheets/x', canWork: true } as StationJobDetail;
+  const job = { jobId: 'job-9', runNumber: 1009, designId: 'not-a-design-id', designTitle: 'Odd job', shopName: 'Shop', method: 'dtg', stage: 'queued', total: 5, printed: 0, updatedAt: '2026-10-16T09:00:00.000Z', hiddenFromBoard: false, flaggedLines: 0, lines: [], screens: [], jobSheetUrl: '/api/job-sheets/x', canWork: true } as StationJobDetail;
   data.setStationApiForTests({ ...allFail('unused'), getStationJob: async () => ({ ok: true, value: job }) });
   const page = await render(jobPage, jobParams('job-9'));
   const props = page.props as { job: StationJobDetail; view: unknown; sheetProblem: string | null };
@@ -591,7 +591,7 @@ test('on the real service an empty floor is an empty queue, and a job that is no
 test('the queue asks for the proofs of the designs the screen does not have yet, and a list without its pictures is still a list', async () => {
   await setDev('staff', { production: 'view' });
   const session = await auth.requireUser();
-  const summary = (jobId: string, designId: string): StationJobSummary => ({ jobId, designId, designTitle: jobId, shopName: 's', method: 'screen', stage: 'queued', total: 1, printed: 0, updatedAt: '2026-10-16T09:00:00.000Z', hiddenFromBoard: false, flaggedLines: 0 });
+  const summary = (jobId: string, designId: string): StationJobSummary => ({ jobId, runNumber: 1001, designId, designTitle: jobId, shopName: 's', method: 'screen', stage: 'queued', total: 1, printed: 0, updatedAt: '2026-10-16T09:00:00.000Z', hiddenFromBoard: false, flaggedLines: 0 });
   const jobs = [summary('a', '3f2b6c1e-9d4a-4c1f-8a7e-0b5d2c9e1a44'), summary('b', '3f2b6c1e-9d4a-4c1f-8a7e-0b5d2c9e1a45'), summary('c', '3f2b6c1e-9d4a-4c1f-8a7e-0b5d2c9e1a44')];
   data.setStationApiForTests({ ...allFail('unused'), listStationJobs: async () => ({ ok: true, value: jobs }) });
   const first = await data.loadQueue(session);

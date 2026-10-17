@@ -26,7 +26,7 @@ export interface DemoDesignLink {
 /** A job on the production stations' floor (not shipped), for a link straight to it. */
 export interface DemoJobLink {
   jobId: string;
-  /** 'Underwriter · Screen print' */
+  /** 'No. 1003 · Underwriter · Screen print · Underwriter band shop' (the number the stations and the website's board show) */
   label: string;
   /** 'Printing · 56/160' */
   note: string;
@@ -49,6 +49,7 @@ async function loadJobLinks(): Promise<DemoJobLink[]> {
   const rows = await db
     .select({
       jobId: j.id,
+      runNumber: j.runNumber,
       designId: j.designId,
       method: j.method,
       stage: j.stage,
@@ -66,7 +67,7 @@ async function loadJobLinks(): Promise<DemoJobLink[]> {
   for (const row of rows) {
     links.push({
       jobId: row.jobId,
-      label: `${await designDisplayName(row.designId)} · ${METHOD_WORDS[row.method] ?? row.method} · ${row.shop}`,
+      label: `No. ${row.runNumber} · ${await designDisplayName(row.designId)} · ${METHOD_WORDS[row.method] ?? row.method} · ${row.shop}`,
       note: `${STAGE_WORDS[row.stage] ?? row.stage} · ${Number(row.printed)}/${Number(row.total)}`,
     });
   }

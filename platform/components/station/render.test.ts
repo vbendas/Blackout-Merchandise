@@ -75,6 +75,11 @@ test('the queue draws every job, grouped by stage nearest to finished first, wit
   assert.deepEqual([...order].sort((a, b) => a - b), order, 'nearest to finished first');
   // a card: design, shop, method, stage, the printed count and the screens
   assert.match(text, /Underwriter · v3 Printing Underwriter band shop Screen print/);
+  // and which job it is, first: "No. 1003", the number the board carries too. Never "Run 1003": a Run is an artist's Run 1, Run 2.
+  assert.match(text, /No\. 1003 Underwriter · v3 Printing Underwriter band shop Screen print/);
+  assert.match(text, /No\. 1001 Atlas Choir · v1 Folding/);
+  for (const n of [1001, 1002, 1003, 1004, 1005, 1006]) assert.equal((text.match(new RegExp(`No\\. ${n}\\b`, 'g')) ?? []).length, 1, `one card for No. ${n}`);
+  assert.doesNotMatch(text, /Run 100\d/);
   assert.match(text, /56 \/ 160 printed/);
   assert.match(text, /Screens ready 10 \/ 10/);
   assert.match(text, /Moth wings tee · v1 Printing Night Orchard DTG · 1 line flagged/);
@@ -111,7 +116,10 @@ test('a job on the press opens on its pieces: every garment and colour, each siz
   const markup = html(createElement(JobScreen, { job: await job(UNDERWRITER), view, sheetProblem: null, adminHref: '/admin/production' }));
   clean(markup);
   const text = words(markup);
-  assert.match(text, /Underwriter · v3 Underwriter band shop · Screen print · Printing/);
+  // the number first in the bar's line under the design's name, brighter than the rest
+  assert.match(text, /Underwriter · v3 No\. 1003 · Underwriter band shop · Screen print · Printing/);
+  assert.match(markup, /<b class="st-no">No\. 1003<\/b>/);
+  assert.doesNotMatch(text, /Run 100\d/);
   assert.match(text, /56 \/ 160 printed Screens ready 10 \/ 10/);
   assert.match(text, /Start curing/);
   assert.match(text, /Classic tee · Black 51 \/ 100/);
@@ -245,4 +253,17 @@ test('the stepper ticks the steps behind a job, fills the one it is on, and leav
   assert.equal((markup.match(/disabled=""/g) ?? []).length, 1, 'only the current step is not a button to press');
   const shipped = html(createElement(Stepper, { method: 'dtg', stage: 'shipped', canWork: false, onPick: () => undefined }));
   assert.equal((shipped.match(/data-state="done"/g) ?? []).length, 4, 'every step behind a job that shipped is done');
+});
+
+test('a job that has no number draws without one: nothing reads "No. undefined"', async () => {
+  mock.resetMockStation();
+  const detail = { ...(await job(UNDERWRITER)), runNumber: undefined as unknown as number };
+  const page = html(createElement(JobScreen, { job: detail, view: sampleJobSheetView(new Date('2026-10-16T09:00:00Z')), sheetProblem: null, adminHref: '/admin/production' }));
+  clean(page);
+  assert.match(words(page), /Underwriter · v3 Underwriter band shop · Screen print · Printing/);
+  assert.doesNotMatch(words(page), /\bNo\. \S/);
+  const list = (await jobs()).map((j) => ({ ...j, runNumber: undefined as unknown as number }));
+  const queue = html(createElement(QueueScreen, { initial: { ok: true, value: { jobs: list, thumbs: {} } }, station: 'all', canWork: true, adminHref: '/admin/production' }));
+  clean(queue);
+  assert.doesNotMatch(words(queue), /\bNo\. \S/);
 });

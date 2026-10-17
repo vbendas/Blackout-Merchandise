@@ -1,6 +1,6 @@
 'use client';
 
-// The queue at a production station: the jobs on the floor as cards (the proof, the design and shop, the method, the stage, how many
+// The queue at a production station: the jobs on the floor as cards (the proof, the job's number, the design and shop, the method, the stage, how many
 // pieces are printed and how many screens are ready), in the order to read them, for this iPad's station. It asks the server for the
 // jobs again every ten seconds (other iPads' counts included) and says how old what it shows is.
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -11,7 +11,7 @@ import type { ProofThumbs } from '@/lib/services/job-sheets';
 import type { StationJobSummary, StationKind } from '@/lib/services/production-progress';
 import { IconRefresh } from './icons';
 import { usePoll } from './hooks';
-import { groupJobs, initialsOf, jobsFor, METHOD_LABEL, percent, POLL_MS, STAGE_LABEL, STATION_COOKIE, STATIONS, type StationResult } from './model';
+import { groupJobs, initialsOf, jobNumberLabel, jobsFor, METHOD_LABEL, percent, POLL_MS, STAGE_LABEL, STATION_COOKIE, STATIONS, type StationResult } from './model';
 import { StationBar } from './StationBar';
 import { UpdatedLine } from './UpdatedLine';
 import { ScreenOnToggle } from './WakeLock';
@@ -130,6 +130,7 @@ function JobCard({ job, thumbs }: { job: StationJobSummary; thumbs?: ProofThumbs
   const complete = job.total > 0 && job.printed >= job.total;
   const hasScreens = job.method === 'screen' && job.screensTotal !== undefined && job.screensTotal > 0;
   const flagged = job.flaggedLines ?? 0;
+  const number = jobNumberLabel(job.runNumber);
 
   return (
     <Link href={`/station/job/${encodeURIComponent(job.jobId)}`} className="st-card" data-stage={job.stage}>
@@ -142,6 +143,7 @@ function JobCard({ job, thumbs }: { job: StationJobSummary; thumbs?: ProofThumbs
         )}
       </span>
       <span className="st-card-body">
+        {number ? <span className="st-no st-card-no">{number}</span> : null}
         <span className="st-card-head">
           <span className="st-card-title">{job.designTitle}</span>
           <span className="st-tag st-tag-strong">{STAGE_LABEL[job.stage]}</span>

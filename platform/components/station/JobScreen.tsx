@@ -15,7 +15,7 @@ import { IconBack, IconCheck, IconNext } from './icons';
 import { usePoll } from './hooks';
 import { Dialog } from './Dialog';
 import { Keypad } from './Keypad';
-import { nextStage, nextStageLabel, METHOD_LABEL, percent, POLL_MS, screensBlocking, stageRank, stageWarnings, STAGE_LABEL, type StationResult } from './model';
+import { jobNumberLabel, nextStage, nextStageLabel, METHOD_LABEL, percent, POLL_MS, screensBlocking, stageRank, stageWarnings, STAGE_LABEL, type StationResult } from './model';
 import { applyOps, type Op } from './ops';
 import { PiecesPanel } from './PiecesPanel';
 import { ProofsPanel } from './ProofsPanel';
@@ -142,6 +142,7 @@ export function JobScreen({ job: first, view, sheetProblem, adminHref }: JobPage
   const next = nextStage(detail.method, detail.stage);
   const nextLabel = nextStageLabel(detail.method, detail.stage);
   const keypadLine = keypadFor ? detail.lines.find((l) => l.key === keypadFor) : undefined;
+  const number = jobNumberLabel(detail.runNumber);
 
   const tabs: { id: Tab; label: string; count: string | null }[] = [
     ...(hasScreens ? [{ id: 'screens' as const, label: 'Screens', count: `${ready}/${detail.screensTotal ?? detail.screens.length}` }] : []),
@@ -155,7 +156,17 @@ export function JobScreen({ job: first, view, sheetProblem, adminHref }: JobPage
     <>
       <StationBar
         title={detail.designTitle}
-        subtitle={`${detail.shopName} · ${METHOD_LABEL[detail.method]} · ${STAGE_LABEL[detail.stage]}`}
+        subtitle={
+          <>
+            {number ? (
+              <>
+                <b className="st-no">{number}</b>
+                {' · '}
+              </>
+            ) : null}
+            {`${detail.shopName} · ${METHOD_LABEL[detail.method]} · ${STAGE_LABEL[detail.stage]}`}
+          </>
+        }
         lead={
           <Link href="/station" className="st-btn st-btn-back" aria-label="Back to the queue">
             <IconBack />

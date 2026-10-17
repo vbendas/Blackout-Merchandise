@@ -76,7 +76,10 @@ test('the samples are realistic: a job at every station, oldest first, with the 
     ['Thornfield wordmark · v1', 'screen', 'screens'],
     ['Woodcut crow · v2', 'screen', 'queued'],
   ]);
+  // every job has its own number from 1001, the oldest first, as the database numbers the real ones
+  assert.deepEqual(listed.value.map((j) => j.runNumber), [1001, 1002, 1003, 1004, 1005, 1006]);
   const underwriter = listed.value.find((j) => j.jobId === UNDERWRITER)!;
+  assert.equal(underwriter.runNumber, 1003);
   assert.deepEqual([underwriter.total, underwriter.printed, underwriter.screensReady, underwriter.screensTotal, underwriter.hiddenFromBoard, underwriter.flaggedLines], [160, 56, 10, 10, false, 0]);
   assert.equal('screensReady' in listed.value.find((j) => j.jobId === MOCK_DTG)!, false, 'a DTG job has no screens to count');
   assert.equal(listed.value.find((j) => j.jobId === ATLAS)!.hiddenFromBoard, true);
@@ -94,6 +97,7 @@ const MOCK_DTG = MOTH;
 
 test('a job is its lines and screens, and the job sheet’s link', async () => {
   const detail = await job(UNDERWRITER);
+  assert.equal(detail.runNumber, 1003, 'a job opens with the number its card has');
   assert.equal(detail.jobSheetUrl, '/api/job-sheets/00000000-0000-4000-8000-000000000011');
   assert.equal(detail.lines.length, 7);
   assert.deepEqual(detail.lines[1], { key: 'l2', orderRef: 'Run 2 · ORD-1A2B3C4D', blankName: 'Classic tee', colourName: 'Black', size: 'M', total: 40, printed: 31, position: 'Front chest · 28 cm', flag: null });

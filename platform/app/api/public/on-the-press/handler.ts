@@ -2,7 +2,9 @@
 //
 // Public: no sign-in (PUBLIC_ROUTES in proxy.ts) and no personal data. onThePressFeed in
 // lib/services/production-progress.ts names a client only when their shop opted in (else "Private") and never gives an
-// email, an order or an address. It takes no parameters, so there is nothing to look up or step through.
+// email, an order or an address. Each row carries its job's number as `run` (1001 and up, one per production job: the
+// number the stations show as "No. 1001"), which says nothing of the job but its place in the line. It takes no
+// parameters, so there is nothing to look up or step through.
 //
 // Any website may read it: every answer carries Access-Control-Allow-Origin: *. The rows are public by design and are
 // sent without credentials (nothing here reads a session or a cookie), and an answer that is the same for every caller is

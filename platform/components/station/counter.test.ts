@@ -79,6 +79,7 @@ const screen = (n: number, status: ScreenProgress['status']): ScreenProgress => 
 function job(overrides: Partial<StationJobDetail> = {}): StationJobDetail {
   return {
     jobId: 'job-1',
+    runNumber: 1003,
     designId: 'design-1',
     designTitle: 'Underwriter · v3',
     shopName: 'Band shop',

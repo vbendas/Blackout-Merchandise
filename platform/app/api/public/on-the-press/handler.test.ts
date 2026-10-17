@@ -19,7 +19,7 @@ after(() => {
   console.error = realError;
 });
 
-const ROW: OnThePressRow = { id: 'a1b2c3d4e5f6', client: 'Private', piece: 'Classic tee', printed: 82, total: 120, ink: '2 colours', stage: 'ON THE PRESS', updatedAt: '2026-10-16T10:00:00.000Z' };
+const ROW: OnThePressRow = { id: 'a1b2c3d4e5f6', run: 1001, client: 'Private', piece: 'Classic tee', printed: 82, total: 120, ink: '2 colours', stage: 'ON THE PRESS', updatedAt: '2026-10-16T10:00:00.000Z' };
 
 const get = (origin?: string) => new Request('https://studio.merchfrom.com/api/public/on-the-press', { headers: origin ? { origin } : {} });
 
@@ -35,6 +35,7 @@ test('every caller gets the same answer: the rows, readable from any website, ne
     const text = await res.text();
     const body = JSON.parse(text) as BoardBody;
     assert.deepEqual(body.rows, [ROW]);
+    assert.equal(typeof body.rows[0].run, 'number', 'the job\'s number reaches the website as a number');
     assert.ok(!Number.isNaN(Date.parse(body.generatedAt)));
     answers.push(JSON.stringify(body.rows));
   }

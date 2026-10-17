@@ -130,6 +130,14 @@
     text-overflow: ellipsis;
   }
 
+  /* A job's number as the floor says it, "No. 1001": brighter than what is around it, in the figures of the labels. */
+  .st-no {
+    font-family: var(--st-mono);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--st-fg);
+  }
+
   .st-updated {
     font-family: var(--st-mono);
     font-size: 14px;
@@ -415,6 +423,11 @@
     line-height: 1.2;
     font-weight: 600;
     letter-spacing: -0.015em;
+  }
+
+  .st-card-no {
+    font-size: 15px;
+    line-height: 1.2;
   }
 
   .st-card-shop {

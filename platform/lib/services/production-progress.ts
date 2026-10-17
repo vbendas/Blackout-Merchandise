@@ -7,10 +7,12 @@
 // Contract (PS-B builds the station screens against these types): keep the
 // names and shapes; additive fields are fine.
 //
-// The model (migration 0006):
+// The model (migration 0006, run numbers in 0007):
 //   - production_jobs: one design's batch for one method (screen, DTG or DTF), and its stage. One batch per design
 //     and method takes new pieces at a time, the one not yet off the press (queued, screens or printing); pieces paid
-//     for once it has moved on start the next batch.
+//     for once it has moved on start the next batch. Every job has one number, run_number, from 1001: the database
+//     gives it (production_run_number_seq is the column's default), so an insert here never passes one. The stations
+//     show it as "No. 1001" (never "Run 1001": a Run is an artist's Run 1, Run 2) and the board carries it as `run`.
 //   - production_lines: what the job prints for one order or run, by garment, colour, size and print position, with
 //     how many are printed. The pieces are added up the way the job sheet adds up its "pieces waiting".
 //   - screen_progress: a screen-print job's screens, one per film of each approved screen pack it prints from.
@@ -26,8 +28,8 @@
 // to printing, and once every piece is printed and every job it is in has reached folding, it is packed. Shipping
 // stays the Production page's step, with tracking; a job reads shipped once every order in it has shipped.
 //
-// The website's board (onThePressFeed) reads the jobs with no personal data: the shop's name only when the shop
-// opted in (artist_stores.show_on_press_board), else "Private"; never an email, an order or an address.
+// The website's board (onThePressFeed) reads the jobs with no personal data: the job's number (`run`), the shop's name
+// only when the shop opted in (artist_stores.show_on_press_board), else "Private"; never an email, an order or an address.
 import { createHash } from 'node:crypto';
 import { and, asc, desc, eq, gte, inArray, isNull, lt, ne, notInArray, or, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
@@ -85,6 +87,8 @@ export interface ScreenProgress {
 /** One job: a design's batch for one method, the pieces of every open order and run that use it. */
 export interface StationJobSummary {
   jobId: string;
+  /** the job's number, 1001 and up: one per job, given by the database when the job is made and never changed (production_jobs.run_number); the stations show it as "No. 1001" */
+  runNumber: number;
   designId: string;
   designTitle: string;
   shopName: string;
@@ -114,6 +118,8 @@ export interface StationJobDetail extends StationJobSummary {
 export interface OnThePressRow {
   /** opaque and stable for the job (a hash, not an id), so the board can follow a row from one read to the next */
   id: string;
+  /** the job's number, 1001 and up: the one the stations show as "No. 1001" (production_jobs.run_number). Not an id: it says nothing of the job but its place in the line. */
+  run: number;
   /** shop name if the shop opted in to the board, else "Private" */
   client: string;
   /** "T-shirt", "Hoodie": the garment's name as the catalogue gives it ("Classic tee", "Heavy hoodie") */
@@ -781,6 +787,7 @@ async function designTitles(designIds: string[]): Promise<Map<string, string>> {
 function summaryOf(job: JobRow, shopName: string, title: string, totals: Totals | undefined, screens: { ready: number; total: number } | undefined): StationJobSummary {
   return {
     jobId: job.id,
+    runNumber: job.runNumber,
     designId: job.designId,
     designTitle: title,
     shopName,
@@ -1289,6 +1296,7 @@ export async function onThePressFeed(): Promise<OnThePressRow[]> {
   const jobs = await db
     .select({
       id: t.id,
+      runNumber: t.runNumber,
       method: t.method,
       stage: t.stage,
       createdAt: t.createdAt,
@@ -1330,6 +1338,7 @@ export async function onThePressFeed(): Promise<OnThePressRow[]> {
         updatedAt: job.updatedAt.getTime(),
         row: {
           id: hashOf(`press-board:${job.id}`, 12),
+          run: job.runNumber,
           client: job.optedIn ? job.shopName : 'Private',
           piece: pieceWords(blankRows.filter((b) => b.jobId === job.id).map((b) => ({ code: b.code, name: nameOf.get(b.code) ?? b.code, pieces: Number(b.pieces) }))),
           // Every order of a shipped job has shipped, so its pieces were all made, counted at a station or not.

@@ -35,7 +35,9 @@
  *       a second shop         Low Tide, with its own artist and lettering: a DTG run of 40 white tees, every piece
  *                             counted and the job in curing;
  *     and the website's "On the press" board (/api/public/on-the-press): the Underwriter shop opted in, so its
- *     rows carry its name; Low Tide did not, so its row reads "Private".
+ *     rows carry its name; Low Tide did not, so its row reads "Private". Every job has its own number from 1001
+ *     (production_jobs.run_number, given by the database in the order the jobs are made), which the stations show as
+ *     "No. 1001" and the board's rows carry as `run`.
  *
  * Orders, products, runs and approvals go through the real services (checkout and the mock Stripe,
  * quotes and proofs, the publishing gate), the same calls the app makes. Running it takes a few minutes
@@ -633,7 +635,11 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
   const stores = await import('../lib/services/stores');
   if (!(await stores.setPressBoardOptIn(store.id, true))) throw new Error('The Underwriter shop could not opt in to the press board.');
   const board = await progress.onThePressFeed();
-  for (const row of board) log(`press board: ${row.client} · ${row.piece} · ${row.printed}/${row.total} · ${row.ink} · ${row.stage}`);
+  for (const row of board) log(`press board: No. ${row.run} · ${row.client} · ${row.piece} · ${row.printed}/${row.total} · ${row.ink} · ${row.stage}`);
+  // Every job has its own number, from 1001 (the database gives it; a fresh build numbers its jobs in the order they were made).
+  if (new Set(board.map((row) => row.run)).size !== board.length || board.some((row) => !Number.isInteger(row.run) || row.run < 1001)) {
+    throw new Error(`The press board's rows do not each carry their own number from 1001: ${board.map((row) => row.run).join(', ')}.`);
+  }
   if (!board.some((row) => row.client === store.name && row.stage === 'ON THE PRESS')) throw new Error('The press board does not show the Underwriter run on the press by name.');
   if (!board.some((row) => row.client === 'Private' && row.stage === 'CURING')) throw new Error('The press board does not show the Low Tide run as Private, curing.');
 
@@ -655,7 +661,7 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
       dtgQueued: { jobId: queuedDtg.jobId, total: queuedDtg.total },
       curing: { jobId: curing.jobId, shop: lowTide.slug, total: curing.total, run: lowTidePaid.id },
     },
-    pressBoard: board.map((row) => `${row.client} · ${row.piece} · ${row.printed}/${row.total} · ${row.stage}`),
+    pressBoard: board.map((row) => `No. ${row.run} · ${row.client} · ${row.piece} · ${row.printed}/${row.total} · ${row.stage}`),
   };
 }
 

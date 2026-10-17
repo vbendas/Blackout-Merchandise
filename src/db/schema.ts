@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, integer, serial, jsonb, timestamp, uuid, pgEnum, index, primaryKey, unique, uniqueIndex, real, check } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, integer, serial, jsonb, timestamp, uuid, pgEnum, pgSequence, index, primaryKey, unique, uniqueIndex, real, check } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
 // ============================================================================
@@ -537,10 +537,16 @@ export const designApprovals = pgTable('design_approvals', {
 // PRODUCTION PROGRESS (platform/lib/services/production-progress.ts)
 // ============================================================================
 
+// Run numbers (migration 0007): the sequence behind production_jobs.run_number. The database hands out the next number
+// as a job is inserted and code never passes one. It starts at 1001: the first job is No. 1001.
+export const productionRunNumberSeq = pgSequence('production_run_number_seq', { startWith: 1001, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 });
+
 // Production Jobs Table (one design's batch for one method: the pieces of the paid orders and runs whose
 // files pre-press approved). Built by syncProductionJobs; the stations move it through its stages.
 export const productionJobs = pgTable('production_jobs', {
     id: uuid('id').defaultRandom().primaryKey(),
+    // The job's public number, shown as "No. 1001" at the stations and on the website's board. Never passed on insert.
+    runNumber: integer('run_number').notNull().default(sql`nextval('production_run_number_seq')`),
     designId: uuid('design_id').references(() => designs.id, { onDelete: 'cascade' }).notNull(),
     storeId: uuid('store_id').references(() => artistStores.id, { onDelete: 'cascade' }).notNull(),
     method: productionMethodEnum('method').notNull(),
@@ -554,6 +560,7 @@ export const productionJobs = pgTable('production_jobs', {
     // One batch per design and method takes new pieces: the one not yet off the press.
     uniqueIndex('production_jobs_open_unique').on(table.designId, table.method).where(sql`${table.stage} in ('queued', 'screens', 'printing')`),
     index('production_jobs_stage_idx').on(table.stage),
+    uniqueIndex('production_jobs_run_number_unique').on(table.runNumber),
 ]);
 
 // Production Lines Table (one countable line of a job: a garment, colour, size and print position from one order or run)
