@@ -1,8 +1,54 @@
 # MerchFrom Development Log
 
 **Purpose:** Track daily progress, technical decisions, and session outcomes for development accountability
-**Last Updated:** October 16, 2026
+**Last Updated:** October 17, 2026
 **Project Status:** Phase 3 - Frontend Content Suite (In Progress)
+
+---
+
+## October 16–17, 2026 — Print Prep: Production Stations, A2 Film, Collar and Pricing
+
+### Session Summary
+Built production stations on iPads, the A2 film layout, the collar distance on the mockups and per-position pricing, on branch `feat/print-prep`. Pending integration review and the owner's checks. Nothing from this round is live.
+
+### Work Completed
+
+#### Production stations (`platform/app/station/`, `platform/components/station/`, `platform/lib/services/production-progress.ts`)
+- Job sheets are shown on iPads at the production spots, not printed. The PDF job sheet (`platform/lib/print/pack/job-sheet.ts`) and the iPad are both drawn from one view (`platform/lib/print/job-sheet-view.ts`).
+- Production marks each screen Waiting, Film printed, Screen ready, On press or Reclaimed.
+- Production counts printed pieces per size, partial counts included, and moves each job through Queued, Screens, Printing, Curing and Folding. Shipping stays in admin, with tracking.
+- An order moves to printing at its first printed piece, and to packed once all its jobs are folded.
+- Guards: printing needs every screen ready, and curing and folding need every piece printed. A forced step is logged. The database refuses a printed count above the total.
+- Migration `0006_production_progress` is additive and idempotent. It adds production jobs, production lines, screen progress and the shop's board opt-in (`artist_stores.show_on_press_board`, off by default). There is one open job per design and method.
+
+#### "On the press" feed (`platform/app/api/public/on-the-press/`)
+- `GET /api/public/on-the-press` returns the rows and a generated time. It is cached for 15 seconds, and it sends CORS headers for the website origin.
+- Rows carry no personal data. A client's name shows as "Private" unless the shop opts in.
+- The website board still has to be wired to the feed, in the main tree.
+
+#### A2 film (`platform/lib/print/`)
+- A2 portrait. Reg marks at the four corners, top and bottom only (10 mm targets). Designs are at most 40 × 54 cm, and larger designs are refused.
+- Engine version 3.0.0 (`platform/lib/print/defaults.ts`).
+- The old `marginMm` and `targetOffsetMm` options are deprecated. They are read only for engine 2 packs.
+
+#### Collar (`platform/lib/mockups/placements.ts`)
+- Front and back prints sit 5 cm below the collar seam. The job sheet says the same, and production follows it.
+- The mockups were recalibrated to the seam, except the hoodie and kids' backs. The hood hides the seam there, so those print boxes were not moved.
+- Mockup framing still varies by blank. Per-blank calibration would need per-blank seam detection, which is not built.
+
+#### Per-position pricing (`platform/lib/services/quotes.ts`, `platform/lib/pricing/pod-table.ts`)
+- Screen runs: €1 per piece for each colour above 8, counted per print position on that position's own design. A 10-colour front and a 10-colour back add €4 per piece. Up to 15 colours per position; 16 is refused.
+- DTG/DTF runs: +€1 for front and back, and +€2 once for sleeves. One position and embroidery add nothing.
+
+### Not Live Yet
+- Nothing from this round is live.
+- The website board is not wired to the feed.
+- Platform migrations `0003` to `0006` are not applied to Neon.
+- The station has not been tried on a real iPad.
+
+### Key Insights
+- The iPad and the PDF share one view, and the tests check the parity both ways.
+- Production's counts feed the public board directly, so each count is entered once.
 
 ---
 

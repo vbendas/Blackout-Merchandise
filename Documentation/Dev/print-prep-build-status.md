@@ -1,6 +1,6 @@
-# Print prep build: status (shop pricing and print areas integrated, 16 Oct 2026)
+# Print prep build: status (production stations, A2 film, collar and per-position pricing integrated, 17 Oct 2026)
 
-Worktree: `/Users/victorbendas/Documents/GitHub/Merch-From-print-prep`, branch `feat/print-prep` (from `22678b3`). Phases 0 to 2 are in local commits (not pushed); shop pricing and print areas (PL-A, PL-B, PL-C) are uncommitted. Migrations `0003`, `0004` and `0005` have run only on PGlite (the tests and the local demo database), never on Neon.
+Worktree: `/Users/victorbendas/Documents/GitHub/Merch-From-print-prep`, branch `feat/print-prep` (from `22678b3`). Phases 0 to 2, shop pricing and print areas are in local commits (not pushed); the production stations round (PS-A to PS-E) is uncommitted. Migrations `0003` to `0006` have run only on PGlite (the tests and the local demo database), never on Neon.
 
 ## Work packages
 
@@ -27,11 +27,108 @@ Worktree: `/Users/victorbendas/Documents/GitHub/Merch-From-print-prep`, branch `
 | PL-A Print areas: front, back and sleeves, each with its own design | Done |
 | PL-B Shop-product pricing (DTG/DTF) and the Shop products tab | Done |
 | PL-C Flat true-size sleeve proof | Done |
-| Shop pricing and print areas: integration and review | Done (16 Oct, next section) |
+| Shop pricing and print areas: integration and review | Done (16 Oct) |
+| PS-A Production tracking, the "On the press" feed and the artist's opt-in | Done |
+| PS-B Production stations (`/station`) and the job sheet as data | Done |
+| PS-C A2 portrait films, corner marks, designs up to 40 × 54 cm | Done |
+| PS-D Placement limit 40 × 54 cm, collar distance 5 cm, mockup boxes | Done |
+| PS-E Colour surcharge per print position, DTG/DTF run extras | Done |
+| Production stations round: integration and review | Done (17 Oct, next section) |
+
+## Production stations, A2 film, collar and per-position pricing (17 Oct 2026)
+
+Plan section 1 (Decisions: "Production stations", "Film and design size", "Collar distance", "Colour surcharge per position", "DTG/DTF run extras"). Five packages built in parallel, then integrated and reviewed in one pass. Uncommitted; one migration, `0006_production_progress`.
+
+**What it adds**
+- **Production tracking (PS-A).** `lib/services/production-progress.ts` and migration `0006` (additive, safe to run again): `production_jobs`, `production_lines`, `screen_progress`, and `artist_stores.show_on_press_board` (off by default).
+  - A job is one design's batch for one method (screen print, DTG or DTF). One open batch per design and method takes new pieces (a unique index); pieces paid once it is off the press start the next batch. Its lines are the job sheet's "pieces waiting": by order, garment, colour, size and print positions. A screen job has a screen for each film of each approved pack.
+  - `syncProductionJobs` builds them from the paid orders and runs whose print files pre-press approved. It runs on a station's read (at most every 5 s per server process), on payment, on a pack's approval, on a full refund and on shipping. It is idempotent and never resets a count. A total that drops below what was printed is clamped and flagged in words; a cancelled order's lines go; a job reads shipped once every order in it has shipped.
+  - A count is one atomic UPDATE, clamped to 0..total in the database, and a CHECK constraint keeps printed at or below the total, so iPads counting the same line all land.
+  - Guards: Screens is for screen print only; printing waits for every screen to be ready, Curing and Folding for every piece (both can be forced, and the activity log says so); Shipped is not a station's step; moving back is allowed unless another batch of the design took the place.
+  - The order follows: its first printed piece moves it to printing, and it is packed once every piece is printed and every job it is in has reached Folding, through the production gate. Shipping stays the Production page's step, with tracking.
+  - `GET /api/public/on-the-press`, the website's board, and Settings → "Show my shop's name on the MerchFrom press board".
+- **Stations (PS-B).** `app/station` and `components/station`: an iPad app of its own (home-screen manifest, icons, wake lock, safe areas, targets of 56 px or more).
+  - The queue: jobs by stage, for this iPad's station (screen print, DTG, DTF or all), with their proofs, refreshed every 10 s.
+  - A job: a stepper with one big next-step button ("Job done" is the step into Folding); tabs for Screens, Pieces, Proofs and the Job sheet; counters (-1, +1, +5, +10, All and a keypad), shown at once and corrected by the server's numbers; held moves ask first and are then forced; hide from the board.
+  - Production View reads; the controls need Production Work.
+  - The job sheet as data (`lib/print/job-sheet-view.ts`): the PDF is drawn from the same view, and a test holds the two to the same words both ways.
+- **A2 film (PS-C).** Films are A2 portrait at most: 10 mm of clear film at the sides, 27 mm above and below, a 10 mm ink gap, and four registration targets at the corners, top and bottom only, with the labels between them. A 40 × 54 cm design at 600 ppi makes a 9921 × 14031 px film (A2); a smaller design keeps the margins and makes a smaller film. A bigger design is refused in words before any work. The checks look for the four corner marks, a print over 40 × 54 cm, a film over A2 and ink in the gap. `ENGINE_VERSION` 3.0.0; packs from engine 2 keep their side marks and can still be relabelled.
+- **Placement and collar (PS-D).** A print area is at most 40 × 54 cm, portrait (`MAX_DESIGN_CM`). The front and back positions of T-shirts, Sweats & Hoodies, Polos and Kids & Baby carry the owner's 5 cm collar distance, so the sheet says "5 cm below the collar". Their mockup boxes now start 5 cm below the collar seam, measured on the packshots (`scripts/measure-collar-seam.ts` reproduces every number); the T-shirt back box is centred (it was 48 px off).
+- **Per-position pricing (PS-E).** On a screen-printed run each print position counts its own colours on its own design: a front and a back of 10 colours each are +€2.00 and +€2.00, €4.00 a piece. A DTG/DTF run with more positions pays the shop's extras: +€1.00 front and back, +€2.00 once for sleeve prints. Each quote line keeps its lines (`extras`), the proof shows them, the assistant gets each position with its design and offers fewer colours per design, and the artist reads "colours" throughout.
+
+**Integration (the notes items, all done)**
+- **Stations in the admin sidebar**, after Production, for Production View. The sidebar test now checks that `app/station/page.tsx` asks for the same access.
+- **`station` in `APP_SEGMENTS` and `RESERVED_SLUGS`.** Before, the proxy read `/station` as a shop address and let it through without sign-in (the page then asked for it), and an artist could have registered it as a shop slug. A test checks both.
+- **Print files:** Production View reads every design's public files (the proofs the stations show; before, a production-only employee got 403 without a public R2 domain). Private files (PSDs, PNGs, job sheets) stay Pre-press's: 403.
+- **The PDF test reader** cuts each stream at its `/Length`: a page whose deflated text ended in a carriage return (about one in 256) lost its text, and the job sheet tests flaked. The parity helper uses it too; a test builds both endings.
+- **Count taps share one activity row.** Taps by one person on one line of a job, each within 60 s of the last and within 10 minutes of the first, update one row in one atomic UPDATE: "Counted 56 of 160 printed on … (from 40, in 3 taps)". Another line, another person or a pause starts a new row. Stage and screen changes keep a row each.
+- **PS-E wiring:** the approval page passes the view's sets and areas, so the runs tab prices each print position; each screen set names its area (`areaKey`), and the set on show follows the chosen area. "Per print position" in `change_screen_count` (its description and its note), each set's price note, the assistant's guidance and the pre-press "Run again" note.
+- **40 × 54 cm** in the tool descriptions (`create_product`, `set_print_areas`), the guidance (with "5 cm below the collar"), the shop price editor and comments, where they said "A2, 42 × 59.4".
+- **Smoke rows** in `scripts/public-routes-smoke.ts` (edited, not run): `/station`, `/station/job/x`, `/admin/pricing`, `/admin/ink-system/calibration` and the three calibration routes.
+
+**Review findings fixed**
+- **The board could fail for the website for 15 s at a time.** The feed allowed a list of origins and echoed the caller's, with `Vary: Origin`, while a CDN cached it (`s-maxage`); a cache that doesn't key on `Vary` would hand one origin's answer, or a no-origin answer, to another. The rows are public and sent without credentials, so the feed now answers `Access-Control-Allow-Origin: *`, the same to everyone, and `WEBSITE_ORIGIN` is no longer read. It takes no parameters and its row ids are hashes, so there is nothing to look up or step through.
+- **The board:** a shipped job showed what the stations had counted (an order shipped from Production without counts read "0/2 SHIPPED"); it now shows every piece made. With more than 60 jobs it kept the queue and dropped the press; it now keeps the press, then what is nearest to done, and the queue gives way first.
+- **Order moves raced.** Two iPads counting an order's first pieces at once both moved it and logged "is printing" twice (and two shipments at once would have sent two shipped notices). `transition()`, the single writer, now writes only if the order is still at the status it read and still paid, and the stations use `advanceFrom(order, from, to)`, so exactly one move lands. Shipping is unchanged.
+- **Runs took prints the films can't hold.** A run quote accepted any main width and extra positions up to 60 cm, and two front prints. Now every position is 2 cm to what it takes (40 cm; a sleeve its own size), and a garment has one front print, as a product does. That settles PS-E's open question: two front positions on a DTG/DTF run can't be quoted.
+- **Preparing took widths up to 60 cm**, so a 45 cm print queued a job the engine then refused. `prepare_print` and the service now refuse anything over 40 cm in words, before a job.
+- **The sample sheet** (PRINT_MOCK, STATION_MOCK) said "Standard position" for the T-shirt; it now says "5 cm below the collar", and the note under rows without a distance no longer says the distance "isn't set yet" (those garments have none).
+- **Wording:** a flag says "1 is extra", not "1 are extra"; the opt-in says it names the shop beside runs and shop orders (it said runs only).
+
+**Checked and holding**
+- **Counts:** ten iPads adding one at the same moment all land; a count stops at the total and at none; a sync after counts adds and removes nothing and keeps every count; the database refuses printed above the total.
+- **Guards:** screens before printing, every piece before Curing and Folding, both forced only on purpose and logged "(forced)"; Shipped only when every order shipped; another open batch blocks moving back.
+- **The board:** no email, order reference, address or internal id (a test searches the whole answer for each); "Private" unless the shop opted in; hidden jobs excluded; shipped jobs for 48 hours; 15 s in the process and at the CDN; a failure is a 503 with a plain sentence and nothing of the cause.
+- **Stations:** every page and action asks for Production (View to read, Work to change) before it reads its input, and the service checks again; the sample jobs need `STATION_MOCK=1` and never run in production.
+- **Job sheets:** the iPad and the PDF are drawn from one view, held to the same words both ways.
+- **Pricing:** the owner's example (+€4.00 a piece); DTG/DTF runs pay +€1.00 and +€2.00 once; shop products price as before (their tests are unchanged).
+- **Migrations:** `0005` and `0006` run twice on PGlite without failing or changing what is there.
+
+**Demo builder** (`scripts/local-demo.ts`, edited, not run: rebuild with `npm run demo:local -- --reset`)
+- **The run on the press:** the Underwriter run is now 160 pieces. As Production (Marc): the darks screens on the press, the lights screens one ready, one film printed and the rest waiting, the move to printing forced, then counted tap by tap to 56 of 160. The order moved to printing by itself. The build stops if any of that reads otherwise.
+- **A DTG job queued:** Jordi's shop order. The earlier shop order shipped, so its job reads shipped and stays on the board for 48 hours.
+- **A job in curing:** a second shop, Low Tide (its own artist, `lettering-1c.png`, approved), a DTG run of 40 white tees, every piece counted, then into Curing.
+- **The board:** the Underwriter shop opted in, so its rows carry its name; Low Tide's row reads "Private". The build logs the board's rows.
+- **`/dev`:** the station queue as Production and as the Owner, a link to each job on the floor, the Settings page (the opt-in) and the public feed JSON.
+
+**For the website (a later change in the main tree)**
+- `GET <platform origin>/api/public/on-the-press`, the same origin the door uses for sign-in (`STUDIO_ORIGIN` in `mainpage/index.html`). No sign-in, no credentials, no parameters.
+- 200: `{ "rows": [{ "id", "client", "piece", "printed", "total", "ink", "stage", "updatedAt" }], "generatedAt" }`. `id` is a stable 12-character hash for following a row from one read to the next; `client` is the shop's name or "Private"; `piece` the garment ("Classic tee", or "Classic tee + 1 more"); `ink` "6 colours" or "Full colour (DTG)"; `stage` one of QUEUED, SCREENS, ON THE PRESS, CURING, FOLDING, SHIPPED. At most 60 rows, in the order of the stages; cached 15 s, so poll no faster.
+- 503: `{ "error" }`, a sentence to show or skip.
+- Environment: none. Any origin may read it.
+
+**Verification (17 Oct, final tree)**
+- `npx next typegen && npx tsc --noEmit`: 0 errors.
+- `npm run lint`: 0 errors, 25 warnings, all in files this round doesn't touch (the same files as before).
+- `DATABASE_URL= npm test`: 1442 tests: 1439 pass, 3 skipped (the opt-in benchmarks), 0 fail. This pass added 7 tests (coalesced counts, one move per order, the board's cap, the stations behind sign-in, Production reading proofs, the PDF reader's line endings, the set of the area on show) and replaced the board's two origin-list tests with one.
+- `npm run build` (Turbopack): passes, with the root `node_modules` symlink moved aside and then restored. 79 routes, `/station`, `/station/job/[jobId]` and `/api/public/on-the-press` among them; no function trace carries a `public/` file.
+
+**Owner actions**
+1. **Neon:** migration `0006` is not applied, nor `0003` to `0005`. Ask before applying them.
+2. **iPads:** open `/station` and add it to the home screen. Whoever counts needs Production Work; Production View only looks.
+3. **The website:** point the board at the feed (above).
+
+**Owner decisions pending**
+- **Runs follow the product rules:** one front print, and each print at most 40 cm wide. A run used to accept a second front and prints up to 60 cm.
+- **Shop orders on the board:** every job is on the board, shop orders included, under the shop's name only when it opted in. Staff can hide any job.
+- **A shipped job shows every piece made,** whatever the stations counted.
+- **The count log** merges taps 60 s apart for up to 10 minutes per row.
+
+**Settled by the owner since earlier rounds** (16 Oct; the sections below keep what they said then)
+- "A2 portrait only" (shop pricing round): a design is at most 40 × 54 cm, portrait, so its film is A2.
+- "Extras on DTG/DTF runs" (shop pricing round): yes, the shop's extras.
+- "Surcharge per position" (Phase 2): per print position, each on its own design.
+
+**Remaining risks**
+- **Mockup framing varies per blank:** the box is 5 cm below the seam on the most popular blank of each type, and 0.2 to 9.4 cm on others. The job sheet's "5 cm below the collar" is what production follows. The Sweats & Hoodies and Kids & Baby back boxes are not moved (a hood hides the seam).
+- **A product's print areas changed while its orders print:** its lines take new keys. The counts stay on the old lines' flags, and the new lines start at 0.
+- **Sync cost:** each station read re-reads the open orders (at most every 5 s per server process). Fine at a shop's volume; revisit with many iPads or orders.
+- **Join before sign-off:** an order joins the stations once pre-press approved its files; the artist's sign-off is checked when the order moves to printing (the production gate), so a job could be counted while its order stays queued.
+- **Not tried on the floor:** the stations were checked in a desktop browser and the tests, not on an iPad at the press; the films are not printed yet.
 
 ## Shop pricing and print areas (16 Oct 2026)
 
-Plan section 1 ("Shop prices", "Sleeve prints", "Channels", "Publishing"). Three packages built in parallel, then integrated and reviewed in one pass. Uncommitted; one migration, `0005_products_print_areas`.
+Plan section 1 ("Shop prices", "Sleeve prints", "Channels", "Publishing"). Three packages built in parallel, then integrated and reviewed in one pass. Committed locally (`cda782e`, docs in `e26343f`); one migration, `0005_products_print_areas`.
 
 **What it adds**
 - **Print areas (PL-A).** A product prints a list of areas, `products.placements`: `{ position, widthCm, offsetYcm?, designId }`, so the front and the back can be different artwork.

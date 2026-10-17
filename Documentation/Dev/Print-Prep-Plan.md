@@ -1,6 +1,6 @@
 # Print prep: plan
 
-16 Oct 2026. Phases 0, 1 and 2 built on branch feat/print-prep, pending integration review and the owner's checks. Phases 0 and 1 were built on 15 Oct, and the plan was updated that day with the owner's answers on the ink system, the surcharge, infrastructure and ink measurement.
+16–17 Oct 2026. Phases 0, 1 and 2 built on branch feat/print-prep, pending integration review and the owner's checks. Production stations, the A2 film, the collar distance and per-position pricing are built too, and none of this is live yet: the website board isn't wired to the feed, platform migrations 0003 to 0006 aren't applied to Neon, and the station hasn't been tried on a real iPad. Phases 0 and 1 were built on 15 Oct, and the plan was updated that day with the owner's answers on the ink system, the surcharge, infrastructure and ink measurement.
 
 **Goal.** Everything from "the artwork is final" to "the production files are on the press". Every design gets both production versions, DTG/DTF and screen print, generated automatically, checked by a person, and delivered ready to print with no further image processing.
 
@@ -25,6 +25,11 @@
 | Job sheet | One per design, covering all the garments that use it (owner, 15 Oct). Made on demand and kept by a hash of what it says, so it is made again exactly when its contents change (section 6.3). |
 | Shop prices | Each garment has its own base price for shop products (DTG/DTF), including one print area up to A2 on the front or the back. Extras: +€1 when the print becomes front and back; +€2 once for sleeve prints (one or both sleeves). Set in /admin/pricing (owner, 16 Oct). |
 | Sleeve prints | Shown as a flat, true-size proof on a sleeve outline with measurements, next to the front and back mockups, until real sleeve photos exist (owner, 16 Oct). |
+| Colour surcharge per position | On screen-printed runs the €1 per piece for each colour above 8 counts per print position, on that position's design: a 10-colour back and a 10-colour front add €4 per piece (owner, 16 Oct). |
+| DTG/DTF run extras | DTG/DTF runs also pay the position extras: +€1 front and back, +€2 sleeves (owner, 16 Oct). |
+| Film and design size | A2 portrait. The A2 film holds the reg marks and an ink-deposit margin, so the design is at most 40 × 54 cm. Reg marks sit at the four corners, top and bottom only (owner, 16 Oct). |
+| Collar distance | The top of a front or back print sits 5 cm below the collar seam (owner, 16 Oct). |
+| Production stations | Job sheets are shown on iPads at the production spots, not printed. Production marks screens ready, counts printed pieces (partial counts too) and moves jobs through Queued, Screens, Printing, Curing and Folding; shipping stays in admin with tracking, and the board then shows Shipped. The numbers feed the website's "On the press" board live; clients show as "Private" unless they opt in (owner, 16 Oct). |
 | Team access | The owner gives each employee their own access level for each admin area: pre-press, production, orders, runs, support and the rest (section 9). |
 | Screen inks | Pantone colours. The shop doesn't stock colours: it mixes any Pantone from Magna Eco-Pigments in the MagnaPrint HB bases (HB Opaque or HB Neutral). On dark garments the inks print wet on wet over a flashed Aquaflex V2 White underbase (MagnaPrint HB data sheet). Pantone codes come from MagnaMix, which Magna licenses from Pantone, so no Pantone licence of our own is needed. Clients see only plain colour names. Pantone codes appear only in admin (pre-press, job sheet, films), where staff match them in MagnaMix (section 5). |
 | Screen halftones | 600 ppi, 55 lpi. |
@@ -280,6 +285,16 @@ AutoThresh shipped solid films, opaque "transparent" PNGs and all-black PSD comp
 - **Re-approval rule.** If the corrected proof differs from what the client approved beyond the threshold (an ink change, for example), the client re-approves. Minor fixes don't need it: specks, traps, choke.
 - **Training pairs.** Every correction stores the automatic pack and the corrected pack as a pair, which feeds the dataset plan.
 - **Who can do this.** Only staff with the right access to Pre-press (section 9).
+
+### 8.1 Production stations
+
+Job sheets are shown on iPads at the production spots (`/station`), not printed. The PDF job sheet and the iPad show the same content.
+
+- **Screens.** Production marks each screen Waiting, Film printed, Screen ready, On press or Reclaimed.
+- **Pieces.** Production counts printed pieces per size, partial counts included.
+- **Jobs.** Production moves a job through Queued, Screens, Printing, Curing and Folding. Shipping stays in admin, with tracking. A job shows Shipped once all its orders have shipped.
+- **Orders.** An order moves to printing at its first printed piece, and to packed once all its jobs are folded.
+- **Live board.** A public feed (`GET /api/public/on-the-press`, 15-second cache) shows each job's progress with no personal data. Clients show as "Private" unless the shop opts in. The website board is not wired to the feed yet.
 
 ## 9. Team and permissions (admin)
 

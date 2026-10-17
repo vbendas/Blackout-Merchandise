@@ -1,7 +1,7 @@
 # MerchFrom Master Roadmap
 
-> **Document Version:** 4.2 — PRINT PREP PHASE 2 BUILT  
-> **Last Updated:** October 16, 2026  
+> **Document Version:** 4.3 — PRODUCTION STATIONS BUILT  
+> **Last Updated:** October 17, 2026  
 > **Status:** P0 Demo Hardening — Week 1 COMPLETE, Week 2 IN PROGRESS  
 > **Branch:** `feat/crowdfunding-demo`  
 > **Campaign Launch:** June 30, 2026 (Indiegogo)
@@ -171,7 +171,17 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 - **Owner checks:** set the real shop prices; confirm the sleeve sizes, the garments without sleeve prints, portrait-only A2, and whether DTG/DTF runs charge the shop extras
 - **Not live yet:** migration `0005` on Neon; sleeve proofs need the worker to draw them
 
+### Print Prep: Production Stations — BUILT, PENDING OWNER CHECKS (Oct 2026)
+- **Stations on iPads** (`/station`): job sheets are shown on screen, not printed. Production marks each screen, counts printed pieces (partial counts too) and moves jobs through Queued, Screens, Printing, Curing and Folding; shipping stays in admin
+- **"On the press" feed** (`/api/public/on-the-press`): no personal data; clients show as "Private" unless the shop opts in; 15-second cache
+- **A2 film:** portrait, four corner reg marks, designs up to 40 × 54 cm; engine 3.0.0
+- **Collar:** prints sit 5 cm below the collar seam. Mockups were recalibrated to it, except the hoodie and kids' backs, where the hood hides the seam
+- **Pricing:** screen runs pay €1 per piece for each colour above 8 per print position; DTG/DTF runs pay +€1 for front and back and +€2 for sleeves
+- **Owner checks:** try the station on a real iPad
+- **Not live yet:** the website board is not wired to the feed; platform migrations 0003 to 0006 are not applied to Neon
+
 ### Print Prep Phase 3: Next
+- **Next:** wire the website board to the live "On the press" feed
 - Distress and texture library from our own scans
 - DTF gang sheets
 - Vectorising flat art
@@ -871,9 +881,10 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 ---
 
 **Roadmap Owner:** Victor Bendas  
-**Last Updated:** October 16, 2026  
+**Last Updated:** October 17, 2026  
 **Next Review:** Daily during P0 Demo Hardening sprint  
 **Version History:**
+- v4.3 (Oct 17, 2026): Print prep production stations built, pending checks; wiring the website board to the live feed is next
 - v4.2 (Oct 16, 2026): Print prep Phase 2 built, pending checks; Phase 3 next
 - v4.1 (Oct 15, 2026): Print prep phases added (Phase 0 and 1 built, pending owner checks; Phase 2 next; Phase 3 later)
 - v4.0 (May 13, 2026): Restructured — P0 at top, chronological order, completed phases summarized, full task detail for active/future phases

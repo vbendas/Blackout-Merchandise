@@ -1,7 +1,7 @@
 # Merch From: Product Requirements Document
 
 > **Version**: v3.5  
-> **Last Updated**: October 15, 2026  
+> **Last Updated**: October 17, 2026  
 > **Status**: Active
 
 ---
@@ -64,6 +64,7 @@ The owner decided these on 15 and 16 October 2026. Full detail is in [[Dev/Print
 - **Inks.** Screen inks are Pantone colours. The shop mixes them from Magna pigments and matches them in MagnaMix. Pantone codes appear only in admin. Clients see plain colour names.
 - **Screen PSD.** One layer per ink. The films print one by one from that file.
 - **Staff roles.** Three roles: owner, staff and artist. The owner sets each staff member's level for each admin area: none, view, work or manage. Each level includes the ones before it.
+- **Production stations (16 Oct).** Job sheets go to iPads at `/station`, not to print, and production moves each job through to folding. Shipping stays in admin. The public "On the press" feed carries no personal data, and clients read "Private" unless they opt in. The website board is not wired to the feed yet.
 
 ---
 
