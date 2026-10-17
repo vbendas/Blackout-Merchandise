@@ -11,7 +11,7 @@ export interface ShopAccent {
   onAccent: string;
 }
 
-const MONOCHROME: ShopAccent = { accent: '#ffffff', onAccent: '#000000' };
+const MONOCHROME: ShopAccent = { accent: '#f2efe9', onAccent: '#000000' };
 
 // An accent also draws borders and text on the black ground, so it has to
 // stand out from black (WCAG 1.4.11, 3:1). One that doesn't falls back to
@@ -160,6 +160,6 @@ export function resolveAccent(raw: string | null | undefined): ShopAccent {
 
   return {
     accent: toHex(rgb),
-    onAccent: contrastOnBlack >= contrastOnWhite ? '#000000' : '#ffffff',
+    onAccent: contrastOnBlack >= contrastOnWhite ? '#000000' : '#f2efe9',
   };
 }
