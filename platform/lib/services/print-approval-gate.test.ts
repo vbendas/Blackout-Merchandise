@@ -330,6 +330,49 @@ test('a shop product needs no proof: with the artwork approved, a draft with no 
   assert.equal((await h.db.select().from(schema.proofs).where(eq(schema.proofs.productId, id))).length, 0, 'and publishing made no proof');
 });
 
+test('a draft goes live printed the way its garment does now: marked "Print with DTF" since it was made, it publishes as DTF', async () => {
+  const pricing = await import('@/lib/services/pricing-admin');
+  // the harness lists no print services for its tee: DTG and DTF, as the catalogue gives a T-shirt
+  await h.db.insert(schema.printServices).values({ code: 'dtf', name: 'DTF' });
+  await h.db.insert(schema.blankPrintServices).values(['dtg', 'dtf'].map((printServiceCode) => ({ blankCode: 'STTU169', printServiceCode })));
+  try {
+    const { designId } = await h.newDesign();
+    await prepare(designId);
+    await approve(designId);
+    const untouched = await product(designId);
+    const marked = await product(designId, { name: 'Underwriter tee, marked' });
+
+    // nothing is marked: the tee prints DTG, a draft stays as it was and publishes with nothing to say
+    const plain = await publish(untouched);
+    assert.ok(plain.ok, plain.ok ? '' : plain.error);
+    assert.equal(plain.value.printServiceCode, 'dtg');
+    assert.equal(plain.note, undefined);
+
+    // the owner marks the tee while a draft is waiting: publishing moves the draft to DTF, and says so
+    assert.ok((await pricing.setPodPrices(h.owner, { dtfInstead: { STTU169: true } })).ok);
+    assert.equal((await h.db.select().from(schema.products).where(eq(schema.products.id, marked)))[0].printServiceCode, 'dtg', 'nothing moves before the publish');
+    const checked = await products.checkPublishable(h.artist.storeId, marked);
+    assert.ok(checked.ok, checked.ok ? '' : checked.error);
+    assert.deepEqual(checked.follow, { code: 'dtf', note: "Printed DTF on this garment, since DTG isn't ideal for it." });
+    const result = await publish(marked);
+    assert.ok(result.ok, result.ok ? '' : result.error);
+    assert.equal(result.value.status, 'live');
+    assert.equal(result.value.printServiceCode, 'dtf');
+    assert.equal(result.value.printServiceName, 'DTF');
+    assert.equal(result.note, "Printed DTF on this garment, since DTG isn't ideal for it.");
+    assert.equal((await h.db.select().from(schema.products).where(eq(schema.products.id, marked)))[0].printServiceCode, 'dtf', 'stored');
+
+    // a product made DTF that publishes with the mark still on has nothing to move
+    const already = await product(designId, { name: 'Underwriter tee, made as DTF', service: 'dtf' });
+    const same = await publish(already);
+    assert.ok(same.ok, same.ok ? '' : same.error);
+    assert.equal(same.note, undefined);
+  } finally {
+    await h.db.delete(schema.appSettings).where(eq(schema.appSettings.key, 'pod_price_table'));
+    await h.db.delete(schema.blankPrintServices).where(eq(schema.blankPrintServices.blankCode, 'STTU169'));
+  }
+});
+
 test('without the artwork approval a draft with an approved proof still cannot go live: the proof is not the gate', async () => {
   const { designId } = await h.newDesign();
   const id = await product(designId, { proof: 'approved' });

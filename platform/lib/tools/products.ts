@@ -24,7 +24,8 @@ import { printPositionLabel } from '@/lib/mockups/placements';
 import { productApproval, type ProductApproval } from '@/lib/services/print-prep';
 import { approvalChip, printApprovalState } from '@/lib/tools/print';
 import { getLatestProof, type ProofStatus } from '@/lib/services/proofs';
-import { quoteFor, type QuoteBreak } from '@/lib/services/quotes';
+import { digitalServiceFor, quoteFor, type QuoteBreak } from '@/lib/services/quotes';
+import { isDigitalAsk, isDigitalService, printedNote } from '@/lib/pricing/pod-table';
 import { assignToCollection, createCollection } from '@/lib/services/collections';
 import { getProjectCard } from '@/lib/services/conversations';
 import type { Card, Chip, PrintApprovalState, ProductProjectState, ToolUi } from '@/lib/ui-cards/schemas';
@@ -43,6 +44,10 @@ import type { Card, Chip, PrintApprovalState, ProductProjectState, ToolUi } from
 // with its own design. Its base price is the garment with one print plus the
 // extras for more areas, and the artist sees that breakdown (never the garment,
 // print and margin inside it).
+//
+// The garment decides how a shop product prints (owner, 17 Oct 2026): DTG, or DTF where DTG isn't ideal. The artist is never asked,
+// and a 'dtg' or 'dtf' that says otherwise is corrected with a short note, never refused. DTG or DTF is said to the artist only
+// where it matters: when the product prints DTF ("Printed DTF on this garment").
 
 const POSITIONS_WORDS =
   "'front_chest', 'front_full', 'front_left_chest', 'back', 'sleeve_left' or 'sleeve_right' (sleeves only on garments with sleeves; a sleeve shows as a flat true-size proof, never on a photo), 'centre' (bags) or 'front_leg' (trousers)";
@@ -81,6 +86,8 @@ function areasData(detail: ProductDetail) {
     printAreas: detail.areas.map((a) => ({ position: a.position, label: a.label, widthCm: a.widthCm, ...(a.heightCm ? { heightCm: a.heightCm } : {}), ...(a.designId && a.designId !== detail.designId ? { designId: a.designId } : {}) })),
     ...(detail.baseCostCents != null && detail.baseCostLines.length > 0 ? { basePrice: describeBaseCost(detail.baseCostLines, detail.baseCostCents) } : {}),
     ...(detail.addableAreas.length > 0 ? { canAdd: detail.addableAreas } : {}),
+    // said to the artist only where it matters: DTG is the usual print and needs no words
+    ...(detail.printServiceCode === 'dtf' ? { print: 'Printed DTF on this garment' } : {}),
   };
 }
 
@@ -95,6 +102,19 @@ function addAreaChips(detail: ProductDetail): Chip[] {
 
 function errorNotice(id: string, text: string): Card {
   return { id, kind: 'notice', tone: 'warning', text };
+}
+
+/** The notice that goes with a product whose print method was corrected, or moved with its garment; nothing when it wasn't. */
+function methodNotice(idPrefix: string, note: string | undefined): Card[] {
+  return note ? [{ id: `${idPrefix}_method_${randomUUID()}`, kind: 'notice', tone: 'info', text: note }] : [];
+}
+
+/** How a product's print reads on its card: no jargon for the usual digital print (DTG), and "Printed DTF on this garment" where it is
+ * DTF, which is where it matters. Any other method (embroidery) keeps its own name. */
+function printWords(detail: ProductDetail): string {
+  if (detail.printServiceCode === 'dtf') return 'Printed DTF on this garment';
+  if (detail.printServiceCode === 'dtg') return 'Digital print';
+  return detail.printServiceName;
 }
 
 /** Shared "no shop for this account" bail-out — assignable to any tool's { ok, error, ...optional } data shape. */
@@ -173,7 +193,7 @@ function productCard(detail: ProductDetail, approval?: PrintApprovalState): Card
     imageUrl: detail.colours.find((c) => c.mockupUrl)?.mockupUrl ?? undefined,
     colours: coloursView(detail),
     sizes: detail.sizes,
-    printService: detail.printServiceName,
+    printService: printWords(detail),
     placement: detail.placement ? `${detail.placement.position} · ${detail.placement.widthCm}cm` : undefined,
     areas: areasView(detail),
     ...(detail.baseCostLines.length > 0 ? { priceLines: detail.baseCostLines.map((l) => ({ label: l.label, cents: l.cents })) } : {}),
@@ -202,7 +222,7 @@ function projectStateFor(detail: ProductDetail, proofStatus?: ProofStatus, appro
     imageUrl: detail.colours.find((c) => c.mockupUrl)?.mockupUrl ?? undefined,
     colours: coloursView(detail),
     sizes: detail.sizes,
-    printService: detail.printServiceName,
+    printService: printWords(detail),
     placement: detail.placement ? `${detail.placement.position} · ${detail.placement.widthCm}cm` : undefined,
     areas: areasView(detail),
     ...(detail.baseCostLines.length > 0 ? { priceLines: detail.baseCostLines.map((l) => ({ label: l.label, cents: l.cents })) } : {}),
@@ -259,18 +279,27 @@ interface CreateProductData {
   printAreas?: ReturnType<typeof areasData>['printAreas'];
   basePrice?: string;
   canAdd?: string[];
+  /** 'Printed DTF on this garment', only when the product prints DTF: said to the artist where it matters */
+  print?: string;
+  /** the print method asked for was corrected to the garment's own: say it in these words */
+  note?: string;
   artwork?: ReturnType<typeof artworkData>['artwork'];
 }
 
 export const createProductTool = defineTool({
   name: 'create_product',
   description:
-    "Create a new draft product: designs printed on a blank garment. Requires the exact blank code (from list_blanks/get_blank), a print service offered on that blank, where it prints (placement: one position + width in cm, or areas: several print areas), at least one colour code and one size that are available on that blank. A product prints at most one front area (front chest, full front or left chest), one back, and the left and/or right sleeve on garments with sleeves (never tank tops, bags, hats, beanies or trousers); each area is at most 40 × 54 cm, portrait (the A2 screen film keeps room for its registration marks), a sleeve at most its own size. A front or back print sits 5 cm below the collar unless moved (offsetYcm). Each area can print its own design (designId per area), so the front and the back can be different artwork. A shop product always prints DTG or DTF: pass printServiceCode 'dtg' (direct-to-garment) unless the artist asks for 'dtf' (direct-to-film), which is also the one to use on blanks without DTG (jackets, bags, hats, trousers, woven shirts). Screen print is only for runs (create_bulk_quote), so a screen service is refused here with the ones that work. Snapshots the base price as baseCostCents: the garment's price with one print area up to A2 on the front or the back, plus €1 when it prints front and back and €2 once for sleeve prints. The result's basePrice says it in the artist's words ('Garment with one print €17.00 · Front and back +€1.00 · Base €18.00'): tell them, with their margin once they have a price. Never show the garment, print and margin inside it. Best-effort renders mockups immediately (front and back photos; a sleeve as a flat proof); if rendering isn't available yet the product is still created without preview images. Sets this product as the conversation's active project, so later tools (set_price, get_product, set_print_areas, publish_product, ...) can omit productId and act on it directly. A shop product needs no proof: once its design's print files are approved for every area and it has a price, publish_product puts it in the shop.",
+    "Create a new draft product: designs printed on a blank garment. Requires the exact blank code (from list_blanks/get_blank), a print service offered on that blank, where it prints (placement: one position + width in cm, or areas: several print areas), at least one colour code and one size that are available on that blank. A product prints at most one front area (front chest, full front or left chest), one back, and the left and/or right sleeve on garments with sleeves (never tank tops, bags, hats, beanies or trousers); each area is at most 40 × 54 cm, portrait (the A2 screen film keeps room for its registration marks), a sleeve at most its own size. A front or back print sits 5 cm below the collar unless moved (offsetYcm). Each area can print its own design (designId per area), so the front and the back can be different artwork. A shop product prints digitally the way its garment does, so leave printServiceCode out and never ask the artist about DTG or DTF: the garment decides (DTG, or DTF on a garment where DTG isn't ideal: jackets, bags, hats, trousers, woven shirts and any the owner marked). A 'dtg' or 'dtf' that says otherwise is corrected, never refused, and the result's note says so; say DTG or DTF only then, or when the result's print says 'Printed DTF on this garment'. Embroidery is the one other method (printServiceCode 'embroidery', where the blank offers it). Screen print is only for runs (create_bulk_quote), so a screen service is refused here. Snapshots the base price as baseCostCents: the garment's price with one print area up to A2 on the front or the back, plus €1 when it prints front and back and €2 once for sleeve prints. The result's basePrice says it in the artist's words ('Garment with one print €17.00 · Front and back +€1.00 · Base €18.00'): tell them, with their margin once they have a price. Never show the garment, print and margin inside it. Best-effort renders mockups immediately (front and back photos; a sleeve as a flat proof); if rendering isn't available yet the product is still created without preview images. Sets this product as the conversation's active project, so later tools (set_price, get_product, set_print_areas, publish_product, ...) can omit productId and act on it directly. A shop product needs no proof: once its design's print files are approved for every area and it has a price, publish_product puts it in the shop.",
   input: z
     .object({
       designId: z.string().uuid().optional().describe('Design to print, if one was uploaded or generated (every area prints it unless the area names its own).'),
       blankCode: z.string().min(2).max(20),
-      printServiceCode: z.string().min(2).max(40).describe("'dtg' or 'dtf' ('dtf' on blanks without DTG). Screen print codes (screen_1c, screen_2c, screen_3c) are for runs and are refused."),
+      printServiceCode: z
+        .string()
+        .min(2)
+        .max(40)
+        .optional()
+        .describe("Leave out: the garment decides how it prints (DTG, or DTF where DTG isn't ideal), and a 'dtg' or 'dtf' that disagrees is corrected with a note. Only 'embroidery' where the blank offers it. Screen print codes are for runs and are refused."),
       placement: placementSchema.optional().describe('One print area. Use areas for more than one.'),
       areas: z.array(areaSchema).min(1).max(4).optional().describe('Every print area, e.g. a front chest and a back, or a front and a left sleeve. Wins over placement.'),
       colours: z.array(z.string().min(1).max(10)).min(1).describe('Supplier colour codes, e.g. C002.'),
@@ -292,6 +321,7 @@ export const createProductTool = defineTool({
     }
 
     const detail = result.value;
+    const note = result.note;
     const suggestedPrice = Math.ceil(((detail.baseCostCents ?? 0) + 500) / 100);
     const approval = await approvalOf(detail);
     const approvalState = printApprovalState(approval, ctx.conversationId);
@@ -299,9 +329,19 @@ export const createProductTool = defineTool({
     const prepare = approval?.step?.kind === 'prepare' ? approvalChip(approval) : null;
 
     return {
-      data: { ok: true, productId: detail.id, designId: detail.designId, name: detail.name, status: detail.status, baseCostCents: detail.baseCostCents, ...areasData(detail), ...artworkData(approval) },
+      data: {
+        ok: true,
+        productId: detail.id,
+        designId: detail.designId,
+        name: detail.name,
+        status: detail.status,
+        baseCostCents: detail.baseCostCents,
+        ...(note ? { note } : {}),
+        ...areasData(detail),
+        ...artworkData(approval),
+      },
       ui: {
-        cards: [productCard(detail, approvalState)],
+        cards: [productCard(detail, approvalState), ...methodNotice('create_product', note)],
         next: [
           { label: `Price it at €${suggestedPrice}`, prompt: `Price it at €${suggestedPrice}`, primary: true },
           ...(prepare ? [{ ...prepare, primary: false }] : []),
@@ -319,6 +359,8 @@ interface UpdateProductData {
   productId?: string;
   designId?: string | null;
   name?: string;
+  /** the product's print method moved to follow its garment: say it in these words */
+  note?: string;
   artwork?: ReturnType<typeof artworkData>['artwork'];
 }
 
@@ -362,9 +404,9 @@ export const updateProductTool = defineTool({
     // Another colour or position has no print files yet: that is the next step, before the shop.
     const next = nextStepFor(detail, approval);
     return {
-      data: { ok: true, productId: detail.id, designId: detail.designId, name: detail.name, ...areasData(detail), ...artworkData(approval) },
+      data: { ok: true, productId: detail.id, designId: detail.designId, name: detail.name, ...(result.note ? { note: result.note } : {}), ...areasData(detail), ...artworkData(approval) },
       ui: {
-        cards: [productCard(detail, approvalState)],
+        cards: [productCard(detail, approvalState), ...methodNotice('update_product', result.note)],
         next: next ? [next] : undefined,
         project: projectFor(detail, undefined, approvalState),
       },
@@ -384,8 +426,12 @@ interface PrintAreasData {
   retailPriceCents?: number | null;
   marginCents?: number | null;
   canAdd?: string[];
+  /** 'Printed DTF on this garment', only when the product prints DTF */
+  print?: string;
   /** the change would put the base cost past the price: ask the artist for a new price of at least this, then call again with retailCents */
   newPriceNeeded?: { baseCostCents: number; minRetailCents: number; currentRetailCents: number; basePrice?: string };
+  /** the product's print method moved to follow its garment: say it in these words */
+  note?: string;
   artwork?: ReturnType<typeof artworkData>['artwork'];
   designId?: string;
 }
@@ -440,6 +486,7 @@ export const setPrintAreasTool = defineTool({
       data: {
         ok: true,
         productId: detail.id,
+        ...(result.note ? { note: result.note } : {}),
         ...areasData(detail),
         baseCostCents: detail.baseCostCents,
         retailPriceCents: detail.retailPriceCents,
@@ -447,7 +494,7 @@ export const setPrintAreasTool = defineTool({
         ...artworkData(approval),
       },
       ui: {
-        cards: [productCard(detail, approvalState)],
+        cards: [productCard(detail, approvalState), ...methodNotice('set_print_areas', result.note)],
         next: [...(next ? [next] : []), ...addAreaChips(detail).slice(0, 1)],
         project: projectFor(detail, undefined, approvalState),
       },
@@ -512,12 +559,14 @@ interface GetQuoteData {
   marginCents?: number;
   /** the garment's price is still a placeholder the owner hasn't set */
   placeholder?: boolean;
+  /** a 'dtg' or 'dtf' that said otherwise was corrected to the garment's own method: say it in these words */
+  note?: string;
 }
 
 export const getQuoteTool = defineTool({
   name: 'get_quote',
   description:
-    "Two kinds of price. (1) A shop product's base price, for one piece at any quantity: pass shop: true with productId (its print areas) or with blankCode and positions (the print areas to price, e.g. ['front_chest', 'back', 'sleeve_left']; held to the product rules, so a sleeve on a garment without sleeves is refused), and optionally retailCents to show the margin at that price. Without printServiceCode a blank is priced the way a new product of it prints: DTG, or DTF where it has no DTG. A product (productId, or the one open in this conversation) at qty 1 with no printServiceCode is priced this way too; pass shop: false for a run of one. It returns basePrice in the artist's words: 'Garment with one print €17.00 · Front and back +€1.00 · Sleeve prints +€2.00 · Base €20.00' (the garment's price includes one print area up to A2 on the front or the back; +€1 when it prints front and back; +€2 once for sleeve prints). (2) Otherwise, a run: price a run of a blank + print service at a given quantity, using the seeded base-cost table (garment + print + margin, with quantity breaks). Pass either blankCode or productId (to reuse an existing product's blank/print service); printServiceCode is optional when productId is given. A run can print by any method the blank offers, screen print (screen_1c, screen_2c, screen_3c) or DTG/DTF (dtg, dtf), whatever the shop product itself uses, so pass printServiceCode to price a different method. Returns only totals per quantity break — never the garment/print/margin components, which artists don't see. A screen-print price here is an estimate (estimate: true): it guesses the screens from the service's colours, plus the white underbase and highlight white on a dark garment (pass colourCode to say which garment colour; dark is assumed without it). Say it is an estimate: a run quote (create_bulk_quote) counts the screens from the design's print files, so its price can differ. Use this for 'what would 40 hoodies cost', 'what's my margin at €40', or any pricing question.",
+    "Two kinds of price. (1) A shop product's base price, for one piece at any quantity: pass shop: true with productId (its print areas) or with blankCode and positions (the print areas to price, e.g. ['front_chest', 'back', 'sleeve_left']; held to the product rules, so a sleeve on a garment without sleeves is refused), and optionally retailCents to show the margin at that price. A shop product prints the way its garment does (DTG, or DTF where DTG isn't ideal), so leave printServiceCode out: a 'dtg' or 'dtf' that says otherwise is corrected and the result's note says so. A product (productId, or the one open in this conversation) at qty 1 with no printServiceCode is priced this way too; pass shop: false for a run of one. It returns basePrice in the artist's words: 'Garment with one print €17.00 · Front and back +€1.00 · Sleeve prints +€2.00 · Base €20.00' (the garment's price includes one print area up to A2 on the front or the back; +€1 when it prints front and back; +€2 once for sleeve prints). (2) Otherwise, a run: price a run of a blank + print service at a given quantity, using the seeded base-cost table (garment + print + margin, with quantity breaks). Pass either blankCode or productId (to reuse an existing product's blank/print service); printServiceCode is optional when productId is given. A run can print by screen print (screen_1c, screen_2c, screen_3c) or digitally (printServiceCode 'digital': the garment decides between DTG and DTF, and the artist is never asked), whatever the shop product itself uses, so pass printServiceCode to price a different method. Returns only totals per quantity break — never the garment/print/margin components, which artists don't see. A screen-print price here is an estimate (estimate: true): it guesses the screens from the service's colours, plus the white underbase and highlight white on a dark garment (pass colourCode to say which garment colour; dark is assumed without it). Say it is an estimate: a run quote (create_bulk_quote) counts the screens from the design's print files, so its price can differ. Use this for 'what would 40 hoodies cost', 'what's my margin at €40', or any pricing question.",
   input: z
     .object({
       blankCode: z.string().min(2).max(20).optional(),
@@ -560,6 +609,17 @@ export const getQuoteTool = defineTool({
       };
     }
 
+    // A digital run prints the way the garment does: 'digital', 'dtg' and 'dtf' all price the garment's own method, and a 'dtg' or
+    // 'dtf' that says otherwise is corrected with a note.
+    let note: string | undefined;
+    if (isDigitalAsk(printServiceCode)) {
+      const digital = await digitalServiceFor(blankCode);
+      if (digital) {
+        if (input.printServiceCode && isDigitalService(input.printServiceCode) && input.printServiceCode !== digital.service.code) note = printedNote(digital.method.code);
+        printServiceCode = digital.service.code;
+      }
+    }
+
     const quote = await quoteFor({ blankCode, printServiceCode, qty: input.qty, ...(input.colourCode ? { colourCode: input.colourCode } : {}) });
     if (!quote) {
       const text = `No pricing configured for ${blankCode} with ${printServiceCode}.`;
@@ -578,7 +638,7 @@ export const getQuoteTool = defineTool({
       lines: quote.breaks.map((b) => ({ label: `${b.qtyFrom}+ units`, qty: b.qtyFrom, unitCents: b.unitCents, totalCents: b.unitCents * b.qtyFrom })),
       totalCents: quote.totalCents,
       currency: 'EUR',
-      note: `${input.qty} unit${input.qty === 1 ? '' : 's'} at €${(quote.unitBaseCostCents / 100).toFixed(2)} each = €${(quote.totalCents / 100).toFixed(2)} total.${estimateNote}`,
+      note: `${input.qty} unit${input.qty === 1 ? '' : 's'} at €${(quote.unitBaseCostCents / 100).toFixed(2)} each = €${(quote.totalCents / 100).toFixed(2)} total.${estimateNote}${note ? ` ${note}` : ''}`,
     };
 
     return {
@@ -589,6 +649,7 @@ export const getQuoteTool = defineTool({
         totalCents: quote.totalCents,
         breaks: quote.breaks,
         ...(quote.estimate ? { estimate: true, ...(quote.screens !== undefined ? { screens: quote.screens } : {}) } : {}),
+        ...(note ? { note } : {}),
       },
       // screen print is for runs, never a shop price: the next step for an estimate is a run quote, which counts the real screens
       ui: {
@@ -643,10 +704,19 @@ async function shopQuote(ctx: ToolContext, input: { blankCode?: string; productI
     lines: price.lines.map((l) => ({ label: l.label, qty: 1, unitCents: l.cents, totalCents: l.cents })),
     totalCents: price.cents,
     currency: 'EUR',
-    note: `Base price with ${where}: ${basePrice}.${margin !== null && retail !== null ? ` At ${euros(retail)} the margin is ${euros(margin)}.` : ''}${price.placeholder ? ' The garment price is provisional.' : ''}`,
+    note: `Base price with ${where}: ${basePrice}.${margin !== null && retail !== null ? ` At ${euros(retail)} the margin is ${euros(margin)}.` : ''}${price.placeholder ? ' The garment price is provisional.' : ''}${price.note ? ` ${price.note}` : ''}`,
   };
   return {
-    data: { ok: true, qty: 1, unitBaseCostCents: price.cents, totalCents: price.cents, basePrice, ...(margin !== null ? { marginCents: margin } : {}), ...(price.placeholder ? { placeholder: true } : {}) },
+    data: {
+      ok: true,
+      qty: 1,
+      unitBaseCostCents: price.cents,
+      totalCents: price.cents,
+      basePrice,
+      ...(margin !== null ? { marginCents: margin } : {}),
+      ...(price.placeholder ? { placeholder: true } : {}),
+      ...(price.note ? { note: price.note } : {}),
+    },
     ui: { cards: [card], next: retail == null ? [{ label: 'Set a price', prompt: `Price it at €${Math.ceil((price.cents + 500) / 100)}` }] : undefined },
   };
 }
@@ -736,6 +806,8 @@ interface PublishProductData {
   productId?: string;
   status?: ProductStatus;
   designId?: string;
+  /** the product's print method moved to follow its garment as it went live: say it in these words */
+  note?: string;
   artwork?: ReturnType<typeof artworkData>['artwork'];
   /** the base cost moved past the price since the draft was priced: the lowest price that works now */
   newPriceNeeded?: { baseCostCents: number; minRetailCents: number; currentRetailCents: number; basePrice?: string };
@@ -779,9 +851,9 @@ export const publishProductTool = defineTool({
 
     const detail = result.value;
     return {
-      data: { ok: true, productId: detail.id, status: detail.status },
+      data: { ok: true, productId: detail.id, status: detail.status, ...(result.note ? { note: result.note } : {}) },
       ui: {
-        cards: [productCard(detail)],
+        cards: [productCard(detail), ...methodNotice('publish', result.note)],
         next: [
           { label: 'Add another product', prompt: 'Add a new product', primary: true },
           { label: 'Add a collection', prompt: 'Add a collection called Winter Tour' },
@@ -881,6 +953,8 @@ interface GetProductData {
   printAreas?: ReturnType<typeof areasData>['printAreas'];
   basePrice?: string;
   canAdd?: string[];
+  /** 'Printed DTF on this garment', only when the product prints DTF */
+  print?: string;
   artwork?: ReturnType<typeof artworkData>['artwork'];
 }
 

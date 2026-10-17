@@ -5,8 +5,9 @@ import { runNumberFor } from '@/lib/services/runs';
 import { db, schema } from '@/lib/db';
 import { createProduct, getProduct, type Placement } from '@/lib/services/products';
 import { createBulkProof, setBulkProofStatus, type ProofDetail, type ProofSpecLine } from '@/lib/services/proofs';
-import { describeServices, printServicesFor, quoteFor, quoteRunExtras, quoteScreenLine, techniqueOfService } from '@/lib/services/quotes';
+import { describeRunMethods, digitalServiceFor, printServicesFor, quoteFor, quoteRunExtras, quoteScreenLine, techniqueOfService } from '@/lib/services/quotes';
 import { getScreenPriceTable } from '@/lib/services/pricing-admin';
+import { isDigitalAsk, isDigitalService, printedNote } from '@/lib/pricing/pod-table';
 import { describeRunLines, runExtrasCents, setupCentsFor, type LineScreens, type RunPriceLine, type ScreenPriceTable } from '@/lib/pricing/screen-print';
 import { zoneForCountry } from '@/lib/services/shipping';
 import { getStore } from '@/lib/services/stores';
@@ -27,10 +28,13 @@ import type { CheckoutSessionSnapshot } from '@/lib/services/stripe';
 // the Stripe webhook and the mock-checkout action call markBulkPaid.
 //
 // A run chooses its own print method when it is quoted: screen print or
-// DTG/DTF, whatever the blank offers. A run of a shop product does not inherit
-// the product's method (shop products are DTG/DTF only), so a run of a DTG
-// product can be screen printed. Each line carries the service its artist
-// chose; production reads it from there (getRunLinesForOrder).
+// digital, whatever the blank offers. A run of a shop product does not inherit
+// the product's method (shop products are digital only), so a run of a DTG
+// product can be screen printed. Digital is the garment's call (owner, 17 Oct
+// 2026): DTG, or DTF where DTG isn't ideal, so the artist never chooses between
+// them, and a 'dtg' or 'dtf' that says otherwise is corrected with a note.
+// Each line carries the service it resolved to (never 'digital' itself);
+// production reads it from there (getRunLinesForOrder).
 //
 // A screen-printed line is priced by the screens its design really uses
 // (Print-Prep-Plan section 10): quoteScreenLine reads the count from the
@@ -244,6 +248,9 @@ export interface CreateBulkQuoteLineInput {
   productId?: string;
   designId?: string;
   blankCode?: string;
+  /** 'screen_1c' / 'screen_2c' / 'screen_3c', or 'digital': DTG, or DTF where DTG isn't ideal, as the garment decides. 'dtg' and
+   * 'dtf' still work and are corrected to the garment's method, with a note. With a productId, left out: it prints the way the
+   * product does. Embroidery, where the blank offers it, is as it was. */
   printServiceCode?: string;
   placement?: RunPlacement;
   /** more print positions on the same garment (at most 3 more); off a product they default to its other print areas */
@@ -271,7 +278,39 @@ function normaliseShipTo(input: BulkShipTo | undefined): BulkShipTo | null {
   return { name, line1, ...(line2 ? { line2 } : {}), city, postcode, country };
 }
 
-type LineResult = { ok: true; value: BulkQuoteLine } | { ok: false; error: string };
+type LineResult = { ok: true; value: BulkQuoteLine; /** a 'dtg' or 'dtf' was corrected to the garment's method: the words for it */ note?: string } | { ok: false; error: string };
+
+/** The print service of a run line: screen print, embroidery or whatever else the blank offers, as asked, or the garment's digital
+ * method (DTG, or DTF where DTG isn't ideal) for 'digital', 'dtg' and 'dtf': the artist never chooses between those two, so a 'dtg'
+ * or 'dtf' that disagrees is corrected, with a note. `inherited` is what a line off a product gets when it names no method: the
+ * product's own, which for a DTG or DTF product is the garment's method now (and, if that can't be worked out, what it has). */
+async function chooseRunService(
+  blankCode: string,
+  blankName: string,
+  asked: string | undefined,
+  inherited?: { code: string; name: string },
+): Promise<{ ok: true; service: { code: string; name: string }; note?: string } | { ok: false; error: string }> {
+  const requested = asked?.trim() || undefined;
+  // A line off a product that names no method keeps the product's own when it isn't digital (screen print, embroidery), as it was.
+  if (requested === undefined && inherited && !isDigitalService(inherited.code)) return { ok: true, service: inherited };
+  const code = requested ?? inherited?.code;
+  if (!code) return { ok: false, error: 'Say how this line prints: screen print or digital.' };
+
+  const services = await printServicesFor(blankCode);
+  const digital = await digitalServiceFor(blankCode, services);
+  if (isDigitalAsk(code)) {
+    if (digital) {
+      const corrected = requested !== undefined && isDigitalService(requested) && requested !== digital.service.code;
+      return { ok: true, service: digital.service, ...(corrected ? { note: printedNote(digital.method.code) } : {}) };
+    }
+    // A product made before the garment decided, on a blank whose services aren't listed, keeps the method it has.
+    if (requested === undefined && inherited) return { ok: true, service: inherited };
+  } else {
+    const service = services.find((s) => s.code === code);
+    if (service) return { ok: true, service };
+  }
+  return { ok: false, error: `"${code}" isn't offered on ${blankName} (${blankCode}). Choose one of: ${describeRunMethods(services, digital?.service ?? null)}.` };
+}
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -308,6 +347,8 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
   let mockupUrl: string | null = null;
   let productId: string | null = null;
   let designId: string | null = input.designId ?? null;
+  /** set when a 'dtg' or 'dtf' was corrected to what the garment prints with */
+  let note: string | undefined;
 
   if (input.productId) {
     const product = await getProduct(storeId, input.productId);
@@ -323,19 +364,12 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
     placement = main ? { position: main.position, widthCm: main.widthCm, ...(main.offsetYcm ? { offsetYcm: main.offsetYcm } : {}), ...(main.designId && main.designId !== designId ? { designId: main.designId } : {}) } : product.placement;
     productExtras = others.map((a) => ({ position: a.position, widthCm: a.widthCm, ...(a.offsetYcm ? { offsetYcm: a.offsetYcm } : {}), ...(a.designId ? { designId: a.designId } : {}) }));
 
-    // The run picks its own method. Left out, it prints the way the product does.
-    if (input.printServiceCode && input.printServiceCode !== product.printServiceCode) {
-      const services = await printServicesFor(product.blankCode);
-      const service = services.find((s) => s.code === input.printServiceCode);
-      if (!service) {
-        return { ok: false, error: `"${input.printServiceCode}" isn't offered on ${blankName} (${product.blankCode}). Choose one of: ${describeServices(services)}.` };
-      }
-      printServiceCode = service.code;
-      printServiceName = service.name;
-    } else {
-      printServiceCode = product.printServiceCode;
-      printServiceName = product.printServiceName;
-    }
+    // The run picks its own method: screen print or digital. Left out, it prints the way the product does.
+    const chosen = await chooseRunService(product.blankCode, blankName, input.printServiceCode, { code: product.printServiceCode, name: product.printServiceName });
+    if (!chosen.ok) return chosen;
+    printServiceCode = chosen.service.code;
+    printServiceName = chosen.service.name;
+    note = chosen.note;
 
     const colour = product.colours.find((c) => c.code === input.colourCode);
     if (!colour) return { ok: false, error: `"${input.colourCode}" is not an enabled colour on ${product.name}.` };
@@ -346,7 +380,7 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
     if (badSizes.length > 0) return { ok: false, error: `Size(s) not enabled on ${product.name}: ${badSizes.join(', ')}.` };
   } else {
     if (!input.blankCode || !input.printServiceCode || !input.placement) {
-      return { ok: false, error: 'Provide either a productId, or a blankCode, printServiceCode and placement.' };
+      return { ok: false, error: 'Provide either a productId, or a blankCode, printServiceCode (screen print or digital) and placement.' };
     }
 
     if (designId && !(await designInShop(storeId, designId))) return { ok: false, error: 'Design not found for this shop.' };
@@ -360,11 +394,11 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
     // A run only ever prints its own shop's art, at every position.
     if (placement.designId && placement.designId !== designId && !(await designInShop(storeId, placement.designId))) return { ok: false, error: 'Design not found for this shop.' };
 
-    const services = await printServicesFor(input.blankCode);
-    const service = services.find((s) => s.code === input.printServiceCode);
-    if (!service) return { ok: false, error: `"${input.printServiceCode}" isn't offered on ${blankName} (${input.blankCode}). Choose one of: ${describeServices(services)}.` };
-    printServiceCode = service.code;
-    printServiceName = service.name;
+    const chosen = await chooseRunService(blank.code, blankName, input.printServiceCode);
+    if (!chosen.ok) return chosen;
+    printServiceCode = chosen.service.code;
+    printServiceName = chosen.service.name;
+    note = chosen.note;
 
     const position = checkPlacementPosition(blank.type, input.placement.position, blank.code);
     if (!position.ok) return { ok: false, error: position.error };
@@ -463,6 +497,7 @@ async function resolveLine(storeId: string, input: CreateBulkQuoteLineInput, tab
       ...(screens ? { screens } : {}),
       ...(priceLines.length > 0 ? { extras: priceLines } : {}),
     },
+    ...(note ? { note } : {}),
   };
 }
 
@@ -487,7 +522,7 @@ async function setupCentsOf(lines: BulkQuoteLine[], table: ScreenPriceTable): Pr
  * 20)) rather than the retail free-over-X table, which doesn't apply to a bulk
  * run. Persists a new bulk_orders row in 'quoted'.
  */
-export async function createBulkQuote(input: CreateBulkQuoteInput): Promise<ServiceResult<BulkOrderDetail>> {
+export async function createBulkQuote(input: CreateBulkQuoteInput): Promise<ServiceResult<BulkOrderDetail> & { notes?: string[] }> {
   if (!input.lines || input.lines.length === 0) return { ok: false, error: 'At least one line is required.' };
 
   const shipTo = normaliseShipTo(input.shipTo);
@@ -495,10 +530,12 @@ export async function createBulkQuote(input: CreateBulkQuoteInput): Promise<Serv
 
   const table = await getScreenPriceTable();
   const lines: BulkQuoteLine[] = [];
+  const notes: string[] = [];
   for (const [index, lineInput] of input.lines.entries()) {
     const resolved = await resolveLine(input.storeId, lineInput, table, String(index));
     if (!resolved.ok) return resolved;
     lines.push(resolved.value);
+    if (resolved.note && !notes.includes(resolved.note)) notes.push(resolved.note);
   }
 
   const totalUnits = lines.reduce((sum, l) => sum + l.qty, 0);
@@ -516,7 +553,7 @@ export async function createBulkQuote(input: CreateBulkQuoteInput): Promise<Serv
 
   const [row] = await db.insert(schema.bulkOrders).values({ storeId: input.storeId, quote, status: 'quoted', shipTo }).returning();
 
-  return { ok: true, value: toBulkOrderDetail(row) };
+  return { ok: true, value: toBulkOrderDetail(row), ...(notes.length > 0 ? { notes } : {}) };
 }
 
 // -- the screens, worked out again ------------------------------------------------

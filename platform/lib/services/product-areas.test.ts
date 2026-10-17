@@ -510,10 +510,15 @@ test('a shop quote by positions keeps the product rules and takes the method a n
   const tee = await products.quoteProductAreas(cat.tee, null, [{ position: 'front_chest' }], { check: true });
   assert.ok(tee.ok && tee.value.printServiceCode === 'dtg');
 
-  // a method the garment doesn't offer, and screen print (runs only), are refused in words
+  // a 'dtg' the garment can't take is corrected to the garment's own method, with a note: never an error
   const dtgJacket = await products.quoteProductAreas(cat.jacket, 'dtg', [{ position: 'front_chest' }]);
-  assert.equal(dtgJacket.ok, false);
-  if (!dtgJacket.ok) assert.match(dtgJacket.error, /isn't offered/);
+  assert.ok(dtgJacket.ok, dtgJacket.ok ? '' : dtgJacket.error);
+  assert.equal(dtgJacket.value.printServiceCode, 'dtf');
+  assert.equal(dtgJacket.value.note, "Printed DTF on this garment, since DTG isn't ideal for it.");
+  // a method nothing offers, and screen print (runs only), are refused in words
+  const laser = await products.quoteProductAreas(cat.jacket, 'laser', [{ position: 'front_chest' }]);
+  assert.equal(laser.ok, false);
+  if (!laser.ok) assert.match(laser.error, /isn't offered/);
   const screen = await products.quoteProductAreas(cat.tee, 'screen_2c', [{ position: 'front_chest' }]);
   assert.equal(screen.ok, false);
   if (!screen.ok) assert.match(screen.error, /for runs/);

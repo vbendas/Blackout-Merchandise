@@ -469,3 +469,101 @@ test('the two tabs save to rows of their own: the screen table and the shop tabl
   assert.equal((await pricing.getPodPriceTableState()).table.garments[cat.tee]?.cents, 1700, 'saving the screen table did not touch the shop prices');
   assert.equal((await pricing.getScreenPriceTable()).marginPercent, 33);
 });
+
+// -- DTG or DTF: the owner's mark, and what an empty DTF price says -------------------------------------
+
+/** The `<input ...>` of a box, found by the start of its aria-label. */
+function inputOf(html: string, label: string): string {
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const found = new RegExp(`<input[^>]*aria-label="${escaped}[^"]*"[^>]*>`).exec(html);
+  assert.ok(found, `no box labelled "${label}"`);
+  return found[0];
+}
+
+const MARK = "Print with DTF (DTG isn&#x27;t ideal)";
+
+test('the owner sees the rule in one sentence, the mark for each garment, and a DTF price box that says it is the same as DTG', async () => {
+  await setDev('admin');
+  const html = renderToStaticMarkup(await (await page()).default(tabProps('shop')));
+  assert.match(html, /A shop product prints DTG, or DTF on a garment where DTG isn(?:'|&#x27;)t ideal: one with no DTG, or one you mark in the table below\./);
+  assert.match(html, /DTF costs the same as DTG until you fill in a DTF price for a garment\./);
+  assert.ok(html.includes(`<th scope="col">${MARK}</th>`), 'the column carries the owner\'s label');
+  assert.doesNotMatch(html, /printed DTG or DTF to order/, 'the page no longer lets the artist pick: the lede says nothing of DTG or DTF');
+
+  // an empty DTF price says what empty means, with the price it follows (the placeholder here)
+  const dtf = inputOf(html, 'DTF price in euros, Classic tee');
+  assert.match(dtf, /placeholder="Same as DTG · €16\.25"/);
+  assert.match(dtf, /disabled=""/, 'a DTF price still waits for the base price');
+  assert.match(html, /DTF costs the same as DTG until you fill in a DTF price for a garment\./);
+
+  // the tee can switch: a box, not ticked; the softshell has no DTG, so its box is ticked and locked
+  const tee = inputOf(html, `${MARK}: Classic tee`);
+  assert.match(tee, /type="checkbox"/);
+  assert.doesNotMatch(tee, /checked=""|disabled=""/);
+  const softshell = inputOf(html, `${MARK}: Men&#x27;s hooded softshell`);
+  assert.match(softshell, /type="checkbox"/);
+  assert.match(softshell, /checked=""/);
+  assert.match(softshell, /disabled=""/);
+  assert.match(html, /No DTG: always DTF/);
+  // the examples are for the garment's own method: the tee prints DTG
+  assert.match(html, /Prints with<\/span><span class="pp-mono">DTG<\/span>/);
+  assert.doesNotMatch(html, /Print method/, 'no menu to pick DTG or DTF for the examples');
+  assert.match(html, /<option value="dtf">Printed with DTF<\/option>/, 'and the owner can list the DTF garments');
+});
+
+test('a saved price shows its DTF price as typed, and a saved mark ticks the garment', async () => {
+  await setDev('admin');
+  const saved = await pricing.setPodPrices({ userId: devId, role: 'admin' }, { garments: { [cat.tee]: { cents: 1700, dtfCents: 1900 }, [cat.hoodie]: { cents: 3400 } }, dtfInstead: { [cat.hoodie]: true } });
+  assert.ok(saved.ok);
+  const html = renderToStaticMarkup(await (await page()).default(tabProps('shop')));
+  const tee = inputOf(html, 'DTF price in euros, Classic tee');
+  assert.match(tee, /value="19\.00"/);
+  assert.doesNotMatch(tee, /disabled/);
+  // an empty one next to a saved price: the same as DTG, at that price
+  assert.match(inputOf(html, 'DTF price in euros, Heavy hoodie'), /placeholder="Same as DTG · €34\.00"/);
+  assert.match(inputOf(html, `${MARK}: Heavy hoodie`), /checked=""/);
+  assert.doesNotMatch(inputOf(html, `${MARK}: Heavy hoodie`), /disabled=""/, 'it can switch back');
+  assert.doesNotMatch(inputOf(html, `${MARK}: Classic tee`), /checked=""/);
+  // the tee prints DTG, so its examples are the base price, not the DTF price
+  assert.match(html, /Classic tee, front and back with sleeves<\/th><td class="pp-dim">€17 \+ €1 \+ €2<\/td>/);
+});
+
+test('someone who can only read sees which garments print DTF in words, with no toggle', async () => {
+  await setDev('staff', { catalogue: 'view' });
+  const html = renderToStaticMarkup(await (await page()).default(tabProps('shop')));
+  assert.ok(html.includes(`<th scope="col">${MARK}</th>`));
+  assert.doesNotMatch(html, /type="checkbox"/);
+  assert.match(html, /<span class="pp-mono">DTG<\/span>/);
+  assert.match(html, /<span class="pp-mono">DTF<\/span><span class="pp-dim">No DTG: always DTF<\/span>/);
+  assert.match(html, /Same as DTG/, 'and the DTF price says it is the same as DTG');
+});
+
+test('saving a mark needs Catalogue and pricing Manage, like a price: everyone else is refused and nothing is written', async () => {
+  const save = () => inRequest(() => actions.saveShopPricesAction({ dtfInstead: { [cat.tee]: true } }));
+
+  await setDev('artist');
+  assert.equal(await outcome(save), 'denied', 'an artist');
+  await setDev('staff', { catalogue: 'view', prepress: 'manage' });
+  assert.equal(await outcome(save), 'denied', 'Catalogue and pricing View');
+  await setDev('staff', { catalogue: 'work', production: 'manage' });
+  assert.equal(await outcome(save), 'denied', 'Catalogue and pricing Work');
+  await setDev('staff', { catalogue: 'manage' }, true);
+  assert.equal(await outcome(save), 'redirect:/staff-invite/paused', 'paused');
+  assert.equal(await storedShop(), 0);
+
+  await setDev('staff', { catalogue: 'manage' });
+  const result = await inRequest(() => actions.saveShopPricesAction({ dtfInstead: { [cat.tee]: true } }));
+  assert.ok(result.ok);
+  assert.deepEqual(result.ok && result.table.dtfInstead, [cat.tee], 'the table it made says which garments print DTF');
+  assert.equal(await storedShop(), 1);
+});
+
+test('a garment with no DTG comes back as a message and a box when its mark is sent, never as a thrown error', async () => {
+  await setDev('admin');
+  const locked = await inRequest(() => actions.saveShopPricesAction({ dtfInstead: { [cat.jacket]: true } }));
+  assert.deepEqual(locked, { ok: false, error: "The Men's hooded softshell has no DTG, so it always prints DTF.", field: `garments.${cat.jacket}.method` });
+  const off = await inRequest(() => actions.saveShopPricesAction({ dtfInstead: { [cat.jacket]: false } }));
+  assert.equal(off.ok, false);
+  assert.equal(await storedShop(), 0, 'nothing was saved');
+  assert.deepEqual(await inRequest(() => actions.saveShopPricesAction({ dtfInstead: {} })), { ok: false, error: 'There is nothing to save.', field: undefined });
+});

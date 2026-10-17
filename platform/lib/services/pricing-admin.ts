@@ -10,7 +10,11 @@ import {
   checkPodPricePatch,
   checkPodPriceTable,
   defaultPodPriceTable,
+  garmentMethod,
   garmentPriceOf,
+  isMarkedDtf,
+  methodLocked,
+  type GarmentMethod,
   type PodExtras,
   type PodGarmentRow,
   type PodPricePatch,
@@ -29,6 +33,9 @@ import { checkScreenPriceTable, defaultScreenPriceTable, isScreenServiceCode, ty
 // stands on its one-piece DTG base cost (DTF where it has no DTG) as a
 // placeholder. Runs are priced from the base-cost rows by quantity break
 // (DTG/DTF/embroidery) or from the screen-print table (screen print).
+//
+// The same table says which digital method a garment prints with (owner, 17 Oct 2026): DTG, or DTF where DTG isn't ideal, which
+// is a garment with no DTG or one the owner marked (resolveShopMethod). Artists never choose it.
 
 export type ServiceResult<T> = { ok: true; value: T } | { ok: false; error: string };
 
@@ -203,6 +210,35 @@ function isShopMethod(code: string): boolean {
   return (SHOP_METHODS as readonly string[]).includes(code);
 }
 
+/** Which of the two digital methods each blank offers, from the services the catalogue gives it (blank_print_services): DTF is
+ * on every garment, DTG only where the family had it. A blank that isn't in the catalogue offers neither. */
+export async function loadDigitalOffers(blankCodes: readonly string[]): Promise<Map<string, { offersDtg: boolean; offersDtf: boolean }>> {
+  const offers = new Map<string, { offersDtg: boolean; offersDtf: boolean }>();
+  for (const code of blankCodes) offers.set(code, { offersDtg: false, offersDtf: false });
+  if (blankCodes.length === 0) return offers;
+  const rows = await db
+    .select({ blankCode: schema.blankPrintServices.blankCode, service: schema.blankPrintServices.printServiceCode })
+    .from(schema.blankPrintServices)
+    .where(and(inArray(schema.blankPrintServices.blankCode, [...new Set(blankCodes)]), inArray(schema.blankPrintServices.printServiceCode, [...SHOP_METHODS])));
+  for (const row of rows) {
+    const offer = offers.get(row.blankCode);
+    if (!offer) continue;
+    if (row.service === 'dtg') offer.offersDtg = true;
+    else if (row.service === 'dtf') offer.offersDtf = true;
+  }
+  return offers;
+}
+
+/** The digital method a garment prints with (owner, 17 Oct 2026): DTG, or DTF where DTG isn't ideal. That is a garment whose
+ * family has no DTG, and any garment the owner marked "Print with DTF" in the shop price table. Shop products and the digital
+ * lines of a run both read it, so artists never choose between the two. Null for a blank that isn't in the catalogue or offers
+ * neither method. */
+export async function resolveShopMethod(blankCode: string): Promise<GarmentMethod | null> {
+  const [offers, { table }] = await Promise.all([loadDigitalOffers([blankCode]), getPodPriceTableState()]);
+  const offer = offers.get(blankCode);
+  return offer ? garmentMethod({ ...offer, markedDtf: isMarkedDtf(table, blankCode) }) : null;
+}
+
 /** The cost of one piece at the first quantity break, from base_costs rows listed by ascending qty_from. */
 function onePieceTotal(rows: { qtyFrom: number; totalCents: number | null }[]): number | null {
   const priced = rows.filter((r): r is { qtyFrom: number; totalCents: number } => r.totalCents != null);
@@ -247,49 +283,43 @@ export interface PodBase {
 }
 
 /** The base price podPrice() starts from, or null for a blank that isn't in the catalogue or has no price at all.
- * - DTG and DTF: the owner's price for the garment (DTF uses the DTF price when one is saved), else the placeholder.
+ * - DTG and DTF: the owner's price for the garment (DTF uses the DTF price when one is saved, else the same price as DTG), else
+ *   the placeholder. Without a method it is the garment's own (resolveShopMethod): what a shop product of it prints with.
  * - Any other method (embroidery, which print prep leaves as it was): the blank's own base cost for it, flagged as a placeholder,
  *   with no extras. */
-export async function resolvePodBase(blankCode: string, printServiceCode: string): Promise<PodBase | null> {
+export async function resolvePodBase(blankCode: string, printServiceCode?: string): Promise<PodBase | null> {
   const [blank] = await db.select({ code: schema.blanks.code }).from(schema.blanks).where(eq(schema.blanks.code, blankCode)).limit(1);
   if (!blank) return null;
 
-  if (!isShopMethod(printServiceCode)) {
-    const legacy = await loadServiceBase(blankCode, printServiceCode);
+  const method = printServiceCode ?? (await resolveShopMethod(blankCode))?.code ?? 'dtg';
+  if (!isShopMethod(method)) {
+    const legacy = await loadServiceBase(blankCode, method);
     return legacy === null ? null : { baseCents: legacy, placeholder: true, extras: null };
   }
 
   const { table } = await getPodPriceTableState();
   const saved = garmentPriceOf(table, blankCode);
-  if (saved) return { baseCents: baseCentsFor(saved, printServiceCode), placeholder: false, extras: table.extras };
+  if (saved) return { baseCents: baseCentsFor(saved, method), placeholder: false, extras: table.extras };
   const placeholder = (await loadPlaceholderBases([blankCode])).get(blankCode);
   return placeholder === undefined ? null : { baseCents: placeholder, placeholder: true, extras: table.extras };
 }
 
 /** The "from" price of each garment, as the catalogue, list_blanks and get_blank show it: what a shop product of it costs with
- * one print area, by the cheapest shop method it offers. That is the garment's price in the shop price table (DTF at its own
- * price where the owner set one and the garment offers DTF), else the placeholder it stands on, the same number podPrice() uses.
- * A run's quantity breaks never set it, nor does embroidery. A garment with no price at all is left out. Without `blankCodes`,
- * every blank in the catalogue. */
+ * one print area. That is the garment's price in the shop price table for the method the garment prints with (a DTF price only
+ * counts on a garment that prints DTF), else the placeholder it stands on, the same number podPrice() uses. A run's quantity
+ * breaks never set it, nor does embroidery. A garment with no price at all is left out. Without `blankCodes`, every blank in the
+ * catalogue. */
 export async function loadShopFromPrices(blankCodes?: readonly string[]): Promise<Map<string, number>> {
   const codes = blankCodes ? [...new Set(blankCodes)] : (await db.select({ code: schema.blanks.code }).from(schema.blanks)).map((r) => r.code);
   const prices = new Map<string, number>();
   if (codes.length === 0) return prices;
-  const [{ table }, placeholders, offered] = await Promise.all([
-    getPodPriceTableState(),
-    loadPlaceholderBases(codes),
-    db
-      .select({ blankCode: schema.blankPrintServices.blankCode, service: schema.blankPrintServices.printServiceCode })
-      .from(schema.blankPrintServices)
-      .where(and(inArray(schema.blankPrintServices.blankCode, codes), inArray(schema.blankPrintServices.printServiceCode, [...SHOP_METHODS]))),
-  ]);
-  const methods = new Map<string, string[]>();
-  for (const row of offered) methods.set(row.blankCode, [...(methods.get(row.blankCode) ?? []), row.service]);
+  const [{ table }, placeholders, offers] = await Promise.all([getPodPriceTableState(), loadPlaceholderBases(codes), loadDigitalOffers(codes)]);
   for (const code of codes) {
     const saved = garmentPriceOf(table, code);
     if (saved) {
-      const offers = methods.get(code) ?? [];
-      prices.set(code, offers.length > 0 ? Math.min(...offers.map((method) => baseCentsFor(saved, method))) : saved.cents);
+      const offer = offers.get(code);
+      const method = offer ? garmentMethod({ ...offer, markedDtf: isMarkedDtf(table, code) }) : null;
+      prices.set(code, method ? baseCentsFor(saved, method.code) : saved.cents);
       continue;
     }
     const placeholder = placeholders.get(code);
@@ -317,10 +347,11 @@ export async function listPodGarments(actor: Actor): Promise<PodGarmentRow[]> {
       .orderBy(asc(schema.blanks.displayOrder), asc(schema.blanks.name), asc(schema.blanks.code)),
     getPodPriceTableState(),
   ]);
-  const placeholders = await loadPlaceholderBases(blankRows.map((r) => r.code));
+  const [placeholders, offers] = await Promise.all([loadPlaceholderBases(blankRows.map((r) => r.code)), loadDigitalOffers(blankRows.map((r) => r.code))]);
 
   const rows = blankRows.map((r): PodGarmentRow => {
     const saved = garmentPriceOf(state.table, r.code);
+    const offer = offers.get(r.code) ?? { offersDtg: false, offersDtf: false };
     return {
       code: r.code,
       name: blankDisplayName(r.code, r.name),
@@ -329,6 +360,9 @@ export async function listPodGarments(actor: Actor): Promise<PodGarmentRow[]> {
       baseCents: saved?.cents ?? null,
       dtfCents: saved?.dtfCents ?? null,
       placeholderCents: placeholders.get(r.code) ?? null,
+      offersDtg: offer.offersDtg,
+      offersDtf: offer.offersDtf,
+      dtfInstead: isMarkedDtf(state.table, r.code),
     };
   });
   // Array.sort is stable: garments of one type keep the catalogue's own order.
@@ -342,16 +376,24 @@ function describePodPatch(patch: PodPricePatch): string {
   const entries = Object.values(patch.garments ?? {});
   const set = entries.filter((price) => price !== null).length;
   const cleared = entries.length - set;
+  const marks = Object.values(patch.dtfInstead ?? {});
+  const toDtf = marks.filter(Boolean).length;
+  const backToDtg = marks.length - toDtf;
   const parts: string[] = [];
   if (set > 0) parts.push(`${set} ${set === 1 ? 'garment' : 'garments'}`);
   if (cleared > 0) parts.push(`${cleared} back to the placeholder`);
+  if (toDtf > 0) parts.push(`${toDtf} ${toDtf === 1 ? 'garment' : 'garments'} set to print DTF`);
+  if (backToDtg > 0) parts.push(`${backToDtg} back to DTG`);
   if (patch.extras) parts.push('the extras');
-  return `Changed shop-product prices: ${parts.join(', ')}`;
+  // a change of marks alone is not a change of prices
+  const marksOnly = marks.length > 0 && entries.length === 0 && !patch.extras;
+  return `${marksOnly ? 'Changed how shop products print' : 'Changed shop-product prices'}: ${parts.join(', ')}`;
 }
 
 /** Saves a change to the shop price table: Manage access to Catalogue and pricing, every number checked, and every garment named
  * one that is in the catalogue. The change is merged into the table as it stands now, so a garment the patch doesn't name keeps
- * its price whatever else was saved meanwhile. Recorded in the staff activity log. Returns the table as it is after the save. */
+ * its price (and its mark) whatever else was saved meanwhile. A garment's mark "Print with DTF" is refused on a garment
+ * that has no DTG (it always prints DTF). Recorded in the staff activity log. Returns the table as it is after the save. */
 export async function setPodPrices(actor: Actor, input: unknown): Promise<SavePodResult> {
   if (!can(actor, 'catalogue', 'manage')) return { ok: false, error: new PermissionError('catalogue', 'manage').message };
 
@@ -366,6 +408,32 @@ export async function setPodPrices(actor: Actor, input: unknown): Promise<SavePo
     const known = new Set((await db.select({ code: schema.blanks.code }).from(schema.blanks).where(inArray(schema.blanks.code, toSet))).map((r) => r.code));
     const unknown = toSet.find((code) => !known.has(code));
     if (unknown) return { ok: false, error: `${unknown} is not a garment in the catalogue.`, field: `garments.${unknown}.base` };
+  }
+
+  // The mark "Print with DTF" belongs to a garment that can print either way. One with no DTG always prints DTF and its mark is
+  // locked: the owner can't switch it on or off, and a browser that sends it is refused. A mark taken off a garment the catalogue
+  // no longer has is always allowed, so a stale one can be cleared.
+  const marks = Object.entries(patch.dtfInstead ?? {});
+  if (marks.length > 0) {
+    const codes = marks.map(([code]) => code);
+    const [blankRows, offers] = await Promise.all([
+      db.select({ code: schema.blanks.code, name: schema.blanks.name }).from(schema.blanks).where(inArray(schema.blanks.code, codes)),
+      loadDigitalOffers(codes),
+    ]);
+    const names = new Map(blankRows.map((r) => [r.code, blankDisplayName(r.code, r.name)]));
+    for (const [code, on] of marks) {
+      const name = names.get(code);
+      const field = `garments.${code}.method`;
+      if (name === undefined) {
+        if (on) return { ok: false, error: `${code} is not a garment in the catalogue.`, field };
+        continue;
+      }
+      const offer = offers.get(code) ?? { offersDtg: false, offersDtf: false };
+      if (!methodLocked(offer)) continue;
+      if (!offer.offersDtg && offer.offersDtf) return { ok: false, error: `The ${name} has no DTG, so it always prints DTF.`, field };
+      if (offer.offersDtg) return { ok: false, error: `The ${name} can't print DTF, so it always prints DTG.`, field };
+      return { ok: false, error: `The ${name} has no digital print method.`, field };
+    }
   }
 
   const current = await getPodPriceTableState();
@@ -388,7 +456,7 @@ export async function setPodPrices(actor: Actor, input: unknown): Promise<SavePo
     action: 'pricing.shop_table',
     itemType: 'pricing',
     itemId: POD_TABLE_KEY,
-    detail: { summary: describePodPatch(patch), garments: Object.keys(patch.garments ?? {}) },
+    detail: { summary: describePodPatch(patch), garments: [...new Set([...Object.keys(patch.garments ?? {}), ...Object.keys(patch.dtfInstead ?? {})])] },
   });
 
   return { ok: true, value: { table: merged.table, updatedAt: now.toISOString() } };

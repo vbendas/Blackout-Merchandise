@@ -1,12 +1,16 @@
 // The logic behind the shop-product price editor (/admin/pricing, "Shop products (DTG/DTF)"):
 // what is typed in the boxes turned into whole cents, the edits kept until Save, "set every
-// garment of a type", the change to send (only the garments that changed), the search and the
-// filters, and the garment the example prices are drawn for. No React and nothing server-only,
+// garment of a type", the owner's mark "Print with DTF (DTG isn't ideal)" for each garment (locked on
+// where the garment has no DTG), the change to send (only the garments that changed), the search and
+// the filters, and the garment the example prices are drawn for. No React and nothing server-only,
 // so the editor and its tests share it. The server checks the change again (checkPodPricePatch):
 // a browser can send anything.
 import {
   POD_TABLE_LIMITS,
   baseCentsFor,
+  garmentMethod,
+  methodLocked,
+  type DigitalMethod,
   type PodExtras,
   type PodGarmentPrice,
   type PodGarmentRow,
@@ -56,13 +60,16 @@ function readExtra(text: string): { ok: true; cents: number } | { ok: false; err
  * not set shows its placeholder and is not saved. */
 export interface ShopRowValues {
   base: string;
-  /** the DTF price; empty means DTF uses the base price */
+  /** the DTF price; empty means DTF costs the same as DTG (the base price) */
   dtf: string;
   set: boolean;
 }
 
 export interface ShopFormValues {
   rows: Record<string, ShopRowValues>;
+  /** the marks "Print with DTF (DTG isn't ideal)" as the boxes have them, by blank code. A garment with no DTG prints DTF whatever
+   * is in here: its toggle is locked on and never sent. */
+  dtfInstead: Record<string, boolean>;
   /** euros: the extra for front and back */
   secondMain: string;
   /** euros: the extra for sleeve prints, once */
@@ -70,13 +77,15 @@ export interface ShopFormValues {
 }
 
 /** Box name -> what is wrong with it: 'extras.secondMain', 'extras.sleeves', 'garments.STTU169.base', 'garments.STTU169.dtf',
- * and 'bulk' for the box that sets a whole type. The names the server's checks use too. */
+ * 'garments.STTU169.method' (the mark), and 'bulk' for the box that sets a whole type. The names the server's checks use too. */
 export type ShopFormErrors = Record<string, string>;
 
-/** The prices as last saved: what the form is compared with, and what the examples fall back on. */
+/** The prices and marks as last saved: what the form is compared with, and what the examples fall back on. */
 export interface SavedShopPrices {
   extras: PodExtras;
   garments: Record<string, PodGarmentPrice>;
+  /** the blank codes saved as "Print with DTF" */
+  dtfInstead: string[];
 }
 
 export function savedFromRows(rows: readonly PodGarmentRow[], extras: PodExtras): SavedShopPrices {
@@ -84,7 +93,7 @@ export function savedFromRows(rows: readonly PodGarmentRow[], extras: PodExtras)
   for (const row of rows) {
     if (row.baseCents !== null) garments[row.code] = { cents: row.baseCents, ...(row.dtfCents !== null ? { dtfCents: row.dtfCents } : {}) };
   }
-  return { extras: { ...extras }, garments };
+  return { extras: { ...extras }, garments, dtfInstead: rows.filter((row) => row.dtfInstead).map((row) => row.code) };
 }
 
 function savedPrice(saved: SavedShopPrices, code: string): PodGarmentPrice | undefined {
@@ -100,7 +109,9 @@ export function formFromSaved(rows: readonly PodGarmentRow[], saved: SavedShopPr
       ? { base: eurosText(price.cents), dtf: price.dtfCents !== undefined ? eurosText(price.dtfCents) : '', set: true }
       : { base: row.placeholderCents !== null ? eurosText(row.placeholderCents) : '', dtf: '', set: false };
   }
-  return { rows: values, secondMain: eurosText(saved.extras.secondMainPrintCents), sleeves: eurosText(saved.extras.sleevesCents) };
+  const marks: Record<string, boolean> = {};
+  for (const row of rows) marks[row.code] = saved.dtfInstead.includes(row.code);
+  return { rows: values, dtfInstead: marks, secondMain: eurosText(saved.extras.secondMainPrintCents), sleeves: eurosText(saved.extras.sleevesCents) };
 }
 
 /** A garment the boxes have not met yet (one added to the catalogue while the page was open): not set, nothing in its boxes. */
@@ -117,6 +128,23 @@ export function editDtf(values: ShopFormValues, code: string, text: string): Sho
   const row = values.rows[code];
   if (!row || !row.set) return values;
   return { ...values, rows: { ...values.rows, [code]: { ...row, dtf: text } } };
+}
+
+/** Marking a garment "Print with DTF (DTG isn't ideal)", or taking the mark off. A garment that can't switch (no DTG: always DTF) keeps
+ * its toggle locked, so the boxes come back as they were. */
+export function editMethod(values: ShopFormValues, row: Pick<PodGarmentRow, 'code' | 'offersDtg' | 'offersDtf'>, marked: boolean): ShopFormValues {
+  if (methodLocked(row)) return values;
+  return { ...values, dtfInstead: { ...values.dtfInstead, [row.code]: marked } };
+}
+
+/** True when the garment prints DTF as the boxes have it: no DTG on the garment, or marked. */
+export function printsDtf(row: Pick<PodGarmentRow, 'code' | 'offersDtg' | 'offersDtf'>, values: ShopFormValues): boolean {
+  return garmentMethod({ offersDtg: row.offersDtg, offersDtf: row.offersDtf, markedDtf: values.dtfInstead[row.code] ?? false })?.code === 'dtf';
+}
+
+/** The mark of a garment differs from what is saved (and the garment is one whose mark can change). */
+export function methodChanged(row: Pick<PodGarmentRow, 'code' | 'offersDtg' | 'offersDtf'>, values: ShopFormValues, saved: SavedShopPrices): boolean {
+  return !methodLocked(row) && (values.dtfInstead[row.code] ?? false) !== saved.dtfInstead.includes(row.code);
 }
 
 export type TypePriceResult = { ok: true; values: ShopFormValues; count: number; /** the base price every garment of the type was set to */ cents: number } | { ok: false; error: string };
@@ -140,8 +168,9 @@ export type ShopPatchResult =
   | { ok: true; patch: PodPricePatch; /** garments and extras that differ from what is saved */ changed: number }
   | { ok: false; errors: ShopFormErrors; /** the first box to look at, in the order the page lists them */ first: string };
 
-/** The change the boxes make to what is saved: only the garments that are set and differ, and the extras if they differ. A garment
- * that is not set is never sent, and an empty DTF box means no DTF price. A box that can't be read is an error, by name. */
+/** The change the boxes make to what is saved: only the garments that are set and differ, the marks that differ, and the extras if
+ * they differ. A garment that is not set is never sent, and an empty DTF box means no DTF price. A garment whose mark is locked (no
+ * DTG) is never sent as a mark. A box that can't be read is an error, by name. */
 export function patchFromForm(values: ShopFormValues, rows: readonly PodGarmentRow[], saved: SavedShopPrices): ShopPatchResult {
   const errors: ShopFormErrors = {};
   const garments: Record<string, PodGarmentPrice> = {};
@@ -182,16 +211,24 @@ export function patchFromForm(values: ShopFormValues, rows: readonly PodGarmentR
     garments[row.code] = { cents: base.cents, ...(dtfCents !== undefined ? { dtfCents } : {}) };
   }
 
+  // the marks that differ from what is saved: a garment can't be marked while its toggle is locked
+  const marks: Record<string, boolean> = {};
+  for (const row of rows) {
+    if (methodChanged(row, values, saved)) marks[row.code] = values.dtfInstead[row.code] ?? false;
+  }
+
   if (problems.length > 0) return { ok: false, errors, first: problems[0] };
   const patch: PodPricePatch = {};
   if (Object.keys(extras).length > 0) patch.extras = extras;
   const changedGarments = Object.keys(garments).length;
   if (changedGarments > 0) patch.garments = garments;
-  return { ok: true, patch, changed: changedGarments + Object.keys(extras).length };
+  const changedMarks = Object.keys(marks).length;
+  if (changedMarks > 0) patch.dtfInstead = marks;
+  return { ok: true, patch, changed: changedGarments + changedMarks + Object.keys(extras).length };
 }
 
-/** The box ids of a garment, in the editor's naming. */
-export function garmentKey(code: string, box: 'base' | 'dtf'): string {
+/** The box ids of a garment, in the editor's naming: its base price, its DTF price, and its mark "Print with DTF". */
+export function garmentKey(code: string, box: 'base' | 'dtf' | 'method'): string {
   return `garments.${code}.${box}`;
 }
 
@@ -212,17 +249,17 @@ export function rowState(row: PodGarmentRow, values: ShopFormValues, saved: Save
   return base === before.cents && (dtf ?? undefined) === before.dtfCents ? 'set' : 'unsaved';
 }
 
-export type ShowFilter = 'all' | 'placeholder' | 'set';
+export type ShowFilter = 'all' | 'placeholder' | 'set' | 'dtf';
 
 export interface RowFilter {
   query: string;
   /** a catalogue type, or '' for all */
   type: string;
-  /** 'placeholder' and 'set' follow what is saved, so a garment doesn't leave the list while its price is typed */
+  /** 'placeholder', 'set' and 'dtf' follow what is saved, so a garment doesn't leave the list while its price or its mark is typed */
   show: ShowFilter;
 }
 
-/** The garments that match a search over name, code, supplier name and type, a type and a saved/placeholder filter. */
+/** The garments that match a search over name, code, supplier name and type, a type and a saved/placeholder/DTF filter. */
 export function filterRows(rows: readonly PodGarmentRow[], saved: SavedShopPrices, filter: RowFilter): PodGarmentRow[] {
   const words = filter.query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   return rows.filter((row) => {
@@ -230,6 +267,7 @@ export function filterRows(rows: readonly PodGarmentRow[], saved: SavedShopPrice
     const isSaved = savedPrice(saved, row.code) !== undefined;
     if (filter.show === 'placeholder' && isSaved) return false;
     if (filter.show === 'set' && !isSaved) return false;
+    if (filter.show === 'dtf' && garmentMethod({ offersDtg: row.offersDtg, offersDtf: row.offersDtf, markedDtf: saved.dtfInstead.includes(row.code) })?.code !== 'dtf') return false;
     if (words.length === 0) return true;
     const text = `${row.name} ${row.code} ${row.supplierName ?? ''} ${row.type}`.toLowerCase();
     return words.every((word) => text.includes(word));
@@ -262,6 +300,18 @@ export interface PreviewBase {
   extras: PodExtras;
   /** the price is the placeholder, not one the owner set */
   placeholder: boolean;
+}
+
+/** What an empty DTF price box says: DTF costs the same as DTG. It names that price, as it is typed, else as it is saved, else the
+ * placeholder the garment stands on: "Same as DTG · €17.00". Plain "Same as DTG" for a garment with no price at all. */
+export function dtfPlaceholder(values: ShopFormValues, rows: readonly PodGarmentRow[], saved: SavedShopPrices, code: string): string {
+  const base = previewBase(values, rows, saved, code, 'dtg');
+  return base ? `Same as DTG · €${eurosText(base.baseCents)}` : 'Same as DTG';
+}
+
+/** The method a garment's example prices are drawn for: the one the garment prints with, as the boxes have it. */
+export function previewMethod(row: Pick<PodGarmentRow, 'code' | 'offersDtg' | 'offersDtf'>, values: ShopFormValues): DigitalMethod {
+  return printsDtf(row, values) ? 'dtf' : 'dtg';
 }
 
 /** What the examples are drawn from for a garment and a print method: the typed price while it can be read, else the saved one,

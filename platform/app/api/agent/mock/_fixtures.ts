@@ -45,7 +45,7 @@ export function blankCard(): Card {
     code: 'BL-104',
     name: 'Heavyweight Tee',
     description:
-      '240gsm combed cotton, boxy fit, tearaway label. Our best-seller for screen and DTG alike. Runs true to size with a relaxed shoulder.',
+      '240gsm combed cotton, boxy fit, tearaway label. Our best-seller for screen and digital print alike. Runs true to size with a relaxed shoulder.',
     imageUrl: PLACEHOLDER('BL-104'),
     type: 'T-shirt',
     fit: 'Boxy',
@@ -57,7 +57,7 @@ export function blankCard(): Card {
       { code: 'CLY', name: 'Clay', hex: '#a9633f' },
     ],
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-    printServices: ['Screen print', 'DTG', 'Embroidery'],
+    printServices: ['Screen print', 'Digital print', 'Embroidery'],
     fromPriceCents: 1200,
     expandable: true,
     actions: [{ label: 'Use this blank', prompt: 'Use BL-104 for my product' }],

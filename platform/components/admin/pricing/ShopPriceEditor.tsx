@@ -3,21 +3,26 @@
 import { useEffect, useId, useRef, useState, useTransition, type FormEvent } from 'react';
 import { saveShopPricesAction } from '@/app/(chat)/admin/pricing/actions';
 import { formatStamp } from '@/components/admin/prepress/format';
-import { podExampleRows, type PodExtras, type PodGarmentRow } from '@/lib/pricing/pod-table';
+import { DTF_MARK_LABEL, DTF_RULE, methodLocked, podExampleRows, type PodExtras, type PodGarmentRow } from '@/lib/pricing/pod-table';
 import { euros } from '@/lib/pricing/screen-print';
 import { cn } from '@/lib/utils';
 import {
   applyTypePrice,
   EMPTY_ROW,
   defaultPreviewCode,
+  dtfPlaceholder,
   editBase,
   editDtf,
+  editMethod,
   filterRows,
   formFromSaved,
   garmentKey,
+  methodChanged,
   patchFromForm,
   placeholderCount,
   previewBase,
+  previewMethod,
+  printsDtf,
   rowState,
   savedFromRows,
   typeOptions,
@@ -35,6 +40,7 @@ const SHOW_OPTIONS: { id: ShowFilter; label: string }[] = [
   { id: 'all', label: 'All garments' },
   { id: 'placeholder', label: 'Placeholder prices only' },
   { id: 'set', label: 'Prices I have set' },
+  { id: 'dtf', label: 'Printed with DTF' },
 ];
 
 function lowerFirst(text: string): string {
@@ -49,8 +55,10 @@ function StateTag({ state }: { state: RowState }) {
 }
 
 /** The shop-product prices (Plan sections 1 and 10): a base price for every garment, which covers one print area up to A2 on the
- * front or the back, and two extras for more print areas. Anyone with Catalogue and pricing "View" reads it; with "Manage" the same
- * numbers become boxes.
+ * front or the back, two extras for more print areas, and which garments print DTF instead of DTG (owner, 17 Oct 2026: DTG by
+ * default; DTF where DTG isn't ideal, with the same price unless a DTF price is filled in). Anyone with Catalogue and pricing
+ * "View" reads it; with "Manage" the same numbers become boxes, and the mark "Print with DTF" a toggle (locked on where the garment
+ * has no DTG).
  *
  * A garment is on a placeholder (today's one-print DTG cost, shown and marked) until the owner chooses its price: typing in its box,
  * or setting its whole type, does that, and it is saved with Save prices. A garment nobody touched is never saved, so it stays a
@@ -81,7 +89,6 @@ export function ShopPriceEditor({
   const [bulkError, setBulkError] = useState<string | null>(null);
   const [bulkNote, setBulkNote] = useState<string | null>(null);
   const [previewCode, setPreviewCode] = useState<string | null>(() => defaultPreviewCode(garments, savedFromRows(garments, extras)));
-  const [previewMethod, setPreviewMethod] = useState<'dtg' | 'dtf'>('dtg');
   // a box to focus once a render has put it on the page
   const focusAfterRender = useRef<string | null>(null);
 
@@ -160,7 +167,7 @@ export function ShopPriceEditor({
       try {
         const done = await saveShopPricesAction(patch);
         if (done.ok) {
-          const next: SavedShopPrices = { extras: done.table.extras, garments: done.table.garments };
+          const next: SavedShopPrices = { extras: done.table.extras, garments: done.table.garments, dtfInstead: done.table.dtfInstead ?? [] };
           setSaved(next);
           setValues(formFromSaved(garments, next));
           setStamp(formatStamp(done.updatedAt) || null);
@@ -168,7 +175,7 @@ export function ShopPriceEditor({
           setServerErrors({});
           setBulkError(null);
           setBulkNote(null);
-          setMessage({ tone: 'ok', text: 'Saved. Shop products created or changed from now on use these prices.' });
+          setMessage({ tone: 'ok', text: 'Saved. Shop products created or changed from now on use these prices and print the way you set here.' });
         } else if (done.field) {
           setServerErrors({ [done.field]: done.error });
           setMessage({ tone: 'error', text: 'Some prices need a look. They are marked below.' });
@@ -212,9 +219,51 @@ export function ShopPriceEditor({
       </span>
     ) : null;
 
+  /** The mark "Print with DTF (DTG isn't ideal)": a toggle for the owner, locked on where the garment has no DTG (it always prints DTF),
+   * and plain words for someone who can only read. */
+  function methodCell(row: PodGarmentRow) {
+    const dtf = printsDtf(row, shown);
+    const locked = methodLocked(row);
+    const why = !row.offersDtg && row.offersDtf ? 'No DTG: always DTF' : !row.offersDtf && row.offersDtg ? 'No DTF: always DTG' : null;
+    if (!canManage) {
+      return (
+        <div className="prc-cell">
+          <span className="pp-mono">{dtf ? 'DTF' : 'DTG'}</span>
+          {why ? <span className="pp-dim">{why}</span> : dtf ? <span className="pp-dim">Marked</span> : null}
+        </div>
+      );
+    }
+    return (
+      <div className="prc-cell">
+        <label className="prc-check">
+          <input
+            id={id(garmentKey(row.code, 'method'))}
+            type="checkbox"
+            checked={dtf}
+            disabled={locked}
+            aria-label={`${DTF_MARK_LABEL}: ${row.name}`}
+            onChange={(event) => {
+              // While a save is on its way the boxes keep what they say, as the text boxes do (readOnly).
+              if (!pending) change(editMethod(values, row, event.target.checked));
+            }}
+          />
+          {why ? <span className="pp-dim">{why}</span> : null}
+        </label>
+        {methodChanged(row, shown, saved) ? (
+          <span className="prc-tag" data-tone="strong">
+            Unsaved
+          </span>
+        ) : null}
+        {errorFor(garmentKey(row.code, 'method'))}
+      </div>
+    );
+  }
+
   // The examples follow what is typed while it makes sense, and what is saved while it doesn't.
   const previewRow = garments.find((g) => g.code === previewCode) ?? null;
-  const preview = previewRow && previewCode ? previewBase(shown, garments, saved, previewCode, previewMethod) : null;
+  // The examples are for the method the garment prints with (DTG, or DTF where DTG isn't ideal): the garment decides, not the artist.
+  const previewWith = previewRow ? previewMethod(previewRow, shown) : 'dtg';
+  const preview = previewRow && previewCode ? previewBase(shown, garments, saved, previewCode, previewWith) : null;
   const examples = preview ? podExampleRows(preview.baseCents, preview.extras) : [];
 
   return (
@@ -266,9 +315,9 @@ export function ShopPriceEditor({
         <h2 id={id('garments')} className="mf-label">
           Base price for each garment
         </h2>
-        <p className="pp-dim">
-          What the artist pays for the garment with one print area up to A2, on the front or the back. DTF uses the same price unless you set a DTF price for a garment.
-        </p>
+        <p className="pp-dim">What the artist pays for the garment with one print area up to A2, on the front or the back.</p>
+        <p className="prc-rule">{DTF_RULE}</p>
+        <p className="pp-dim">DTF costs the same as DTG until you fill in a DTF price for a garment.</p>
 
         {canManage ? (
           <div className="prc-bulk">
@@ -369,7 +418,7 @@ export function ShopPriceEditor({
 
         <div className="pp-scroll">
           <table className="pp-table prc-garments">
-            <caption className="sr-only">Base price of each garment in euros, and a DTF price where it differs</caption>
+            <caption className="sr-only">Base price of each garment in euros, a DTF price where it differs, and whether the garment prints DTF instead of DTG</caption>
             <thead>
               <tr>
                 <th scope="col">Garment</th>
@@ -377,6 +426,7 @@ export function ShopPriceEditor({
                 <th scope="col">Type</th>
                 <th scope="col">Base price</th>
                 <th scope="col">DTF price</th>
+                <th scope="col">{DTF_MARK_LABEL}</th>
                 <th scope="col">Status</th>
               </tr>
             </thead>
@@ -401,16 +451,17 @@ export function ShopPriceEditor({
                     </td>
                     <td>
                       <div className="prc-cell">
-                        {box(garmentKey(row.code, 'dtf'), `DTF price in euros, ${row.name}. Leave empty to use the base price.`, boxes.dtf, (next) => change(editDtf(values, row.code, next)), {
-                          className: 'prc-money',
+                        {box(garmentKey(row.code, 'dtf'), `DTF price in euros, ${row.name}. Leave empty for the same price as DTG.`, boxes.dtf, (next) => change(editDtf(values, row.code, next)), {
+                          className: 'prc-money prc-dtf',
                           disabled: !boxes.set,
-                          placeholder: boxes.set ? 'same' : undefined,
-                          empty: 'Same as base',
+                          placeholder: dtfPlaceholder(shown, garments, saved, row.code),
+                          empty: 'Same as DTG',
                         })}
                         {canManage ? <span className="pp-dim">€</span> : null}
                         {errorFor(garmentKey(row.code, 'dtf'))}
                       </div>
                     </td>
+                    <td>{methodCell(row)}</td>
                     <td>
                       <StateTag state={state} />
                     </td>
@@ -421,7 +472,12 @@ export function ShopPriceEditor({
           </table>
         </div>
         {visible.length === 0 ? <p className="pp-empty">No garment matches.</p> : null}
-        {canManage ? <p className="pp-dim">A DTF price can be set once a garment&apos;s base price is set. Empty means DTF costs the base price.</p> : null}
+        {canManage ? (
+          <p className="pp-dim">
+            A DTF price can be set once a garment&apos;s base price is set. It is what a garment that prints DTF costs; empty means the same price as DTG, which is how every garment starts. A garment with no DTG always prints
+            DTF, so its box stays ticked.
+          </p>
+        ) : null}
       </section>
 
       <section className="prc-group" aria-labelledby={id('examples')}>
@@ -447,13 +503,12 @@ export function ShopPriceEditor({
                 ))}
               </select>
             </label>
-            <label className="prc-pick">
-              <span className="pp-dim">Print method</span>
-              <select className="pp-field prc-select" value={previewMethod} onChange={(event) => setPreviewMethod(event.target.value === 'dtf' ? 'dtf' : 'dtg')}>
-                <option value="dtg">DTG</option>
-                <option value="dtf">DTF</option>
-              </select>
-            </label>
+            {previewRow ? (
+              <p className="prc-pick" role="status">
+                <span className="pp-dim">Prints with</span>
+                <span className="pp-mono">{previewWith === 'dtf' ? 'DTF' : 'DTG'}</span>
+              </p>
+            ) : null}
           </div>
         ) : null}
         {preview && previewRow ? (
@@ -483,6 +538,9 @@ export function ShopPriceEditor({
                 </tbody>
               </table>
             </div>
+            {previewWith === 'dtf' ? (
+              <p className="pp-dim">This garment prints DTF, so the examples use its DTF price when one is filled in, and the base price when it is empty.</p>
+            ) : null}
             {preview.placeholder ? <p className="pp-dim">This garment is still on its placeholder base price, so these examples are too.</p> : null}
           </>
         ) : (

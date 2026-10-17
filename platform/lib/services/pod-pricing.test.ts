@@ -308,7 +308,21 @@ test('the admin list: active garments by type, with the saved price and the plac
   assert.deepEqual([...new Set(rows.map((r) => r.type))], ['T-shirts', 'Sweats & Hoodies', 'Jackets', 'Bags & Accessories', 'Bottoms'], 'in the order the Studio lists the types');
 
   const tee = rows.find((r) => r.code === cat.tee);
-  assert.deepEqual(tee, { code: cat.tee, name: 'Classic tee', supplierName: null, type: 'T-shirts', baseCents: 1700, dtfCents: 1800, placeholderCents: TEE_PLACEHOLDER });
+  assert.deepEqual(tee, {
+    code: cat.tee,
+    name: 'Classic tee',
+    supplierName: null,
+    type: 'T-shirts',
+    baseCents: 1700,
+    dtfCents: 1800,
+    placeholderCents: TEE_PLACEHOLDER,
+    offersDtg: true,
+    offersDtf: true,
+    dtfInstead: false,
+  });
+  // what the garment can print is on the row: the family decides whether the DTF mark can change
+  const jacketRow = rows.find((r) => r.code === cat.jacket);
+  assert.deepEqual([jacketRow?.offersDtg, jacketRow?.offersDtf, jacketRow?.dtfInstead], [false, true, false], 'no DTG: always DTF');
   const hoodie = rows.find((r) => r.code === cat.hoodie);
   assert.equal(hoodie?.baseCents, null, 'not set');
   assert.equal(hoodie?.placeholderCents, 1625);
@@ -517,7 +531,7 @@ test('runs keep their own pricing: the shop table never reaches them', async () 
 // ---------------------------------------------------------------------------
 // The catalogue's "from" price is the garment's shop price
 
-test('the "from" price is the garment\'s shop price: its placeholder until one is set, then the owner\'s, DTF\'s when cheaper', async () => {
+test('the "from" price is the garment\'s shop price: its placeholder until one is set, then the owner\'s, DTF\'s only on a garment that prints DTF', async () => {
   const { getBlank, listBlanks } = await import('@/lib/services/blanks');
   const fromOf = async (code: string) => [(await getBlank(code))?.fromPriceCents, (await listBlanks({ q: code })).items.find((b) => b.code === code)?.fromPriceCents];
 
@@ -530,11 +544,19 @@ test('the "from" price is the garment\'s shop price: its placeholder until one i
   assert.deepEqual(await fromOf(cat.tee), [1700, 1700]);
   assert.equal((await pricing.loadShopFromPrices()).get('STNP000'), 1500, 'priced by the owner: it has one now');
 
-  // a DTF price below the base: the cheapest way to make the product
+  // a DTF price counts only where the garment prints DTF: the tee prints DTG, so a DTF price, cheaper or dearer, never reaches it
   await setPrices({ garments: { [cat.tee]: { cents: 1700, dtfCents: 1600 } } });
-  assert.deepEqual(await fromOf(cat.tee), [1600, 1600]);
+  assert.deepEqual(await fromOf(cat.tee), [1700, 1700]);
   await setPrices({ garments: { [cat.tee]: { cents: 1700, dtfCents: 1900 } } });
   assert.deepEqual(await fromOf(cat.tee), [1700, 1700]);
+  // marked "Print with DTF", the tee is a DTF garment and its DTF price is the price
+  await setPrices({ dtfInstead: { [cat.tee]: true } });
+  assert.deepEqual(await fromOf(cat.tee), [1900, 1900]);
+  await setPrices({ garments: { [cat.tee]: { cents: 1700 } } });
+  assert.deepEqual(await fromOf(cat.tee), [1700, 1700], 'no DTF price: DTF costs what DTG does');
+  // a garment with no DTG is a DTF garment from the start
+  await setPrices({ garments: { [cat.jacket]: { cents: 2000, dtfCents: 2300 } } });
+  assert.deepEqual(await fromOf(cat.jacket), [2300, 2300]);
   // runs are untouched by it
   assert.equal((await quotes.quoteFor({ blankCode: cat.tee, printServiceCode: 'dtg', qty: 1 }))?.unitBaseCostCents, TEE_PLACEHOLDER);
 });

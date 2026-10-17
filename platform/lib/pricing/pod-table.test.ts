@@ -6,6 +6,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   DEFAULT_POD_EXTRAS,
+  DTF_MARK_LABEL,
+  DTF_RULE,
   POD_EXAMPLES,
   POD_LINE_LABELS,
   POD_TABLE_LIMITS,
@@ -15,9 +17,15 @@ import {
   checkPodPricePatch,
   checkPodPriceTable,
   defaultPodPriceTable,
+  garmentMethod,
   garmentPriceOf,
+  isDigitalAsk,
+  isDigitalService,
+  isMarkedDtf,
+  methodLocked,
   placementKind,
   podExampleRows,
+  printedNote,
   runExtraLines,
   type PodPriceTable,
 } from './pod-table';
@@ -416,4 +424,140 @@ test('for every example the admin page shows, a run pays what a shop product add
     assert.deepEqual(run, shop.lines.filter((line) => line.key !== 'base'), example.key);
     assert.ok(run.every((line) => (line.key as string) !== 'base'));
   }
+});
+
+// ---------------------------------------------------------------------------
+// Which digital method a garment prints with (owner, 17 Oct 2026): DTG by default, DTF only where DTG isn't ideal
+
+test('a garment whose family has DTG prints DTG, unless the owner marked it', () => {
+  assert.deepEqual(garmentMethod({ offersDtg: true, offersDtf: true, markedDtf: false }), { code: 'dtg', dtfBecause: null });
+  assert.deepEqual(garmentMethod({ offersDtg: true, offersDtf: true, markedDtf: true }), { code: 'dtf', dtfBecause: 'marked' });
+});
+
+test('a garment whose family has no DTG always prints DTF, marked or not', () => {
+  assert.deepEqual(garmentMethod({ offersDtg: false, offersDtf: true, markedDtf: false }), { code: 'dtf', dtfBecause: 'no_dtg' });
+  assert.deepEqual(garmentMethod({ offersDtg: false, offersDtf: true, markedDtf: true }), { code: 'dtf', dtfBecause: 'no_dtg' }, 'the family decides before the mark does');
+});
+
+test('a garment that can print only one of the two prints that one, and one that offers neither has no method', () => {
+  assert.deepEqual(garmentMethod({ offersDtg: true, offersDtf: false, markedDtf: true }), { code: 'dtg', dtfBecause: null }, 'a mark can not make a garment print what it can not');
+  assert.equal(garmentMethod({ offersDtg: false, offersDtf: false, markedDtf: false }), null);
+  assert.equal(garmentMethod({ offersDtg: false, offersDtf: false, markedDtf: true }), null);
+});
+
+test('the mark is the owner\'s to change only on a garment that can print either way: with no DTG the toggle is locked', () => {
+  assert.equal(methodLocked({ offersDtg: true, offersDtf: true }), false);
+  assert.equal(methodLocked({ offersDtg: false, offersDtf: true }), true, 'no DTG: always DTF, locked on');
+  assert.equal(methodLocked({ offersDtg: true, offersDtf: false }), true);
+  assert.equal(methodLocked({ offersDtg: false, offersDtf: false }), true);
+});
+
+test('a garment is marked when its code is in the table\'s list', () => {
+  const table: PodPriceTable = { extras: EXTRAS, garments: {}, dtfInstead: ['STSU177'] };
+  assert.equal(isMarkedDtf(table, 'STSU177'), true);
+  assert.equal(isMarkedDtf(table, 'STTU169'), false);
+  assert.equal(isMarkedDtf({ extras: EXTRAS, garments: {} }, 'STSU177'), false, 'a table saved before the marks existed has none');
+  assert.equal(isMarkedDtf(table, 'constructor'), false);
+});
+
+test('the two digital methods, and what may be asked for them', () => {
+  assert.equal(isDigitalService('dtg') && isDigitalService('dtf'), true);
+  for (const code of ['digital', 'screen_1c', 'embroidery', '', 'DTG']) assert.equal(isDigitalService(code), false, code);
+  for (const code of ['digital', 'dtg', 'dtf']) assert.equal(isDigitalAsk(code), true, code);
+  for (const code of ['screen_2c', 'embroidery', 'laser', '']) assert.equal(isDigitalAsk(code), false, code);
+});
+
+test('the words: the owner\'s label and rule, and the note that says DTF only where it matters', () => {
+  assert.equal(DTF_MARK_LABEL, "Print with DTF (DTG isn't ideal)");
+  assert.equal(DTF_RULE, "A shop product prints DTG, or DTF on a garment where DTG isn't ideal: one with no DTG, or one you mark in the table below.");
+  assert.equal(DTF_RULE.split('. ').length, 1, 'one sentence');
+  assert.equal(printedNote('dtf'), "Printed DTF on this garment, since DTG isn't ideal for it.");
+  assert.equal(printedNote('dtg'), 'Printed DTG on this garment.');
+});
+
+test('DTF costs what DTG does until the owner fills in a DTF price, and then a garment that prints DTF costs that', () => {
+  const method = (markedDtf: boolean, offersDtg = true) => garmentMethod({ offersDtg, offersDtf: true, markedDtf })!.code;
+  // the default for every garment: no DTF price, so DTG and DTF are the same number
+  const same = { cents: 1700 };
+  assert.equal(baseCentsFor(same, method(false)), 1700);
+  assert.equal(baseCentsFor(same, method(true)), 1700, 'marked DTF: still the same price');
+  assert.equal(baseCentsFor(same, method(false, false)), 1700, 'no DTG: still the same price');
+  // a DTF price: used by the garments that print DTF, never by one that prints DTG
+  const own = { cents: 1700, dtfCents: 1900 };
+  assert.equal(baseCentsFor(own, method(false)), 1700, 'prints DTG: the base price');
+  assert.equal(baseCentsFor(own, method(true)), 1900, 'marked: the DTF price');
+  assert.equal(baseCentsFor(own, method(false, false)), 1900, 'no DTG: the DTF price');
+});
+
+// ---------------------------------------------------------------------------
+// The marks in the table and in a patch
+
+test('a table without marks has none, and a good one keeps its marks sorted and without duplicates', () => {
+  const none = checkPodPriceTable({ extras: EXTRAS, garments: {} });
+  assert.ok(none.ok);
+  assert.equal('dtfInstead' in none.table, false, 'absent, so a table saved before the marks reads the same');
+  for (const empty of [[], null, undefined]) {
+    const checked = checkPodPriceTable({ extras: EXTRAS, garments: {}, dtfInstead: empty });
+    assert.ok(checked.ok);
+    assert.equal('dtfInstead' in checked.table, false, JSON.stringify(empty));
+  }
+  const marked = checkPodPriceTable({ extras: EXTRAS, garments: { STTU169: { cents: 1700 } }, dtfInstead: ['STSU177', 'STAU771', 'STSU177'] });
+  assert.ok(marked.ok);
+  assert.deepEqual(marked.table.dtfInstead, ['STAU771', 'STSU177']);
+  assert.deepEqual(marked.table.garments, { STTU169: { cents: 1700 } }, 'a mark is not a price: the garment has none');
+});
+
+test('a mark list that is not a list of garment codes is refused in words, by name', () => {
+  for (const dtfInstead of ['STSU177', { STSU177: true }, 7, true]) {
+    const checked = checkPodPriceTable({ extras: EXTRAS, garments: {}, dtfInstead });
+    assert.equal(checked.ok, false, JSON.stringify(dtfInstead));
+    if (!checked.ok) assert.deepEqual([checked.error, checked.field], ['The garments printed with DTF are missing.', 'dtfInstead']);
+  }
+  for (const code of ['__proto__', 'a b', '', 7, null, '../x']) {
+    const checked = checkPodPriceTable({ extras: EXTRAS, garments: {}, dtfInstead: ['STSU177', code] });
+    assert.equal(checked.ok, false, JSON.stringify(code));
+    if (!checked.ok) assert.equal(checked.field, 'dtfInstead');
+  }
+  const tooMany = Array.from({ length: POD_TABLE_LIMITS.maxGarments + 1 }, (_, i) => `G${i}`);
+  assert.equal(checkPodPriceTable({ extras: EXTRAS, garments: {}, dtfInstead: tooMany }).ok, false);
+});
+
+test('a patch marks and unmarks garments, and a mark alone is something to save', () => {
+  const checked = checkPodPricePatch({ dtfInstead: { STSU177: true, STTU169: false } });
+  assert.ok(checked.ok);
+  assert.deepEqual(checked.patch, { dtfInstead: { STSU177: true, STTU169: false } });
+  const withPrices = checkPodPricePatch({ garments: { STTU169: { cents: 1700 } }, dtfInstead: { STSU177: true }, extras: { sleevesCents: 250 } });
+  assert.ok(withPrices.ok);
+  assert.deepEqual(withPrices.patch, { extras: { sleevesCents: 250 }, garments: { STTU169: { cents: 1700 } }, dtfInstead: { STSU177: true } });
+  const empty = checkPodPricePatch({ dtfInstead: {} });
+  assert.equal(empty.ok, false);
+  if (!empty.ok) assert.equal(empty.error, 'There is nothing to save.');
+});
+
+test('a patch with a mark that is not on or off, or not a garment, is refused by name', () => {
+  const notYesNo = checkPodPricePatch({ dtfInstead: { STSU177: 'yes' } });
+  assert.equal(notYesNo.ok, false);
+  if (!notYesNo.ok) assert.deepEqual([notYesNo.error, notYesNo.field], ['Say whether STSU177 prints DTF: on or off.', 'garments.STSU177.method']);
+  for (const value of [1, null, undefined, 'true']) assert.equal(checkPodPricePatch({ dtfInstead: { STSU177: value } }).ok, false, String(value));
+  assert.equal(checkPodPricePatch({ dtfInstead: 'STSU177' }).ok, false);
+  assert.equal(checkPodPricePatch({ dtfInstead: ['STSU177'] }).ok, false);
+  const proto = checkPodPricePatch(JSON.parse('{"dtfInstead":{"__proto__":true}}'));
+  assert.equal(proto.ok, false);
+  assert.equal(({} as Record<string, unknown>).true, undefined, 'and Object.prototype is untouched');
+});
+
+test('applying a patch turns marks on and off, keeps the rest, and leaves the old table alone', () => {
+  const table: PodPriceTable = { extras: EXTRAS, garments: { STTU169: { cents: 1700, dtfCents: 1900 } }, dtfInstead: ['STAU771'] };
+  const next = applyPodPricePatch(table, { dtfInstead: { STSU177: true, STAU771: false } });
+  assert.deepEqual(next.dtfInstead, ['STSU177']);
+  assert.deepEqual(next.garments, table.garments, 'a mark does not touch a price, nor its DTF price');
+  assert.deepEqual(table.dtfInstead, ['STAU771'], 'the table it was applied to is untouched');
+  // turning the last mark off leaves no list at all
+  const none = applyPodPricePatch(next, { dtfInstead: { STSU177: false } });
+  assert.equal('dtfInstead' in none, false);
+  assert.deepEqual(none, { extras: EXTRAS, garments: table.garments });
+  // a price patch keeps the marks
+  assert.deepEqual(applyPodPricePatch(table, { garments: { STTU169: { cents: 1800 } } }).dtfInstead, ['STAU771']);
+  // marking twice is one mark, and a mark off a garment that has none is nothing
+  assert.deepEqual(applyPodPricePatch(next, { dtfInstead: { STSU177: true, STBU070: false } }).dtfInstead, ['STSU177']);
 });

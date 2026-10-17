@@ -8,6 +8,11 @@
 // charged ONCE whether one sleeve or both are printed. For example a T-shirt at
 // EUR 17: +1 for front and back, +2 for sleeves.
 //
+// Which digital method a garment prints with is also settled here (owner decision, 17 Oct 2026): DTG by
+// default, DTF only on garments where DTG isn't ideal, that is the garments whose catalogue family has no DTG,
+// plus any garment the owner marks "Print with DTF" in the table. DTF costs the same as DTG unless the owner
+// fills in a DTF price for the garment (kept for the future); artists never choose between them.
+//
 // Pure functions only, no server imports: the admin editor, the preview
 // examples and the podPrice() service all read this one file, so they cannot
 // disagree. lib/pricing/pod.ts holds the contract PL-A calls and re-exports the
@@ -73,7 +78,9 @@ export interface PodExtras {
 export interface PodGarmentPrice {
   /** the base price: includes one print area up to A2, front or back */
   cents: number;
-  /** DTF price when it differs from the base; absent means DTF uses `cents` */
+  /** DTF price when the owner wants one that differs from the base; absent means DTF uses `cents`, which is how every
+   * garment starts. It is the price of the garments that print DTF (no DTG on the garment, or marked), and it is kept
+   * on the others so it is ready if one is marked later. */
   dtfCents?: number;
 }
 
@@ -81,13 +88,19 @@ export interface PodPriceTable {
   extras: PodExtras;
   /** by blank code; a garment with no entry is still on its placeholder price */
   garments: Record<string, PodGarmentPrice>;
+  /** the blank codes the owner marked "Print with DTF (DTG isn't ideal)": those garments print DTF instead of DTG. Sorted, no
+   * duplicates; absent while nothing is marked, so a table saved before the marks existed reads the same. A garment with
+   * no DTG prints DTF whether or not it is in here. */
+  dtfInstead?: string[];
 }
 
-/** A change to the table: the extras to change, and the garments to set (a whole entry, replacing the old one) or to
- * take back to the placeholder (null). Saving a patch leaves everything it doesn't name as it was. */
+/** A change to the table: the extras to change, the garments to set (a whole entry, replacing the old one) or to take back to
+ * the placeholder (null), and the garments to mark (true) or unmark (false) as printed with DTF instead of DTG. Saving a
+ * patch leaves everything it doesn't name as it was. */
 export interface PodPricePatch {
   extras?: Partial<PodExtras>;
   garments?: Record<string, PodGarmentPrice | null>;
+  dtfInstead?: Record<string, boolean>;
 }
 
 /** One garment as the admin table lists it. */
@@ -104,6 +117,12 @@ export interface PodGarmentRow {
   dtfCents: number | null;
   /** today's one-print DTG base cost (DTF for a garment that can't take DTG): the price until one is saved. Null when the garment has no cost at all. */
   placeholderCents: number | null;
+  /** the garment's catalogue family offers DTG: without it the garment always prints DTF and its mark is locked on */
+  offersDtg: boolean;
+  /** the garment offers DTF (every garment in the catalogue does) */
+  offersDtf: boolean;
+  /** the owner's saved mark "Print with DTF (DTG isn't ideal)" */
+  dtfInstead: boolean;
 }
 
 export const POD_TABLE_LIMITS = {
@@ -132,10 +151,76 @@ export function garmentPriceOf(table: PodPriceTable, blankCode: string): PodGarm
   return Object.hasOwn(table.garments, blankCode) ? table.garments[blankCode] : undefined;
 }
 
-/** The base price of a garment for a print method. DTF uses the DTF price when one is saved, else the base price; every
- * other method (DTG) uses the base price. */
+/** The base price of a garment for a print method. DTF uses the DTF price when one is saved, else the base price (the same
+ * as DTG); every other method (DTG) uses the base price. */
 export function baseCentsFor(price: PodGarmentPrice, printServiceCode: string): number {
   return printServiceCode === 'dtf' && price.dtfCents !== undefined ? price.dtfCents : price.cents;
+}
+
+// ---------------------------------------------------------------------------
+// Which digital method a garment prints with (owner, 17 Oct 2026)
+//
+// The garment decides, never the artist: DTG by default, and DTF only where DTG isn't ideal. That is a garment whose
+// catalogue family has no DTG (jackets, bags, hats, trousers, woven shirts...) and any garment the owner marks "Print with
+// DTF". It holds for shop products and for the digital lines of a run; screen print is a run's other choice.
+
+/** The two digital methods a shop product, and the digital line of a run, can print with. */
+export type DigitalMethod = 'dtg' | 'dtf';
+
+/** What settles a garment's method: which of the two its catalogue family offers, and whether the owner marked it. */
+export interface GarmentMethodFacts {
+  offersDtg: boolean;
+  offersDtf: boolean;
+  markedDtf: boolean;
+}
+
+export interface GarmentMethod {
+  code: DigitalMethod;
+  /** why a garment prints DTF: 'no_dtg' (its family can't take DTG) or 'marked' (the owner's call); null for DTG, the default */
+  dtfBecause: 'no_dtg' | 'marked' | null;
+}
+
+/** The method a garment prints with: DTG, unless it has no DTG or the owner marked it, then DTF. A garment that offers only DTG
+ * prints DTG whatever the mark says (it can't print DTF); one that offers neither has no digital method (null). */
+export function garmentMethod(facts: GarmentMethodFacts): GarmentMethod | null {
+  if (facts.offersDtg && facts.offersDtf) return facts.markedDtf ? { code: 'dtf', dtfBecause: 'marked' } : { code: 'dtg', dtfBecause: null };
+  if (facts.offersDtf) return { code: 'dtf', dtfBecause: 'no_dtg' };
+  if (facts.offersDtg) return { code: 'dtg', dtfBecause: null };
+  return null;
+}
+
+/** The mark is the owner's to change only on a garment that offers both methods. Without DTG the garment always prints DTF and
+ * the toggle stays on, locked. */
+export function methodLocked(facts: Pick<GarmentMethodFacts, 'offersDtg' | 'offersDtf'>): boolean {
+  return !(facts.offersDtg && facts.offersDtf);
+}
+
+/** True when the owner marked the garment "Print with DTF (DTG isn't ideal)". */
+export function isMarkedDtf(table: PodPriceTable, blankCode: string): boolean {
+  return table.dtfInstead?.includes(blankCode) ?? false;
+}
+
+/** The two print services a shop product prints with. */
+export function isDigitalService(code: string): boolean {
+  return code === 'dtg' || code === 'dtf';
+}
+
+/** What a caller can say to ask for the garment's digital method: 'digital' (a run line's word for it), or 'dtg' / 'dtf', which
+ * still work but are corrected when the garment prints the other. */
+export function isDigitalAsk(code: string): boolean {
+  return code === 'digital' || isDigitalService(code);
+}
+
+/** The label of the owner's mark in the Shop products tab. */
+export const DTF_MARK_LABEL = "Print with DTF (DTG isn't ideal)";
+
+/** The rule, in the one sentence the admin shows. */
+export const DTF_RULE = "A shop product prints DTG, or DTF on a garment where DTG isn't ideal: one with no DTG, or one you mark in the table below.";
+
+/** The short note that goes with a product or a run line whose method was corrected, or that moved with its garment. Artists
+ * hear DTG or DTF only here: the garment decided, so it matters only when it is DTF. */
+export function printedNote(method: DigitalMethod): string {
+  return method === 'dtf' ? "Printed DTF on this garment, since DTG isn't ideal for it." : 'Printed DTG on this garment.';
 }
 
 // ---------------------------------------------------------------------------
@@ -178,6 +263,20 @@ function readGarment(raw: unknown, code: string): Read<PodGarmentPrice> {
   return { ok: true, value: { cents, dtfCents: dtf } };
 }
 
+/** The garments marked "Print with DTF": a list of blank codes, sorted and without duplicates. Missing (a table saved before the
+ * marks existed) or null is none. */
+function readMarkList(raw: unknown): Read<string[]> {
+  if (raw === undefined || raw === null) return { ok: true, value: [] };
+  if (!Array.isArray(raw)) return bad('The garments printed with DTF are missing.', 'dtfInstead');
+  if (raw.length > POD_TABLE_LIMITS.maxGarments) return bad(`Use at most ${POD_TABLE_LIMITS.maxGarments} garments.`, 'dtfInstead');
+  const codes = new Set<string>();
+  for (const code of raw) {
+    if (typeof code !== 'string' || !isGarmentCode(code)) return bad(`"${String(code).slice(0, 40)}" is not a garment code.`, 'dtfInstead');
+    codes.add(code);
+  }
+  return { ok: true, value: [...codes].sort() };
+}
+
 /** A table from untrusted input (a settings row): every number checked, the shape fixed, wrong values named in plain words.
  * Prices are whole cents, a base price is at least one cent, and an extra may be zero. */
 export function checkPodPriceTable(input: unknown): PodTableCheck {
@@ -202,11 +301,17 @@ export function checkPodPriceTable(input: unknown): PodTableCheck {
     garments[code] = read.value;
   }
 
-  return { ok: true, table: { extras: { secondMainPrintCents: secondMain.value, sleevesCents: sleeves.value }, garments } };
+  const marked = readMarkList(input.dtfInstead);
+  if (!marked.ok) return marked;
+
+  return {
+    ok: true,
+    table: { extras: { secondMainPrintCents: secondMain.value, sleevesCents: sleeves.value }, garments, ...(marked.value.length > 0 ? { dtfInstead: marked.value } : {}) },
+  };
 }
 
-/** A patch from untrusted input (a form): the extras it names and the garments it names, each checked like a table's. A garment
- * of null goes back to its placeholder. An empty patch is refused: there is nothing to save. */
+/** A patch from untrusted input (a form): the extras it names, the garments it names and the garments it marks, each checked like a
+ * table's. A garment of null goes back to its placeholder. An empty patch is refused: there is nothing to save. */
 export function checkPodPricePatch(input: unknown): PodPatchCheck {
   if (!isRecord(input)) return bad('There is nothing to save.');
   const patch: PodPricePatch = {};
@@ -246,18 +351,39 @@ export function checkPodPricePatch(input: unknown): PodPatchCheck {
     if (codes.length > 0) patch.garments = garments;
   }
 
-  if (!patch.extras && !patch.garments) return bad('There is nothing to save.');
+  if (input.dtfInstead !== undefined) {
+    if (!isRecord(input.dtfInstead)) return bad('The garments printed with DTF are missing.', 'garments');
+    const codes = Object.keys(input.dtfInstead);
+    if (codes.length > POD_TABLE_LIMITS.maxGarments) return bad(`Use at most ${POD_TABLE_LIMITS.maxGarments} garments.`, 'garments');
+    const marks: Record<string, boolean> = {};
+    for (const code of codes) {
+      if (!isGarmentCode(code)) return bad(`"${code.slice(0, 40)}" is not a garment code.`, 'garments');
+      const on = input.dtfInstead[code];
+      if (typeof on !== 'boolean') return bad(`Say whether ${code} prints DTF: on or off.`, `garments.${code}.method`);
+      marks[code] = on;
+    }
+    if (codes.length > 0) patch.dtfInstead = marks;
+  }
+
+  if (!patch.extras && !patch.garments && !patch.dtfInstead) return bad('There is nothing to save.');
   return { ok: true, patch };
 }
 
-/** The table with a patch applied: its garments set or cleared, its extras changed. The old table is not touched. */
+/** The table with a patch applied: its garments set or cleared, its extras changed, its marks switched on or off. The old table is
+ * not touched. */
 export function applyPodPricePatch(table: PodPriceTable, patch: PodPricePatch): PodPriceTable {
   const garments: Record<string, PodGarmentPrice> = { ...table.garments };
   for (const [code, price] of Object.entries(patch.garments ?? {})) {
     if (price === null) delete garments[code];
     else garments[code] = price;
   }
-  return { extras: { ...table.extras, ...patch.extras }, garments };
+  const marked = new Set(table.dtfInstead ?? []);
+  for (const [code, on] of Object.entries(patch.dtfInstead ?? {})) {
+    if (on) marked.add(code);
+    else marked.delete(code);
+  }
+  const dtfInstead = [...marked].sort();
+  return { extras: { ...table.extras, ...patch.extras }, garments, ...(dtfInstead.length > 0 ? { dtfInstead } : {}) };
 }
 
 // ---------------------------------------------------------------------------

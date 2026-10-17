@@ -1,6 +1,8 @@
 import { and, asc, count, eq, ilike, inArray, or } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
-import { loadShopFromPrices } from '@/lib/services/pricing-admin';
+import { loadShopFromPrices, resolveShopMethod } from '@/lib/services/pricing-admin';
+import { isDigitalService, type GarmentMethod } from '@/lib/pricing/pod-table';
+import { isScreenServiceCode } from '@/lib/pricing/screen-print';
 
 export interface ListBlanksInput {
   type?: string;
@@ -107,14 +109,30 @@ export interface BlankDetail {
   videoUrl: string | null;
   colours: { code: string; name: string; hex: string }[];
   sizes: string[];
-  /** print service names, for people (the blank card) */
+  /** the methods in words for people (the blank card): 'Screen print', 'Digital print' ('Digital print (DTF)' on a garment that prints DTF,
+   * which is where it matters), 'Embroidery'. DTG and DTF are one digital print: the garment decides, not the artist. */
   printServices: string[];
   /** the same services with the codes the tools take; shop products use only
    * those available in the shop (DTG, DTF), screen print is for runs */
   printServiceOptions: { code: string; name: string; availableInShop: boolean }[];
+  /** the digital method a shop product of it prints with, and a digital run line: DTG, or DTF where DTG isn't ideal (no DTG on the
+   * garment, or the owner marked it). Null when it offers neither. */
+  digitalMethod: GarmentMethod | null;
   sizeGuide: { unit: string | null; columns: string[]; rows: unknown[] } | null;
   /** what a shop product of it costs with one print area (loadShopFromPrices) */
   fromPriceCents: number | null;
+}
+
+/** What a garment can be printed with, for people: screen print, digital print (DTG and DTF are one thing to an artist, so DTF is
+ * named only on a garment that prints it), and whatever else it offers (embroidery). */
+function printWords(services: { code: string; name: string }[], digital: GarmentMethod | null): string[] {
+  const words: string[] = [];
+  if (services.some((p) => isScreenServiceCode(p.code))) words.push('Screen print');
+  if (digital) words.push(digital.code === 'dtf' ? 'Digital print (DTF)' : 'Digital print');
+  for (const p of services) {
+    if (!isScreenServiceCode(p.code) && !isDigitalService(p.code)) words.push(p.name);
+  }
+  return words;
 }
 
 export async function getBlank(code: string): Promise<BlankDetail | null> {
@@ -122,7 +140,7 @@ export async function getBlank(code: string): Promise<BlankDetail | null> {
   const blank = blankRows[0];
   if (!blank) return null;
 
-  const [colourRows, sizeRows, sizeGuideRows, printServiceRows, fromPrices] = await Promise.all([
+  const [colourRows, sizeRows, sizeGuideRows, printServiceRows, fromPrices, digitalMethod] = await Promise.all([
     db
       .select({ code: schema.colours.code, name: schema.colours.name, hex: schema.colours.hex })
       .from(schema.blankColours)
@@ -141,6 +159,7 @@ export async function getBlank(code: string): Promise<BlankDetail | null> {
       .innerJoin(schema.printServices, eq(schema.blankPrintServices.printServiceCode, schema.printServices.code))
       .where(eq(schema.blankPrintServices.blankCode, code)),
     loadShopFromPrices([blank.code]),
+    resolveShopMethod(blank.code),
   ]);
 
   const guide = sizeGuideRows[0];
@@ -159,8 +178,9 @@ export async function getBlank(code: string): Promise<BlankDetail | null> {
     videoUrl: blank.videoUrl,
     colours: colourRows.map((c) => ({ code: c.code, name: c.name, hex: c.hex ?? '#000000' })),
     sizes: sizeRows.map((s) => s.size),
-    printServices: printServiceRows.map((p) => p.name),
+    printServices: printWords(printServiceRows, digitalMethod),
     printServiceOptions: printServiceRows.map((p) => ({ code: p.code, name: p.name, availableInShop: p.availableInShop })),
+    digitalMethod,
     sizeGuide: guide
       ? { unit: guide.unit, columns: (guide.columns as string[]) ?? [], rows: (guide.rows as unknown[]) ?? [] }
       : null,

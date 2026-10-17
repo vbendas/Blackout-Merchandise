@@ -8,14 +8,19 @@ import {
   applyTypePrice,
   centsFromText,
   defaultPreviewCode,
+  dtfPlaceholder,
   editBase,
   editDtf,
+  editMethod,
   filterRows,
   formFromSaved,
   garmentKey,
+  methodChanged,
   patchFromForm,
   placeholderCount,
   previewBase,
+  previewMethod,
+  printsDtf,
   rowState,
   savedFromRows,
   typeOptions,
@@ -27,7 +32,7 @@ import {
 const EXTRAS = { secondMainPrintCents: 100, sleevesCents: 200 };
 
 function garment(code: string, name: string, type: string, patch: Partial<PodGarmentRow> = {}): PodGarmentRow {
-  return { code, name, supplierName: null, type, baseCents: null, dtfCents: null, placeholderCents: 1625, ...patch };
+  return { code, name, supplierName: null, type, baseCents: null, dtfCents: null, placeholderCents: 1625, offersDtg: true, offersDtf: true, dtfInstead: false, ...patch };
 }
 
 const ROWS: PodGarmentRow[] = [
@@ -393,4 +398,116 @@ test('the DTF example uses the typed DTF price, then the saved one, then the bas
   assert.equal(previewBase(editDtf(values, 'STSU177', ''), rows, saved, 'STSU177', 'dtf')?.baseCents, 3400, 'cleared: the base price');
   // a garment with a typed base and no DTF price
   assert.equal(previewBase(editBase(fresh().values, 'STTU169', '17'), ROWS, fresh().saved, 'STTU169', 'dtf')?.baseCents, 1700);
+});
+
+// ---------------------------------------------------------------------------
+// DTF: the same price as DTG until a DTF price is filled in, and the owner's mark "Print with DTF (DTG isn't ideal)"
+
+/** The garments of ROWS plus a jacket with no DTG, which always prints DTF. */
+const WITH_JACKET: PodGarmentRow[] = ROWS.map((r) => (r.code === 'STJM158' ? { ...r, offersDtg: false } : r));
+
+test('the DTF price box says what empty means: the same price as DTG, with that price in it', () => {
+  const rows = ROWS.map((r) => (r.code === 'STTU169' ? { ...r, baseCents: 1700 } : r));
+  const { saved, values } = fresh(rows);
+  assert.equal(dtfPlaceholder(values, rows, saved, 'STTU169'), 'Same as DTG · €17.00', 'a saved price');
+  assert.equal(dtfPlaceholder(editBase(values, 'STTU169', '18.5'), rows, saved, 'STTU169'), 'Same as DTG · €18.50', 'follows what is typed');
+  assert.equal(dtfPlaceholder(editBase(values, 'STTU169', 'abc'), rows, saved, 'STTU169'), 'Same as DTG · €17.00', 'and falls back to the saved one while it can not be read');
+  assert.equal(dtfPlaceholder(values, rows, saved, 'STTU170'), 'Same as DTG · €16.25', 'a garment nobody set: its placeholder');
+  assert.equal(dtfPlaceholder(values, rows, saved, 'STNP000'), 'Same as DTG', 'a garment with no price at all');
+  assert.equal(dtfPlaceholder(values, rows, saved, 'NOPE'), 'Same as DTG');
+});
+
+test('a filled-in DTF price is kept, shown and sent: it is the price a garment that prints DTF costs', () => {
+  const rows = ROWS.map((r) => (r.code === 'STSU177' ? { ...r, baseCents: 3400, dtfCents: 3700 } : r));
+  const { saved, values } = fresh(rows);
+  assert.deepEqual(values.rows.STSU177, { base: '34.00', dtf: '37.00', set: true });
+  assert.deepEqual(ok(patchFromForm(editDtf(values, 'STSU177', '38'), rows, saved)).patch, { garments: { STSU177: { cents: 3400, dtfCents: 3800 } } });
+  // a DTG garment shows its base price in the examples; marked, it shows the DTF price
+  assert.equal(previewBase(values, rows, saved, 'STSU177', previewMethod(rows[3], values))?.baseCents, 3400);
+  const marked = editMethod(values, rows[3], true);
+  assert.equal(previewBase(marked, rows, saved, 'STSU177', previewMethod(rows[3], marked))?.baseCents, 3700);
+});
+
+test('the marks start as they were saved, and a garment nobody marked prints DTG', () => {
+  const rows = WITH_JACKET.map((r) => (r.code === 'STSU177' ? { ...r, dtfInstead: true } : r));
+  const { saved, values } = fresh(rows);
+  assert.deepEqual(saved.dtfInstead, ['STSU177']);
+  assert.deepEqual(values.dtfInstead, { STTU169: false, STTU170: false, STTU171: false, STSU177: true, STJM158: false, STNP000: false });
+  const byCode = (code: string) => rows.find((r) => r.code === code)!;
+  assert.equal(printsDtf(byCode('STTU169'), values), false, 'DTG by default');
+  assert.equal(printsDtf(byCode('STSU177'), values), true, 'marked');
+  assert.equal(printsDtf(byCode('STJM158'), values), true, 'no DTG: always DTF, whatever the box says');
+  // a garment the boxes have not met (added while the page was open) prints DTG
+  assert.equal(printsDtf({ code: 'STTU999', offersDtg: true, offersDtf: true }, values), false);
+});
+
+test('marking a garment is a change to save, it needs no price, and it can be taken off again', () => {
+  const { rows, saved, values } = fresh(WITH_JACKET);
+  const hoodie = rows.find((r) => r.code === 'STSU177')!;
+  const marked = editMethod(values, hoodie, true);
+  assert.equal(marked.dtfInstead.STSU177, true);
+  assert.equal(marked.rows.STSU177.set, false, 'its price is still a placeholder: marking it does not pin it');
+  assert.equal(methodChanged(hoodie, marked, saved), true);
+  const result = ok(patchFromForm(marked, rows, saved));
+  assert.deepEqual(result.patch, { dtfInstead: { STSU177: true } }, 'only the mark is sent, no price');
+  assert.equal(result.changed, 1);
+  // ticked and unticked again: nothing to save
+  const back = editMethod(marked, hoodie, false);
+  assert.equal(methodChanged(hoodie, back, saved), false);
+  assert.deepEqual(ok(patchFromForm(back, rows, saved)).patch, {});
+});
+
+test('a saved mark is sent as off when it is taken away, and an unchanged mark is not sent again', () => {
+  const rows = WITH_JACKET.map((r) => (r.code === 'STSU177' ? { ...r, baseCents: 3400, dtfInstead: true } : r));
+  const { saved, values } = fresh(rows);
+  assert.deepEqual(ok(patchFromForm(values, rows, saved)).patch, {}, 'nothing changed');
+  const hoodie = rows.find((r) => r.code === 'STSU177')!;
+  assert.deepEqual(ok(patchFromForm(editMethod(values, hoodie, false), rows, saved)).patch, { dtfInstead: { STSU177: false } });
+  // a price and a mark together, and the count of changes adds them up
+  const both = ok(patchFromForm(editBase(editMethod(values, hoodie, false), 'STSU177', '35'), rows, saved));
+  assert.deepEqual(both.patch, { garments: { STSU177: { cents: 3500 } }, dtfInstead: { STSU177: false } });
+  assert.equal(both.changed, 2);
+});
+
+test('with no DTG the toggle is locked on: it can not be changed, and it is never sent', () => {
+  const { rows, saved, values } = fresh(WITH_JACKET);
+  const jacket = rows.find((r) => r.code === 'STJM158')!;
+  assert.equal(printsDtf(jacket, values), true);
+  assert.equal(editMethod(values, jacket, false), values, 'turning it off does nothing');
+  assert.equal(editMethod(values, jacket, true), values, 'and neither does turning it on');
+  assert.equal(methodChanged(jacket, { ...values, dtfInstead: { ...values.dtfInstead, STJM158: true } }, saved), false);
+  // even a form that was forced to say so sends nothing for it
+  const forced = { ...values, dtfInstead: { ...values.dtfInstead, STJM158: true } };
+  assert.deepEqual(ok(patchFromForm(forced, rows, saved)).patch, {});
+  assert.equal(previewMethod(jacket, values), 'dtf');
+  // a garment that offers DTG only is locked too (it can't print DTF)
+  const dtgOnly = { code: 'STX', offersDtg: true, offersDtf: false };
+  assert.equal(editMethod(values, dtgOnly, true), values);
+  assert.equal(printsDtf(dtgOnly, { ...values, dtfInstead: { STX: true } }), false);
+});
+
+test('the DTF filter lists the garments that print DTF as saved: those with no DTG and those marked', () => {
+  const rows = WITH_JACKET.map((r) => (r.code === 'STSU177' ? { ...r, dtfInstead: true } : r));
+  const { saved, values } = fresh(rows);
+  const show = (s: SavedShopPrices) => filterRows(rows, s, { query: '', type: '', show: 'dtf' }).map((r) => r.code);
+  assert.deepEqual(show(saved), ['STSU177', 'STJM158']);
+  // a mark typed but not saved does not move a garment in or out of the list
+  const hoodie = rows.find((r) => r.code === 'STSU177')!;
+  assert.deepEqual(show(savedFromRows(rows, EXTRAS)), ['STSU177', 'STJM158']);
+  assert.equal(editMethod(values, hoodie, false).dtfInstead.STSU177, false);
+  assert.deepEqual(show(saved), ['STSU177', 'STJM158']);
+});
+
+test('the example method is the garment\'s, as the boxes have it', () => {
+  const { rows, values } = fresh(WITH_JACKET);
+  const [tee, , , hoodie, jacket] = rows;
+  assert.equal(previewMethod(tee, values), 'dtg');
+  assert.equal(previewMethod(jacket, values), 'dtf');
+  assert.equal(previewMethod(hoodie, values), 'dtg');
+  assert.equal(previewMethod(hoodie, editMethod(values, hoodie, true)), 'dtf');
+});
+
+test('the box ids include the mark, in the names the server\'s checks use', () => {
+  assert.equal(garmentKey('STSU177', 'method'), 'garments.STSU177.method');
+  assert.equal(garmentKey('STSU177', 'dtf'), 'garments.STSU177.dtf');
 });

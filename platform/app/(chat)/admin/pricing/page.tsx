@@ -19,7 +19,9 @@ export const metadata = { title: 'Pricing' };
  * - Runs (screen print): a price table by screen count and quantity, the fixed surcharge for screens above 8, and the settings
  *   around them. Quotes read the table as saved.
  * - Shop products (DTG/DTF): a base price for each garment, which covers one print area up to A2 on the front or the back, and the
- *   extras for more print areas. A shop product is priced from it when it is created or its print areas change.
+ *   extras for more print areas. A shop product is priced from it when it is created or its print areas change. The same table says
+ *   which garments print DTF instead of DTG (no DTG on the garment, or marked here); DTF costs the same as DTG unless a DTF price
+ *   is filled in.
  * Catalogue and pricing "View" reads them; "Manage" changes them. The tab lives in the address (?tab=shop). */
 export default async function PricingPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const params = await searchParams;
@@ -40,8 +42,8 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
           {tabs}
           <div className="pp pp-stack prc">
             <p className="pp-lede">
-              What a shop product costs the artist: the garment with its print, printed DTG or DTF to order. Every garment has its own base price, which covers one print area up to A2 on the front or the back. A
-              second main print and sleeve prints add the extras below. The screen-print surcharge never applies to shop products.
+              What a shop product costs the artist: the garment with its print, printed to order. Every garment has its own base price, which covers one print area up to A2 on the front or the back. A second main
+              print and sleeve prints add the extras below. The screen-print surcharge never applies to shop products.
             </p>
             <ShopPriceEditor garments={garments} extras={state.table.extras} updatedLabel={state.updatedAt ? formatStamp(state.updatedAt) : null} canManage={canManage} />
           </div>

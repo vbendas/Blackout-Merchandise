@@ -25,7 +25,8 @@ export async function saveScreenPriceTableAction(table: unknown): Promise<SaveSc
  * into the table as it stood, and a garment the change doesn't name keeps its price. */
 export type SaveShopPricesResult = { ok: true; updatedAt: string; table: PodPriceTable } | { ok: false; error: string; field?: string };
 
-/** Saves a change to the shop price table (Shop products tab): the garments whose base price or DTF price changed, and the extras. */
+/** Saves a change to the shop price table (Shop products tab): the garments whose base price or DTF price changed, the garments marked
+ * (or unmarked) "Print with DTF", and the extras. */
 export async function saveShopPricesAction(patch: unknown): Promise<SaveShopPricesResult> {
   const { actor } = await requireStaffAction('catalogue', 'manage');
   const result = await setPodPrices(actor, patch);

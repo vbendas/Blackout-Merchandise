@@ -17,8 +17,8 @@ import {
 } from '@/lib/pricing/screen-print';
 import type { PrintJobInput, PrintPlacement, PrintTechnique } from '@/lib/print/types';
 import { podPrice, type PodPlacementInput, type PodPriceBreakdown } from '@/lib/pricing/pod';
-import { runExtraLines } from '@/lib/pricing/pod-table';
-import { getPodPriceTableState, getScreenPriceTable } from '@/lib/services/pricing-admin';
+import { isDigitalService, runExtraLines, type GarmentMethod } from '@/lib/pricing/pod-table';
+import { getPodPriceTableState, getScreenPriceTable, resolveShopMethod } from '@/lib/services/pricing-admin';
 
 // Pricing over the seeded base_costs table: garment + print + margin per
 // blank x print service x quantity break. Artists never see the components —
@@ -147,9 +147,41 @@ export async function printServicesFor(blankCode: string): Promise<PrintServiceO
     .where(eq(schema.blankPrintServices.blankCode, blankCode));
 }
 
-/** 'dtg (Direct-to-garment print), dtf (Direct-to-film print)': codes the model can pass back, with the names people read. */
+/** 'screen_1c (Screen print (1 colour)), embroidery (Embroidery)': codes the model can pass back, with the names people read. */
 export function describeServices(services: PrintServiceOption[]): string {
   return services.map((s) => `${s.code} (${s.name})`).join(', ');
+}
+
+/** The digital print service a garment prints with: DTG, or DTF where DTG isn't ideal (a garment with no DTG, or one the owner
+ * marked in the shop price table). It is picked from the services the blank offers (`offered` when the caller has them already),
+ * so a service the blank doesn't have is never returned. A shop product and the digital line of a run both take it; the artist
+ * never chooses. Null when the blank offers neither DTG nor DTF. */
+export async function digitalServiceFor(blankCode: string, offered?: PrintServiceOption[]): Promise<{ service: PrintServiceOption; method: GarmentMethod } | null> {
+  const [method, services] = await Promise.all([resolveShopMethod(blankCode), offered ?? printServicesFor(blankCode)]);
+  const service = method ? services.find((s) => s.code === method.code) : undefined;
+  return method && service ? { service, method } : null;
+}
+
+/** What a shop product may be given besides the garment's own digital method: the shop services that aren't DTG or DTF
+ * (embroidery, which print prep leaves as it was), in the words describeServices uses. Empty when there are none. */
+export function describeOtherShopServices(services: PrintServiceOption[]): string {
+  return describeServices(services.filter((s) => s.availableInShop && !isDigitalService(s.code)));
+}
+
+/** The codes a RUN line takes on a blank: screen print, 'digital' (DTG, or DTF where DTG isn't ideal: the garment decides, named
+ * here by its own service), and whatever else the blank offers (embroidery). DTG and DTF are one choice for a run, never two. */
+export function describeRunMethods(services: PrintServiceOption[], digital: PrintServiceOption | null): string {
+  const entries: string[] = [];
+  let digitalAdded = false;
+  for (const service of services) {
+    if (isDigitalService(service.code)) {
+      if (digital && !digitalAdded) entries.push(`digital (${digital.name})`);
+      digitalAdded = true;
+      continue;
+    }
+    entries.push(`${service.code} (${service.name})`);
+  }
+  return entries.join(', ');
 }
 
 /**

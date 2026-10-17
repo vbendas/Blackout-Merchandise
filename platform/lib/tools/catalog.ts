@@ -3,6 +3,7 @@ import { CATALOGUE_CATEGORIES } from '@/lib/catalog/catalog-filters';
 import { z } from 'zod';
 import { defineTool } from '@/lib/tools/types';
 import { getBlank, listBlanks, type BlankListItem } from '@/lib/services/blanks';
+import { isDigitalService } from '@/lib/pricing/pod-table';
 import { BLANK_DISPLAY_NAMES, blankDisplayName } from '@/lib/catalog/display-names';
 import { blankFactsLine } from '@/lib/catalog/blank-facts';
 import type { Card } from '@/lib/ui-cards/schemas';
@@ -106,9 +107,9 @@ interface GetBlankData {
   fromPriceCents?: number | null;
   colours?: string[];
   sizes?: string[];
-  /** the codes create_product and create_bulk_quote take; `shop` marks the
-   * ones a shop product may use (DTG, DTF), the rest are for runs */
-  printServices?: { code: string; name: string; shop: boolean }[];
+  /** how the garment can be printed, with the codes a run line takes (create_bulk_quote); `shop` marks the ones a shop product may use.
+   * DTG and DTF are one entry, 'digital': `prints` says which one the garment uses (the garment decides, the artist never chooses). */
+  printServices?: { code: string; name: string; shop: boolean; prints?: 'DTG' | 'DTF' }[];
   /** set when a name fits more than one blank */
   matches?: { code: string; name: string }[];
 }
@@ -116,7 +117,7 @@ interface GetBlankData {
 export const getBlankTool = defineTool({
   name: 'get_blank',
   description:
-    "Get full specs for one blank garment (colours, sizes, size guide availability, print services with their codes, starting price) by its code (e.g. 'STTU169') or by its name (e.g. 'Heavy hoodie'). A shop product takes only a print service marked `shop` (DTG or DTF); screen print is for runs. Call this when the artist names a specific blank or picks one from a list_blanks result. Don't guess: call list_blanks first if you have neither a code nor a name. Talk about the blank by its `name`, never by the code or a supplier's model name.",
+    "Get full specs for one blank garment (colours, sizes, size guide availability, print services with their codes, starting price) by its code (e.g. 'STTU169') or by its name (e.g. 'Heavy hoodie'). A shop product takes only a print service marked `shop`: the digital print, which the garment prints DTG, or DTF where DTG isn't ideal (the entry's `prints` says which: never ask the artist to choose, and say DTF only when it is DTF), or embroidery where it is offered; screen print is for runs. Call this when the artist names a specific blank or picks one from a list_blanks result. Don't guess: call list_blanks first if you have neither a code nor a name. Talk about the blank by its `name`, never by the code or a supplier's model name.",
   input: z.object({ code: z.string().min(2).max(60).describe("Blank code, e.g. STTU169, or the blank's name, e.g. 'Heavy hoodie'.") }).strict(),
   scope: 'both',
   readOnly: true,
@@ -170,7 +171,10 @@ export const getBlankTool = defineTool({
         fromPriceCents: blank.fromPriceCents,
         colours: blank.colours.map((c) => c.code),
         sizes: blank.sizes,
-        printServices: blank.printServiceOptions.map((p) => ({ code: p.code, name: p.name, shop: p.availableInShop })),
+        printServices: [
+          ...blank.printServiceOptions.filter((p) => !isDigitalService(p.code)).map((p) => ({ code: p.code, name: p.name, shop: p.availableInShop })),
+          ...(blank.digitalMethod ? [{ code: 'digital', name: 'Digital print', shop: true, prints: blank.digitalMethod.code === 'dtf' ? ('DTF' as const) : ('DTG' as const) }] : []),
+        ],
       },
       ui: { cards: [card] },
     };

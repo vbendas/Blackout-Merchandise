@@ -46,6 +46,9 @@ import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
 // in lib/tools/print.ts, with that position's own design) or preparing the print
 // files. A DTG/DTF line that prints more than one position pays the shop's extras
 // for them (`printAreas`), which a notice explains too.
+//
+// A run line prints screen print or digital (owner, 17 Oct 2026): digital is the garment's call, DTG or DTF where DTG isn't ideal,
+// so the artist is never asked. A 'dtg' or 'dtf' that says otherwise is corrected, and the result carries a short note.
 
 // -- words ---------------------------------------------------------------
 
@@ -588,7 +591,7 @@ const bulkLineSchema = z
       .max(40)
       .optional()
       .describe(
-        "How this line prints: 'screen_1c', 'screen_2c' or 'screen_3c' (screen print; the number is only a first guess at the colours, the price follows the design's real screen count) or 'dtg' / 'dtf'. A run chooses its own method: it can screen print a product the shop sells as DTG. Required without productId; with one, leave it out to print the way the product does.",
+        "How this line prints: 'screen_1c', 'screen_2c' or 'screen_3c' (screen print; the number is only a first guess at the colours, the price follows the design's real screen count) or 'digital' (the garment decides between DTG and DTF; never ask the artist, and a 'dtg' or 'dtf' that disagrees is corrected with a note). A run chooses its own method: it can screen print a product the shop sells as digital. Required without productId; with one, leave it out to print the way the product does.",
       ),
     placement: bulkPlacementSchema.optional(),
     extraPlacements: z
@@ -634,12 +637,14 @@ interface RunData {
   printAreas?: PrintAreaFact[];
   /** the one-off cost of making the screens and any other setup, when there is one */
   setupCents?: number;
+  /** a 'dtg' or 'dtf' that said otherwise was corrected to what the garment prints with: say it in these words */
+  note?: string;
 }
 
 export const createBulkQuoteTool = defineTool({
   name: 'create_bulk_quote',
   description:
-    'Quote a run: a batch of printed pieces the artist orders for themselves (also called a bulk order), shipped to their own address and paid 100% up front, no Stripe split. Each line is either an existing shop product (productId) or new artwork on a blank (blankCode + printServiceCode + placement, optionally designId), plus a colour and a size -> quantity map. A run chooses its print method when it is quoted, screen print or DTG/DTF, so set printServiceCode on each line to the method that suits the quantity and the look (screen print for a bigger run of flat art, DTG/DTF for a small one or a detailed image), even for a product the shop sells as DTG. Pricing uses quantity breaks per line and flat-zone shipping scaled to the total unit count. Screen print is priced by the number of screens each print position\'s design really uses for that garment colour, the white underbase and the highlight white included (the number in screen_1c, screen_2c or screen_3c is only a first guess at the colours): 1 to 8 screens is the standard price, and each screen above 8 adds €1 per piece, up to 15, counted separately for each print position on its own design (a back of 10 and a front of 10 add €2 + €2 = €4 per piece; a position over 15 is refused). Artists hear the screens as colours. A DTG/DTF line that prints more than one position pays the shop\'s extras for them on top of its price: +€1 front and back, +€2 once for sleeve prints. A line prints more than one position with a product\'s own print areas, or with extraPlacements (a back, a sleeve). The screenPrint list in the result gives each screen-printed line\'s colours on every print position (positions) and what each adds to the price, and printAreas gives a DTG/DTF line\'s extras: tell the artist in a sentence, position by position. If a position has a surcharge, offer fewer screens on that position: call change_screen_count with that position\'s designId (fewer screens changes the look and the artist approves the new proof again; positions that print the same design change together), then quote again. If a position is an estimate, its design has no print files for that colour and position yet: say the price is an estimate and offer to prepare the print files first. Numbers the run ("Run 3" in the result) and shows its quote, and sets it as the conversation\'s active run, so later tools (submit_bulk_proof, approve_bulk_proof, pay_bulk_order, ...) can omit runNumber. Call it by its number when you talk to the artist; never say "bulk order" and never show an id.',
+    'Quote a run: a batch of printed pieces the artist orders for themselves (also called a bulk order), shipped to their own address and paid 100% up front, no Stripe split. Each line is either an existing shop product (productId) or new artwork on a blank (blankCode + printServiceCode + placement, optionally designId), plus a colour and a size -> quantity map. A run chooses its print method when it is quoted, screen print or digital, so set printServiceCode on each line to the method that suits the quantity and the look (screen print for a bigger run of flat art, "digital" for a small one or a detailed image), even for a product the shop sells as digital. Digital is the garment\'s call (DTG, or DTF where DTG isn\'t ideal): never ask the artist to pick between them, and say DTG or DTF only when the result\'s note says a "dtg" or "dtf" was corrected. Pricing uses quantity breaks per line and flat-zone shipping scaled to the total unit count. Screen print is priced by the number of screens each print position\'s design really uses for that garment colour, the white underbase and the highlight white included (the number in screen_1c, screen_2c or screen_3c is only a first guess at the colours): 1 to 8 screens is the standard price, and each screen above 8 adds €1 per piece, up to 15, counted separately for each print position on its own design (a back of 10 and a front of 10 add €2 + €2 = €4 per piece; a position over 15 is refused). Artists hear the screens as colours. A digital line that prints more than one position pays the shop\'s extras for them on top of its price: +€1 front and back, +€2 once for sleeve prints. A line prints more than one position with a product\'s own print areas, or with extraPlacements (a back, a sleeve). The screenPrint list in the result gives each screen-printed line\'s colours on every print position (positions) and what each adds to the price, and printAreas gives a DTG/DTF line\'s extras: tell the artist in a sentence, position by position. If a position has a surcharge, offer fewer screens on that position: call change_screen_count with that position\'s designId (fewer screens changes the look and the artist approves the new proof again; positions that print the same design change together), then quote again. If a position is an estimate, its design has no print files for that colour and position yet: say the price is an estimate and offer to prepare the print files first. Numbers the run ("Run 3" in the result) and shows its quote, and sets it as the conversation\'s active run, so later tools (submit_bulk_proof, approve_bulk_proof, pay_bulk_order, ...) can omit runNumber. Call it by its number when you talk to the artist; never say "bulk order" and never show an id.',
   input: z.object({ lines: z.array(bulkLineSchema).min(1), shipTo: bulkShipToSchema }).strict(),
   scope: 'artist',
   run: async (ctx, input): Promise<ToolResult<RunData>> => {
@@ -662,10 +667,11 @@ export const createBulkQuoteTool = defineTool({
 
     const detail = result.value;
     const run = await runRef(detail.id);
+    const note = result.notes && result.notes.length > 0 ? result.notes.join(' ') : undefined;
     return {
-      data: { ok: true, ...runFacts(detail, run), ...(detail.setupCents > 0 ? { setupCents: detail.setupCents } : {}), ...screenData(detail) },
+      data: { ok: true, ...runFacts(detail, run), ...(detail.setupCents > 0 ? { setupCents: detail.setupCents } : {}), ...(note ? { note } : {}), ...screenData(detail) },
       ui: {
-        cards: [bulkQuoteCard(detail, run), ...screenNotices(detail)],
+        cards: [bulkQuoteCard(detail, run), ...(note ? [infoNotice(`bulk_method_${detail.id}`, note)] : []), ...screenNotices(detail)],
         next: [
           { label: 'Send the proof', prompt: `Send the proof for ${run.label}`, primary: true },
           ...screenChips(detail, run),

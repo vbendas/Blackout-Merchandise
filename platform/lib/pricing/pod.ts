@@ -25,13 +25,15 @@ export type { PlacementKind, PodPlacementInput, PodPriceBreakdown, PodPriceLine 
  * - the garment's base price (one print area up to A2, front or back);
  * - "Front and back" when the product has a front area and a back area;
  * - "Sleeve prints", once, when it has any sleeve area.
- * `printServiceCode` is dtg (the default) or dtf; DTF uses the garment's DTF price when the owner set one, else its base price.
- * Print size does not change the price. `placeholder` is true while the garment's price is still unset.
+ * `printServiceCode` is the method to price: left out, it is the garment's own (DTG, or DTF where DTG isn't ideal: a garment with no
+ * DTG, or one the owner marked), which is what a shop product of it prints with. dtg and dtf price that method as asked (a garment
+ * is priced DTF with its DTF price when the owner set one, else with its base price: the same as DTG). Print size does not change
+ * the price. `placeholder` is true while the garment's price is still unset.
  *
  * Null when the blank isn't in the catalogue or has no price at all. A print method that isn't DTG or DTF (embroidery, which
  * print prep leaves as it was) is priced at the blank's own base cost for it, as a placeholder, with no extras.
  */
-export async function podPrice(blankCode: string, placements: PodPlacementInput[], printServiceCode = 'dtg'): Promise<PodPriceBreakdown | null> {
+export async function podPrice(blankCode: string, placements: PodPlacementInput[], printServiceCode?: string): Promise<PodPriceBreakdown | null> {
   const base = await resolvePodBase(blankCode, printServiceCode);
   if (!base) return null;
   return buildPodBreakdown({

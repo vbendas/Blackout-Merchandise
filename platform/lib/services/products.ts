@@ -1,14 +1,15 @@
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { revalidateStore } from '@/lib/storefront/revalidate';
-import { describeServices, printServicesFor, quoteFor } from '@/lib/services/quotes';
+import { describeOtherShopServices, describeServices, digitalServiceFor, printServicesFor, quoteFor, type PrintServiceOption } from '@/lib/services/quotes';
 import { renderProductMockups } from '@/lib/services/mockups';
 import { blankDisplayName } from '@/lib/catalog/display-names';
 import { areaSide, checkPrintAreas, defaultAreaWidthCm, isSleevePosition, positionsFor, printPositionLabel, sortAreas, type ProductArea } from '@/lib/mockups/placements';
 import { checkProductApproval, productAreas, productColourCodes, productPrintPlacement, productSleeveProofs, type ProductApproval } from '@/lib/services/print-prep';
 import { samePlacement } from '@/lib/print/pipeline';
 import { podPrice, type PodPriceLine } from '@/lib/pricing/pod';
-import { POD_LINE_LABELS } from '@/lib/pricing/pod-table';
+import { POD_LINE_LABELS, isDigitalAsk, isDigitalService, printedNote } from '@/lib/pricing/pod-table';
+import { resolveShopMethod } from '@/lib/services/pricing-admin';
 
 // Products are an artist's design printed on a blank, for sale in their
 // shop. All ownership is scoped by storeId — every read/write here takes it
@@ -21,6 +22,10 @@ import { POD_LINE_LABELS } from '@/lib/pricing/pod-table';
 // garment's base price with one print, plus the extras for front and back and
 // for sleeve prints. It is taken again whenever the areas change, and the
 // retail price never goes below it.
+//
+// A shop product prints the way its garment does (owner, 17 Oct 2026): DTG, or DTF where DTG isn't ideal, which is a garment with
+// no DTG or one the owner marked in the shop price table. The artist never chooses: a 'dtg' or 'dtf' that says otherwise is
+// corrected with a short note, never refused, and a product made before this follows its garment on its next edit or publish.
 
 export type ProductStatus = 'draft' | 'proof_pending' | 'live' | 'archived';
 
@@ -30,7 +35,10 @@ export type ServiceResult<T> = { ok: true; value: T } | { ok: false; error: stri
  * says what is missing, and `approval` carries the step it points to (the tools build the link from it). A change of
  * print areas that would put the base cost above the product's price comes back with `priceNeeded`: the new base and
  * the lowest price that works with it, so the artist can be asked for a new price. */
-export type GatedResult<T> = { ok: true; value: T } | { ok: false; error: string; approval?: ProductApproval; priceNeeded?: PriceNeeded };
+export type GatedResult<T> = { ok: true; value: T; /** the product's print method moved to follow its garment: the words to tell the artist */ note?: string } | { ok: false; error: string; approval?: ProductApproval; priceNeeded?: PriceNeeded };
+
+/** A new product, with the note that goes with it when the print method asked for was corrected to the garment's own. */
+export type CreateProductResult = { ok: true; value: ProductDetail; note?: string } | { ok: false; error: string };
 
 export interface PriceNeeded {
   baseCostCents: number;
@@ -460,7 +468,10 @@ export interface CreateProductInput {
   /** the design the areas print, unless an area names its own */
   designId?: string;
   blankCode: string;
-  printServiceCode: string;
+  /** Left out for a shop product: it prints the way its garment does (DTG, or DTF where DTG isn't ideal). A 'dtg', 'dtf' or
+   * 'digital' that says otherwise is corrected, with a note, never refused; embroidery (outside print prep) is taken as asked,
+   * and screen print is refused (runs only). A run's backing product (`forRun`) carries the service its run line chose. */
+  printServiceCode?: string;
   /** one print area; `areas` gives several (it wins when both are given) */
   placement?: Placement;
   /** the print areas: at most one front, one back, and the sleeves, each with its own design when it differs */
@@ -485,7 +496,43 @@ async function applyMockups(productId: string, force = false): Promise<void> {
   }
 }
 
-export async function createProduct(input: CreateProductInput): Promise<ServiceResult<ProductDetail>> {
+/** What a product is printed with, chosen when it is made. A run's backing product carries the service its run line chose. A shop
+ * product prints the way its garment does (digitalServiceFor): DTG, or DTF where DTG isn't ideal, whatever it is asked, so a 'dtg'
+ * or 'dtf' that disagrees is corrected with a note and never refused. Embroidery (outside print prep) is taken as asked; screen print
+ * (for runs) and a method the blank doesn't offer are refused in words. */
+async function chooseService(
+  blank: { code: string; name: string },
+  services: PrintServiceOption[],
+  asked: string | undefined,
+  forRun: boolean,
+): Promise<{ ok: true; service: PrintServiceOption; note?: string } | { ok: false; error: string }> {
+  const name = blankDisplayName(blank.code, blank.name);
+  const code = asked?.trim() || undefined;
+
+  if (forRun) {
+    const service = services.find((p) => p.code === code);
+    if (service) return { ok: true, service };
+    const choices = services.length > 0 ? ` Use one of: ${describeServices(services)}.` : '';
+    return { ok: false, error: `That print method isn't offered on the ${name}.${choices}` };
+  }
+
+  if (code === undefined || isDigitalAsk(code)) {
+    const digital = await digitalServiceFor(blank.code, services);
+    if (!digital) return { ok: false, error: `The ${name} has no print method for shop products.` };
+    if (!digital.service.availableInShop) return { ok: false, error: `${digital.service.name} is for runs, not shop products.` };
+    const note = isDigitalService(code ?? '') && code !== digital.service.code ? printedNote(digital.method.code) : undefined;
+    return { ok: true, service: digital.service, ...(note ? { note } : {}) };
+  }
+
+  const others = describeOtherShopServices(services);
+  const way = ` Leave the print method out: a shop product prints the way its garment does${others ? `, or use one of: ${others}` : ''}.`;
+  const service = services.find((p) => p.code === code);
+  if (!service) return { ok: false, error: `That print method isn't offered on the ${name}.${way}` };
+  if (!service.availableInShop) return { ok: false, error: `${service.name} is for runs, not shop products. Quote a run for it instead.${way}` };
+  return { ok: true, service };
+}
+
+export async function createProduct(input: CreateProductInput): Promise<CreateProductResult> {
   const blankRows = await db.select().from(schema.blanks).where(eq(schema.blanks.code, input.blankCode)).limit(1);
   const blank = blankRows[0];
   if (!blank) return { ok: false, error: `Unknown blank code "${input.blankCode}".` };
@@ -499,18 +546,11 @@ export async function createProduct(input: CreateProductInput): Promise<ServiceR
     printServicesFor(input.blankCode),
   ]);
 
-  // Shop products print DTG or DTF; screen print is for runs (Print-Prep-Plan section 1).
-  // Whatever else the blank offers (embroidery) is outside that plan and stays as it was.
-  const offered = input.forRun ? printServices : printServices.filter((p) => p.availableInShop);
-  const service = printServices.find((p) => p.code === input.printServiceCode);
-  if (!service) {
-    const choices = offered.length > 0 ? ` Use one of: ${describeServices(offered)}.` : '';
-    return { ok: false, error: `That print method isn't offered on the ${blankDisplayName(blank.code, blank.name)}.${choices}` };
-  }
-  if (!input.forRun && !service.availableInShop) {
-    const choices = offered.length > 0 ? ` Shop products print with: ${describeServices(offered)}.` : '';
-    return { ok: false, error: `${service.name} is for runs, not shop products.${choices}` };
-  }
+  // The garment decides how a shop product prints (DTG, or DTF where DTG isn't ideal); screen print is for runs (Print-Prep-Plan
+  // section 1). Whatever else the blank offers (embroidery) is outside that plan and stays as it was.
+  const chosen = await chooseService(blank, printServices, input.printServiceCode, Boolean(input.forRun));
+  if (!chosen.ok) return chosen;
+  const { service, note } = chosen;
   const badColours = input.colours.filter((c) => !colours.has(c));
   if (badColours.length > 0) return { ok: false, error: `Colour(s) not available on this blank: ${badColours.join(', ')}.` };
   const badSizes = input.sizes.filter((s) => !sizes.has(s));
@@ -521,8 +561,8 @@ export async function createProduct(input: CreateProductInput): Promise<ServiceR
   if (!resolved.ok) return { ok: false, error: resolved.error };
   const { areas, shapes } = resolved;
 
-  const price = await baseCostFor(input.blankCode, input.printServiceCode, areas, shapes, Boolean(input.forRun));
-  if (!price) return { ok: false, error: `No pricing configured for ${input.blankCode} with ${input.printServiceCode}.` };
+  const price = await baseCostFor(input.blankCode, service.code, areas, shapes, Boolean(input.forRun));
+  if (!price) return { ok: false, error: `No pricing configured for ${input.blankCode} with ${service.code}.` };
 
   // An unnamed product takes its blank's display name, never the supplier's model name.
   const name = input.name?.trim() || blankDisplayName(blank.code, blank.name);
@@ -534,7 +574,7 @@ export async function createProduct(input: CreateProductInput): Promise<ServiceR
       // the main design: the first area's (the front, else the back, else a sleeve)
       designId: areas[0]?.designId ?? input.designId ?? null,
       blankCode: input.blankCode,
-      printServiceCode: input.printServiceCode,
+      printServiceCode: service.code,
       name,
       placements: areas.map(storedArea),
       baseCostCents: price.cents,
@@ -550,7 +590,7 @@ export async function createProduct(input: CreateProductInput): Promise<ServiceR
 
   const detail = await getProduct(input.storeId, product.id);
   if (!detail) return { ok: false, error: 'Product creation failed unexpectedly.' };
-  return { ok: true, value: detail };
+  return { ok: true, value: detail, ...(note ? { note } : {}) };
 }
 
 export interface UpdateProductPatch {
@@ -587,6 +627,17 @@ async function liveEditApproval(product: ProductRow, next: { areas?: ProductArea
     if (!approval.covered) return approval;
   }
   return null;
+}
+
+/** What a DTG or DTF shop product prints with now, when that is no longer what it has: its garment's method (resolveShopMethod), which
+ * moved when the owner marked the garment, or when the product was made before the garment decided. An edit or a publish takes the
+ * product there. Null when it already prints that way, when it prints with something else (embroidery; a run's backing product with
+ * screen print stays as it is), and when the garment's method can't be worked out (the product keeps what it has). */
+async function methodFollowingGarment(product: ProductRow): Promise<{ code: string; note: string } | null> {
+  if (!isDigitalService(product.printServiceCode)) return null;
+  const method = await resolveShopMethod(product.blankCode);
+  if (!method || method.code === product.printServiceCode) return null;
+  return { code: method.code, note: printedNote(method.code) };
 }
 
 export async function updateProduct(storeId: string, productId: string, patch: UpdateProductPatch): Promise<GatedResult<ProductDetail>> {
@@ -632,7 +683,9 @@ export async function updateProduct(storeId: string, productId: string, patch: U
   // Other areas, another base cost (podPrice): the price must stay at least €1 above it. When it wouldn't, nothing
   // changes and the artist is asked for a new price, which can come with the change.
   // A blank podPrice can't price keeps the base cost it has (the snapshot), rather than failing the edit or zeroing it.
-  const price = nextAreas ? await baseCostFor(product.blankCode, product.printServiceCode, nextAreas, shapes, false) : null;
+  // The print method follows the garment on an edit (a product made before the garment decided, or a garment marked since).
+  const follow = await methodFollowingGarment(product);
+  const price = nextAreas ? await baseCostFor(product.blankCode, follow?.code ?? product.printServiceCode, nextAreas, shapes, false) : null;
   const baseAfter = price?.cents ?? product.baseCostCents;
   const retailAfter = patch.retailPriceCents ?? product.retailPriceCents;
   if (patch.retailPriceCents !== undefined && (!Number.isInteger(patch.retailPriceCents) || patch.retailPriceCents <= 0)) return { ok: false, error: 'A price is a whole number of cents above zero.' };
@@ -659,6 +712,7 @@ export async function updateProduct(storeId: string, productId: string, patch: U
     .set({
       name: patch.name ?? product.name,
       description: patch.description ?? product.description,
+      ...(follow ? { printServiceCode: follow.code } : {}),
       ...(nextAreas ? { placements: nextAreas.map(storedArea), designId: nextAreas[0]?.designId ?? product.designId } : {}),
       ...(price ? { baseCostCents: price.cents, baseCostLines: price.lines.length > 0 ? price.lines : null } : {}),
       ...(patch.retailPriceCents !== undefined ? { retailPriceCents: patch.retailPriceCents } : {}),
@@ -683,7 +737,7 @@ export async function updateProduct(storeId: string, productId: string, patch: U
   const detail = await getProduct(storeId, productId);
   if (!detail) return { ok: false, error: 'Product update failed unexpectedly.' };
   await revalidateStore(storeId);
-  return { ok: true, value: detail };
+  return { ok: true, value: detail, ...(follow ? { note: follow.note } : {}) };
 }
 
 /** Adds, changes or removes print areas: `remove` names positions to drop, `add` areas to print (one at a position the
@@ -725,15 +779,17 @@ export interface AreasQuote {
   lines: ProductPriceLine[];
   /** the garment's price is still a placeholder the owner hasn't set */
   placeholder: boolean;
-  /** the print method it was priced for */
+  /** the print method it was priced for: the garment's own */
   printServiceCode: string;
+  /** a 'dtg' or 'dtf' that said otherwise was corrected to the garment's method: the words for it */
+  note?: string;
 }
 
 /** What a shop product would cost with these print areas, before any is changed: the shop quote (quoteFor with `shop`,
- * which is podPrice) with its lines and total. With no print method, the one a new product of the garment would take:
- * DTG, or DTF on a garment without DTG. `check` holds the areas to the product rules first (positions the garment takes,
- * sleeves only where it has them, one front and one back), for areas that aren't a product's yet. Refused in words for
- * screen print (runs only), a method the garment doesn't offer, and a blank with no price. */
+ * which is podPrice) with its lines and total. The method is the garment's own (DTG, or DTF where DTG isn't ideal), as for a new
+ * product: a 'dtg' or 'dtf' that says otherwise is corrected, with a note. `check` holds the areas to the product rules first
+ * (positions the garment takes, sleeves only where it has them, one front and one back), for areas that aren't a product's yet.
+ * Refused in words for screen print (runs only), a method the garment doesn't offer, and a blank with no price. */
 export async function quoteProductAreas(
   blankCode: string,
   printServiceCode: string | null,
@@ -746,19 +802,16 @@ export async function quoteProductAreas(
     const checked = checkPrintAreas(blank, areas.map((a) => ({ position: a.position, widthCm: a.widthCm ?? defaultAreaWidthCm(blank, a.position) })));
     if (!checked.ok) return checked;
   }
-  const offered = await printServicesFor(blank.code);
-  const shop = offered.filter((p) => p.availableInShop);
-  const service = printServiceCode ? offered.find((p) => p.code === printServiceCode) : (shop.find((p) => p.code === 'dtg') ?? shop.find((p) => p.code === 'dtf') ?? shop[0]);
-  const name = blankDisplayName(blank.code, blank.name);
-  if (!service) {
-    const choices = shop.length > 0 ? ` Shop products print with: ${describeServices(shop)}.` : '';
-    return { ok: false, error: printServiceCode ? `That print method isn't offered on the ${name}.${choices}` : `The ${name} has no print method for shop products.` };
-  }
-  if (!service.availableInShop) return { ok: false, error: `${service.name} is for runs, not shop products. Quote a run for it instead.` };
+  const chosen = await chooseService(blank, await printServicesFor(blank.code), printServiceCode ?? undefined, false);
+  if (!chosen.ok) return chosen;
+  const { service, note } = chosen;
   const quote = await quoteFor({ blankCode: blank.code, printServiceCode: service.code, qty: 1, shop: { placements: areas.map((a) => ({ position: a.position, widthCm: a.widthCm ?? 0 })) } });
   const price = quote?.breakdown;
   if (!price) return { ok: false, error: `No pricing configured for ${blank.code} with ${service.code}.` };
-  return { ok: true, value: { cents: price.totalCents, lines: price.lines.map((l) => ({ key: l.key, label: l.label, cents: l.cents })), placeholder: price.placeholder, printServiceCode: service.code } };
+  return {
+    ok: true,
+    value: { cents: price.totalCents, lines: price.lines.map((l) => ({ key: l.key, label: l.label, cents: l.cents })), placeholder: price.placeholder, printServiceCode: service.code, ...(note ? { note } : {}) },
+  };
 }
 
 export interface SetPriceResult {
@@ -795,7 +848,14 @@ export async function archiveProduct(storeId: string, productId: string): Promis
 }
 
 export type PublishCheck =
-  | { ok: true; product: ProductRow; /** the base cost as podPrice gives it now, when it moved from the draft's snapshot */ repriced: { cents: number; lines: ProductPriceLine[] } | null }
+  | {
+      ok: true;
+      product: ProductRow;
+      /** the base cost as podPrice gives it now, when it moved from the draft's snapshot */
+      repriced: { cents: number; lines: ProductPriceLine[] } | null;
+      /** the print method its garment gives it now, when the product doesn't print that way yet: publishing takes it there */
+      follow: { code: string; note: string } | null;
+    }
   | { ok: false; error: string; approval?: ProductApproval; priceNeeded?: PriceNeeded };
 
 /** Everything a publish asks of a product, in order, without publishing it (so the assistant can refuse before
@@ -821,8 +881,10 @@ export async function checkPublishable(storeId: string, productId: string): Prom
   if (!approval.covered) return { ok: false, error: approval.sentence ?? 'Approve the artwork first.', approval };
 
   // A draft keeps the base cost it was made with, which may have been a placeholder since: it goes live at today's
-  // shop price for its print areas (podPrice), and its price must still be at least €1 above that.
-  const repriced = await currentBaseCost(product);
+  // shop price for its print areas (podPrice), and its price must still be at least €1 above that. It prints the way its
+  // garment does by then (DTG, or DTF where DTG isn't ideal), whatever it was made with.
+  const follow = await methodFollowingGarment(product);
+  const repriced = await currentBaseCost(product, follow?.code ?? product.printServiceCode);
   const base = repriced?.cents ?? product.baseCostCents ?? 0;
 
   // Fans must never see a product without a retail price.
@@ -847,14 +909,14 @@ export async function checkPublishable(storeId: string, productId: string): Prom
       error: 'Publishing is blocked until Stripe payouts are connected and both charges and payouts are enabled for your shop.',
     };
   }
-  return { ok: true, product, repriced };
+  return { ok: true, product, repriced, follow };
 }
 
-/** A shop product's base cost as podPrice gives it now, when it differs from the stored snapshot; null when it is the
- * same, or when the blank has no price (the snapshot stands). */
-async function currentBaseCost(product: ProductRow): Promise<{ cents: number; lines: ProductPriceLine[] } | null> {
+/** A shop product's base cost as podPrice gives it now for a print method (the one it prints with when it goes live), when it
+ * differs from the stored snapshot; null when it is the same, or when the blank has no price (the snapshot stands). */
+async function currentBaseCost(product: ProductRow, printServiceCode: string): Promise<{ cents: number; lines: ProductPriceLine[] } | null> {
   const areas = productAreas(product);
-  const price = await baseCostFor(product.blankCode, product.printServiceCode, areas, await designShapes(areas.map((a) => a.designId)), false);
+  const price = await baseCostFor(product.blankCode, printServiceCode, areas, await designShapes(areas.map((a) => a.designId)), false);
   if (!price) return null;
   const stored = Array.isArray(product.baseCostLines) ? (product.baseCostLines as ProductPriceLine[]) : null;
   const sameLines = stored !== null && JSON.stringify(stored) === JSON.stringify(price.lines);
@@ -866,11 +928,15 @@ export async function publishProduct(storeId: string, productId: string): Promis
   const checked = await checkPublishable(storeId, productId);
   if (!checked.ok) return checked;
 
-  // It goes live at today's base cost: the Stripe fee and the payout are worked out from it at checkout.
-  if (checked.repriced) {
+  // It goes live at today's base cost, printed the way its garment does: the Stripe fee and the payout are worked out from it at checkout.
+  if (checked.repriced || checked.follow) {
     await db
       .update(schema.products)
-      .set({ baseCostCents: checked.repriced.cents, baseCostLines: checked.repriced.lines.length > 0 ? checked.repriced.lines : null, updatedAt: new Date() })
+      .set({
+        ...(checked.repriced ? { baseCostCents: checked.repriced.cents, baseCostLines: checked.repriced.lines.length > 0 ? checked.repriced.lines : null } : {}),
+        ...(checked.follow ? { printServiceCode: checked.follow.code } : {}),
+        updatedAt: new Date(),
+      })
       .where(eq(schema.products.id, productId));
   }
 
@@ -880,5 +946,5 @@ export async function publishProduct(storeId: string, productId: string): Promis
   const detail = await getProduct(storeId, productId);
   if (!detail) return { ok: false, error: 'Publish failed unexpectedly.' };
   await revalidateStore(storeId);
-  return { ok: true, value: detail };
+  return { ok: true, value: detail, ...(checked.follow ? { note: checked.follow.note } : {}) };
 }

@@ -1,7 +1,7 @@
-// The shop channel on PGlite: shop products print DTG or DTF, screen print is
-// for runs, embroidery is left as it was, and a position the garment cannot
-// take is refused. Catalogue and flags come from lib/services/test-catalogue.ts,
-// which reads the same tables as the real seed.
+// The shop channel on PGlite: a shop product prints the way its garment does (DTG, or DTF where DTG isn't ideal; the
+// artist never chooses, and a 'dtg' or 'dtf' that disagrees is corrected, not refused), screen print is for runs,
+// embroidery is left as it was, and a position the garment cannot take is refused. Catalogue and flags come from
+// lib/services/test-catalogue.ts, which reads the same tables as the real seed.
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { eq } from 'drizzle-orm';
@@ -33,32 +33,44 @@ after(async () => {
   await t.close();
 });
 
-function tee(printServiceCode: string, extra: Partial<Parameters<typeof products.createProduct>[0]> = {}) {
-  return products.createProduct({ storeId, blankCode: cat.tee, printServiceCode, placement, colours: [cat.black], sizes: ['M'], ...extra });
+/** A tee in black; the print method is left out unless it is given. */
+function tee(printServiceCode: string | undefined, extra: Partial<Parameters<typeof products.createProduct>[0]> = {}) {
+  return products.createProduct({ storeId, blankCode: cat.tee, ...(printServiceCode !== undefined ? { printServiceCode } : {}), placement, colours: [cat.black], sizes: ['M'], ...extra });
 }
 
-test('a shop product prints DTG or DTF', async () => {
+test('a shop product prints the way its garment does: DTG on a tee, whatever it is asked', async () => {
   const dtg = await tee('dtg');
   assert.ok(dtg.ok, dtg.ok ? '' : dtg.error);
   assert.equal(dtg.value.printServiceCode, 'dtg');
+  assert.equal(dtg.note, undefined, 'nothing was corrected');
   assert.equal(dtg.value.baseCostCents, 650 + 600 + Math.round(0.3 * (650 + 600)), 'priced as before: garment, print and margin');
 
+  // left out, or asked for as 'digital': the garment's own method, with nothing to say
+  for (const asked of [undefined, 'digital']) {
+    const same = await tee(asked);
+    assert.ok(same.ok, same.ok ? '' : same.error);
+    assert.equal(same.value.printServiceCode, 'dtg', String(asked));
+    assert.equal(same.note, undefined, String(asked));
+  }
+
+  // a 'dtf' that disagrees is corrected, not refused, and the note says what the product prints with
   const dtf = await tee('dtf');
   assert.ok(dtf.ok, dtf.ok ? '' : dtf.error);
-  assert.equal(dtf.value.printServiceCode, 'dtf');
-  assert.equal(dtf.value.printServiceName, 'Direct-to-film print');
+  assert.equal(dtf.value.printServiceCode, 'dtg');
+  assert.equal(dtf.value.printServiceName, 'Direct-to-garment print');
+  assert.equal(dtf.note, 'Printed DTG on this garment.');
 });
 
-test('screen print is refused for a shop product, and the error says what works', async () => {
+test('screen print is refused for a shop product, and the error says where it goes without offering a choice of DTG and DTF', async () => {
   const before = await productCount();
   for (const code of ['screen_1c', 'screen_2c', 'screen_3c']) {
     const result = await tee(code);
     assert.equal(result.ok, false, code);
     if (result.ok) continue;
-    assert.match(result.error, /Screen print \(\d colours?\) is for runs, not shop products\./, code);
-    assert.match(result.error, /dtg \(Direct-to-garment print\)/);
-    assert.match(result.error, /dtf \(Direct-to-film print\)/);
+    assert.match(result.error, /Screen print \(\d colours?\) is for runs, not shop products\. Quote a run for it instead\./, code);
+    assert.match(result.error, /Leave the print method out: a shop product prints the way its garment does\./);
     assert.doesNotMatch(result.error, /screen_/, 'it does not offer the screen codes back');
+    assert.doesNotMatch(result.error, /dtg|dtf|Direct-to/, 'the artist is not asked to choose between DTG and DTF');
   }
   assert.equal(await productCount(), before, 'nothing was created');
 });
@@ -69,20 +81,23 @@ test('embroidery, outside the plan, is accepted as it was', async () => {
   assert.equal(result.value.printServiceCode, 'embroidery');
 });
 
-test('a method the blank does not offer is refused, naming the shop methods it does', async () => {
-  // shorts: screen print, DTF and embroidery, no DTG
-  const result = await products.createProduct({ storeId, blankCode: cat.shorts, printServiceCode: 'dtg', placement: { position: 'front_leg', widthCm: 12 }, colours: [cat.black], sizes: ['M'] });
-  assert.equal(result.ok, false);
-  if (!result.ok) {
-    assert.match(result.error, /isn't offered on the/);
-    const choices = result.error.split('Use one of:')[1] ?? '';
-    assert.match(choices, /dtf \(Direct-to-film print\)/);
-    assert.match(choices, /embroidery \(Embroidery\)/);
-    assert.doesNotMatch(choices, /screen_|dtg/, 'only shop methods, and not the one just refused');
+test('a method the blank does not offer is refused, with the one other way a shop product can print', async () => {
+  // the tee offers no embroidery; a made-up method is no better
+  for (const code of ['embroidery', 'laser']) {
+    const result = await tee(code);
+    assert.equal(result.ok, false, code);
+    if (result.ok) continue;
+    assert.match(result.error, /isn't offered on the Classic tee\./, code);
+    assert.match(result.error, /Leave the print method out: a shop product prints the way its garment does\./);
+    assert.doesNotMatch(result.error, /dtg|dtf|screen_/, 'no choice between DTG and DTF, and no screen codes');
   }
+  // the hoodie offers embroidery: it is named as the one other way
+  const hoodie = await products.createProduct({ storeId, blankCode: cat.hoodie, printServiceCode: 'laser', placement, colours: [cat.black], sizes: ['M'] });
+  assert.equal(hoodie.ok, false);
+  if (!hoodie.ok) assert.match(hoodie.error, /prints the way its garment does, or use one of: embroidery \(Embroidery\)\./);
 });
 
-test('DTF is the shop method on blanks that never had DTG: jackets, bags, hats, trousers', async () => {
+test('DTF is the method on garments that never had DTG (jackets, bags, hats, trousers), and a dtg asked for is corrected, not refused', async () => {
   const cases: [string, string, RegExp][] = [
     [cat.jacket, 'front_chest', /isn't offered on the/], // a jacket has no screen print either
     [cat.beanie, 'centre', /is for runs, not shop products/],
@@ -90,14 +105,22 @@ test('DTF is the shop method on blanks that never had DTG: jackets, bags, hats, 
   ];
   for (const [blankCode, position, screenRefusal] of cases) {
     const base = { storeId, blankCode, placement: { position, widthCm: 10 }, colours: [cat.black], sizes: ['M'] };
-    const dtf = await products.createProduct({ ...base, printServiceCode: 'dtf' });
-    assert.ok(dtf.ok, `${blankCode}: ${dtf.ok ? '' : dtf.error}`);
-    assert.equal(dtf.value.printServiceCode, 'dtf', blankCode);
-    assert.equal(dtf.value.baseCostCents, 650 + 600 + Math.round(0.3 * (650 + 600)), `${blankCode}: priced like DTG until the owner sets it`);
+    const price = 650 + 600 + Math.round(0.3 * (650 + 600));
+    // asked for nothing, 'dtf' or 'digital': DTF, as the garment says, with nothing to correct
+    for (const asked of [undefined, 'dtf', 'digital']) {
+      const made = await products.createProduct({ ...base, ...(asked ? { printServiceCode: asked } : {}) });
+      assert.ok(made.ok, `${blankCode} ${String(asked)}: ${made.ok ? '' : made.error}`);
+      assert.equal(made.value.printServiceCode, 'dtf', `${blankCode} ${String(asked)}`);
+      assert.equal(made.note, undefined, `${blankCode} ${String(asked)}`);
+      assert.equal(made.value.baseCostCents, price, `${blankCode}: priced like DTG until the owner sets it`);
+    }
 
+    // a 'dtg' that says otherwise is corrected to DTF, with the note: never an error
     const dtg = await products.createProduct({ ...base, printServiceCode: 'dtg' });
-    assert.equal(dtg.ok, false, `${blankCode} has no dtg`);
-    if (!dtg.ok) assert.match(dtg.error, /dtf \(Direct-to-film print\)/, 'and the error points to dtf');
+    assert.ok(dtg.ok, `${blankCode} has no DTG, so DTG is corrected: ${dtg.ok ? '' : dtg.error}`);
+    assert.equal(dtg.value.printServiceCode, 'dtf', blankCode);
+    assert.equal(dtg.value.printServiceName, 'Direct-to-film print');
+    assert.equal(dtg.note, "Printed DTF on this garment, since DTG isn't ideal for it.");
 
     const screen = await products.createProduct({ ...base, printServiceCode: 'screen_1c' });
     assert.equal(screen.ok, false, `${blankCode}: no screen print in the shop`);

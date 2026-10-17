@@ -1,5 +1,6 @@
 // The run tool on PGlite: the print method a line names is the one the run
-// gets, including on a line that leans on a default product or blank.
+// gets (screen print, or digital, which is the garment's own method), including on a line that leans on a default
+// product or blank.
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -70,9 +71,31 @@ test('a run of a DTG shop product, quoted as screen print through the tool', asy
 });
 
 test('a refused method reads in plain words, without codes in brackets or the word bulk', async () => {
-  const result = await tools.createBulkQuoteTool.run(ctx, { lines: [{ blankCode: cat.shorts, printServiceCode: 'dtg', placement: { position: 'front_leg', widthCm: 12 }, colourCode: cat.black, sizes: { M: 5 } }], shipTo });
+  const result = await tools.createBulkQuoteTool.run(ctx, { lines: [{ blankCode: cat.tee, printServiceCode: 'embroidery', placement: { position: 'front_chest', widthCm: 28 }, colourCode: cat.black, sizes: { M: 5 } }], shipTo });
   assert.equal(result.data.ok, false);
-  assert.match(result.data.error ?? '', /"dtg" isn't offered on/);
+  assert.match(result.data.error ?? '', /"embroidery" isn't offered on/);
   assert.match(result.data.error ?? '', /screen_1c \(Screen print \(1 colour\)\)/);
-  assert.doesNotMatch(result.data.error ?? '', /\(STBU070\)/);
+  assert.match(result.data.error ?? '', /digital \(Direct-to-garment print\)/);
+  assert.doesNotMatch(result.data.error ?? '', /\(STTU169\)/);
+});
+
+test('a digital line is the garment\'s method, and a dtg or dtf that disagrees is corrected with a note, never an error', async () => {
+  // shorts have no DTG: digital is DTF, and a 'dtg' asked for is corrected
+  const place = { position: 'front_leg', widthCm: 12 };
+  const digital = await tools.createBulkQuoteTool.run(ctx, { lines: [{ blankCode: cat.shorts, printServiceCode: 'digital', placement: place, colourCode: cat.black, sizes: { M: 30 } }], shipTo });
+  assert.deepEqual(await methodsOfRun(digital), ['dtf']);
+  assert.equal(digital.data.note, undefined, 'nothing to correct');
+
+  const dtg = await tools.createBulkQuoteTool.run(ctx, { lines: [{ blankCode: cat.shorts, printServiceCode: 'dtg', placement: place, colourCode: cat.black, sizes: { M: 30 } }], shipTo });
+  assert.deepEqual(await methodsOfRun(dtg), ['dtf']);
+  assert.equal(dtg.data.note, "Printed DTF on this garment, since DTG isn't ideal for it.");
+  const notice = dtg.ui?.cards?.find((c) => c.kind === 'notice' && c.id.startsWith('bulk_method_')) as { text: string } | undefined;
+  assert.equal(notice?.text, dtg.data.note, 'the artist sees the note too');
+
+  // the tee prints DTG: 'digital' and a 'dtf' that disagrees both give DTG
+  const tee = { blankCode: cat.tee, placement: { position: 'front_chest', widthCm: 28 }, colourCode: cat.black, sizes: { M: 30 } };
+  assert.deepEqual(await methodsOfRun(await tools.createBulkQuoteTool.run(ctx, { lines: [{ ...tee, printServiceCode: 'digital' }], shipTo })), ['dtg']);
+  const dtf = await tools.createBulkQuoteTool.run(ctx, { lines: [{ ...tee, printServiceCode: 'dtf' }], shipTo });
+  assert.deepEqual(await methodsOfRun(dtf), ['dtg']);
+  assert.equal(dtf.data.note, 'Printed DTG on this garment.');
 });

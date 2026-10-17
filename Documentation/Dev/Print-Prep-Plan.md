@@ -24,6 +24,7 @@
 | Publishing | A product can't be published until its design is approved for that product's garment, colours and placement (owner, 15 Oct). |
 | Job sheet | One per design, covering all the garments that use it (owner, 15 Oct). Made on demand and kept by a hash of what it says, so it is made again exactly when its contents change (section 6.3). |
 | Shop prices | Each garment has its own base price for shop products (DTG/DTF), including one print area up to A2 on the front or the back. Extras: +€1 when the print becomes front and back; +€2 once for sleeve prints (one or both sleeves). Set in /admin/pricing (owner, 16 Oct). |
+| DTG and DTF | Same price for now, with a separate DTF price per garment kept for the future (empty means the same as DTG). DTF is used only on the few garments where DTG isn't ideal: garments without DTG, plus any the owner marks in /admin/pricing. The garment decides the method; artists don't choose it (owner, 17 Oct). |
 | Sleeve prints | Shown as a flat, true-size proof on a sleeve outline with measurements, next to the front and back mockups, until real sleeve photos exist (owner, 16 Oct). |
 | Colour surcharge per position | On screen-printed runs the €1 per piece for each colour above 8 counts per print position, on that position's design: a 10-colour back and a 10-colour front add €4 per piece (owner, 16 Oct). |
 | DTG/DTF run extras | DTG/DTF runs also pay the position extras: +€1 front and back, +€2 sleeves (owner, 16 Oct). |

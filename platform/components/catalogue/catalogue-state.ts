@@ -249,9 +249,19 @@ export function fitPhrase(fit: string): string {
   return lower === 'fitted' || lower === 'oversized' ? lower : `${lower} fit`;
 }
 
-/** Print methods in running text: 'Screen print, DTG, embroidery'. */
+/** Print methods in running text: 'Screen print, digital print, embroidery'. DTG and DTF are one digital print to an artist, since the
+ * garment decides which it gets (owner, 17 Oct 2026), so a garment with DTG says 'digital print' and no more. DTF is named only on
+ * a garment whose family has no DTG, where it matters: 'Embroidery, digital print (DTF)'. */
 export function printPhrase(techniques: readonly string[]): string {
-  return techniques.map((t, i) => (i === 0 || /^[A-Z]{2,}$/.test(t) ? t : t.toLowerCase())).join(', ');
+  const hasDtg = techniques.includes('DTG');
+  const words: string[] = [];
+  for (const technique of techniques) {
+    if (technique === 'DTG') words.push('digital print');
+    else if (technique === 'DTF') {
+      if (!hasDtg) words.push('digital print (DTF)');
+    } else words.push(/^[A-Z]{2,}$/.test(technique) ? technique : technique.toLowerCase());
+  }
+  return words.map((word, i) => (i === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word)).join(', ');
 }
 
 /** The measurement table labels kids' sizes as '3-4/98-104cm'; show them as '3-4 · 98-104cm'. */

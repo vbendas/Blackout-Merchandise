@@ -286,7 +286,7 @@
   }
 
   .prc-garments {
-    min-width: 860px;
+    min-width: 1040px;
   }
 
   .prc-garments thead th,
@@ -328,6 +328,40 @@
   /* A placeholder price reads dimmer than one the owner chose. */
   .prc-box.prc-ghost {
     color: var(--pp-soft);
+  }
+
+  /* The DTF price box says what an empty one means ("Same as DTG · €17.00"), so it is wider than a price box. */
+  .prc-box.prc-dtf {
+    width: 204px;
+  }
+
+  .prc-dtf::placeholder {
+    font-size: 12px;
+  }
+
+  /* The one sentence that says which garments print DTF. */
+  .prc-rule {
+    margin: 0;
+    color: var(--signal);
+  }
+
+  /* The mark "Print with DTF": a box, with the reason beside it when it is locked. */
+  .prc-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .prc-check input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--signal);
+  }
+
+  .prc-check input:disabled {
+    opacity: 0.6;
   }
 
   /* The save bar: with 120 garments in the table the buttons stay in view, at the foot of the window. */

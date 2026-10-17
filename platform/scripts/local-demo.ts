@@ -9,7 +9,9 @@
  *   - the people (lib/dev/identities.ts): the owner, an artist with the Underwriter shop, and three employees
  *     on the Pre-press, Production and Support presets;
  *   - shop prices (lib/pricing/pod-table.ts) for a few garments, the rest left on their placeholders: the
- *     Classic tee at 17 euros, other tees, a hoodie with its own DTF price, a sweatshirt and a tote (SHOP_PRICES);
+ *     Classic tee at 17 euros, other tees, a hoodie, a sweatshirt and a tote (SHOP_PRICES). No garment has a DTF
+ *     price of its own, so DTF costs what DTG does ("Same as DTG" in /admin/pricing); the tote has no DTG, so it
+ *     prints DTF, and no garment is marked "Print with DTF" yet;
  *   - two designs run through the real pipeline (engine, pack writers, checks, the job queue) on black, French
  *     Navy and white T-shirts, front chest 28 cm: the Underwriter (scripts/fixtures/print/test_design.png) and
  *     a flat three-colour logo (flat-logo-3c.png), left in these states:
@@ -73,14 +75,15 @@ const SHIP_TO = { name: 'Underwriter', line1: 'Carrer de Provença 288', city: '
 
 /** Shop prices for a few garments, in cents (Admin -> Pricing -> Shop products): what a shop product costs the artist with
  * one print area up to A2, before the extras (+1 euro front and back, +2 euros once for sleeves). Every other garment stays
- * on its placeholder, its one-print DTG base cost. The hoodie shows a DTF price of its own; the tote has no DTG. */
+ * on its placeholder, its one-print DTG base cost. No garment sets a DTF price, so DTF costs the same as DTG (the box says
+ * "Same as DTG"); the tote has no DTG, so it prints DTF. */
 const SHOP_PRICES: Record<string, { cents: number; dtfCents?: number }> = {
   STTU169: { cents: 1700 }, // Classic tee: the demo's T-shirt
   STTW172: { cents: 1700 }, // Women's classic tee
   STTU170: { cents: 1600 }, // Light tee
   STTU788: { cents: 2100 }, // Heavy tee
   STTU199: { cents: 2200 }, // Long-sleeve tee
-  STSU177: { cents: 3400, dtfCents: 3500 }, // Heavy hoodie
+  STSU177: { cents: 3400 }, // Heavy hoodie
   STSU178: { cents: 3000 }, // Heavy sweatshirt
   STAU760: { cents: 1200 }, // Classic tote bag (DTF)
 };

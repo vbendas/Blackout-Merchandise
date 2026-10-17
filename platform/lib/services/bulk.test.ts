@@ -1,7 +1,8 @@
-// Runs on PGlite: a run chooses its own print method when it is quoted, so a
+// Runs on PGlite: a run chooses its own print method when it is quoted, screen print or digital, so a
 // run of a DTG shop product can be screen printed, and a paid run tells
-// print prep which packs it needs. Payment, e-mail and print prep are stubbed
-// (runHooks); the catalogue comes from lib/services/test-catalogue.ts.
+// print prep which packs it needs. Digital is the garment's call (DTG, or DTF where DTG isn't ideal), never
+// the artist's. Payment, e-mail and print prep are stubbed (runHooks); the catalogue comes from
+// lib/services/test-catalogue.ts.
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { eq } from 'drizzle-orm';
@@ -95,11 +96,14 @@ test('a run of a DTG shop product can be screen printed', async () => {
   assert.equal(product?.printServiceCode, 'dtg');
 });
 
-test('a run can choose DTF, or DTG, for the same product', async () => {
-  for (const code of ['dtf', 'dtg']) {
+test("a run chooses screen print or digital, and digital is the garment's method: a dtf or dtg that disagrees is corrected", async () => {
+  // the tee prints DTG: 'digital', 'dtg' and a 'dtf' that says otherwise all give DTG, the last with a note
+  for (const [code, note] of [['digital', undefined], ['dtg', undefined], ['dtf', 'Printed DTG on this garment.']] as const) {
     const quoted = await bulk.createBulkQuote({ storeId, lines: [{ productId: dtgProductId, printServiceCode: code, colourCode: cat.white, sizes: { M: 5 } }], shipTo });
     assert.ok(quoted.ok, quoted.ok ? '' : quoted.error);
-    assert.equal(quoted.value.lines[0].printServiceCode, code);
+    assert.equal(quoted.value.lines[0].printServiceCode, 'dtg', code);
+    assert.equal(quoted.value.lines[0].printServiceName, 'Direct-to-garment print');
+    assert.equal(quoted.notes?.[0], note, code);
   }
 });
 
@@ -115,34 +119,56 @@ test('different lines of one run can print differently', async () => {
     storeId,
     lines: [
       { productId: dtgProductId, printServiceCode: 'screen_1c', colourCode: cat.black, sizes: { M: 30 } },
-      { productId: dtgProductId, printServiceCode: 'dtf', colourCode: cat.white, sizes: { M: 4 } },
+      { productId: dtgProductId, printServiceCode: 'digital', colourCode: cat.white, sizes: { M: 4 } },
     ],
     shipTo,
   });
   assert.ok(quoted.ok, quoted.ok ? '' : quoted.error);
-  assert.deepEqual(quoted.value.lines.map((l) => quoted.ok && l.printServiceCode), ['screen_1c', 'dtf']);
+  assert.deepEqual(quoted.value.lines.map((l) => quoted.ok && l.printServiceCode), ['screen_1c', 'dtg']);
 });
 
-test('a method the blank does not offer is refused with the ones it does', async () => {
+test("on a garment with no DTG a run's digital line is DTF, and a dtg asked for is corrected with the note, not refused", async () => {
   // shorts: screen print, DTF and embroidery, no DTG
   const shorts = await products.createProduct({
     storeId,
     blankCode: cat.shorts,
-    printServiceCode: 'dtf',
     placement: { position: 'front_leg', widthCm: 12 },
     colours: [cat.black],
     sizes: ['M'],
   });
   assert.ok(shorts.ok, shorts.ok ? '' : shorts.error);
-  const refused = await bulk.createBulkQuote({ storeId, lines: [{ productId: shorts.value.id, printServiceCode: 'dtg', colourCode: cat.black, sizes: { M: 5 } }], shipTo });
+  assert.equal(shorts.value.printServiceCode, 'dtf', 'the product took the garment\'s method');
+  for (const code of ['digital', 'dtf', 'dtg']) {
+    const quoted = await bulk.createBulkQuote({ storeId, lines: [{ productId: shorts.value.id, printServiceCode: code, colourCode: cat.black, sizes: { M: 5 } }], shipTo });
+    assert.ok(quoted.ok, `${code}: ${quoted.ok ? '' : quoted.error}`);
+    assert.equal(quoted.value.lines[0].printServiceCode, 'dtf', code);
+    assert.equal(quoted.value.lines[0].printServiceName, 'Direct-to-film print');
+    assert.equal(quoted.notes?.[0], code === 'dtg' ? "Printed DTF on this garment, since DTG isn't ideal for it." : undefined, code);
+  }
+  // new artwork on the blank does the same
+  const bare = await bulk.createBulkQuote({ storeId, lines: [{ blankCode: cat.shorts, printServiceCode: 'digital', placement: { position: 'front_leg', widthCm: 12 }, colourCode: cat.black, sizes: { M: 5 } }], shipTo });
+  assert.ok(bare.ok, bare.ok ? '' : bare.error);
+  assert.equal(bare.value.lines[0].printServiceCode, 'dtf');
+});
+
+test('a method the blank does not offer is refused with the ones it does: screen print, digital, and what else it has', async () => {
+  // the tee offers screen print and digital, no embroidery
+  const refused = await bulk.createBulkQuote({ storeId, lines: [{ productId: dtgProductId, printServiceCode: 'embroidery', colourCode: cat.black, sizes: { M: 5 } }], shipTo });
   assert.equal(refused.ok, false);
   if (!refused.ok) {
-    assert.match(refused.error, /"dtg" isn't offered on/);
+    assert.match(refused.error, /"embroidery" isn't offered on/);
     const choices = refused.error.split('Choose one of:')[1] ?? '';
     assert.match(choices, /screen_1c \(Screen print \(1 colour\)\)/);
-    assert.match(choices, /dtf \(Direct-to-film print\)/);
+    assert.match(choices, /digital \(Direct-to-garment print\)/, 'digital is one choice, named by the garment\'s own method');
+    assert.doesNotMatch(choices, /dtg \(|dtf \(/, 'DTG and DTF are not two choices for an artist');
+  }
+  // the shorts offer embroidery: it is listed, and digital there is DTF
+  const shorts = await bulk.createBulkQuote({ storeId, lines: [{ blankCode: cat.shorts, printServiceCode: 'laser', placement: { position: 'front_leg', widthCm: 12 }, colourCode: cat.black, sizes: { M: 5 } }], shipTo });
+  assert.equal(shorts.ok, false);
+  if (!shorts.ok) {
+    const choices = shorts.error.split('Choose one of:')[1] ?? '';
+    assert.match(choices, /digital \(Direct-to-film print\)/);
     assert.match(choices, /embroidery \(Embroidery\)/);
-    assert.doesNotMatch(choices, /dtg/);
   }
 });
 
@@ -171,7 +197,7 @@ test('the proof says which print method the artist is approving', async () => {
     storeId,
     lines: [
       { productId: dtgProductId, printServiceCode: 'screen_2c', colourCode: cat.black, sizes: { M: 30 } },
-      { productId: dtgProductId, printServiceCode: 'dtf', colourCode: cat.white, sizes: { M: 4 } },
+      { productId: dtgProductId, printServiceCode: 'digital', colourCode: cat.white, sizes: { M: 4 } },
     ],
     shipTo,
   });
@@ -179,8 +205,9 @@ test('the proof says which print method the artist is approving', async () => {
   const proof = await bulk.submitBulkProof(storeId, quoted.value.id);
   assert.ok(proof.ok, proof.ok ? '' : proof.error);
   const row = proof.value.spec.find((s) => s.label === 'Print method');
-  // A screen line says "Screen print": the number in its service name is only a first guess at the colours.
-  assert.equal(row?.value, 'Screen print, Direct-to-film print');
+  // A screen line says "Screen print": the number in its service name is only a first guess at the colours. A digital line says
+  // the method the garment prints with, which is what the artist approves.
+  assert.equal(row?.value, 'Screen print, Direct-to-garment print');
   assert.match(proof.value.spec.find((s) => /^Colours · .* · Black$/.test(s.label))?.value ?? '', /^Front chest · 4 colours \(estimate\): no surcharge$/);
 });
 
