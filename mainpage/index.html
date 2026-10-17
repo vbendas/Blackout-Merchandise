@@ -399,6 +399,9 @@ input:focus-visible{outline:none}
 /* the footer closes the screen, as on the door, when the board is shorter than it */
 .view.press{display:flex;flex-direction:column}
 #press-foot{margin-top:auto;padding-top:56px}
+/* live feed: the quiet line when nothing is on the press; the door's count stays hidden until the board has its first numbers */
+.p-empty{display:flex;align-items:center;min-height:var(--row);padding:12px 0;border-bottom:1px solid var(--rule2);color:var(--a5);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.top .toppress:not(.rdy) .cnt{visibility:hidden}
 
 /* ---------- WATCH ---------- */
 .watch{position:fixed;inset:0;z-index:60;background:#000;display:grid;grid-template-rows:auto minmax(0,1fr);opacity:0;transition:opacity .5s var(--ease)}
@@ -934,7 +937,7 @@ $('#apply-foot').innerHTML=footer('a');
 $('#numbers-foot').innerHTML=footer('n');
 
 /* =====================================================================
-   THE PRESS BOARD (idea-4 simulation, runs from page load)
+   THE PRESS BOARD (idea-4 simulation; now only the fallback, see LIVE FEED below)
    ===================================================================== */
 var STAGES=["QUEUED","SCREENS","ON THE PRESS","CURING","FOLDING","SHIPPED"];
 var KEY={"QUEUED":"QUEUED","SCREENS":"SCREENS","ON THE PRESS":"PRESS","CURING":"CURING","FOLDING":"FOLDING","SHIPPED":"SHIPPED"};
@@ -1006,12 +1009,14 @@ function thumbFor(r){
 }
 function sentence(r){
   if(r.mine) return r.note;
-  var p=PIECES[r.t], ink=INKD[r.ink]||"Print", pl=p.noun+"s";
+  /* live rows (LIVE FEED): the feed gives no garment colour and no print method, so they never say "black" or "Waiting for screens" */
+  var p=PIECES[r.t], ink=INKD[r.ink]||r.ink||"Print", nn=r.noun||p.noun, pl=nn+"s", bl=r.live?"":"black ";
+  var an=bl?"a ":(/^[aeiou]/i.test(nn)?"an ":"a ");
   switch(r.k){
-    case "QUEUED": return ink+" on a black "+p.noun+". Waiting for screens.";
-    case "SCREENS": return "Screens are being prepared for "+r.q+" black "+pl+".";
-    case "PRESS": return ink+" on a black "+p.noun+". "+r.n+" of "+r.q+" printed so far.";
-    case "CURING": return "Printed. The ink is curing before the pieces are folded.";
+    case "QUEUED": return ink+" on "+an+bl+nn+". "+(r.live?"In the queue.":"Waiting for screens.");
+    case "SCREENS": return "Screens are being prepared for "+r.q+" "+bl+pl+".";
+    case "PRESS": return ink+" on "+an+bl+nn+". "+r.n+" of "+r.q+" printed so far.";
+    case "CURING": return (r.n<r.q?"Off the press. ":"Printed. ")+"The ink is curing before the pieces are folded.";   /* not "Printed." next to a count short of the total */
     case "FOLDING": return "Folding and counting "+r.q+" "+pl+".";
     default: return r.q+" "+pl+" shipped.";
   }
@@ -1025,7 +1030,7 @@ function buildRow(r){
   row.innerHTML=
     '<span class="c run" role="cell"><span class="sr"></span></span>'+
     '<span class="c for" role="cell"><button type="button" class="rowbtn" aria-expanded="false" aria-controls="'+id+'">'+esc(shownName(r))+'</button></span>'+
-    '<span class="c piece" role="cell">'+(r.mine?'TO BE BRIEFED':esc(p.n))+'</span>'+
+    '<span class="c piece" role="cell">'+(r.mine?'TO BE BRIEFED':esc(r.pn||p.n))+'</span>'+
     '<span class="c qty" role="cell"><span class="sr"></span></span>'+
     '<span class="c ink" role="cell">'+(r.mine?"—":esc(r.ink))+'</span>'+
     '<span class="c status" role="cell"><i class="dot off" aria-hidden="true"></i><span class="sr"></span></span>'+
@@ -1049,14 +1054,16 @@ function paint(r,o){
   var inst=o.instant||RM||!pressOn();
   var k=r.k, label=STAGES[r.s];
   r.rowEl.className='row st-'+k;
-  var qtyTxt=(k==="PRESS"?r.n+"/"+r.q:String(r.q));
+  var qtyTxt=r.n+"/"+r.q;   /* printed / total in every stage; the progress bar below stays on the press */
+  if(r.fQty.children.length<qtyTxt.length) resizeFlaps(r.fQty,qtyTxt.length);   /* real quantities can run longer than the simulated ones */
   var runTxt=String(r.run);
+  if(r.fRun.children.length<runTxt.length) resizeFlaps(r.fRun,runTxt.length);
   setFlap(r.fRun,runTxt,{instant:inst,delay:o.delay,stagger:50,cycles:4,force:o.force});
   setFlap(r.fQty,qtyTxt,{right:true,instant:inst||o.tick,delay:o.delay,stagger:o.tick?0:30,cycles:o.tick?2:3,force:o.force});
   setFlap(r.fSt,label,{instant:inst,delay:(o.delay||0)+(o.tick?0:120),stagger:42,cycles:3,force:o.force});
   r.dot.classList.toggle('off',!(k==="SCREENS"||k==="PRESS"||k==="CURING"||k==="FOLDING"));
   r.dot.classList.toggle('pulse',!RM);
-  r.rowEl.style.setProperty('--p',k==="PRESS"?(r.n/r.q).toFixed(3):0);
+  r.rowEl.style.setProperty('--p',k==="PRESS"&&r.q?(r.n/r.q).toFixed(3):0);
   r.srRun.textContent='Run '+runTxt; r.srQty.textContent='Quantity '+qtyTxt.replace('/',' of '); r.srSt.textContent='Status '+label.toLowerCase();
   refreshDetail(r);
 }
@@ -1152,16 +1159,23 @@ var today=(function(){ var p=bcnParts(), h=(+p[0])+(+p[1])/60; return Math.round
 var cntRuns=mkFlaps(1,'plain');
 $('#cnt-runs').appendChild(cntRuns);
 function counts(){
-  if(holdCounts) return;
+  if(holdCounts||!boardReady) return;   /* no count until the board has its first rows (real or simulated) */
   /* the queue = every run not yet shipped (queued, screens, press, curing, folding) */
   var n=rows.filter(function(r){ return r.k!=='SHIPPED'; }).length;
   var s=String(n); if(cntRuns.children.length!==s.length) resizeFlaps(cntRuns,s.length);
   setFlap(cntRuns,s,{instant:RM||view!=='door',cycles:4,pool:DIG});
-  $('#cnt-sr').textContent=', '+n+' runs on the queue';
+  /* real counts do reach one: "1 run on the queue" */
+  var one=(n===1);
+  $('.cnt-w').textContent=one?'run on the queue':'runs on the queue'; $('.cnt-n').textContent=one?'run':'runs';
+  $('#cnt-sr').textContent=', '+n+(one?' run':' runs')+' on the queue';
+  $('#presslink').classList.add('rdy');
 }
 function bootBoard(){
-  INITIAL.forEach(function(t,i){ var r=mkRun(t,t.s); r.n=t.n||0; r.age=i<4?0:2; rows.push(r); });
-  rows.forEach(function(r){ rowsEl.appendChild(buildRow(r)); paint(r,{instant:true}); });
+  boardReady=true;
+  /* printed count: none before the press, n on it, all of them after it */
+  INITIAL.forEach(function(t,i){ var r=mkRun(t,t.s); r.n=t.n||(t.s>2?t.q:0); r.age=i<4?0:2; rows.push(r); });
+  /* it can start while the press view is already open (the feed answered late or not at all): then the board flips in */
+  rows.forEach(function(r,i){ rowsEl.appendChild(buildRow(r)); paint(r,pressOn()?{delay:RM?0:200+i*90}:{instant:true}); });
   counts();
   if(!RM){ simLater(pressTick,1800); simLater(tick,5200); }
 }
@@ -1187,6 +1201,160 @@ function buildPinned(host,name,animate,delay){
 }
 
 /* =====================================================================
+   LIVE FEED
+   The board shows the real runs from the production stations. The simulation above is only the fallback: it runs
+   when the feed cannot be reached at all, and it ends for good the moment the feed answers.
+   GET PRESS_FEED -> { rows:[{ id, run, client, piece, printed, total, ink, stage, updatedAt }], generatedAt }
+   feedMap turns one feed row into one board row:
+     id      follows the row from one read to the next
+     run     the Run column, a plain number (a row without one, from an older feed, shows the first five characters of its id)
+     client  "Private" becomes PRIV, any other name is the shop's own
+     piece   shown as given; a keyword in it (tee, hoodie or sweat, jacket, polo) picks the preview picture from PIECES
+     printed, total  n, q: the QTY column reads n/q in every stage      ink  shown as given (INKD only words the detail sentence)
+     stage   s, one of STAGES
+   Rows update in place, new rows come in at their place in the feed's order, rows the feed drops leave.
+   While the feed answers there are no simulated rows, ticks or arrivals, and the door counts the real rows.
+   ===================================================================== */
+/* the platform's public feed, at the address this page already uses for sign-in and /api/apply */
+var PRESS_FEED=STUDIO_ORIGIN+'/api/public/on-the-press';
+var FEED_EVERY=15000,   /* the beat while the press view is open (the platform itself caches for 15 s) */
+    FEED_LIMIT=5000,    /* an answer that takes longer than this is no answer */
+    FEED_MAX=60;        /* the platform sends at most 60 rows */
+var liveOn=false,       /* the feed has answered: from then on only real rows are shown */
+    boardReady=false,   /* the board has its first rows, real or simulated; the door's count waits for that */
+    feedT=0, feedAt=0, feedBusy=false, liveBy=Object.create(null), emptyEl=null;
+
+function feedClean(s,max){ return String(s==null?'':s).replace(/\s+/g,' ').trim().slice(0,max); }
+/* the preview picture for a catalogue name ("Classic tee", "Heavy hoodie + 1 more"); '' when no keyword fits */
+function pieceKey(name){
+  var s=name.toLowerCase();
+  if(/hood|sweat/.test(s)) return 'sweat';
+  if(/jacket/.test(s)) return 'jacket';
+  if(/polo/.test(s)) return 'polo';
+  if(/tee|shirt/.test(s)) return /heavy/.test(s)?'tee2':'tee1';
+  return '';
+}
+function feedMap(f){
+  if(!f||typeof f!=='object') return null;
+  var id=feedClean(f.id,64), s=STAGES.indexOf(feedClean(f.stage,20).toUpperCase());
+  if(!id||s<0) return null;   /* a row that cannot be placed on the board is left off, never guessed */
+  var cl=feedClean(f.client,60), pn=feedClean(f.piece,60)||'Garment', t=pieceKey(pn);
+  var q=Math.max(0,Math.round(+f.total)||0), n=Math.min(q,Math.max(0,Math.round(+f.printed)||0));
+  var rn=typeof f.run==='string'?+f.run.trim():f.run;   /* the platform's run number: a whole number from 1001 */
+  var m={fid:id,run:(typeof rn==='number'&&rn>0&&rn<1e7&&Math.floor(rn)===rn)?String(rn):id.replace(/[^A-Za-z0-9]/g,'').slice(0,5).toUpperCase(),
+    c:(!cl||/^private$/i.test(cl))?PRIV:cl,
+    pn:pn,t:t||'tee1',noun:t?'':pn.toLowerCase().replace(/\s*\+\s*\d+\s*more$/,''),q:q,n:n,ink:feedClean(f.ink,40),s:s};
+  m.sig=[m.s,m.q,m.n,m.c,m.pn,m.ink,m.run].join('|');
+  return m;
+}
+function feedList(j){
+  if(!j||!Array.isArray(j.rows)) return null;
+  var seen=Object.create(null), out=[];
+  j.rows.slice(0,FEED_MAX).forEach(function(f){ var m=feedMap(f); if(m&&!seen[m.fid]){ seen[m.fid]=1; out.push(m); } });
+  return out;
+}
+/* one read: resolves to the rows (maybe none) or to null when there was no usable answer */
+function feedGet(){
+  return new Promise(function(resolve){
+    var fin=false, ctl=null, t;
+    function end(v){ if(fin) return; fin=true; clearTimeout(t); resolve(v); }
+    try{ if(window.AbortController) ctl=new AbortController(); }catch(e){}
+    t=setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} end(null); },FEED_LIMIT);
+    try{
+      /* no-store: the platform already caches for 15 s; the browser keeps no second copy that would delay a change */
+      fetch(PRESS_FEED,{cache:'no-store',signal:ctl?ctl.signal:undefined})
+        .then(function(res){ return res.ok?res.json():null; })
+        .then(function(j){ end(feedList(j)); })
+        .catch(function(){ end(null); });
+    }catch(e){ end(null); }
+  });
+}
+
+function liveMake(m){
+  var r={id:++uid+100,live:true,fid:m.fid,run:m.run,c:m.c,pn:m.pn,t:m.t,noun:m.noun,q:m.q,n:m.n,ink:m.ink,s:m.s,age:0,sig:m.sig};
+  r.k=KEY[STAGES[m.s]]; return r;
+}
+function liveCells(r){   /* the Piece and Ink cells and the detail's name, when a row's words change */
+  var pc=$('.c.piece',r.rowEl), ik=$('.c.ink',r.rowEl), dt=$('.detail',r.el), lb='Details for run '+r.run;
+  if(pc.textContent!==r.pn) pc.textContent=r.pn;
+  if(ik.textContent!==r.ink) ik.textContent=r.ink;
+  if(dt.getAttribute('aria-label')!==lb) dt.setAttribute('aria-label',lb);
+}
+function liveWho(r){ var n=shownName(r); return n===PRIV?'a private client':n; }
+/* the quiet line when the feed answers with no rows at all */
+function emptyShow(on){
+  if(on&&!emptyEl){
+    emptyEl=document.createElement('div'); emptyEl.className='p-empty'; emptyEl.setAttribute('role','row');
+    emptyEl.innerHTML='<span role="cell">Nothing on the press right now</span>';
+  }
+  if(on&&!emptyEl.parentNode) rowsEl.appendChild(emptyEl);
+  else if(!on&&emptyEl&&emptyEl.parentNode) emptyEl.parentNode.removeChild(emptyEl);
+}
+/* Bring the board to the feed's rows. A row it already has is updated in place (only what changed is touched, and the
+   existing paint() flips only the tiles that differ); a new row comes in after its predecessor in the feed's order;
+   a row the feed dropped leaves. first: the board's first rows, built still, then flipped in like showPress() does. */
+function liveSync(list,first){
+  var msgs=[], keep=Object.create(null), prev=null, made=0, hadRows=rows.length>0, enter=!first&&pressOn()&&!RM;
+  list.forEach(function(m){ keep[m.fid]=1; });
+  rows.slice().forEach(function(r){ if(!keep[r.fid]){ delete liveBy[r.fid]; removeRow(r); } });
+  emptyShow(!list.length);
+  if(!list.length&&hadRows&&!first) msgs.push('Nothing on the press right now.');
+  list.forEach(function(m){
+    var r=liveBy[m.fid];
+    if(!r){
+      r=liveMake(m); liveBy[r.fid]=r;
+      var node=buildRow(r);
+      if(enter) node.classList.add('enter');
+      rowsEl.insertBefore(node,prev?prev.el.nextSibling:rowsEl.firstChild);
+      rows.splice(prev?rows.indexOf(prev)+1:0,0,r);
+      paint(r,first?{delay:RM?0:200+made*90}:{});
+      if(enter){ void node.offsetHeight; requestAnimationFrame(function(){ node.classList.remove('enter'); }); }
+      made++;
+      if(!first) msgs.push('New run '+r.run+', '+liveWho(r)+': '+STAGES[r.s].toLowerCase()+'.');
+    }else if(r.sig!==m.sig){
+      var moved=r.s!==m.s;
+      r.run=m.run; r.c=m.c; r.pn=m.pn; r.t=m.t; r.noun=m.noun; r.q=m.q; r.n=m.n; r.ink=m.ink; r.s=m.s; r.k=KEY[STAGES[m.s]]; r.sig=m.sig;
+      liveCells(r); paint(r,{});
+      if(moved) msgs.push('Run '+r.run+', '+liveWho(r)+': '+STAGES[r.s].toLowerCase()+'.');
+    }
+    prev=r;
+  });
+  relabel(); counts();
+  if(msgs.length) announce(msgs.length===1?msgs[0]:'The board changed: '+msgs.length+' updates.');
+}
+/* the feed answered for the first time: the simulation stops, with everything it had queued, and its rows go */
+function goLive(list){
+  liveOn=true; boardReady=true;
+  simTimers.forEach(clearTimeout); simTimers.length=0; holdCounts=false;
+  rows.length=0; rowsEl.textContent=''; liveBy=Object.create(null);
+  liveSync(list,true);
+}
+/* The first read to settle decides: real rows, or (no usable answer at all) the simulation. Later reads keep the real
+   rows in step. A read that fails once the feed has answered keeps the last real rows and tries again at the next beat:
+   a board that has been real never turns into the simulation. */
+function feedPull(){
+  if(feedBusy) return;
+  feedBusy=true; clearTimeout(feedT); feedT=0;
+  feedGet().then(function(list){
+    feedBusy=false; feedAt=Date.now();
+    try{
+      if(list){ if(liveOn) liveSync(list); else goLive(list); }
+      else if(!boardReady) bootBoard();
+    }finally{ feedArm(FEED_EVERY); }   /* the beat goes on even if painting threw */
+  });
+}
+/* the next read, only while the press view is open on a visible tab */
+function feedArm(ms){ clearTimeout(feedT); feedT=pressOn()?setTimeout(feedPull,ms):0; }
+/* the view changed: on the press view, read now if the last read is older than the beat, else at the next beat; elsewhere, no beat */
+function feedKick(){ clearTimeout(feedT); feedT=0; if(view==='press'&&feedAt) feedArm(Math.max(0,FEED_EVERY-(Date.now()-feedAt))); }
+document.addEventListener('visibilitychange',function(){
+  clearTimeout(feedT); feedT=0;   /* a hidden tab reads nothing */
+  if(document.hidden||feedBusy||!feedAt) return;
+  if(view==='press') feedKick(); else if(Date.now()-feedAt>=FEED_EVERY) feedPull();   /* back on the tab: the door's count catches up */
+});
+function startBoard(){ feedPull(); }
+
+/* =====================================================================
    STATE
    ===================================================================== */
 function pinned(){ try{ return JSON.parse(ss('mf.pinned')||'null'); }catch(e){ return null; } }
@@ -1201,6 +1369,7 @@ function go(id){
   $('#top-clock').hidden=true; $('#presslink').hidden=(view==='press');
   window.scrollTo(0,0);
   placeLogo(true);
+  feedKick();   /* LIVE FEED: the beat runs only while the press view is open */
 }
 /* the header logo sits big over the door's slogan, and in the corner everywhere else */
 var logoReady=false, gliding=0;
@@ -2030,7 +2199,7 @@ document.addEventListener('keydown',function(e){
 });
 document.addEventListener('visibilitychange',function(){ if(!document.hidden&&view==='press') rows.forEach(function(r){ paint(r,{instant:true}); }); });
 
-bootBoard();
+startBoard();   /* LIVE FEED: the first read decides, real rows or the simulation */
 render();
 /* the logo's entrance: placed first (over the slogan on the door, or in the corner), then shown */
 (function(){
