@@ -13,16 +13,10 @@ All faces are self-hosted, so no visitor request goes to Google. Inter and IBM P
 
 ## Stamp layer
 
-- **Mornsey** (weight 400): owner confirmed it is licensed (decision 5, 6 Oct 2026). Source `Assets/Fonts/Mornsey-PUA.ttf`. Licensor, licence type and receipt reference are not in the repo: the owner adds them here when convenient. Cmap holes: only 12 of 128 Latin Extended-A letters (Œ/œ/Ÿ present), no inverted question and exclamation marks. Two copies of the same file (byte-identical, `Mornsey.woff2`, loaded through `@font-face`):
-  - `mainpage/fonts/Mornsey.woff2`, loaded by `mainpage/index.html` for the printed marks drawn over the blanks (the `.tee .print` text, the preview strip mark `.mp-strip .mark` and the thumbnail mark `.th .mk`) and the canvas print drawn by `drawLogo()` in the merch preview (via `fitText`/`drawCentered`, after `document.fonts.load('400 100px Mornsey')`), with `Inter` or system fonts as the fallback.
-  - `mainpage/watch/media/Mornsey.woff2`, loaded by `mainpage/watch/index.html` for the stamp drawn on the tee-back canvas in the film page.
-
-  `mainpage/faq/` and `mainpage/agents/` do not load Mornsey.
+- **Mornsey** (weight 400): a commercially licensed display face. Its licence does not cover redistribution, so the font file is not included in this repository. `mainpage/index.html` and `mainpage/watch/index.html` still declare it through `@font-face` (`fonts/Mornsey.woff2` and `watch/media/Mornsey.woff2`); without the file the printed marks fall back to Impact, Inter or system fonts. To use it, place your own licensed copy at those paths.
 
 ## OFL notice
 
 Fonts under the SIL Open Font License 1.1 are used unmodified, as delivered by Google Fonts (subset files, self-hosted). The licence text is at https://openfontlicense.org. They are not sold on their own and keep their reserved font names.
-
-Records for faces considered and retired during the earlier website rounds (display and mono candidates, and the unlicensed GC Grind) are in git history, in `design-tokens/LICENCES.md`.
 
 Barlow was loaded only by the retired `mainpage/studio/` mock (deleted 13 Oct 2026); no page uses it now.
