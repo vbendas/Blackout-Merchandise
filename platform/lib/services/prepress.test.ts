@@ -1,5 +1,5 @@
 // Pre-press: the queue entry rules, the audit actions and their permission gates,
-// corrected uploads (training pairs, the re-approval rule), re-runs, sending a
+// corrected uploads (the re-approval rule), re-runs, sending a
 // pack back, and the production gate. Fakes for engine, pack, storage and queue.
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -531,7 +531,7 @@ test('sending a pack back withdraws the approval, tells the artist, and holds th
 
 // -- running a pack again --------------------------------------------------------
 
-test('running a pack again queues a job with the new settings, then replaces the pack and keeps a training pair', async () => {
+test('running a pack again queues a job with the new settings, then replaces the pack', async () => {
   const { designId, designVersionId, darks, lights, dtg } = await prepared({ approve: true });
   const worker = await h.staff({ prepress: 'work' });
   const run = await seedRun(h.db, { storeId: h.artist.storeId, designId, lines: [{ colourCode: 'C002', qty: 120, printServiceCode: 'screen_2c' }] });
@@ -571,16 +571,6 @@ test('running a pack again queues a job with the new settings, then replaces the
 
   // The screen packs were checked against the proof the artist approved.
   assert.ok(h.fakes.pack.checkCalls.slice(checksBefore).filter((c) => c.technique === 'screen').every((c) => c.hadApprovedProof));
-
-  // The automatic and the changed pack are kept as a pair.
-  const pairKey = h.fakes.storage.keys(`print/${designId}/v1/training/`).find((k) => k.includes(darks.id));
-  assert.ok(pairKey, h.fakes.storage.keys().join('\n'));
-  assert.ok(pairKey.endsWith(`${darks.id}-to-${newDarks.id}.json`));
-  const pair = JSON.parse(h.fakes.storage.objects.get(pairKey)!.data.toString('utf8')) as { how: string; automatic: { packId: string }; corrected: { packId: string }; detail: unknown };
-  assert.equal(pair.how, 'rerun');
-  assert.equal(pair.automatic.packId, darks.id);
-  assert.equal(pair.corrected.packId, newDarks.id);
-  assert.deepEqual(pair.detail, settings);
 
   // The proof did not change, so the artist's approval stands.
   assert.equal((await approvalOf(designId)).invalidatedAt, null);
@@ -637,7 +627,7 @@ test('re-run settings are checked, and a run that changes the proof asks the art
 
 // -- corrected uploads --------------------------------------------------------------
 
-test('a corrected PSD in storage is rebuilt by the worker, kept as a training pair, and spares the artist when the proof is unchanged', async () => {
+test('a corrected PSD in storage is rebuilt by the worker and spares the artist when the proof is unchanged', async () => {
   const { designId, designVersionId, darks, lights } = await prepared({ approve: true });
   const worker = await h.staff({ prepress: 'work' });
   const run = await seedRun(h.db, { storeId: h.artist.storeId, designId, lines: [{ colourCode: 'C002', qty: 120, printServiceCode: 'screen_2c' }] });
@@ -697,17 +687,6 @@ test('a corrected PSD in storage is rebuilt by the worker, kept as a training pa
   // The checks ran again, against the proof the artist approved.
   assert.deepEqual(h.fakes.pack.checkCalls.slice(checksBefore).map((c) => [c.technique, c.hadApprovedProof]), [['screen', true]]);
 
-  // The automatic and the corrected pack are stored together as a pair.
-  const pairKey = `print/${designId}/v1/training/${darks.id}-to-${fresh.id}.json`;
-  const pair = JSON.parse(h.fakes.storage.objects.get(pairKey)!.data.toString('utf8')) as { how: string; automatic: { packId: string; manifest: unknown; files: unknown[] }; corrected: { packId: string; manifest: unknown }; detail: { filename: string; changes: string[] } };
-  assert.equal(pair.how, 'upload');
-  assert.equal(pair.automatic.packId, darks.id);
-  assert.equal(pair.corrected.packId, fresh.id);
-  assert.ok(pair.automatic.manifest && pair.corrected.manifest && pair.automatic.files.length > 0);
-  assert.equal(pair.detail.filename, 'MF-UNDERWRITER-TEE-v1-FRONT-CHEST-DARKS.psd');
-  assert.deepEqual(pair.detail.changes, outcome.changes);
-  assert.equal(h.fakes.storage.objects.get(pairKey)!.visibility, 'private');
-
   // The artist's approval stands and nobody is asked again.
   assert.equal((await approvalOf(designId)).invalidatedAt, null);
   assert.equal((await notesFor('print.reapproval', designId)).length, 0);
@@ -745,7 +724,6 @@ test('the same correction twice is one correction: a job that comes back, or is 
   assert.equal(h.fakes.storage.keys(`print/${designId}/`).length, files, 'no file was added');
   assert.equal(h.fakes.engine.calls.length, calls);
   assert.equal(h.fakes.pack.checkCalls.length, checks, 'nothing was checked again');
-  assert.equal(h.fakes.storage.keys(`print/${designId}/v1/training/`).filter((k) => k.includes(darks.id)).length, 1, 'one training pair');
 });
 
 test('a correction that changes the proof beyond the threshold withdraws the approval and asks the artist again', async () => {

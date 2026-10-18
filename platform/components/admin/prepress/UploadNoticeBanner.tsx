@@ -16,8 +16,7 @@ export function UploadNoticeBanner({ packId }: { packId: string }) {
           Films and proof were rebuilt from it and every check ran again; the design’s job sheet shows the new pack.{' '}
           {notice.needsReapproval
             ? 'The change alters the proof, so the artist is asked to approve again.'
-            : 'The change doesn’t alter the proof, so the artist isn’t asked to approve again.'}{' '}
-          The before and after are saved as a training pair.
+            : 'The change doesn’t alter the proof, so the artist isn’t asked to approve again.'}
         </span>
         {notice.changes.length > 0 ? (
           <ul>

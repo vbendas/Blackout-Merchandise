@@ -213,15 +213,28 @@ test('a corrected upload that stops after its build has already asked the artist
   const key = `prepress-uploads/${darks.id}/${randomUUID()}/corrected.psd`;
   await h.fakes.storage.putObject({ key, data: writeFakePsd(psd), contentType: 'application/octet-stream', visibility: 'private' });
 
-  // Storage fails on the training pair, the last step: the job fails part way.
-  const put = h.fakes.storage.putObject;
+  // The database fails once on the last step, reading back the finished pack after the corrected pack
+  // took over the old one: the job fails part way. The first read after the old pack is marked replaced
+  // is that one.
+  const stub = h.db as unknown as { select: (...args: unknown[]) => unknown; update: (...args: unknown[]) => { set: (values: unknown) => unknown } };
+  const { select, update } = stub;
+  let tookOver = false;
   let failOnce = true;
-  h.fakes.storage.putObject = async (input) => {
-    if (failOnce && input.key.includes('/training/')) {
+  stub.update = (...args) => {
+    const builder = update.apply(h.db, args);
+    const set = builder.set.bind(builder);
+    builder.set = (values) => {
+      if ((values as { manifest?: StoredManifest }).manifest?.pipeline?.supersededBy) tookOver = true;
+      return set(values);
+    };
+    return builder;
+  };
+  stub.select = (...args) => {
+    if (tookOver && failOnce) {
       failOnce = false;
-      throw new Error('storage hiccup');
+      throw new Error('database hiccup');
     }
-    return put(input);
+    return select.apply(h.db, args);
   };
   h.fakes.pack.options.proofState = 'failed';
   const queued = await h.fakes.deps.jobs!.enqueuePrintJob({
@@ -230,9 +243,11 @@ test('a corrected upload that stops after its build has already asked the artist
     createdBy: h.owner.userId,
   });
   try {
-    await assert.rejects(h.runJob(queued.jobId), /storage hiccup/);
+    await assert.rejects(h.runJob(queued.jobId), /database hiccup/);
+    assert.ok(!failOnce, 'the failure came after the takeover');
     const [approval] = await h.db.select().from(schema.designApprovals).where(eq(schema.designApprovals.designId, designId));
     assert.ok(approval.invalidatedAt, 'the artist was asked again before the step that failed');
+    assert.ok(h.pipeline.isSuperseded(await reload(darks.id)), 'the corrected pack took over before the step that failed');
 
     // The worker tries again: nothing is built twice, and the rest is done.
     await h.db.update(schema.printJobs).set({ status: 'queued' }).where(eq(schema.printJobs.id, queued.jobId));
@@ -242,7 +257,8 @@ test('a corrected upload that stops after its build has already asked the artist
     assert.ok(h.pipeline.isSuperseded(await reload(darks.id)), 'the corrected pack took over');
     assert.equal((await current(versionId)).filter((p) => p.screenSetKey === 'darks').length, 1);
   } finally {
-    h.fakes.storage.putObject = put;
+    stub.select = select;
+    stub.update = update;
     h.fakes.pack.options.proofState = 'passed';
   }
 });

@@ -285,13 +285,11 @@ test('a corrected PSD is read by the real reader, matched to the films, compared
   assert.ok(proof, 'the proof is compared with the one the artist saw');
   assert.equal(outcome.needsReapproval, proof.state !== 'passed', 'the artist is asked again exactly when the proof check says it changed');
 
-  // The new pack holds the corrected film, and the old pack is kept with the pair that records the correction.
+  // The new pack holds the corrected film, and records the pack it corrects.
   const rebuilt = (await h.packs(designVersionId)).find((p) => p.id === outcome.newPackId)!;
   const parsed = await pack.readScreenPsd(psdOf(rebuilt));
   assert.equal(on(parsed.plates.find((p) => p.index === film.index)!.plate.data), on(film.plate.data), 'the corrected film, pixel for pixel');
   assert.equal(parsed.effectsOn, false);
-  const pairs = h.fakes.storage.keys(`print/${designId}/v1/training/`);
-  assert.ok(pairs.some((k) => k.includes(first.id) && k.includes(rebuilt.id)), pairs.join(' '));
   assert.equal(h.pipeline.packInfo(rebuilt)?.correction?.fromPackId, first.id);
   const sheet = (await jobSheets.getDesignJobSheet(h.owner, designId))!;
   assert.equal(sheet.bytes.subarray(0, 5).toString('latin1'), '%PDF-');

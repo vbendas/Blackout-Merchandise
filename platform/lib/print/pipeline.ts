@@ -1571,25 +1571,6 @@ async function settleSupersession(job: { versionId: string; createdAt: Date }, b
   }
 }
 
-/** A before/after pair for the dataset plan (Plan section 8): what the engine made and what pre-press settled on. */
-async function writeTrainingPair(deps: PrintDeps, version: VersionRow, before: PackRow, afterId: string, how: 'rerun' | 'upload', detail: unknown): Promise<void> {
-  const [after] = await db.select().from(schema.productionPacks).where(eq(schema.productionPacks.id, afterId)).limit(1);
-  if (!after) return;
-  const slimmed = (row: PackRow) => ({ packId: row.id, technique: row.technique, screenSetKey: row.screenSetKey, inputHash: row.inputHash, manifest: row.manifest, files: row.files, checks: row.checks });
-  const record = {
-    schema: 1,
-    how,
-    at: new Date().toISOString(),
-    designId: version.designId,
-    designVersionId: version.id,
-    automatic: slimmed(before),
-    corrected: slimmed(after),
-    detail,
-  };
-  const key = deps.storage.printKey(version.designId, version.version, 'training', `${before.id}-to-${after.id}.json`);
-  await deps.storage.putObject({ key, data: Buffer.from(JSON.stringify(record, null, 2)), contentType: 'application/json', visibility: 'private' });
-}
-
 /** The design's still-open orders can now find the packs they were waiting on. */
 async function attachWaitingOrders(designId: string): Promise<void> {
   try {
@@ -1745,16 +1726,8 @@ async function handlePrepareJob(job: PrintJobRow, input: PrintJobInput, deps: Pr
   const rows = built.length > 0 ? await db.select().from(schema.productionPacks).where(inArray(schema.productionPacks.id, built.map((b) => b.packId))) : [];
   const replacing = rows.filter((row) => row.correctedFromPackId && !isSuperseded(row) && before.some((p) => p.id === row.correctedFromPackId));
 
-  // Staff changed the pack: keep the automatic and the changed version as a pair. Both steps below
-  // repeat harmlessly: the pair is written to the same key, and an approval already withdrawn is not
-  // withdrawn (or announced) twice.
-  if (rerun) {
-    for (const row of replacing) {
-      const old = before.find((p) => p.id === row.correctedFromPackId);
-      if (old) await writeTrainingPair(deps, version, old, row.id, 'rerun', rerun.settings);
-    }
-  }
-  // Ask the artist again only if a proof they may have approved moved.
+  // Ask the artist again only if a proof they may have approved moved. This repeats harmlessly: an
+  // approval already withdrawn is not withdrawn (or announced) twice.
   await applyReapprovalRule({
     designId: version.designId,
     designVersionId: version.id,
@@ -1920,7 +1893,7 @@ async function contextForPack(row: PackRow, inputHash: string, jobId: string | n
 }
 
 /** Parses a corrected screen PSD, rebuilds the exports from it, re-runs the
- * checks, keeps the before and after as a training pair, and applies the re-approval rule.
+ * checks and applies the re-approval rule.
  * The same file for the same pack is the same correction: a repeat (a recovered job, a second
  * click) finds what the first made and gives its outcome back instead of building again. */
 export async function runCorrectedUpload(
@@ -1944,7 +1917,7 @@ export async function runCorrectedUpload(
   const earlier = (await loadPacksForVersion(old.designVersionId)).find(
     (p) => p.inputHash === inputHash && p.technique === 'screen' && p.correctedFromPackId === old.id && packInfo(p)?.correction,
   );
-  if (earlier && (await outputsIntact(earlier, deps))) return finishCorrection(deps, old.id, earlier.id, args.filename);
+  if (earlier && (await outputsIntact(earlier, deps))) return finishCorrection(old.id, earlier.id);
   if (isSuperseded(old)) return { ok: false, error: 'A newer pack replaced this one while the file was waiting. Upload the corrected file to the newer one.' };
 
   let parsed: ParsedScreenPsd;
@@ -2002,13 +1975,13 @@ export async function runCorrectedUpload(
     const correction = { fromPackId: old.id, filename: args.filename, changes, needsReapproval: built.proofChanged };
     return { manifest: { ...manifest, pipeline: { ...manifest.pipeline, correction } } };
   });
-  return finishCorrection(deps, old.id, built.packId, args.filename);
+  return finishCorrection(old.id, built.packId);
 }
 
 /** The steps after a correction's build, each safe to repeat: the re-approval rule first (nothing after it
- * may skip it), then the new pack goes live, takes over the old one's orders, and the before and after are
- * kept as a training pair. */
-async function finishCorrection(deps: PrintDeps, oldId: string, madeId: string, filename: string): Promise<ServiceResult<CorrectedUploadResult>> {
+ * may skip it), then the new pack goes live, takes over the old one's orders, and the design's waiting
+ * orders are attached. */
+async function finishCorrection(oldId: string, madeId: string): Promise<ServiceResult<CorrectedUploadResult>> {
   const [made] = await db.select().from(schema.productionPacks).where(eq(schema.productionPacks.id, madeId)).limit(1);
   const correction = made ? packInfo(made)?.correction : null;
   if (!made || !correction) return { ok: false, error: 'The corrected pack went missing. Upload the file again.' };
@@ -2028,7 +2001,6 @@ async function finishCorrection(deps: PrintDeps, oldId: string, madeId: string, 
     const [fresh] = await db.select().from(schema.productionPacks).where(eq(schema.productionPacks.id, made.id)).limit(1);
     await takeOver(old, fresh, 'reupload');
   }
-  if (old) await writeTrainingPair(deps, version, old, made.id, 'upload', { filename, changes: correction.changes });
   await attachWaitingOrders(version.designId);
 
   const [done] = await db.select().from(schema.productionPacks).where(eq(schema.productionPacks.id, made.id)).limit(1);

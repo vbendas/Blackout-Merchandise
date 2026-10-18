@@ -902,8 +902,8 @@ async function awaitUpload(jobId: string, deps: PrintDeps): Promise<ServiceResul
  * Rebuilds a pack from a corrected PSD that is already in storage (the browser put it there with
  * a signed URL: a PSD is hundreds of MB, and a request body stops at 4.5 MB). What can be refused
  * without opening the file is refused here; the worker then reads it, parses it with the pack
- * module's reader, rebuilds the exports, re-runs the checks, stores the before and
- * after as a training pair and applies the re-approval rule (Plan 8). This waits for that and
+ * module's reader, rebuilds the exports, re-runs the checks and applies the re-approval
+ * rule (Plan 8). This waits for that and
  * answers with what changed. The same file for the same pack is the same job, and a repeat of it
  * builds nothing twice.
  */
