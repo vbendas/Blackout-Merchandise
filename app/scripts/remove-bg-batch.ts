@@ -1,5 +1,5 @@
 /**
- * Batch background removal for LoRA training images.
+ * Batch background removal for the style reference image library.
  *
  * Uses fal.ai's `fal-ai/ideogram/remove-background` model to strip the
  * background from each source .jpg, then flattens the resulting

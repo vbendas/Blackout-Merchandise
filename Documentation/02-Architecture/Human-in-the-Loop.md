@@ -47,12 +47,12 @@ This principle applies to:
 **Weekly:**
 - Audit random sample (5%) of all AI interactions for quality
 - Meet with engineering to report patterns, failures, and improvement opportunities
-- Update AI training data or prompt templates based on observed issues
+- Update prompt templates and agent knowledge based on observed issues
 
 **Monthly:**
 - Publish internal quality report (AI accuracy, human intervention rate, artist satisfaction)
 - Recommend system improvements or policy changes
-- Contribute to AI model fine-tuning datasets
+- Review style reference libraries and prompt templates for the hosted generation models
 
 **Quarterly:**
 - Strategic review: Is the AI+human model working? What needs to change?
@@ -184,8 +184,7 @@ Artist Request → Francisca AI Generates Mockup → Head of Design Reviews
 - Set and maintain visual quality standards
 - Curate the product blanks catalog
 - Develop design guidelines and templates
-- Train Francisca AI on new styles and trends
-- Lead the expert panel scoring system (Phase 9+)
+- Curate Francisca's style reference images and prompt templates for new styles and trends
 
 #### Head of Operations (Leopoldo's Lead)
 

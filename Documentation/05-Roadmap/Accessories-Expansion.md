@@ -21,7 +21,7 @@
 9. [Database Schema](#database-schema)
 10. [Equipment & Facility](#equipment--facility)
 11. [Pilot Program](#pilot-program)
-12. [Data Collection & Fine-Tuning](#data-collection--fine-tuning)
+12. [Quality Tracking](#quality-tracking)
 13. [Timeline & Milestones](#timeline--milestones)
 14. [Success Criteria](#success-criteria)
 15. [Risk Mitigation](#risk-mitigation)
@@ -46,7 +46,7 @@ Expand Merch From from garments into **3D-printed jewelry accessories** — pend
 | **Artist differentiation** | Custom accessories = unique merch that competitors can't replicate |
 | **Platform extensibility** | Proves the AI-to-physical pipeline works beyond garments |
 | **Crowdfunding appeal** | "AI-designed jewelry" is a compelling investor story |
-| **Data moat** | Each design generates training data that improves the AI over time |
+| **Production know-how** | Each design produces print and casting outcomes that improve prompts and post-processing over time |
 | **Same Cat-Suite** | No new AI agents needed — Leopoldo, Francisca, Antonia cover the workflow |
 
 ### Production Model
@@ -169,7 +169,7 @@ Quality check → Ship to customer
 | **Speed** | ~30-60 seconds per model — acceptable for iterative design |
 | **API** | RESTful API with image-to-3D and text-to-3D endpoints |
 | **STL export** | Direct STL export — no format conversion needed |
-| **Future-proof** | Outputs can become training data for our own fine-tuned model |
+| **Swappable** | Wrapped behind our own API layer, so another hosted 3D provider can replace it |
 
 ### API Integration (TypeScript Client)
 
@@ -479,8 +479,8 @@ CREATE TABLE accessory_orders (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- accessory_training_data: For future fine-tuning
-CREATE TABLE accessory_training_data (
+-- accessory_quality_log: print/cast outcomes per design, used to tune prompts and post-processing
+CREATE TABLE accessory_quality_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   design_id UUID NOT NULL REFERENCES accessory_designs(id),
   
@@ -608,7 +608,7 @@ export const accessoryDesigns = pgTable('accessory_designs', {
 
 ### Data Collection Per Design
 
-Every design generates a training data point:
+Every design records its inputs and production outcomes:
 
 ```
 Input:
@@ -633,39 +633,13 @@ Quality Metrics:
 
 ---
 
-## Data Collection & Fine-Tuning
+## Quality Tracking
 
-### Phase 1: Meshy Bootstrap (Year 2, Months 1-6)
+3D generation uses Meshy's hosted API as-is. No model training or fine-tuning is planned.
 
-Use Meshy as-is. Collect all input→output pairs.
-
-### Phase 2: Synthetic Dataset (Year 2, Months 4-8)
-
-| Step | Action | Volume |
-|------|--------|--------|
-| 1 | Curate reference jewelry 3D models (Turbosquid, CGTrader) | 500-1,000 models |
-| 2 | Generate variations via Meshy (different angles, styles) | 3,000-5,000 outputs |
-| 3 | Run through post-processing pipeline | All outputs |
-| 4 | Score each output (castability, print success) | Automated |
-| 5 | Create paired dataset: (reference + text) → (production-ready STL) | 3,000-5,000 pairs |
-
-**Cost:** €2-5K for dataset licensing + €500-1K compute
-
-### Phase 3: Fine-Tuning (Year 2, Months 8-12)
-
-| Decision | Options | Recommendation |
-|----------|---------|---------------|
-| **Base model** | Hunyuan3D-2 vs TRELLIS | TRELLIS (MIT license, training code available) |
-| **Method** | LoRA vs full fine-tune | LoRA (cheaper, faster, preserves base capabilities) |
-| **Compute** | A100 GPU | €200-1,000 for LoRA training run |
-| **Dataset** | Pilot data + synthetic pairs | 3,000-10,000 pairs |
-
-### Phase 4: Evaluation & Deployment (Year 2 end → Year 3)
-
-- A/B test: Meshy generic vs. fine-tuned model
-- Metrics: castability score, print success rate, customer satisfaction
-- Deploy fine-tuned model if it outperforms Meshy by >15%
-- Keep Meshy as fallback for accessory types not in training data
+- Log every design's inputs, Meshy output, post-processing steps and print/cast outcome (`accessory_quality_log`).
+- Use the outcomes to tune prompts, Cat-Suite guidance and the post-processing pipeline (mesh repair, wall thickness, castability checks).
+- Review failure cases monthly and decide whether a different hosted 3D provider fits an accessory type better.
 
 ---
 
@@ -691,7 +665,7 @@ Use Meshy as-is. Collect all input→output pairs.
 | **M9: First Physical Pieces** | Jul 2027 | Test prints + castings successful |
 | **M10: Pilot B Launch** | Aug 2027 | 8 artists, medium complexity |
 | **M11: Pilot C Launch** | Jan 2028 | 10+ artists, complex pieces |
-| **M12: Fine-Tuned Model** | Jun 2028 | Proprietary model outperforming generic Meshy |
+| **M12: Pipeline Hardening** | Jun 2028 | Prompt and post-processing tuning from pilot outcomes |
 | **M13: Full Public Launch** | Jul 2028 | All artists, all complexity levels |
 
 ---
@@ -711,10 +685,9 @@ Use Meshy as-is. Collect all input→output pairs.
 - ✅ 50+ designs generated through the pipeline
 - ✅ 80%+ castability score on generated designs
 - ✅ Physical production working (print → cast → finish)
-- ✅ Data collection pipeline capturing all training pairs
+- ✅ Quality log capturing print and cast outcomes for every design
 
 ### Full Launch Success (M13)
-- ✅ Fine-tuned model outperforming generic Meshy by 15%+
 - ✅ <2 hours average human touchup per complex piece
 - ✅ 60+ accessories produced monthly
 - ✅ Artist satisfaction >4.0/5.0
@@ -731,7 +704,6 @@ Use Meshy as-is. Collect all input→output pairs.
 | Casting quality inconsistency | High | Start with brass (cheapest), iterate burnout profiles before scaling |
 | AI output not production-ready | Medium | Budget 2-4h CAD cleanup per complex piece early; automate over time |
 | Artist adoption low | Medium | Start with existing garment artists; accessories as upsell |
-| Fine-tuning data insufficient | Low | Synthetic data pipeline generates 1000s of pairs; Meshy outputs as training data |
 | Equipment downtime | Medium | Keep Meshy as digital-only option; equipment is for physical production only |
 | Regulatory (precious metals) | Low | Brass/silver jewelry under €500 has minimal EU regulation; gold requires hallmarking |
 

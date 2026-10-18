@@ -20,7 +20,7 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 
 **Active Tracks:**
 - **Track A — Engineering:** Voice cleanup, fal.ai integration, storefront components, demo mode refinement
-- **Track B — Training Data:** Victor generating 50 images/style → Photoshop → Separation Studio NXT (Weeks 2-3)
+- **Track B — Style Reference Library:** Victor curating style reference images per style and checking sample separations in Photoshop / Separation Studio NXT (Weeks 2-3)
 
 ---
 
@@ -30,9 +30,9 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 2. [Print Prep (Oct 2026)](#print-prep-oct-2026)
 3. [Active: P0 — Demo Hardening](#active-p0--demo-hardening-may-9--june-8)
    - [Week 1: AI Chat Core](#week-1-may-9-15-ai-chat-core)
-   - [Week 2: Voice + Design Gen](#week-2-may-16-22-voice--design-gen--dataset-start)
-   - [Week 3: Storefront](#week-3-may-23-29-storefront--dataset-completion)
-   - [Week 4: LoRA + Polish](#week-4-may-30-june-5-lora-integration--essential-polish)
+   - [Week 2: Voice + Design Gen](#week-2-may-16-22-voice--design-gen--reference-library-start)
+   - [Week 3: Storefront](#week-3-may-23-29-storefront--reference-library-completion)
+   - [Week 4: Style Presets + Polish](#week-4-may-30-june-5-style-presets--essential-polish)
    - [Week 5: Final Polish](#week-5-june-6-8-final-polish)
 4. [Future: P1-P7 — Crowdfunding Campaign](#future-p1-p7--crowdfunding-campaign-june--oct-2026)
 5. [Future: Phase 7-10 — Platform Scale](#future-phase-7-10--platform-scale-late-2026--2028)
@@ -193,7 +193,7 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 
 ## 🚧 ACTIVE: P0 — Demo Hardening (May 9 → June 8)
 
-> **Goal:** Working AI chat, voice, LoRA design generation, storefront, and 300-image dataset for crowdfunding video.
+> **Goal:** Working AI chat, voice, reference-guided design generation, storefront, and a curated style reference library for the crowdfunding video.
 > **Platform:** Indiegogo (Flexible Funding)  
 > **Target:** €50,000 stretch goal  
 > **Campaign Launch:** June 30, 2026
@@ -212,13 +212,13 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 | Track | Who | What | When |
 |-------|-----|------|------|
 | **Track A — Engineering** | OpenCode + subagents | fal.ai wiring, Kontext editing, storefront, demo mode | All week |
-| **Track B — Training Data** | Victor (10+ yr screen print expert) | Generate 50 images/style → Photoshop → Separation Studio NXT | Weeks 2-3 |
+| **Track B — Style Reference Library** | Victor (10+ yr screen print expert) | Curate style reference images per style; check sample separations in Photoshop / Separation Studio NXT | Weeks 2-3 |
 
 ### Phase Overview
 
 | Phase | Name | Duration | Goal |
 |-------|------|----------|------|
-| **P0** | Demo Hardening + Training Data | May 9 → June 8 (4.5 weeks) | Working AI chat, voice, LoRA design gen, storefront, 300-image dataset |
+| **P0** | Demo Hardening + Reference Library | May 9 → June 8 (4.5 weeks) | Working AI chat, voice, reference-guided design gen, storefront, style reference library |
 | **P1** | Essential Polish | June 9 → June 15 (1 week) | Core animations, mobile perfection, demo-ready |
 | **P2** | Video Production | June 16 → June 22 (1 week) | Shoot, edit, render final video |
 | **P3** | Campaign Prep | June 9 → June 22 (parallel) | /invest page, email sequences, influencer outreach |
@@ -314,7 +314,7 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 
 ---
 
-### Week 2 (May 16-22): Voice + Design Gen + Dataset Start
+### Week 2 (May 16-22): Voice + Design Gen + Reference Library Start
 
 #### Day 8 (May 16): Voice Pipeline Polish
 | Task                     | Description                                                  | Files                                 | Est. |
@@ -340,8 +340,8 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 | Task | Description | Files | Est. |
 |------|-------------|-------|------|
 | **BLOCKER: fal.ai account** | Sign up, get FAL_API_KEY | `.env.local` | 30min |
-| falClient.ts implementation | Typed client for fal.ai FLUX.2-dev + LoRA | `lib/ai/falClient.ts` | 2h |
-| generateDesign() | Generate image from prompt + LoRA style | `lib/ai/generateDesign.ts` | 2h |
+| falClient.ts implementation | Typed client for fal.ai Nano Banana 2 (`fal-ai/nano-banana-2`, `/edit`) | `lib/ai/falClient.ts` | 2h |
+| generateDesign() | Generate image from prompt + style reference image | `lib/ai/generateDesign.ts` | 2h |
 | postProcessImage() | Auto-enhance, upscale, format for print | `lib/image/postProcess.ts` | 2h |
 | Generation progress UI | Loading state with progress bar | `components/chat/GenerationProgress.tsx` | 1h |
 | Design API route | POST /api/design/generate | `app/api/design/generate/route.ts` | 1h |
@@ -393,7 +393,7 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 
 ---
 
-### Week 3 (May 23-29): Storefront + Dataset Completion
+### Week 3 (May 23-29): Storefront + Reference Library Completion
 
 #### Day 15 (May 23): StorefrontHero + ArtistBio
 | Task | Description | Files | Est. |
@@ -450,21 +450,21 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 | Task | Description | Files | Est. |
 |------|-------------|-------|------|
 | Retrospective | What worked, blockers, next week | `DEVLOG.md` | 30min |
-| Dataset review | 300 images ready? Quality check | HuggingFace | 1h |
+| Reference library review | Style reference images curated? Quality check | Local library | 1h |
 | Handoff prep | Document what's done vs remaining | README updates | 1h |
 | Week 4 planning | Final polish tasks prioritized | Roadmap update | 30min |
 
 ---
 
-### Week 4 (May 30-June 5): LoRA Integration + Essential Polish
+### Week 4 (May 30-June 5): Style Presets + Essential Polish
 
-#### Day 22-24 (May 30-June 1): LoRA Wiring
+#### Day 22-24 (May 30-June 1): Style Preset Wiring
 | Task | Description | Files | Est. |
 |------|-------------|-------|------|
-| LoRA endpoint setup | fal.ai LoRA loading per style | `lib/ai/falClient.ts` | 3h |
-| A/B test framework | Compare LoRA vs base FLUX quality | `lib/ai/abTest.ts` | 2h |
+| Style preset setup | Prompt template + reference image per style, sent to `fal-ai/nano-banana-2/edit` | `lib/ai/falClient.ts` | 3h |
+| A/B test framework | Compare reference-guided vs plain text-to-image quality | `lib/ai/abTest.ts` | 2h |
 | Enhancement pipeline | Auto-post-process generated images | `lib/image/enhancement.ts` | 3h |
-| Style selector UI | Dropdown to pick LoRA style | `components/chat/StyleSelector.tsx` | 2h |
+| Style selector UI | Dropdown to pick a style preset | `components/chat/StyleSelector.tsx` | 2h |
 | Quality validation | Automated check for print readiness | `lib/image/qualityCheck.ts` | 2h |
 
 #### Day 25-28 (June 2-5): Animation + Performance
@@ -484,7 +484,7 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 #### Day 29-31 (June 6-8): Demo Completion
 | Task | Description | Files | Est. |
 |------|-------------|-------|------|
-| Full demo run | End-to-end with LoRA designs | Manual | 2h |
+| Full demo run | End-to-end with reference-guided designs | Manual | 2h |
 | Bug fix sprint | Any issues from demo run | Various | 4h |
 | Final build | Production build, verify zero errors | `npm run build` | 1h |
 | Deploy to staging | Vercel preview deployment | Vercel | 30min |
@@ -493,33 +493,15 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 
 ---
 
-### Training Data Strategy (6 MVP LoRA Styles)
+### Style Reference Library (6 MVP Styles)
 
-| Style | Images | Time (Victor) |
-|-------|--------|---------------|
-| American Traditional | 50 | ~10h |
-| Japanese | 50 | ~10h |
-| Blackwork | 50 | ~10h |
-| Vintage 90's | 50 | ~10h |
-| Realism | 50 | ~10h |
-| Dark Art | 50 | ~10h |
-| **Total** | **300** | **~60-85h** |
-
-**Pipeline:** Generated Image → Photoshop Treatment (LoRA training) → Separation Studio NXT (U-Net training)
-
-**Three Assets Produced:**
-
-| Asset | Training Data | Moat Level |
-|-------|--------------|------------|
-| 6 Style LoRAs | 50 enhanced images each | Medium — replicable with effort |
-| Color Separation U-Net | 300 input/output separation pairs | **High** — proprietary dataset |
-| Enhancement Pipeline | 300 raw → enhanced pairs | **High** — tacit knowledge capture |
+Each style preset (American Traditional, Japanese, Blackwork, Vintage 90's, Realism, Dark Art) is a prompt template plus a small curated set of reference images. At generation time one anchor image is sent with the prompt to Nano Banana 2 via fal.ai (Seedream 5.0 Pro as fallback). No model training is involved; the earlier LoRA plan was retired on 2026-08-24. See [`Image-Generation-Architecture.md`](../05-Shared/Image-Generation-Architecture.md) §6.
 
 ### Definition of Done (Crowdfunding Demo)
 
 - [ ] New user can visit site, see Leopoldo greet them, have a 3-message conversation
-- [ ] User can switch to Francisca and request a t-shirt design in a specific LoRA style
-- [ ] Design generates in <10 seconds with LoRA-enhanced quality
+- [ ] User can switch to Francisca and request a t-shirt design in a specific style preset
+- [ ] Design generates in <10 seconds using reference-guided generation
 - [ ] User can refine design with text or voice (Kontext editing)
 - [ ] User can preview an artist storefront with products
 - [ ] Voice mode works: speak → transcribe → respond → speak back
@@ -527,8 +509,7 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 - [ ] Mobile experience is flawless (iPhone 14 + Pixel 7 tested)
 - [ ] Every animation is smooth (60fps, no jank)
 - [ ] Zero console errors, zero build warnings
-- [ ] 6 LoRAs trained and integrated
-- [ ] 300-image dataset on HuggingFace
+- [ ] 6 style presets (prompt template + reference images) integrated
 
 ### Key Metrics
 
@@ -643,12 +624,12 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 
 ### Phase 7: Beta Launch (Apr → Dec 2026, 9 months)
 
-**Goal:** Launch with 10-100 artists, gather data, train models, iterate on feedback.
+**Goal:** Launch with 10-100 artists, gather feedback, iterate on the product.
 
 | Cohort | Artists | Timeline | Goal |
 |--------|---------|----------|------|
 | Cohort 1 | 10 | Months 1-3 | Proof of concept, product-market fit signals |
-| Cohort 2 | 40+ | Months 4-6 | Scaling validation, model improvements |
+| Cohort 2 | 40+ | Months 4-6 | Scaling validation, prompt and pipeline improvements |
 | Cohort 3 | 100+ | Months 7-9 | Production readiness, launch prep |
 
 **Key Tasks:**
@@ -656,14 +637,13 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 - Onboarding flow refinement based on waitlist feedback
 - Production pipeline: real orders, real fulfillment
 - Analytics dashboard: GMV, retention, satisfaction
-- Model retraining with production data
+- Prompt template and style reference tuning from production feedback
 
 **Success Criteria:**
 - 100+ artists actively using
 - 90%+ designs production-ready (minimal human intervention)
 - >2.5/3 average satisfaction rating
-- 10,000+ conversation examples collected
-- U-Net model 95%+ accuracy
+- Color separation output accepted by print operators without manual rework in most jobs
 
 ---
 
@@ -758,13 +738,11 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 
 ### Phase 9.5: AI Moat Conversion (Feb 2027+, Ongoing)
 
-**Goal:** Convert AI advantage from "having AI" to "AI + proprietary workflow data + artist-specific training."
+**Goal:** Convert AI advantage from "having AI" to "AI + workflow integration + print-production expertise."
 
 **Key Tasks:**
 - Artist style preference tracking (opt-in)
 - Design-to-conversion correlation database
-- Successful design pattern recognition (ML model)
-- Artist-specific training data collection (with explicit consent)
 - Print-readiness validation pipeline (DPI, CMYK, bleed-check)
 
 **Research Basis:**
@@ -777,7 +755,7 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 - Style preference tracking collecting data
 - Design-to-conversion database established
 - Print-readiness pipeline deployed
-- **Business Metric:** 10,000+ design-to-sale correlations in proprietary dataset
+- **Business Metric:** 10,000+ design-to-sale correlations in the analytics database
 
 ---
 
@@ -793,8 +771,7 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 | Jan 2027 | 3D Viewer Proof of Concept: Three.js viewer, Meshy API connected |
 | Feb-Apr 2027 | Full Accessories UI: Cat-Suite guided design, material selection |
 | May-Jul 2027 | Pilot Launch: 5-10 artists, simple pieces, data collection |
-| Aug-Dec 2027 | Iteration & Data: Progressive complexity, synthetic dataset |
-| Jan-Jun 2028 | Model Fine-Tuning: Train proprietary model on collected data |
+| Aug-Dec 2027 | Iteration: Progressive complexity, pipeline hardening |
 | Jul 2028+ | Full Public Launch: Complex designs, automated pipeline |
 
 **Pre-Crowdfunding Deliverable:**
@@ -808,7 +785,6 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 - **3D Generation:** Meshy API (text/image → 3D mesh, STL export)
 - **Post-Processing:** Python microservice (mesh repair, wall thickness, castability)
 - **3D Viewer:** Three.js / React Three Fiber
-- **Future Fine-Tuning:** Hunyuan3D-2 or TRELLIS with LoRA
 
 **Equipment (Portugal Facility — €12K Budget):**
 - Formlabs Form 4 + Wash+Cure: €5,500
@@ -843,7 +819,7 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 | **LLM** | Mistral Large | EU-based, GDPR-native, open weights |
 | **STT** | Mistral Voxtral Transcribe 2 | $0.003/min, sub-200ms, Apache 2.0 |
 | **TTS** | ElevenLabs | Zero-shot voice cloning, ~90ms |
-| **Image Gen** | fal.ai (FLUX.2-dev + LoRAs) | Single vendor, Kontext editing |
+| **Image Gen** | fal.ai (Nano Banana 2, Seedream 5.0 Pro fallback) | Single vendor, reference-guided generation and editing |
 | **Color Sep** | OpenCV (Python) | K-means, Pantone mapping, halftone |
 
 ### Deferred Features
@@ -864,14 +840,14 @@ Week 1 (AI Chat Core) is complete. The chat now has real-time streaming response
 | Creator Success (7.5) | Churn reduction | <50% (from 76% baseline) |
 | Public Launch (Phase 8) | Revenue + scale | €10K/month, 100+ artists |
 | Traffic (8.5) | Organic share | 30% organic, $15K GMV |
-| AI Moat (9.5) | Dataset size | 10,000+ correlations |
+| AI Moat (9.5) | Design-to-sale analytics | 10,000+ correlations |
 
 ### Related Documents
 
 - **PRD:** [`/Documentation/PRD.md`](../PRD.md) — Product vision and features
 - **Print Prep:** [`/Documentation/Dev/Print-Prep-Plan.md`](../Dev/Print-Prep-Plan.md) — Print prep plan, decisions and phases
 - **AI Stack:** [`/Documentation/02-Architecture/AI-Stack.md`](../02-Architecture/AI-Stack.md) — All AI model routing
-- **Image Generation:** [`/Documentation/05-Shared/Image-Generation-Architecture.md`](../05-Shared/Image-Generation-Architecture.md) — fal.ai pipeline, LoRA strategy
+- **Image Generation:** [`/Documentation/05-Shared/Image-Generation-Architecture.md`](../05-Shared/Image-Generation-Architecture.md) — fal.ai pipeline, Style Capsules
 - **Design System:** [`/Documentation/05-Shared/Design-System.md`](../05-Shared/Design-System.md) — Colors, typography, components
 - **Database Schema:** [`/Documentation/05-Shared/Database-Schema.md`](../05-Shared/Database-Schema.md) — Drizzle tables
 - **Cat-Suite Prompts:** [`/Documentation/CAT_SUITE_PROMPTS.md`](../CAT_SUITE_PROMPTS.md) — Agent personalities

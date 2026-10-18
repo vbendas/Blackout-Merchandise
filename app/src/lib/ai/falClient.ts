@@ -11,10 +11,9 @@
  *   is print-ready for the vast majority of sizes, so this is not in the critical path
  * - Optional cheap preview tier (flux-2 dev) — may be dropped at launch
  *
- * Strategy pivot (Aug 24, 2026): custom-trained style LoRAs are no longer the primary style
- * mechanism. Reference-guided generation on off-the-shelf frontier models outperformed LoRA
- * training and raw text-to-image in head-to-head testing. LoRA training is re-scoped to
- * post-MVP artist-signature packs (see LEGACY_LORA_ENDPOINTS below and doc §7).
+ * Strategy pivot (Aug 24, 2026): style comes from reference-guided generation on hosted
+ * frontier models (a curated style reference image attached to each call). The earlier
+ * LoRA-first plan was retired; this client does not train or fine-tune models.
  *
  * Full architecture: Documentation/05-Shared/Image-Generation-Architecture.md (v2.0)
  *
@@ -47,34 +46,15 @@ export const FAL_ENDPOINTS = {
 } as const;
 
 /**
- * Legacy LoRA endpoints — re-scoped to post-MVP artist-signature style packs (see
- * Image-Generation-Architecture.md §7). Not part of the MVP critical path. Kept here for the
- * post-MVP artist-pack workflow: training real flash from partner tattooers/artists with
- * written ML-training permission, where an individual artist's hand is distinctive enough
- * that frontier-model reference-guided generation can't reproduce it.
- *
- * Existing trained artifacts (american-traditional-v1, american-traditional-v1-white —
- * $12.80 total spent) are preserved as baseline evidence at data/LoRAs/trained/. Their
- * dataset now also serves as the Style Capsule reference library for American Traditional.
- */
-export const LEGACY_LORA_ENDPOINTS = {
-  /** Train a custom LoRA. $0.0064/step (~$6.40 per 1000-step LoRA). */
-  TRAIN_LORA: 'fal-ai/flux-2-trainer',
-  /** Generate with a trained LoRA. $0.021/MP. */
-  GENERATE_WITH_LORA: 'fal-ai/flux-2/lora',
-  /** LoRA-aware editing. $0.021/MP. */
-  EDIT_WITH_LORA: 'fal-ai/flux-2/lora/edit',
-} as const;
-
-/**
  * Style templates seed data for the Style Capsule system (Image-Generation-Architecture.md §6).
  * Each entry maps a gallery card to a prompt template; the curated reference image library
- * and per-image attribute extraction JSON live at data/LoRAs/style-extraction/ and are
+ * and per-image attribute extraction JSON live in the local style reference library
+ * (data/LoRAs/style-extraction/, not tracked) and are
  * synthesized into a capsule (macro + micro instructions + one anchor image) at generation
  * time — see resolveStyleCapsule() in styleCapsule.ts (not yet implemented).
  *
- * These were originally LoRA trigger words; they now seed `promptTemplate` on the `styles`
- * registry table (doc §9) instead of a trained LoRA slug.
+ * The constant keeps its historical LORA_STYLES name; the trigger words now seed
+ * `promptTemplate` on the `styles` registry table (doc §9).
  */
 export const LORA_STYLES = {
   'american-traditional': {

@@ -22,9 +22,9 @@ This is the **crowdfunding demo hero feature**: no competitor in the POD industr
 | # | Tool | What It Does | Backend |
 |---|------|-------------|---------|
 | 1 | `search_catalog` | Find blank garments by query, category, brand, material, price | Typesense (working) |
-| 2 | `list_lora_styles` | Show 6 available art styles (Japanese, Blackwork, etc.) | Static data (working) |
+| 2 | `list_styles` | Show 6 available art styles (Japanese, Blackwork, etc.) | Static data (working) |
 | 3 | `list_mockup_templates` | Show available product templates, views, placements | Python service :8000 (working) |
-| 4 | `generate_design` | Create design from text prompt + optional art style | fal.ai FLUX 2 (STUB → needs wiring) |
+| 4 | `generate_design` | Create design from text prompt + optional art style | fal.ai Nano Banana 2, reference-guided (STUB → needs wiring) |
 | 5 | `iterate_design` | Refine design conversationally (up to 10 rounds) | fal.ai Kontext (STUB → needs wiring) |
 | 6 | `remove_background` | Transparent PNG export | fal.ai Ideogram (MISSING → needs creation) |
 | 7 | `upscale_design` | Upscale to print resolution (2048→4096+) | fal.ai Upscaler (STUB → needs wiring) |
@@ -66,7 +66,7 @@ This is the **crowdfunding demo hero feature**: no competitor in the POD industr
 | `express` + `cors` | Needs install | `bun add express cors && bun add -D @types/express @types/cors` |
 | Typesense search | ✅ Working | None — `searchTool.ts` ready |
 | Mockup Python service (:8000) | ✅ Working | None — `MockupClient` ready |
-| LoRA style definitions | ✅ Defined | None — `LORA_STYLES` constant ready |
+| Style preset definitions | ✅ Defined | None — `LORA_STYLES` constant (legacy name; style prompt templates) ready |
 | `@fal-ai/client` | Needs install | `bun add @fal-ai/client` |
 | `FAL_KEY` env var | Needs config | Add to .env |
 | `@clerk/backend` | Likely installed | Verify — used in API routes already |
@@ -84,7 +84,7 @@ This is the **crowdfunding demo hero feature**: no competitor in the POD industr
 ├── auth.ts                          # Clerk JWT verification middleware
 ├── well-known.ts                    # OAuth discovery endpoints (RFC 9728)
 └── tools/
-    ├── catalog.ts                   # search_catalog, list_lora_styles, list_mockup_templates
+    ├── catalog.ts                   # search_catalog, list_styles, list_mockup_templates
     ├── design.ts                    # generate_design, iterate_design, remove_background, upscale_design
     └── mockup.ts                    # generate_mockup
 
@@ -111,9 +111,9 @@ Express Server (port 4000)
   ├── MCP Server (tool registry)
   │     │
   │     ├── search_catalog ────────► Typesense
-  │     ├── list_lora_styles ──────► Static data
+  │     ├── list_styles ──────► Static data
   │     ├── list_mockup_templates ─► Python :8000
-  │     ├── generate_design ───────► fal.ai FLUX 2
+  │     ├── generate_design ───────► fal.ai Nano Banana 2
   │     ├── iterate_design ────────► fal.ai Kontext
   │     ├── remove_background ─────► fal.ai Ideogram
   │     ├── upscale_design ────────► fal.ai Upscaler
@@ -232,11 +232,11 @@ Implement the 3 tools that work immediately with existing backend services. No f
   - **Returns:** Formatted text with product name, brand, SKU, price, and description for each result
   - `[DEP]` Requires `TYPESENSE_URL` and `TYPESENSE_API_KEY` env vars. If not configured, returns empty results with a helpful message.
 
-- **T2.3** Implement `list_lora_styles` tool
+- **T2.3** Implement `list_styles` tool
   - **Schema:**
     ```json
     {
-      "name": "list_lora_styles",
+      "name": "list_styles",
       "description": "List available AI art styles for design generation. Each style produces a distinct visual aesthetic. Use this to show artists their style options before generating a design.",
       "inputSchema": { "type": "object", "properties": {} }
     }
@@ -268,7 +268,7 @@ Implement the 3 tools that work immediately with existing backend services. No f
 - Start MCP server: `bun mcp`
 - Connect Claude Desktop (or curl the SSE endpoint)
 - Call `search_catalog` with query "t-shirt" → should return catalog results
-- Call `list_lora_styles` → should return 6 styles
+- Call `list_styles` → should return 6 styles
 - Call `list_mockup_templates` → should return templates (if Python service running)
 
 ---
@@ -292,23 +292,23 @@ Implement the 4 fal.ai functions in `falClient.ts` that the design tools depend 
     import { fal } from '@fal-ai/client';
     fal.config({ credentials: process.env.FAL_KEY });
     ```
-  - `[GOTCHA]` fal.ai subscription key vs key — check which auth method is needed for FLUX 2 endpoints.
+  - `[GOTCHA]` fal.ai subscription key vs key — check which auth method is needed for the Nano Banana 2 endpoints.
 
 - **T3.3** Implement `generateDesign()`
   - Current signature (already defined, just throws):
     ```ts
     async function generateDesign(params: {
       prompt: string;
-      loraStyle?: LoRAStyleSlug;
+      styleId?: LoRAStyleSlug;
       width?: number;
       height?: number;
     }): Promise<{ imageUrl: string; seed: number }>
     ```
   - Implementation:
-    1. If `loraStyle` provided, prepend `LORA_STYLES[style].triggerWord + ', '` to prompt
-    2. Call `fal.subscribe(FAL_ENDPOINTS.GENERATE_WITH_LORA, { input: { prompt, image_size: { width, height } } })`
+    1. If `styleId` provided, prepend `LORA_STYLES[styleId].triggerWord + ', '` to the prompt and attach that style's reference (anchor) image
+    2. Call `fal.subscribe(FAL_ENDPOINTS.EDIT, { input: { prompt, image_urls: [anchorImageUrl] } })` (`fal-ai/nano-banana-2/edit`; reference-guided). Without a style, call `FAL_ENDPOINTS.GENERATE` (`fal-ai/nano-banana-2`)
     3. Return `{ imageUrl: result.images[0].url, seed: result.seed }`
-  - `[GOTCHA]` fal.ai `subscribe()` auto-polls until complete. Some endpoints use `fal.run()` for fire-and-forget. FLUX 2 with LoRA uses `subscribe`.
+  - `[GOTCHA]` fal.ai `subscribe()` auto-polls until complete. Some endpoints use `fal.run()` for fire-and-forget. Nano Banana 2 uses `subscribe`.
   - `[GOTCHA]` Default dimensions: 1024x1024 if not specified. Aspect ratio mapping: square=1024x1024, portrait=768x1024, landscape=1024x768.
 
 - **T3.4** Implement `editDesign()`
@@ -408,7 +408,7 @@ Register the 4 design tools in the MCP server. These call the fal.ai functions f
     ```
   - **Handler:**
     1. Map `aspectRatio` to dimensions (square=1024x1024, portrait=768x1024, landscape=1024x768)
-    2. Call `generateDesign({ prompt, loraStyle: style, width, height })`
+    2. Call `generateDesign({ prompt, styleId: style, width, height })`
     3. Calculate cost: `calculateDesignCostCents({ generation: true, editRounds: 0, bgRemoval: false, upscale: false })`
     4. Return formatted result with image URL and cost
   - **Error handling:** Wrap in try/catch, return `{ content: [{ type: 'text', text: error.message }], isError: true }`
@@ -680,7 +680,7 @@ Full pipeline verification with Claude Desktop.
 
 - **T8.2** Test individual tools
   - `search_catalog("t-shirt")` → catalog results
-  - `list_lora_styles()` → 6 styles
+  - `list_styles()` → 6 styles
   - `list_mockup_templates()` → template list (if Python service running)
   - `generate_design({ prompt: "a geometric wolf head" })` → design URL (if fal.ai wired)
   - `iterate_design({ imageUrl, instruction: "add blue tones" })` → refined design
@@ -694,7 +694,7 @@ Full pipeline verification with Claude Desktop.
 
   Claude should:
   1. search_catalog("t-shirt") → finds blanks
-  2. list_lora_styles() → shows Japanese style
+  2. list_styles() → shows Japanese style
   3. generate_design({ prompt: "bold dark Japanese dragon...", style: "japanese" }) → design
   4. remove_background({ imageUrl }) → transparent PNG
   5. upscale_design({ imageUrl }) → print resolution
@@ -782,7 +782,7 @@ Group C (sequential, after Groups A + B):
 1. **v1 SSE pattern** — GET /sse creates transport + sends `endpoint` event. POST /messages receives tool calls. Session ID is in the endpoint URL path, NOT a header.
 2. **Tool registration timing** — Must happen BEFORE `server.connect()`. Registration after connection is silently ignored.
 3. **Mockup API requires color_code** — Even though type says optional. Default to `#000000`.
-4. **fal.ai subscribe vs run** — FLUX 2 endpoints use `subscribe()` (auto-polls). Using `run()` would return a request ID, not the result.
+4. **fal.ai subscribe vs run** — Nano Banana 2 endpoints use `subscribe()` (auto-polls). Using `run()` would return a request ID, not the result.
 5. **Kontext auto-escalation** — Rounds 1-3 use standard Kontext ($0.04), round 4+ auto-escalates to Kontext MAX ($0.08). Already handled by `selectKontextModel()`.
 
 ### [DEP] — Dependencies

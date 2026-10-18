@@ -1,3 +1,5 @@
+> Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
+
 # MerchFrom: Progress Evaluation — February 4, 2026
 
 **Evaluation Date:** February 4, 2026  

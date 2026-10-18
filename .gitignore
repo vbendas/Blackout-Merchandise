@@ -27,7 +27,7 @@ node_modules/
 # Assets (local only, large binary files)
 Assets/
 
-# LoRA training artifacts (fal-hosted copies recorded in metadata.json)
+# Legacy model weight files from the retired LoRA experiment (keep out of git)
 *.safetensors
 data/LoRAs/*.zip
 

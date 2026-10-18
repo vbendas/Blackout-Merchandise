@@ -350,19 +350,6 @@ Three-step visual:
 
 ---
 
-### Expert Panel
-
-**Copy**:
-> **Expert A** (Brazil) — Process printing expert, 15+ years, 6,600+ students taught
-> 
-> **Expert B** (Brazil) — Industry legend, 40+ years of printing mastery
-> 
-> **Expert C** (Brazil) — Quality master, zero-defect production systems
-> 
-> These aren't consultants. They're our training and quality backbone. Their expertise feeds directly into our production standards.
-
----
-
 ### European Sovereignty
 
 **Copy**:
@@ -418,11 +405,11 @@ Three-step visual:
 #### 3. Is the AI good enough for professional designs?
 
 **Answer**:
-> FLUX 2 generates at 4 megapixels with industry-leading text rendering. Our expert panel scores every design output against professional screen print standards.
+> Designs are generated with Nano Banana 2 (via fal.ai), guided by curated style reference images, at up to native 4K. Every design then goes through print prep (color separation, resolution and color-count checks) before it reaches the press.
 > 
 > But here's the thing: consumers judge output quality, not the method. Research from NVIDIA and industry studies confirm — what matters is the result, not whether a human or tool created it. Your creative direction drives everything. The execution is just... fast.
 
-**Sources**: FLUX 2 technical specs, NIM consumer research
+**Sources**: fal.ai model docs, NIM consumer research
 
 ---
 

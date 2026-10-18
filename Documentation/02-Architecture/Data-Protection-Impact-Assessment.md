@@ -52,7 +52,7 @@ MerchFrom is an AI-powered premium merchandise platform that enables artists, br
 - Platform security and fraud prevention
 - Service improvement and analytics
 - Direct marketing with consent
-- AI model training and optimization (with explicit consent)
+- Prompt and workflow quality improvement (no personal data is used to train AI models)
 
 ---
 

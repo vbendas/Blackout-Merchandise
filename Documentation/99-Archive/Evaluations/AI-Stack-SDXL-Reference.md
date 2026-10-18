@@ -1,3 +1,5 @@
+> Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
+
 # AI Stack: SDXL Implementation Reference
 
 **Status:** ✅ Active for MVP (Phases 4-7)  

@@ -553,7 +553,7 @@ Some gaps have mitigation strategies, but the risk remains real:
 | Risk | Severity | Why Mitigation May Not Be Enough |
 |------|----------|--------------------------------|
 | **Fyul IPO war chest** | High | If Fyul IPOs at $2–3B, they can acquire or outspend Merch From on AI features, creator incentives, and marketing. The 18–24 month window is real but narrow. |
-| **AI commoditization** | High | Image generation is already table stakes. Within 12 months, Printify, Gelato, or Canva could add voice. Merch From's moat is workflow integration and proprietary data, not any single AI feature. |
+| **AI commoditization** | High | Image generation is already table stakes. Within 12 months, Printify, Gelato, or Canva could add voice. Merch From's moat is workflow integration (print-ready output, color separation, in-house production), not any single AI feature. |
 | **TikTok ban / regulatory shock** | Medium | A TikTok ban would remove the highest-conversion discovery channel for creator merch. Merch From's traffic strategy assumes social commerce remains viable. |
 | **Creator acquisition costs** | Medium | Even with AI, convincing creators to switch platforms requires education, trust-building, and migration tools. The "largest artist migration in POD history" helps, but it doesn't guarantee Merch From captures those artists. |
 | **Fulfillment partner dependency** | Medium | If Printful changes API terms, raises prices, or degrades quality, Merch From has no fallback production network. Multi-provider orchestration is on the roadmap but not built yet. |

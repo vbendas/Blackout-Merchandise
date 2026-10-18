@@ -9,7 +9,6 @@
     "Enable artists to easily create and sell premium, ethical merchandise without upfront inventory risk.",
     "Leverage AI-driven conversational interfaces to simplify store management and design workflows.",
     "Deliver superior product quality via in-house production and expert screen printing standards.",
-    "Build a proprietary dataset for AI training to offer unique print-ready design capabilities and competitive advantage.",
     "Establish transparent and equitable revenue and profit-sharing models for the core team.",
     "Validate product-market fit through a high-touch invite-only onboarding and pre-launch campaign.",
     "Achieve operational scalability with seamless integration of bulk orders, inventory tracking, and fulfillment management.",
@@ -28,13 +27,12 @@
     "Comprehensive print validation: DPI, color separation, bleed area auto-generation, and multi-format export including PNG and vector PDFs.",
     "Universal Halftone Standard ensuring perfect brand consistency between DTG/DTF and screen printing.",
     "Cloudinary-based dynamic product mockups and viral social media card generation.",
-    "Expert Dataset Curator Panel to build the world's highest-quality screen printing dataset for AI fine-tuning.",
     "Invite-Only Waitlist with Deepgram Voice Interview for filtering and VIP intercept.",
     "Robust Profit-Sharing and Equal Wage Model with transparent SEPA transfers and administrative workflows.",
     "Decentralized fulfillment and partnership network roadmap for international scale.",
     "AI Store Designer with conversational store customization, theme versioning, and Pro tier monetization.",
     "Advanced monitoring and fallback chains to ensure reliability and cost management.",
-    "Comprehensive data logging and async background processing for AI training and operational insights."
+    "Comprehensive data logging and async background processing for operational insights."
   ],
   "user_flow_summary": [
     "Artist lands on the landing page, hears the AI host Leopoldo, and applies via a voice-to-voice interview capturing passion and audience size.",
@@ -61,7 +59,6 @@
     "Stripe payment integration accepts payments, creates sessions, and triggers fulfillments without errors.",
     "Bulk order quote generation and pricing logic accurately reflect volume and color complexity.",
     "Merch Coins allocation, distribution, redemption, and expiry are operational with >60% distribution and >40% redemption rates.",
-    "Expert dataset annotations are collected regularly with quality metrics exceeding 4.0 average scores.",
     "System maintains 99.9% uptime with zero critical errors and proper error monitoring (Sentry).",
     "Users experience UI transitions and micro-interactions smoothly with minimal lag.",
     "Data logging and async processing pipelines store interaction and scoring data reliably.",

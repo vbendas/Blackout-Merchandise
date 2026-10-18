@@ -1,3 +1,5 @@
+> Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
+
 # MerchFrom: Strategic AI Stack Pivot Evaluation
 
 **Evaluation Date:** January 24, 2026  

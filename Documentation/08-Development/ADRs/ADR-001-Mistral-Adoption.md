@@ -55,7 +55,6 @@ We will open-source non-critical tooling:
 - `merchfrom-cli` — Artist-facing CLI (MIT)
 - `@merchfrom/sdk` — Integration SDK (MIT)
 - `merchfrom-ai-governance` — EU AI Act compliance toolkit (Apache 2.0)
-- `merchfrom-eu-languages` — European language datasets (CC-BY-SA)
 
 ## Migration Plan
 1. Phase 5: Replace MiniMax API calls with Mistral API
@@ -64,4 +63,3 @@ We will open-source non-critical tooling:
 4. Phase 5: Integrate BFL API for FLUX 2 mockup generation
 5. Phase 6: Deploy Mistral Small 4 for Discord bot support queries
 6. Phase 7+: Evaluate self-hosting Voxtral and Codestral at 250+ artists
-7. Year 2: Begin LoRA fine-tuning on European languages and domain terminology

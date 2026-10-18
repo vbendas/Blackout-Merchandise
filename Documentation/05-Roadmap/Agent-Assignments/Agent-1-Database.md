@@ -211,7 +211,7 @@ export interface MessageContent {
   mockupUrl?: string;            // For mockup cards
   designUrl?: string;            // For design cards
   designPrompt?: string;         // The prompt used to generate
-  designLoraStyle?: string;      // Which LoRA style used
+  designStyle?: string;          // Which style preset was used
   metadata?: Record<string, any>;
 }
 

@@ -192,7 +192,7 @@ Merch From's multi-modal AI stack is category-exclusive today:
 - Canva has 170 million users and 100+ AI researchers
 - Printify offers 15 free OpenAI generations daily
 - Gelato's CreateAI includes AI mockups and instant collections
-- The sustainable moat is not image generation, which is commoditizing rapidly, but **workflow integration, proprietary artist training data, and network effects**
+- The sustainable moat is not image generation, which is commoditizing rapidly, but **workflow integration (print-ready output, color separation, in-house production) and network effects**
 
 ### Force 4: EU Regulatory Tailwind (2-3 Years)
 
@@ -308,7 +308,7 @@ Investors need to know the destination. Merch From is positioned as a strategic 
 **1. The Technology Acquisition (Target: $50M - $100M)**
 - **Potential Acquirers**: Printful, Redbubble, Gelato
 - **Why they buy**: They have the volume but lack the **AI Design Agent technology**
-- **The Asset**: The "Cat-Suite" Agent Architecture + Expert-Trained Dataset
+- **The Asset**: The "Cat-Suite" Agent Architecture + print-production workflow (color separation, print prep)
 
 **2. The Native Commerce Acquisition (Target: $100M+)**
 - **Potential Acquirers**: Shopify, Squarespace, Wix
@@ -538,16 +538,16 @@ Three factors make Europe the optimal beachhead:
 
 | Risk | Severity | Likelihood | Mitigation Strategy |
 |------|----------|------------|---------------------|
-| **Fyul after integration (18-24 months)** | HIGH | HIGH | Build defensible niche before they recover; focus on premium art where Fyul is weak; build proprietary artist data moat |
+| **Fyul after integration (18-24 months)** | HIGH | HIGH | Build defensible niche before they recover; focus on premium art where Fyul is weak; deepen print-production workflow integration |
 | **Canva enters POD** | HIGH | MEDIUM | Differentiate on artist-specificity, not ease of use; premium art focus vs. Canva's generic consumer audience; build artist community |
-| **AI commoditization** | MEDIUM | HIGH | Convert technical moat to data moat in 12 months; proprietary artist style datasets; workflow integration > raw generation |
+| **AI commoditization** | MEDIUM | HIGH | Workflow integration > raw generation; print-ready output (color separation, print prep) that generic generators don't provide |
 | **€300K undercapitalization** | MEDIUM | MEDIUM | Capital-light model (outsource fulfillment); reach 1K artists milestone for seed; crowdfunding validates demand first |
 | **Single-founder execution** | MEDIUM | MEDIUM | Outsource fulfillment via APIs; hire key roles post-seed; advisor network; phased roadmap reduces concurrent complexity |
 | **24% creator survival rate** | LOW | HIGH | Success-enablement features (traffic, analytics, education); cross-promotion network; focus on serious creators (not hobbyists) |
 | **TikTok Shop dependency** | MEDIUM | LOW | Multi-channel strategy; own customer data; use TikTok for discovery, migrate to owned channels |
 | **EU regulatory changes** | LOW | MEDIUM | Proactive compliance from launch; sustainability as brand identity; turn regulation into moat |
 | **Supply chain disruption** | MEDIUM | MEDIUM | Multiple fulfillment partners (Printful + Gelato); local EU production; buffer inventory |
-| **Copycat competitors** | MEDIUM | MEDIUM | 12-month AI head start; proprietary datasets; network effects; European positioning |
+| **Copycat competitors** | MEDIUM | MEDIUM | 12-month AI head start; print-production workflow; network effects; European positioning |
 
 ### Risk Mitigation Framework
 
@@ -556,7 +556,7 @@ Three factors make Europe the optimal beachhead:
 1. **Fyul Recovery**
    - **Timeline**: 18-24 months of distraction
    - **Action**: Capture 1,000+ artists and $100K monthly GMV before window closes
-   - **Defensibility**: Premium art niche + proprietary data + network effects
+   - **Defensibility**: Premium art niche + print-production workflow + network effects
    - **Fallback**: Acquisition target for Fyul if they want AI capabilities
 
 2. **Canva Entry**
@@ -568,9 +568,9 @@ Three factors make Europe the optimal beachhead:
 
 3. **AI Commoditization**
    - **Month 0-6**: Market AI aggressively while unique
-   - **Month 6-12**: Build proprietary artist style datasets
+   - **Month 6-12**: Deepen print-production workflow integration (color separation, print prep, Style Capsules)
    - **Month 12+**: Network effects become primary moat
-   - **Metric**: Track design-to-conversion correlations as proprietary data asset
+   - **Metric**: Track design-to-conversion correlations to guide product decisions
 
 4. **Undercapitalization**
    - **Phase 1**: €300K covers 12-14 months at €20-22K monthly burn

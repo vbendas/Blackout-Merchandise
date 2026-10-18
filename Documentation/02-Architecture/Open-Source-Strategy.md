@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Merch From is committed to **strategic open-sourcing** of our tooling, integration layers, and AI governance frameworks. We do not open-source our core revenue engine (the FLUX-to-print pipeline, proprietary color separation, or expert-trained models), but we actively contribute back to the ecosystem in ways that build trust, create network effects, and establish technical leadership.
+Merch From is committed to **strategic open-sourcing** of our tooling, integration layers, and AI governance frameworks. We do not open-source our core revenue engine (the generation-to-print pipeline and proprietary color separation), but we actively contribute back to the ecosystem in ways that build trust, create network effects, and establish technical leadership.
 
 **Philosophy:** Open-source the *connection layer*. Keep the *production layer* proprietary.
 
@@ -31,8 +31,8 @@ Merch From is committed to **strategic open-sourcing** of our tooling, integrati
 
 | Asset | Rationale |
 |-------|-----------|
-| **FLUX-to-print pipeline** | Core production moat; color separation logic is proprietary |
-| **Expert-trained LoRA models** | Trained on proprietary expert panel data (Phase 9+) |
+| **Generation-to-print pipeline** | Core production moat; color separation logic is proprietary |
+| **Style Capsule reference libraries** | Curated style reference images and prompt templates used for reference-guided generation |
 | **Prompt engineering templates** | Optimized for our specific aesthetic and print requirements |
 | **Agent routing logic** | Conversational intelligence tuned for our domain |
 | **Revenue/commission algorithms** | Commercially sensitive |
@@ -187,7 +187,7 @@ A collection of tools, templates, and documentation for AI governance compliance
 - Risk classification questionnaire and flowchart
 - Transparency disclosure templates (multilingual)
 - Human oversight dashboard components
-- Model card generator (automated from training metadata)
+- AI provider register template (hosted models in use and the data each receives)
 - Audit trail standard format
 - Consent management utilities
 
@@ -196,30 +196,6 @@ A collection of tools, templates, and documentation for AI governance compliance
 - Other startups use our tools → brand recognition
 - Contributes to EU AI ecosystem → regulatory goodwill
 - Meets our own transparency obligations efficiently
-
----
-
-### 5. European Language Fine-Tuning Dataset (`merchfrom-eu-languages`)
-
-**Status:** Planned — Year 2
-**License:** CC-BY-SA 4.0 (where data permits)
-**Repository:** `github.com/merchfrom/eu-languages`
-
-**What it is:**
-Curated datasets for fine-tuning open-source models on European languages, dialects, and cultural context — with a focus on creative/merchandise domain terminology.
-
-**Contents:**
-- Portuguese (BR + PT) fashion and design terminology
-- Irish English conversational patterns
-- European sizing and measurement standards
-- Sustainability/eco-fashion vocabulary (multilingual)
-- Screen printing and textile production terms
-
-**Why it works:**
-- Improves our own model quality
-- European AI community contribution
-- Academic citations → credibility
-- Aligns with EU digital sovereignty goals
 
 ---
 
@@ -278,7 +254,6 @@ Curated datasets for fine-tuning open-source models on European languages, diale
 | **Q3 2026** | Beta `merchfrom-cli` with core catalog + mockup commands |
 | **Q4 2026** | Release `@merchfrom/sdk` v1.0 with full API coverage |
 | **Q1 2027** | Launch Discord bot templates (artist + customer support) |
-| **Q2 2027** | Begin curating and releasing European language datasets |
 | **Year 2+** | Community-driven plugin ecosystem, SDK v2.0 |
 
 ---

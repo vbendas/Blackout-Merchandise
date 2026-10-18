@@ -184,7 +184,6 @@ This is a **single source of truth** for all data points used in Merch From mark
 | **Target artists (Year 1)** | **1,000 active** | Growth milestone |
 | **Target GMV (Month 12)** | **$100,000/month** | Seed funding trigger |
 | **Founder experience** | **9 years print shop** + 12 years growth marketing | Credibility |
-| **Expert panel** | **3 masters** (40+ years combined) | Quality backbone |
 | **Team size** | **3 dedicated experts per artist** | Cat-Suite model |
 | **Production quality** | **0.19% reshipment rate** target | Industry best |
 

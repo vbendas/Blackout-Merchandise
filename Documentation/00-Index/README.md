@@ -86,7 +86,7 @@ Documentation/
 4. **Ethical First** — Vegan, fair-trade, organic blanks as standard
 5. **European AI Sovereignty** — Mistral + BFL, EU data residency, AI Act compliant
 6. **Human-in-the-Loop** — Every AI agent has a human lead; no AI replaces people
-7. **Proprietary Dataset** — World's only expert-scored screen print AI training data
+7. **Print-Ready Workflow** — Built-in color separation and print prep on top of hosted, reference-guided image generation (fal.ai, Nano Banana 2)
 
 ### Investment Ask
 | Investment | Equity | Runway |

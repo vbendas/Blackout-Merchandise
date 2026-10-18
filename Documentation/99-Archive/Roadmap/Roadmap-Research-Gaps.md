@@ -1,3 +1,5 @@
+> Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
+
 # Roadmap Research Gaps Analysis
 
 > **Document Version:** 1.0  

@@ -10,7 +10,7 @@ export interface StudioContext {
   garmentList: GarmentStatus[];
   currentGarmentIndex: number;
   userInput: string;
-  /** Selected LoRA style for design generation (e.g., 'american-traditional') */
+  /** Selected style preset slug for design generation (e.g., 'american-traditional'); field name is historical */
   loraStyle?: string;
   /** Current edit round (increments with each Kontext edit) */
   editRound: number;

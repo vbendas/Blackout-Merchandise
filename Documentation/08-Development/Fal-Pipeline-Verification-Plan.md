@@ -1,3 +1,5 @@
+> Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
+
 # Implementation Plan: fal.ai Pipeline Verification & Upgrades
 
 > **Created**: August 24, 2026
@@ -11,7 +13,7 @@
 >
 > All three phases below were executed the same day this plan was written. Phase 1 (endpoint sweep) found that two of the six endpoint IDs in `FAL_ENDPOINTS` were fabricated/nonexistent; the sweep corrected the IDs and prices to what's actually live on fal.ai. Phase 2 (LoRA-aware edit prototype) was built and run; the result was **not adopted** — the observed quality degradation across edit rounds turned out to be chaining noise inherent to repeated edit calls, not style drift that a LoRA-aware edit path would fix. Phase 3 (BFL klein warm-standby) was **ruled out** — the fal-trained LoRA artifact and BFL klein's finetune requirements are architecturally incompatible, so the fallback upgrade in ADR-001 does not work as proposed. Two LoRA training runs executed during this work (2 x $6.40): one on the original aged-paper-background images, one on the white-background cutouts.
 >
-> Later the same day, a full strategy pivot away from custom-trained style LoRAs superseded this entire plan: image generation moved to reference-guided generation on off-the-shelf models (primary Nano Banana 2, fallback Seedream 5.0 Pro), with styles reworked as "Style Capsules." LoRA training is re-scoped to a post-MVP artist-signature-pack feature. See `Documentation/05-Shared/Image-Generation-Architecture.md` v2.0 for the current architecture. The plan below is kept intact as a historical record and should not be executed further.
+> Later the same day, a full strategy pivot away from custom-trained style LoRAs superseded this entire plan: image generation moved to reference-guided generation on off-the-shelf models (primary Nano Banana 2, fallback Seedream 5.0 Pro), with styles reworked as "Style Capsules." The LoRA plan was retired for good; no model training is planned. See `Documentation/05-Shared/Image-Generation-Architecture.md` v2.0 for the current architecture. The plan below is kept intact as a historical record and should not be executed further.
 
 ---
 

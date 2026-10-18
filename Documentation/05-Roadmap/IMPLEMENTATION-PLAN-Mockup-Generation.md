@@ -855,7 +855,7 @@ Week 2:
 ## 8. Integration Points
 
 ### Phase 5 (AI Integration) → Phase 5.5 (Mockup Generation)
-- Receives halftoned designs from SDXL + LoRAs generation
+- Receives halftoned designs from the reference-guided generation pipeline (fal.ai Nano Banana 2)
 - Uses color separation from OpenCV processing
 
 ### Phase 5.5 (Mockup Generation) → Phase 6 (Commerce)

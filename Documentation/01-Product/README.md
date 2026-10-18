@@ -23,7 +23,7 @@ The Merch From product vision, business model, and user experience.
 2. **In-House Production** — Portugal facility, €113K equipment
 3. **Zero Risk Model** — Artists pay nothing upfront
 4. **Ethical First** — Vegan, fair-trade, organic blanks
-5. **Proprietary Dataset** — Expert-scored screen print AI training data
+5. **Print-Ready Workflow** — Built-in color separation and print prep on top of hosted, reference-guided image generation
 
 **Investment Ask:** €300,000 for 16-18% equity, 24 months to profitability
 

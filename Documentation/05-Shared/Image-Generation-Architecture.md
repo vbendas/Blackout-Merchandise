@@ -1,10 +1,10 @@
 # Image Generation Architecture
 
-> **Version**: 2.1
-> **Last Updated**: October 15, 2026
+> **Version**: 2.2
+> **Last Updated**: October 18, 2026
 > **Status**: Active — replaces the LoRA-first v1.x architecture
 > **Vendor**: fal.ai (single API key, commercial license included)
-> **Strategy**: Reference-guided generation on off-the-shelf frontier models (Nano Banana 2 primary, Seedream 5.0 Pro fallback). Custom-trained style LoRAs are re-scoped to post-MVP artist-signature packs — see [Section 7](#7-lora-re-scope-post-mvp-artist-packs).
+> **Strategy**: Reference-guided generation on off-the-shelf frontier models (Nano Banana 2 primary, Seedream 5.0 Pro fallback). The LoRA-first plan was retired on 2026-08-24; no model training or fine-tuning is planned — see [Section 7](#7-retired-lora-plan-historical-note).
 
 ---
 
@@ -16,7 +16,7 @@
 4. [Edit Loop](#4-edit-loop)
 5. [Post-Processing Pipeline (Sharp)](#5-post-processing-pipeline-sharp)
 6. [The Style System — Style Capsules](#6-the-style-system--style-capsules)
-7. [LoRA Re-Scope (Post-MVP Artist Packs)](#7-lora-re-scope-post-mvp-artist-packs)
+7. [Retired LoRA Plan (Historical Note)](#7-retired-lora-plan-historical-note)
 8. [Cost Projections](#8-cost-projections)
 9. [Database Schema](#9-database-schema)
 10. [API Integration](#10-api-integration)
@@ -44,7 +44,7 @@ The winning pattern instead: **prompt + one curated style reference image, fed t
 
 ### What This Replaces
 
-- **v1.x LoRA-first strategy** — `flux-2-trainer` + `flux-2/lora` + `flux-2/lora/edit` are no longer the primary generation path (see [Section 7](#7-lora-re-scope-post-mvp-artist-packs) for their new scope)
+- **v1.x LoRA-first strategy** — `flux-2-trainer` + `flux-2/lora` + `flux-2/lora/edit` are retired and not used (see [Section 7](#7-retired-lora-plan-historical-note))
 - **`clarity-upscaler` as a required pipeline step** — NB2's native 4K output makes it optional, beyond-4K-edge-case only
 - **Ideogram as a candidate typography path** — dropped; NB2 handles in-image text well enough to reverse ADR-005
 
@@ -73,13 +73,7 @@ The winning pattern instead: **prompt + one curated style reference image, fed t
 | `fal-ai/clarity-upscaler` | Upscale beyond native 4K | $0.03/MP | 4096×4096+ | **Optional** — only invoked when a print size exceeds NB2's native 4K output |
 | `fal-ai/flux-2` | Cheap preview/thumbnail tier | $0.012/MP (dev tier) | Up to 2048×2048 | Optional — fast/cheap preview renders; may be dropped at launch, not in the critical generation path |
 
-### Legacy LoRA Endpoints (post-MVP artist packs only — see §7)
-
-| Endpoint | Purpose | Cost | Notes |
-|----------|---------|------|-------|
-| `fal-ai/flux-2-trainer` | Train custom LoRAs | $0.0064/step (~$6.40/1000-step LoRA) | Re-scoped to artist-signature packs, not generic-genre styles |
-| `fal-ai/flux-2/lora` | Generate with trained LoRAs | $0.021/MP | Not part of the MVP critical path |
-| `fal-ai/flux-2/lora/edit` | LoRA-aware editing | $0.021/MP | Not part of the MVP critical path |
+The v1.x LoRA endpoints (`flux-2-trainer`, `flux-2/lora`, `flux-2/lora/edit`) were retired with the LoRA-first plan on 2026-08-24 and are not part of the pipeline.
 
 ### Smart Model Routing
 
@@ -255,7 +249,7 @@ async function postProcessImage(
 
 ## 6. The Style System — Style Capsules
 
-Style Capsules are the primary style mechanism, replacing the LoRA catalog. See [Section 7](#7-lora-re-scope-post-mvp-artist-packs) for where LoRA training still fits.
+Style Capsules are the style mechanism, replacing the retired LoRA catalog (see [Section 7](#7-retired-lora-plan-historical-note)).
 
 Style Capsules replace the LoRA catalog as the mechanism for consistent, on-brand generation. A style gallery card (what the artist clicks) maps to a **prompt template** (macro style instructions) plus a **curated library of reference images**. Model names and reference images are never surfaced to the artist — the whole mechanism is backend-only.
 
@@ -310,31 +304,15 @@ Artists can upload their own work as style references, running the same pipeline
 
 Capsules are persisted and versioned per user per style. This gives:
 - **Collection consistency** — same capsule + anchor reused across a merch drop
-- **Model portability** — capsules (prompt template + attribute JSON + anchor selection) survive underlying model migrations. LoRA weights never could — this is the strategic moat argument for capsules over LoRA training as the primary style mechanism.
+- **Model portability** — capsules (prompt template + attribute JSON + anchor selection) survive underlying model migrations. Trained model weights never could, which is one reason the project relies on capsules and hosted models instead of training its own.
 
 ---
 
-## 7. LoRA Re-Scope (Post-MVP Artist Packs)
+## 7. Retired LoRA Plan (Historical Note)
 
-LoRA training is **not dead** — it is re-scoped, not abandoned. Generic-genre LoRAs (the original 6-style catalog: American Traditional, Japanese, Blackwork, Vintage 90's, Realism, Dark Art) are dropped as the primary style mechanism because reference-guided generation on frontier models outperforms them for well-known public styles (see §12).
+The v1.x plan relied on custom-trained style LoRAs for the original 6-style catalog (American Traditional, Japanese, Blackwork, Vintage 90's, Realism, Dark Art). One experiment in August 2026 (`american-traditional-v1` and a white-background variant, $12.80 total) produced unusable output, and reference-guided generation on hosted frontier models outperformed it (see §12). The LoRA plan was **retired on 2026-08-24**. No model training or fine-tuning is planned; all image generation runs through hosted APIs (fal.ai: Nano Banana 2 primary, Seedream 5.0 Pro fallback).
 
-**Post-MVP use case**: **artist-signature style packs**, trained on real flash from partner tattooers/artists with written ML-training permission. This is the moat use case a generic-genre LoRA is not — a distinctive individual artist's hand is not something a frontier model already knows, unlike "American Traditional" as a named genre.
-
-### Preserved Trained Artifacts (Baseline Evidence)
-
-| Artifact | Path | Notes |
-|----------|------|-------|
-| `american-traditional-v1` (paper background) | `data/LoRAs/trained/american-traditional-v1/` | metadata.json, request/result JSON, config.json, smoke test PNG, `pytorch_lora_weights.safetensors` |
-| `american-traditional-v1-white` (white background) | `data/LoRAs/trained/american-traditional-v1-white/` | Same artifact set, white-bg dataset |
-| **Total spent** | | $12.80 ($6.40 × 2 training runs) — kept as baseline evidence, not written off |
-
-The 30-image white-background dataset, its captions, and its per-image extraction JSONs (`data/LoRAs/style-extraction/`) now serve double duty as the **style reference library for the American Traditional Style Capsule** — the same curation work funds both the (shelved) LoRA and the (active) capsule.
-
-### Re-Activation Criteria
-
-Re-scope a style to LoRA training when:
-- A partner artist provides real flash with written ML-training permission, AND
-- The artist's hand is distinctive enough that frontier-model reference-guided generation cannot reproduce it faithfully (the failure mode this pivot exists to route around does not apply to novel, undocumented individual styles)
+The curated 30-image American Traditional image set and its per-image extraction JSONs (`data/LoRAs/style-extraction/`, a local data directory named before the pivot) are used only as the **style reference library for the American Traditional Style Capsule**.
 
 ---
 
@@ -686,7 +664,7 @@ export async function POST(req: Request) {
 **Status**: Accepted
 **Date**: August 24, 2026
 **Context**: The v1.x architecture bet on custom-trained style LoRAs as the primary style mechanism. The first trained LoRA (`american-traditional-v1`) produced deformed, unusable output despite a reasonable 30-image dataset and standard 1000-step training run ($6.40, `fal-ai/flux-2-trainer`).
-**Decision**: Drop custom-trained generic-genre LoRAs as the MVP style mechanism. Use reference-guided generation (prompt + curated reference image) on off-the-shelf frontier models — Nano Banana 2 primary, Seedream 5.0 Pro fallback — instead.
+**Decision**: Retire custom-trained LoRAs entirely (no model training in the product). Use reference-guided generation (prompt + curated reference image) on off-the-shelf frontier models — Nano Banana 2 primary, Seedream 5.0 Pro fallback — instead.
 **Evidence**:
 - Dataset-limited failure on the first LoRA training run, but a deeper structural issue underneath it: canonical/well-documented styles (e.g. American Traditional tattoo flash) are already known to frontier model weights, so a LoRA adds the least value exactly where the style is famous enough to be worth automating in the first place.
 - Head-to-head 1: raw text-to-image on "hawk holding a banner written RISE ABOVE, american traditional tattoo style" — FLUX.2 pro failed badly; NB2, Nano Banana Pro, and Seedream 5 text-to-image all landed below production grade.
@@ -695,17 +673,17 @@ export async function POST(req: Request) {
 - FLUX.2 (dev $0.012/MP, pro $0.03 first MP + $0.015/extra MP, `flux-2/edit` $0.012/MP, `flux-2/lora` $0.021/MP, `flux-2/lora/edit` $0.021/MP) is relegated to an optional cheap preview/thumbnail tier, possibly dropped entirely at launch.
 **Consequences**:
 - (+) Production-ready output on the first tested pattern (reference-guided i2i), vs. an unusable first LoRA
-- (+) No per-style training cost or training-quality risk on the MVP critical path
+- (+) No per-style training cost or training-quality risk
 - (+) Capsules (see ADR-007) are portable across future model migrations; LoRA weights are not
 - (-) Per-design cost is higher than the (unrealized) LoRA-plan projection (~$0.57 vs. ~$0.61 pre-sweep v1.x estimate — comparable, but the LoRA plan never produced usable output at that cost)
 - (-) Ongoing dependency on frontier model providers' reference-image handling remaining stable
-- (+) Custom LoRA training is not abandoned — re-scoped to post-MVP artist-signature packs where it remains the right tool (see §7)
+- (+) No model training anywhere in the product: the LoRA plan is retired and generation uses hosted APIs only (see §7)
 
 ### ADR-007: Reference-Guided Style Capsules
 
 **Status**: Accepted
 **Date**: August 24, 2026
-**Context**: With LoRA training out of the MVP critical path (ADR-006), the platform needs a mechanism to give artists consistent, on-brand style selection without exposing model names or raw reference images, and without re-litigating style choice on every generation call.
+**Context**: With the LoRA plan retired (ADR-006), the platform needs a mechanism to give artists consistent, on-brand style selection without exposing model names or raw reference images, and without re-litigating style choice on every generation call.
 **Decision**: Build "Style Capsules" — prompt template (macro) + curated reference library, personalized per user via a one-time Netflix-style pick-grid, synthesized into macro + micro instructions plus one centroid-selected anchor image per generation call. Extract structured attributes from every reference image via Claude Sonnet 5 (OpenRouter), with Gemini 3.7 Flash as the configured fallback extractor.
 **Evidence — extraction model bake-off (Aug 24, 2026, all 30 American Traditional library images)**:
 - Enum agreement on objective fields: 29-30/30 between Sonnet 5 and Gemini 3.7 Flash
@@ -730,7 +708,7 @@ This section consolidates the raw evidence behind the pivot from v1.x (LoRA-firs
 
 - `american-traditional-v1` — 30 images, `fal-ai/flux-2-trainer`, 1000 steps, $6.40 — trained successfully per the queue result, but generated output was deformed and unusable.
 - A second run, `american-traditional-v1-white` (white-background dataset variant), was also trained ($6.40) as part of isolating the cause. Combined spend: **$12.80**.
-- Both trained artifacts (`pytorch_lora_weights.safetensors`, config, metadata, smoke tests) are preserved at `data/LoRAs/trained/american-traditional-v1/` and `data/LoRAs/trained/american-traditional-v1-white/` as baseline evidence, not deleted.
+- Both trained artifacts (`pytorch_lora_weights.safetensors`, config, metadata, smoke tests) are preserved at `data/LoRAs/trained/american-traditional-v1/` and `data/LoRAs/trained/american-traditional-v1-white/` as a local record of the experiment; they are not used by the product.
 
 ### Text-to-Image Head-to-Head
 
@@ -787,8 +765,9 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=xxxxxxxx
 | 1.2 | Aug 24, 2026 | Phase 1 endpoint sweep: confirmed live IDs/prices for all six endpoints; corrected trainer and remove-background pricing; revised per-design cost estimate to ~$0.61 pending upscaler billing-basis confirmation; flagged ADR-002's fast/max premise as invalidated |
 | 1.3 | Aug 24, 2026 | Phase 3 BFL warm-standby check: ruled out — fal-trained FLUX.2 dev LoRAs architecturally incompatible with BFL klein finetune endpoints. ADR-001 mitigation reverted to plain non-LoRA generation fallback |
 | 1.4 | Aug 24, 2026 | Phase 2 LoRA-aware edit prototype: not adopted — no sustained degradation advantage at ~75% higher cost; degradation traced to sequential edit chaining (re-encoding noise), not style drift; follow-up idea recorded: re-anchor edits to base image with accumulated prompts |
-| **2.0** | **Aug 24, 2026** | **Major strategy pivot**: dropped custom-trained style LoRAs as the MVP mechanism after `american-traditional-v1` produced unusable output; adopted reference-guided generation on Nano Banana 2 (primary) / Seedream 5.0 Pro (fallback) via fal.ai, validated by an Aug 24 image-to-image head-to-head showing production-ready results vs. failed text-to-image and failed LoRA output. Deleted the upscaler from the critical finalization path (NB2 native 4K covers most print sizes); dropped Ideogram from the plan and reversed ADR-005 (NB2 handles in-design typography). Replaced the LoRA Strategy section with the Style Capsule system: prompt template + curated reference library, Netflix-style pick-grid personalization, Claude Sonnet 5 (OpenRouter) attribute extraction with Gemini 3.7 Flash fallback (bake-off evidence in §12), centroid-anchor selection, two reference lanes (style vs. content), user-upload "Artist Visual Identity" pipeline. Re-anchor-to-base is now the always-on edit default (ADR-004 amended); ADR-002's fast/max tier split formally superseded — no tier split exists anywhere in the pipeline. Added ADR-006 (off-the-shelf frontier models over custom LoRAs) and ADR-007 (reference-guided Style Capsules). LoRA training re-scoped, not deleted — post-MVP artist-signature packs on partner-artist flash with written permission; existing trained artifacts ($12.80 spent) preserved as baseline evidence and their dataset repurposed as the Style Capsule reference library. Updated `styles`/`style_preferences` database schema (§9) and `app/src/lib/ai/falClient.ts` endpoint constants (§10) to match. |
+| **2.0** | **Aug 24, 2026** | **Major strategy pivot**: dropped custom-trained style LoRAs as the MVP mechanism after `american-traditional-v1` produced unusable output; adopted reference-guided generation on Nano Banana 2 (primary) / Seedream 5.0 Pro (fallback) via fal.ai, validated by an Aug 24 image-to-image head-to-head showing production-ready results vs. failed text-to-image and failed LoRA output. Deleted the upscaler from the critical finalization path (NB2 native 4K covers most print sizes); dropped Ideogram from the plan and reversed ADR-005 (NB2 handles in-design typography). Replaced the LoRA Strategy section with the Style Capsule system: prompt template + curated reference library, Netflix-style pick-grid personalization, Claude Sonnet 5 (OpenRouter) attribute extraction with Gemini 3.7 Flash fallback (bake-off evidence in §12), centroid-anchor selection, two reference lanes (style vs. content), user-upload "Artist Visual Identity" pipeline. Re-anchor-to-base is now the always-on edit default (ADR-004 amended); ADR-002's fast/max tier split formally superseded — no tier split exists anywhere in the pipeline. Added ADR-006 (off-the-shelf frontier models over custom LoRAs) and ADR-007 (reference-guided Style Capsules). Image set from the LoRA experiment repurposed as the Style Capsule reference library (the interim post-MVP re-scope recorded here was dropped in v2.2). Updated `styles`/`style_preferences` database schema (§9) and `app/src/lib/ai/falClient.ts` endpoint constants (§10) to match. |
 | 2.1 | Oct 15, 2026 | Finalisation moved before approval (§3, Phase 3). The final 4K render for generated or edited designs, and any edge-case upscale, now run before the client approves. Nothing regenerative runs after approval, because a regeneration can change details the client approved, so the post-approval 4K re-render is dropped. Print prep after approval is deterministic (`Documentation/Dev/Print-Prep-Plan.md`). The §10 finalise route runs before approval; approval only records its output. |
+| 2.2 | Oct 18, 2026 | LoRA plan confirmed retired for good: §7 rewritten as a historical note, legacy LoRA endpoint table and re-activation criteria removed, ADR-006 updated. No model training or fine-tuning is planned. |
 
 ---
 

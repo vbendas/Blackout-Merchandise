@@ -453,8 +453,6 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   Total team allocation:                  €50,000*
   (*Adjusted within budget constraints)
 
-  AI Dataset Annotation is contracted separately to
-  world-class experts (see Dataset Curator Panel).
 
 
   FACILITY SETUP:                          €18,000
@@ -620,12 +618,12 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   6. **Traction:** Waitlist metrics (300-500 signups, demographics, values alignment data)
   7. **Competitive Advantage:** AI design + conversational UI + premium ethical production + no minimums
   8. **Unit Economics:** Gross margin >60%, CAC <€50, LTV >€500, AI costs <0.1% of revenue
-  9. **AI Moat Strategy:** Launch with Mistral APIs ($0.02–0.04/design), build proprietary dataset (5,000+ expert-scored designs), migrate to self-hosted Voxtral + custom LoRAs at 250+ artists (cost reduction + defensible IP)
+  9. **AI Strategy:** Hosted APIs only: Mistral for conversation and reference-guided image generation on fal.ai (Nano Banana 2 primary, Seedream 5.0 Pro fallback); the defensible part is the print-production workflow, not a trained model
   10. **Go-to-Market:** Invite-only launch, organic creator networks, values-driven positioning
   11. **Roadmap:** 24-month plan with facility ownership + AI infrastructure scaling milestones
-  12. **Team:** Founder triple-threat advantage (craft mastery + technical execution + growth marketing) + Expert Dataset Curator Panel (70+ years combined expertise for AI training) + local Production Manager
+  12. **Team:** Founder triple-threat advantage (craft mastery + technical execution + growth marketing) + local Production Manager
   13. **Ask:** €300K for equipment + inventory + lean team + 24-month runway
-  14. **Future Milestones:** Property acquisition, AI model fine-tuning, international expansion, partnership network
+  14. **Future Milestones:** Property acquisition, international expansion, partnership network
 
   **Investor-Ready Metrics to Demonstrate:**
   - **Market validation:** "500 artists joined waitlist in 8 weeks with zero paid ads"
@@ -636,9 +634,6 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   - **Engagement:** "38% email open rate, 22% clicked through to demo store"
   - **Quality focus:** "89% frustrated with low-quality options from existing vendors"
   - **AI economics:** "AI costs ~$0.15-0.20 per design—still negligible at <1% of revenue"
-  - **Proprietary dataset:** "Building 5,000+ expert-scored designs by Year 2 for 80% AI cost reduction"
-  - **World-class expertise:** "Expert Panel: Expert A, Expert B (40+ years), Expert C (quality master)"
-  - **Proven track record:** "Combined 70+ years screen printing mastery + 6,600+ trained students"
 
   **Pitch Presentation Assets:**
   - Polished demo artist storefront (live, production-quality)

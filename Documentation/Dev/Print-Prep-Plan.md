@@ -42,7 +42,7 @@
 | Ink measurement | A spectrophotometer will be ordered later. Until then, proofs use each ink's target colour from the art. |
 | AutoThresh | Used as a behaviour reference only. The owner says they hold a commercial-use licence, but the wording isn't on file and the owner has parked the question. The engine is our own code, the textures come from our own scans, and nothing from `Autotresh/` ships. |
 
-This plan supersedes the August decision log in `Documentation/06-Operations/ML-Training/Dataset-Pair-Generation-Guide.md:17` ("MVP: production separation stays human, Photoshop + Action Seps; services/color-separation frozen"). Separation is now automatic and a person audits the result. The dataset plan continues: every audit correction becomes a training pair (section 8).
+This plan supersedes the August decision log (removed from this repo) ("MVP: production separation stays human, Photoshop + Action Seps; services/color-separation frozen"). Separation is now automatic and a person audits the result. Every audit correction is kept as a before/after record (section 8).
 
 ## 2. Where things stand
 
@@ -285,7 +285,7 @@ AutoThresh shipped solid films, opaque "transparent" PNGs and all-black PSD comp
   - Download the PSD, fix it in Photoshop and upload it back. The upload is parsed, the exports are regenerated from it, and the checks re-run. The design's job sheet shows the new pack the next time it is opened.
   - Send back to the client with a note.
 - **Re-approval rule.** If the corrected proof differs from what the client approved beyond the threshold (an ink change, for example), the client re-approves. Minor fixes don't need it: specks, traps, choke.
-- **Training pairs.** Every correction stores the automatic pack and the corrected pack as a pair, which feeds the dataset plan.
+- **Correction records.** Every correction stores the automatic pack and the corrected pack as a before/after pair (the code still calls this a training pair, `writeTrainingPair` in `platform/lib/print/pipeline.ts`). The pairs are an audit history; recurring corrections are turned into changes to the engine's rules and defaults.
 - **Who can do this.** Only staff with the right access to Pre-press (section 9).
 
 ### 8.1 Production stations
@@ -490,7 +490,6 @@ Open (optional): ask Magna whether customers may use the Pantone colour values i
 ## 17. Docs to update after approval
 
 - `Documentation/PRD.md`: the print-prep architecture decision, and staff roles and permissions.
-- `Documentation/06-Operations/ML-Training/Dataset-Pair-Generation-Guide.md`: decision log (separation automatic, audit corrections become training pairs).
 - `Documentation/05-Shared/Image-Generation-Architecture.md`: drop the post-approval 4K regeneration.
 - `Documentation/DEVLOG.md`.
 

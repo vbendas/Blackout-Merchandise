@@ -104,7 +104,7 @@ const franciscaDemoFlow: DemoConversationFlow = {
     },
     {
       content:
-        "I'm creating your design now. Here's what makes our output special:\n\n• **AI-enhanced** with style-specific LoRAs (trained on expert-curated data)\n• **Print-optimized** — automatic color separation for screen printing\n• **Multiple variations** — we'll iterate until it's perfect\n\nGenerating your design... ✨",
+        "I'm creating your design now. Here's what makes our output special:\n\n• **Style-guided** — generated from curated style reference images\n• **Print-optimized** — automatic color separation for screen printing\n• **Multiple variations** — we'll iterate until it's perfect\n\nGenerating your design... ✨",
       delay: 1500,
     },
     {

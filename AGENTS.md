@@ -22,7 +22,7 @@
 **AI System Prompts**: [Documentation/CAT_SUITE_PROMPTS.md](./Documentation/CAT_SUITE_PROMPTS.md) - Cat-Suite personality and system prompts
 **Production Automation**: [Documentation/05-Shared/Production-Automation-Reference.md](./Documentation/05-Shared/Production-Automation-Reference.md) - Technical specs (Phase 8+)
 **Mockup System**: [Documentation/05-Shared/Mockup-Architecture-Reference.md](./Documentation/05-Shared/Mockup-Architecture-Reference.md) - Product visualization
-**ML Training**: [Documentation/04-ML-Training/](./Documentation/04-ML-Training/) - Expert panel workflow
+**Image Generation**: [Documentation/05-Shared/Image-Generation-Architecture.md](./Documentation/05-Shared/Image-Generation-Architecture.md) - Reference-guided generation on fal.ai (Nano Banana 2)
 **Color Separation**: [Documentation/05-Shared/Color-Separation-Reference.md](./Documentation/05-Shared/Color-Separation-Reference.md) - Technical printing process
 
 ### 💰 Marketing & Business
@@ -230,7 +230,7 @@ T3: Main session (needs build verification)
 2. **Zero Risk Model** — Artists pay nothing upfront, only when products sell
 3. **Ethical First** — Vegan, fair-trade, organic blanks as standard
 4. **Expert Guidance** — Dedicated team (Leopoldo, Francisca, Antonia) handles everything for artists
-5. **Proprietary AI Pipeline** — Expert-scored dataset, EU-based technology (investor moat)
+5. **Print-Aware AI Pipeline** — Reference-guided generation through hosted APIs (fal.ai, Nano Banana 2) feeding color separation and print prep
 
 ### Current Phase: P0 Demo Hardening (Crowdfunding Sprint) — May 9 → May 25, 2026
 **Timeline**: 2.5 weeks
@@ -298,7 +298,6 @@ T3: Main session (needs build verification)
 │   ├── 03-Waitlist-Landing/ # Waitlist page specs
 │   ├── 04-Crowdfunding-Landing/ # Campaign overview
 │   ├── 04-Design/         # Design assets
-│   ├── 04-ML-Training/    # ML Training system (postponed, Phase 9+)
 │   ├── 04-TUI/            # Terminal UI
 │   ├── 05-Shared/         # Design, API, Database, Brand references
 │   ├── 06-Legal/          # Legal documents
@@ -353,7 +352,7 @@ Retired site versions (website-v2, website-v3, the old Next.js mainpage) live ou
 **AI Moat Context:**
 - Multi-modal AI stack (text + image + voice) is **category-exclusive** today — no competitor combines all three
 - 12-month window before incumbents (Printify, Gelato, Canva) close the gap
-- Sustainable moat: proprietary expert-scored dataset + workflow integration, not just image generation
+- Sustainable moat: print-production workflow (color separation, print prep, artist workflow integration), not just image generation
 - EU data sovereignty: all inference stays in Europe (GDPR-native)
 - Open weights (Apache 2.0): self-hostable at scale, no vendor lock-in
 
@@ -504,7 +503,7 @@ Member accounts, keys, press rows and apply results are front-end sample data, n
 - Meshy API for 3D generation + Python post-processing pipeline (port 8002)
 - Three.js/React Three Fiber 3D viewer in-app
 - Cast-resin-to-metal production at Portugal facility (Formlabs Form 4 + vacuum casting)
-- Pilot with 5-10 artists → data collection → fine-tune proprietary model
+- Pilot with 5-10 artists
 - **Docs:** [Accessories-Expansion.md](./Documentation/02-Roadmap/Accessories-Expansion.md)
 
 ---
@@ -686,12 +685,6 @@ mainpage is static: there is no build or lint, and `verify.sh` checks `app/` onl
 - Target: 300-500 sqm industrial unit (own, not rent)
 - De-risk: Own facility + grant-recovered equipment = hard assets from day one
 - Crowdfunding angle: "We own our industrial unit and recovered 50% of equipment costs through grants"
-
-### Expert Panel
-- Expert A (Brazil): Process printing expert (15+ years, 6,600+ students)
-- Expert B (Brazil): Industry legend (40+ years)
-- Expert C (Brazil): Quality master (zero-defect production)
-- Current Role: AI training and scoring system
 
 ---
 

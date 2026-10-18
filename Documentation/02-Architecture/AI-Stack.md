@@ -40,17 +40,16 @@
 
         | Task Type | Model | Cost | Why |
         |-----------|-------|------|-----|
-        | **Generate with style (LoRA)** | FLUX 2 Dev + LoRA (fal.ai) | ~$0.050/image | Custom-trained LoRAs for consistent merch styles |
+        | **Generate with style reference** | Nano Banana 2 edit (`fal-ai/nano-banana-2/edit`) | ~$0.08/image at 1K | Reference-guided generation: prompt + Style Capsule anchor image |
         | **Iterative editing (rounds 1-3)** | Kontext Pro (fal.ai) | ~$0.040/image | Multi-turn editing, fast iteration |
         | **Iterative editing (round 4+)** | Kontext MAX (fal.ai) | ~$0.080/image | Higher fidelity for compound edits |
         | **Upscale to print resolution** | FLUX 2 Upscaler (fal.ai) | ~$0.030/image | 2048→4096+ for screen printing |
         | **Background removal** | Remove Background (fal.ai) | ~$0.020/image | Transparent PNG for mockups/print |
-        | **LoRA training** | FLUX 2 Trainer (fal.ai) | ~$8/LoRA | Custom style training on Expert's archive |
 
       **fal.ai Strategy (v7.0 — Single Vendor):**
       - **No self-hosting.** All image generation via fal.ai API
-      - **Single provider:** One API key for training, generation, editing, upscaling, background removal
-      - **LoRA support:** Up to 3 custom LoRAs simultaneously for style blending
+      - **Single provider:** One API key for generation, editing, upscaling, background removal
+      - **Reference images:** Nano Banana 2 accepts up to 14 reference images per call (Style Capsule anchor + artist uploads); Seedream 5.0 Pro is the documented fallback
       - **Kontext editing:** Multi-turn iterative editing — the CORE artist workflow (5-10 edit rounds per design)
       - **Smart routing:** Kontext Pro for rounds 1-3 (fast/cheap), Kontext MAX for rounds 4+ (high fidelity)
       - **Branching strategy:** Store all intermediates, branch from earlier round when quality degrades
@@ -81,7 +80,7 @@
 | **Mistral Small 4** (LLM) | ~$0.15/1M input, ~$0.60/1M output | Mistral API | FAQ, order tracking, simple queries (~70% of traffic) |
 | **Voxtral Transcribe 2** (STT) | $0.003/min | Mistral API | Real-time voice transcription |
 | **ElevenLabs TTS** (TTS) | ~$0.00/min (grant-covered) | ElevenLabs API | Premium character voice synthesis |
-| **Image Generation** (fal.ai) | $0.04–0.08/image | fal.ai API | FLUX 2 Dev/LoRA + Kontext iterative editing |
+| **Image Generation** (fal.ai) | $0.04–0.08/image | fal.ai API | Nano Banana 2 reference-guided generation + edits |
 
 ### Cost Scenarios
 
@@ -111,7 +110,7 @@
 - **Portuguese Native:** Both STT and TTS support Portuguese natively
 - **Self-Hosting:** Apache 2.0 weights enable migration to own infrastructure at scale
 
-  #### **Francisca's Visual Style Gallery: LoRA Selection UX**
+  #### **Francisca's Visual Style Gallery: Style Capsule Selection UX**
 
   **The Customer Experience:**
   Instead of describing styles in confusing technical terms, customers see a visual gallery of example designs and click to select their preferred aesthetic.
@@ -138,27 +137,27 @@
 
   **How It Works:**
   1. Customer clicks "🎨 American Traditional" card
-  2. System maps selection → `american-traditional-v3` LoRA (behind the scenes)
+  2. System maps selection → `american-traditional` Style Capsule (behind the scenes)
   3. Francisca asks: "Describe your design"
   4. Customer: "Skull with roses"
   5. System constructs prompt: `"american traditional skull with roses, bold lines, limited color palette"`
-  6. Calls Replicate API with selected LoRA
+  6. Calls `fal-ai/nano-banana-2/edit` with the prompt plus the capsule's anchor reference image
   7. Customer sees generated image (no technical details exposed)
 
   **Natural Language Fallback:**
   - If customer types "I want an American Traditional skull", system detects keyword
-  - Maps to same LoRA as clicking visual card
+  - Maps to the same Style Capsule as clicking the visual card
   - Works seamlessly both ways (click or type)
 
-  **LoRA Registry (Backend Database Schema):**
+  **Style Registry (Backend Database Schema):**
   ```typescript
-  interface LoRAStyle {
+  interface StyleCapsule {
     id: string;
     displayName: string;           // "American Traditional"
     slug: string;                  // "american-traditional"
-    replicateModel: string;        // "your-account/flux-dev:american-traditional-v3"
-    triggerWord: string;           // "american traditional"
-    version: string;               // "v3"
+    promptTemplate: string;        // macro style instructions prepended to the user prompt
+    referenceImages: string[];     // curated style reference library (anchor picked per call)
+    version: string;               // "v1"
     exampleImages: string[];       // [Cloudinary URLs of 3 examples]
     description: string;           // "Bold lines, vintage tattoo aesthetic"
     bestFor: string;              // "Band merch, tattoo-inspired designs"
@@ -170,71 +169,31 @@
   1.  **Visual Style Selection:**
       - Francisca presents visual gallery of 6 style cards with example images
       - Customer clicks preferred aesthetic (e.g., "American Traditional")
-      - System selects appropriate fine-tuned LoRA behind the scenes
+      - System selects the matching Style Capsule (prompt template + anchor reference image) behind the scenes
   2.  **Asset Prep:** User uploads a logo -> OpenCV processes background -> Francisca confirms clarity.
-   3. **Generation:** Francisca constructs prompt with trigger word + user description, calls fal.ai API with selected LoRA
-  4.  **Refinement:** User says "Make the snake green." → Regenerates with same LoRA, modified prompt
-  5.  **Finalize:** User approves → Real-ESRGAN upscales to 4K → U-Net color separation → Halftoning → Print-ready files
+   3. **Generation:** Francisca combines the capsule's prompt template with the user description and calls `fal-ai/nano-banana-2/edit` with the anchor reference image
+  4.  **Refinement:** User says "Make the snake green." → Edit re-anchored to the base image with the same capsule and the accumulated instructions
+  5.  **Finalize:** User approves → 4K final render (Nano Banana 2 native) → OpenCV color separation → Halftoning → Print-ready files
 
-  #### **Expert's Expert Dataset Strategy: The Unfair Advantage**
+  #### **Differentiation: The Print-Production Workflow**
 
-  **The Moat:** While competitors rely on generic AI models, MerchFrom's color separation AI is trained on Expert's 30+ years of screen printing expertise. This proprietary dataset is **impossible to replicate** and becomes more valuable with every design.
+  **The Moat:** Generic image generators stop at a picture. MerchFrom's advantage is what happens after generation: deterministic color separation, halftoning and print prep (OpenCV, rule-based), informed by 30+ years of screen-printing practice, plus an artist workflow that goes from idea to print-ready files and a storefront. There is no proprietary model and no training dataset; image generation runs on hosted APIs (fal.ai). Custom LoRA training was tried once and retired on 2026-08-24.
 
-  **Dataset Growth Trajectory:**
-  ```
-  Phase 1 (Pre-Launch, Week 1-2):
-    - 100 existing designs (Expert's archive, excellent quality)
-    - +400 "good quality" separations via Separation Studio (fast augmentation)
-    - Total: 500 real-world samples → Build OpenCV baseline + begin expert panel scoring
-  
-  Phase 2 (Beta - 10 Artists, Month 1-3):
-    - 10 artists × 30 designs = 300 new designs
-    - Expert curates 10 new designs/day = +900 expert samples
-    - +500 "good quality" Separation Studio augmentations
-    - Total: 500 → 2,200 samples → Retrain weekly
-
-  Phase 3 (Beta - 50 Artists, Month 4-6):
-    - 50 artists × 30 designs = 1,500 new designs
-    - Expert curates 10/day = +900 expert samples
-    - +500 "good quality" augmentations
-    - Total: 2,200 → 5,100 samples → Retrain bi-weekly
-
-  Phase 4 (Beta - 100 Artists, Month 7-9):
-    - 100 artists × 30 designs = 3,000 new designs
-    - Expert curates 10/day = +900 expert samples
-    - +500 "good quality" augmentations
-    - Total: 5,100 → 9,500 samples → Retrain monthly
-
-  Public Launch (Month 10+):
-    - 10,000+ expert-curated samples
-    - World-class screen printing separation dataset
-    - Accuracy: 98%+ (production-ready, minimal human review)
-    - Value: €200K+ in labor equivalent
-  ```
-
-  **Quality Assurance: Dual Metrics System**
+  **Quality Assurance**
 
   **1. Customer Approval Rating (Lightweight, Every Design)**
   - User rates final design: 1 = Poor, 2 = Okay, 3 = Excellent
   - Triggers human review if rating < 2
   - Tracks user satisfaction per artist, style, complexity
-  - Data feeds back into model training priorities
 
-  **2. Internal Manual Audit (Deep, Representative Sample)**
-  - Expert + expert panel scores 10% of designs monthly
-  - 5-point rubric with detailed improvement notes:
+  **2. Print File Review (Representative Sample)**
+  - Print professionals review a sample of production files before printing, using a 5-point rubric:
     - **Color Accuracy (1-5):** Pantone matching precision
     - **Edge Quality (1-5):** Clean vector boundaries, no bleeding
     - **Halftone Compatibility (1-5):** Moiré prevention, proper angles
     - **Registration Complexity (1-5):** Screen count optimization
     - **Production Readiness (1-5):** Overall print-ready quality
-  - Aggregate scores guide model retraining focus areas
-  - Creates high-confidence ground truth for supervised learning
-
-  **Why This Works:**
-  - **Customer rating = volume metric** (10,000s/month, broad coverage)
-  - **Manual audit = precision metric** (100s/month, deep insight)
-  - Combined: Fast iteration + quality guarantee
+  - Findings adjust separation parameters, prompt templates and style reference curation (no model training)
 
   #### **Revised AI Unit Economics (v3.2 - Updated):**
   - **Conversation (Mistral Small 4):** ~$0.0003 per simple interaction (70% of traffic)
@@ -951,7 +910,7 @@
   ### 1. The Technology Acquisition (Target: $50M - $100M)
   **Potential Acquirers:** Printful, Redbubble, Gelato
   - **Why they buy:** They have the volume but lack the **AI Design Agent technology**. Acquiring Merch From gives them the "Leopoldo/Francisca" engine to offer AI design to their millions of users.
-  - **The Asset:** The "Cat-Suite" Agent Architecture + Expert-Trained Dataset.
+  - **The Asset:** The "Cat-Suite" Agent Architecture + the print-production pipeline (color separation and print prep).
 
   ### 2. The Native Commerce Acquisition (Target: $100M+)
   **Potential Acquirers:** Shopify, Squarespace, Wix
@@ -1318,24 +1277,18 @@
   - [ ] A/B testing framework
   - [ ] Documentation complete
 
-  ### Phase 6: Dataset Collection System (Month 7 Post-Launch)
-  **Goal:** Build world's highest-quality screen printing dataset with Expert Curator Panel
+  ### Phase 6: Print Quality Review (Month 7 Post-Launch)
+  **Goal:** Systematic review of production output by print professionals
 
-  - [ ] Database schema for design quality scoring created
-  - [ ] Database schema for refinement preferences created
-  - [ ] Expert scoring interface built (1-5 rubric for 4 categories)
+  - [ ] Database schema for print-file quality review created
+  - [ ] Review interface built (1-5 rubric for 4 categories)
   - [ ] Automated metadata capture (color count, dimensions, complexity)
   - [ ] Design session logging with full conversation history
-  - [ ] Refinement tracking (before/after images + instructions)
+  - [ ] Refinement tracking (before/after images + instructions) for UX analysis
   - [ ] User acceptance tracking (which refinements were approved)
   - [ ] Production validation workflow (score printed results)
-  - [ ] Dataset export functionality (ML training format)
-  - [ ] Dataset readiness dashboard (count, avg quality, coverage)
-  - [ ] Expert Panel scoring workflow (50-100 designs/month per expert)
-  - [ ] Dataset quality metrics >4.0 average score (multi-expert validation)
-  - [ ] Milestone tracking: 100 designs (Month 7) → 5,000 (Month 18) - world's best dataset
-  - [ ] Panel methodology documentation (for future scaling)
-  - [ ] Production correlation tracking (design scores vs. actual print quality)
+  - [ ] Quality dashboard (review count, average score, coverage)
+  - [ ] Production correlation tracking (file review scores vs. actual print quality)
 
   ---
 
@@ -1381,7 +1334,6 @@
 
   **AI & ML (Phase 2: Scale - Self-Hosted Migration at 250+ Artists):**
   - **Self-hosted Voxtral STT** (Apache 2.0 weights) — Eliminate per-minute STT costs at scale. ElevenLabs TTS remains via API (grant-covered).
-  - **Custom LoRA fine-tuning** (via Replicate / Modal) — Train on Expert-scored designs for proprietary aesthetic
   - **Failover:** OpenRouter API remains as high-availability backup for image generation; Mistral API direct for LLM
 
   **Infrastructure:**
@@ -1517,46 +1469,21 @@
     Real cost: Opportunity cost only, no cash flow impact
   ```
 
-  **Proprietary Dataset Strategy: Building Competitive Moat**
-
-  While using APIs during Year 1, we're simultaneously building a high-quality proprietary dataset:
-
-  **Dataset Collection Process (Expert Curator Panel):**
-  1. **Every design generated** = dataset entry with metadata
-  2. **Artist feedback loops** = scored refinements ("make it more vintage" = preference data)
-  3. **World-class expert scoring** = Panel of 3 masters (Expert A, Expert B, Expert C) with 70+ years combined expertise
-  4. **Multi-perspective validation** = Each expert brings specialized knowledge (process printing, traditional techniques, quality mastery)
-  5. **Remote contract model** = Cost-effective, no relocation, scalable
-
-  **Quality Scoring Rubric (1-5 Scale):**
-  - **Print-readiness:** Color separation potential, halftone compatibility
-  - **Design execution:** Prompt adherence, aesthetic quality
-  - **Technical specs:** DPI, dimensions, bleed areas
-  - **Production efficiency:** Screen count optimization, registration complexity
-
-  **Dataset Growth Projections (Expert Panel Curation):**
-  ```
-  Month 7 (Launch): 100 designs (panel scoring begins)
-  Month 12: 1,200 designs (expert-scored, multi-validated)
-  Month 18: 5,000 designs (ready for fine-tuning)
-  Month 24: 10,000+ designs (world-class screen print dataset)
-  ```
-
   **Competitive Advantage:**
-  - **Year 1:** Launch fast, validate demand, gather data
-  - **Year 2:** Migrate to self-hosted Voxtral + custom LoRAs trained on 5,000+ real user designs
-  - **Year 3:** Own the only screen-print-optimized AI model in the market
-  - **Exit Value:** Proprietary dataset + fine-tuned model = defensible IP moat
+  - **Year 1:** Launch fast on hosted APIs, validate demand, refine the print-production workflow
+  - **Year 2:** Move speech-to-text to self-hosted Voxtral (Apache 2.0 weights) at 250+ artists
+  - **Year 3:** Deepen print-prep automation and artist workflow integration
+  - Image generation stays on hosted APIs (fal.ai: Nano Banana 2 primary, Seedream 5.0 Pro fallback). No model training or fine-tuning is planned.
 
   **Investor Pitch Positioning:**
 
-  > "We're launching with proven Mistral APIs to achieve profitability fast—AI costs are just $0.02–0.04 per design, completely negligible. But we're not stopping there. From Day 1, we're building a proprietary dataset of expert-scored screen printing designs. By Year 2, when we hit 250+ artists, we'll migrate to self-hosted Voxtral (Apache 2.0) and custom LoRAs fine-tuned on 5,000+ real-world designs. That's when our margin expansion accelerates—competitors stay locked into expensive APIs while our voice costs drop to near-zero. We're building both a profitable business AND a defensible AI moat."
+  > "We're launching with proven hosted APIs to reach profitability fast; AI costs are a small fraction of each design. The differentiation is the print-production workflow around generation: color separation, print prep and fulfilment that generic image tools don't do. At 250+ artists we move speech-to-text to self-hosted Voxtral (Apache 2.0), which lowers voice costs further."
 
   **Why This Strategy Wins:**
   - ✅ **Capital efficiency** - No premature infrastructure investment
   - ✅ **De-risked execution** - Validate business before building deep tech
-  - ✅ **Margin expansion story** - Clear path to 80% AI cost reduction
-  - ✅ **Defensible moat** - Proprietary dataset = competitive advantage
+  - ✅ **Margin expansion story** - Clear path to lower voice costs
+  - ✅ **Defensible position** - Print-production workflow and artist integration
   - ✅ **Investor confidence** - Shows strategic thinking beyond launch
 
   **Technical Migration Plan (Month 18-24):**
@@ -1567,214 +1494,9 @@
   - Set up inference API wrapper
   - Deploy monitoring and logging
 
-   **Phase 2: Fine-Tuning (Month 19-20)**
-   - Export 5,000-image dataset with scores
-   - Fine-tune FLUX 2 with custom LoRAs via BFL API infrastructure
-   - Train 4 initial style LoRAs (American Traditional, Vintage Band, Skull Art, Minimalist Logo)
-   - Deploy LoRA visual gallery for customer style selection
-
-   **Phase 3: Monthly LoRA Retraining (Month 7+)**
-   - Retrain LoRAs monthly with customer-approved designs (3/3 ratings)
-   - Version each LoRA cohort (v1, v2, v3...)
-   - A/B test new versions vs. existing versions
-   - Keep all versions until Month 7, then replace with latest
-
-   **Phase 4: Scale Optimization (Month 12+)**
-   - Evaluate self-hosted Voxtral (Apache 2.0) for voice cost elimination
-   - Maintain Replicate API as fallback
-   - Continue monthly LoRA retraining
-  - Begin continuous fine-tuning on new data
-
-   **Fallback Strategy:**
-   If fine-tuned LoRA quality is insufficient:
-   - Fall back to base FLUX 2 Flex if fine-tuned model underperforms
-   - Continue collecting customer feedback for retraining
-   - License custom LoRA dataset to other platforms (revenue stream)
-  - Publish research paper (brand authority)
-  - Revisit in Year 3 with larger dataset
-
-  ---
-
-  ### 5.3 ML Training Infrastructure: Google Colab Strategy
-
-  **Cost-Efficient ML Training Without Capital Investment**
-
-  We're using Google Colab for ML model training - the same infrastructure used by leading AI companies for experimentation and model development. This approach eliminates €5,000+ in hardware costs while maintaining professional-grade training capabilities.
-
-  **Google Colab Overview:**
-  - **Free GPU Access:** Tesla T4 (15GB VRAM) for model training
-  - **Free TPU Access:** Even faster training for computer vision models
-  - **Zero Setup:** Browser-based Jupyter notebooks, instant access
-  - **Industry Standard:** Used by Google, startups, and researchers worldwide
-
-  **Cost Comparison (2-Year Period):**
-  ```
-  Self-Hosted ML Infrastructure:
-    NVIDIA RTX 4090 GPU:           €2,000
-    High-end workstation:          €3,000
-    Electricity (24 months):       €1,200
-    Maintenance & upgrades:        €800
-    ────────────────────────────
-    Total 2-Year Cost:             €7,000
-
-  Google Colab Approach:
-    Months 1-6 (Free Tier):        €0
-    Months 7-24 (Colab Pro):       €180 (€10/month × 18)
-    ────────────────────────────
-    Total 2-Year Cost:             €180
-    
-    ✅ SAVINGS: €6,820 (97% cost reduction)
-  ```
-
-  **Training Workflow:**
-  ```python
-  # Weekly ML Training Cycle (Google Colab)
-
-  1. Expert Panel Scores Designs (Monday-Thursday):
-    - 80-100 new expert-scored separations weekly
-    - Data automatically synced to Google Drive
-
-  2. Model Training Session (Friday):
-    - Open Colab notebook with free GPU
-    - Load Expert Panel's latest scores from Drive
-    - Train model on 100+ new data points
-    - Validate improvements with A/B test set
-    - Export trained model (2-3 hours)
-    
-  3. Deployment (Friday afternoon):
-    - Download trained model from Colab
-    - Deploy to staging environment
-    - Run automated validation tests
-    - Schedule production deployment
-
-  Total Weekly Cost: €0 (Free Tier) or €2.50 (Pro Tier)
-  ```
-
-  **Colab Free Tier Capabilities (Months 1-6):**
-  - **GPU Time:** ~15 hours/week
-  - **Session Length:** 12 hours maximum
-  - **RAM:** 12GB (sufficient for image datasets)
-  - **Storage:** Google Drive integration (unlimited with Drive storage)
-  - **Perfect For:** Weekly training with <5,000 images
-
-  **Colab Pro Upgrade (€10/month, Months 7+):**
-  - **GPU Time:** ~45 hours/week (3x more)
-  - **Better GPUs:** Tesla V100, occasional A100 access
-  - **Session Length:** 24 hours (2x longer)
-  - **RAM:** Up to 32GB (2.5x more)
-  - **Background Execution:** Keeps running when browser closed
-  - **Priority Access:** Faster resource allocation
-
-  **When to Upgrade to Colab Pro:**
-  - Dataset exceeds 5,000 scored designs (Month 6-7)
-  - Training frequency increases to 2-3x weekly
-  - Experimenting with multiple model architectures
-  - Need longer uninterrupted training sessions
-
-  **ROI Analysis:**
-  ```
-  €10/month Colab Pro Investment:
-    - Eliminates €5,000 hardware purchase
-    - No electricity costs (€50/month saved)
-    - No maintenance/upgrades needed
-    - Professional GPU access on-demand
-    - Instant scaling when needed
-    
-  Net Monthly Savings vs Self-Hosted: €40+
-  Annual Savings: €480+
-  ```
-
-  **Technical Implementation:**
-  ```typescript
-  // Automated data sync to Google Drive
-  interface CoLabTrainingPipeline {
-    // Step 1: Export Expert Panel scores from Neon PostgreSQL
-    exportScores: () => Promise<void>;
-    
-    // Step 2: Sync to Google Drive (automated)
-    syncToGoogleDrive: () => Promise<void>;
-    
-    // Step 3: Colab training (manual trigger)
-    // User opens Colab notebook, runs training cells
-    
-    // Step 4: Download trained model
-    downloadModel: () => Promise<Buffer>;
-    
-    // Step 5: Deploy to production
-    deployModel: (modelBuffer: Buffer) => Promise<void>;
-  }
-
-  // Google Drive Structure
-  /My Drive/merch_from_ml/
-    ├── datasets/
-    │   ├── designs/              # Design images
-    │   ├── expert_scores.csv     # Expert scores (auto-synced)
-    │   └── validation_set/       # Holdout test set
-    ├── models/
-    │   ├── checkpoints/          # Training checkpoints
-    │   └── production/           # Final deployed models
-    ├── notebooks/
-    │   ├── training.ipynb        # Main training notebook
-    │   ├── evaluation.ipynb     # Model evaluation
-    │   └── ab_testing.ipynb      # A/B test framework
-    └── results/
-        └── experiments/          # Training logs, metrics
-  ```
-
-  **Scaling Path:**
-  ```
-  Months 1-6: Colab Free Tier
-    - Training 1x per week
-    - Dataset: 500-3,000 images
-    - Cost: €0/month
-    - GPU hours: Sufficient
-
-  Months 7-18: Colab Pro
-    - Training 2-3x per week
-    - Dataset: 3,000-10,000 images
-    - Cost: €10/month
-    - GPU hours: Abundant
-    - Better GPUs (V100)
-
-  Months 19-24: Evaluate Self-Hosting
-    - Only if training daily
-    - Dataset: 10,000+ images
-    - Continuous model updates needed
-    - Break-even: ~5 hours GPU/day
-
-  Realistic: Colab Pro sufficient for 18-24 months
-  ```
-
-  **Investor Advantages:**
-  - ✅ **Capital Efficiency:** €6,820 saved over 2 years (deployed to growth)
-  - ✅ **Professional Infrastructure:** Same tools as Google/DeepMind
-  - ✅ **Instant Scaling:** Upgrade to Pro in 1 click when needed
-  - ✅ **Zero Maintenance:** No hardware management overhead
-  - ✅ **Risk Mitigation:** No sunk costs if pivot needed
-  - ✅ **Proven Technology:** Industry-standard ML development platform
-
-  **Why This Approach is Strategic:**
-
-  Most startups waste €5,000-10,000 on premature ML infrastructure that sits idle 95% of the time. We're following best practices from successful AI companies:
-
-  1. **Start with managed services** (Colab Free)
-  2. **Scale with proven demand** (Colab Pro at Month 7)
-  3. **Self-host only at true scale** (if ever needed)
-
-  This strategy demonstrates:
-  - **Financial discipline** - Not burning investor capital on unnecessary hardware
-  - **Technical competence** - Using industry-standard tools correctly
-  - **Strategic thinking** - Right tool for each growth phase
-  - **Capital efficiency** - €6,820 saved goes to marketing, inventory, growth
-
-  **Future Evaluation Criteria for Self-Hosting:**
-  - Training >20 hours/week consistently
-  - Dataset >50,000 images
-  - Colab Pro costs exceed €150/month
-  - Need for 24/7 continuous training
-  - Multiple models training simultaneously
-
-  **Bottom Line:** Google Colab gives us enterprise-grade ML training infrastructure for €0-10/month instead of €7,000+ in capital expenditure. This is exactly how successful AI companies bootstrap their ML operations.
+  **Phase 2: Scale Optimization (Month 19+)**
+  - Evaluate self-hosted Voxtral (Apache 2.0) for voice cost elimination
+  - Keep the Voxtral API as fallback
 
   ---
 
@@ -1929,9 +1651,9 @@
   }
   ```
 
-  ### 5.4 Dataset Collection Schema (For Future Fine-Tuning)
+  ### 5.4 Print Quality Review Schema
 
-  **Design Quality Scoring Table:**
+  **Print Quality Review Table:**
   ```sql
   CREATE TABLE design_quality_scores (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1940,7 +1662,7 @@
     image_url TEXT NOT NULL,
     prompt TEXT NOT NULL,
     
-    -- Expert Scoring (1-5 scale)
+    -- Reviewer Scoring (1-5 scale, print professionals)
     print_readiness_score INTEGER CHECK (print_readiness_score BETWEEN 1 AND 5),
     design_execution_score INTEGER CHECK (design_execution_score BETWEEN 1 AND 5),
     technical_specs_score INTEGER CHECK (technical_specs_score BETWEEN 1 AND 5),
@@ -1970,32 +1692,7 @@
   CREATE INDEX idx_quality_printed ON design_quality_scores(was_printed, print_quality_actual);
   ```
 
-  **Dataset Export View (For Fine-Tuning):**
-  ```sql
-  CREATE VIEW ml_training_dataset AS
-  SELECT 
-    dqs.id,
-    dqs.image_url,
-    dqs.prompt,
-    dqs.overall_score,
-    dqs.print_readiness_score,
-    dqs.color_count,
-    dqs.estimated_screens,
-    ds.category,
-    ds.conversation_history,
-    CASE 
-      WHEN dqs.overall_score >= 4.5 THEN 'excellent'
-      WHEN dqs.overall_score >= 3.5 THEN 'good'
-      WHEN dqs.overall_score >= 2.5 THEN 'acceptable'
-      ELSE 'needs_improvement'
-    END AS quality_label
-  FROM design_quality_scores dqs
-  JOIN chat_sessions cs ON dqs.chat_session_id = cs.id
-  WHERE dqs.overall_score IS NOT NULL
-  ORDER BY dqs.created_at DESC;
-  ```
-
-  **Refinement Preference Data (For LoRA Fine-Tuning):**
+  **Refinement History (UX Analytics):**
   ```sql
   CREATE TABLE design_refinement_preferences (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -2008,21 +1705,20 @@
     created_at TIMESTAMP DEFAULT NOW()
   );
 
-  -- This captures real user preferences for fine-tuning
+  -- Used to analyse which edit instructions users accept
   CREATE INDEX idx_accepted_refinements ON design_refinement_preferences(user_accepted, preference_strength DESC);
   ```
 
   **Admin Dashboard Queries:**
   ```sql
-  -- Dataset readiness check
+  -- Quality overview
   SELECT 
-    COUNT(*) as total_scored_designs,
+    COUNT(*) as total_reviewed_designs,
     AVG(overall_score) as avg_quality,
     COUNT(*) FILTER (WHERE overall_score >= 4.0) as excellent_designs,
     COUNT(*) FILTER (WHERE was_printed = true) as validated_prints
   FROM design_quality_scores;
 
-  -- Fine-tuning readiness threshold: 5,000+ scored designs with avg quality > 3.5
   ```
 
   ---
@@ -2386,7 +2082,6 @@
   - **Image generation stays API-only.** At $0.015/image weighted average, costs remain <1% of revenue even at scale. Self-hosting FLUX would require GPU cluster + DevOps overhead that exceeds savings until 200K+ images/month.
   - Mistral API processes all data in Europe (GDPR-native)
   - BFL API direct for FLUX 2; OpenRouter available as unified fallback
-  - Custom LoRA fine-tuning on FLUX 2 via BFL infrastructure for proprietary aesthetic
 
   ### Production Automation Costs (Per Design)
 
@@ -2409,7 +2104,7 @@
   - Automated (OpenRouter + OpenCV halftoning): $0.02–0.04/design (16 seconds)
   - **Savings: 99.97% cost reduction + 99.7% time reduction** ✅
   
-  **Note:** FLUX 2 fine-tuned with custom LoRAs via BFL API ensures MerchFrom signature style (proprietary aesthetic moat)
+  **Note:** Consistent house style comes from Style Capsules (prompt templates + curated reference images), not from a trained model
   - **Savings: 99.9% cost reduction + 99.5% time reduction**
 
   ### NPM Dependencies
@@ -2601,13 +2296,13 @@
    - Database queries <100ms
 
    ### Phase 2: AI Artwork Generation with Voice (Weeks 5-8)
-   **Goal:** Implement FLUX 2 fine-tuned integration with **voice-powered design refinement**
+   **Goal:** Implement reference-guided image generation (fal.ai Nano Banana 2) with **voice-powered design refinement**
 
   **Deliverables:**
   - Design category selector UI
-  - LoRA visual style gallery (4 initial styles)
+  - Style Capsule visual gallery (4 initial styles)
   - Category preset configurations (5+ categories)
-   - FLUX 2 fine-tuned with custom LoRAs via BFL API infrastructure
+   - Reference-guided generation via `fal-ai/nano-banana-2/edit` (Style Capsule anchor images)
   - **Voice-powered design refinement** ("Make it darker", "Add more distortion")
   - **`<Artifact>` component for design preview display**
   - **`<Workflow>` component for design iteration tracking**
@@ -3162,8 +2857,8 @@
 
    **4. Design Generation System** *(Week 5-7)*
    - Category presets
-   - FLUX 2 fine-tuned integration (custom LoRAs via BFL)
-   - LoRA visual style gallery
+   - Reference-guided generation integration (fal.ai Nano Banana 2)
+   - Style Capsule visual gallery
    - Design session management
    → *Core differentiator, parallel to commerce*
 
@@ -3227,13 +2922,12 @@
     - Cache recent responses for retry logic
     - Alternative: Direct API integration with Anthropic as backup
 
-   **Risk: FLUX 2 Fine-Tuned Output Quality Inconsistency**
+   **Risk: Generated Output Quality Inconsistency**
   - **Impact:** Generated designs not print-ready
-  - **Likelihood:** Low (fine-tuned on Expert's expert designs)
+  - **Likelihood:** Low (reference-guided generation produced production-ready results in Aug 2026 testing)
   - **Mitigation:**
     - Comprehensive validation layer before presenting to user
-    - Fallback to base FLUX 2 Flex if LoRA fails
-    - Monthly LoRA retraining with customer-approved designs
+    - Fallback to Seedream 5.0 Pro if Nano Banana 2 output fails validation
     - Option to upload own artwork as fallback
     - Human review queue for edge cases
     - Collect feedback to tune prompts over time
@@ -3257,7 +2951,7 @@
     - Confidence scoring on validations
     - Continuous improvement with real print outcomes
     - Override mechanism for experienced creators
-    - Partner with print experts for ground truth data
+    - Partner with print experts to calibrate validation rules
 
   ### 12.1 Riskiest Assumptions Matrix
 
@@ -3266,7 +2960,7 @@
   | **1. UX Intuitiveness**<br>(Proactive UI > Passive Dashboard) | **Low**<br>(Mitigated) | **Design is Guided, not Open-Ended.** The AI leads with options (cards, buttons) rather than waiting for text. Users just "react" rather than "initiate." Validation: Monitor click-through rate on proactive suggestions. | Users stop engaging when AI asks open-ended questions. | **Reinforce Shortcuts:** Increase prominence of visual menu for common tasks. |
   | **2. Value Proposition**<br>(Premium Quality @ Standard Price) | **Medium** | **Price Parity, Quality Superiority.** We sell for €30 (standard venue price), but give a €50 quality shirt. Risk is artists lowering price to €20 and eroding margin. Validation: Monitor average retail price set by artists. | Average artist markup drops below 20% (indicating they feel forced to race-to-the-bottom). | **Education & Niche Focus:** Double down on "Buy Less, Buy Better" messaging. Disqualify budget-focused artists early. We do NOT compromise on quality to compete on price. |
   | **3. Expansion Scalability**<br>(Quality relies on Systems, not Heroes) | **Low** | **Expert is Support, NOT Lead.** Expansion relies on the "Merch From Playbook" and a hired Ops Manager, not Expert's daily presence. Validation: Document 100% of SOPs by Month 12. | Brazil hub fails quality audits despite following SOPs. | **Founder Deployment:** Victor relocates to Brazil for 3 months to retrain/restructure personally. |
-  | **4. AI Reliability & Failure Value**<br>(Failures become Training Assets) | **Low**<br>(Mitigated) | **The "Frustration Protocol":** Repeated user edits trigger auto-handoff to Human Designer (Brazil Agency). Critical Twist: Every manual fix is instantly tagged for the training dataset, turning today's failure into tomorrow's capability. | Human intervention rate exceeds 30% (unsustainable agency cost). | **Scale Human Layer:** If AI struggles, we simply treat the "Human Desk" as a core feature (charging a small fee for "Pro Design Support") while the model catches up. |
+  | **4. AI Reliability & Failure Value**<br>(Failures become Learning Assets) | **Low**<br>(Mitigated) | **The "Frustration Protocol":** Repeated user edits trigger auto-handoff to Human Designer (Brazil Agency). Critical Twist: Every manual fix is logged and reviewed to improve prompt templates and style references, turning today's failure into tomorrow's capability. | Human intervention rate exceeds 30% (unsustainable agency cost). | **Scale Human Layer:** If AI struggles, we simply treat the "Human Desk" as a core feature (charging a small fee for "Pro Design Support") while the pipeline catches up. |
   | **5. Portugal Logistics**<br>(Shipping Competitiveness from PT) | **Low** | **Contract Leverage:** We don't pay consumer rates. Contracts with DHL/DPD provide competitive flat rates across EU Zones. Network effects mean costs *decrease* as we scale. Validation: Compare DPD Zone 1 rate vs Printful Local. | Shipping costs exceed competitor total landed cost by >20%. | **Dynamic Carrier Aggregation:** Integrate multi-carrier API (Packlink/SendCloud) to algorithmically select the cheapest route per package if single-contract rates fail. |
 
   **Key Definitions:**
@@ -3556,7 +3250,7 @@
   - Fyul merger shows consolidation appetite in POD sector
   - Needs premium differentiation to compete with dominant player
   - In-house production capability (they lack)
-  - Expert dataset IP (unique moat not replicable by acquisition)
+  - Print-production know-how and color-separation pipeline (hard to replicate by acquisition)
 
   **Trigger Events:**
   - 100+ active artists, €100K MRR
@@ -3799,8 +3493,8 @@
 
   ## 4. Data Architecture & Logging Logic (The "Brain" Strategy)
 
-  ### 4.1 The "Golden Dataset" Strategy
-  We are not just building a product; we are building a proprietary dataset. Every interaction with the Cat-Suite (Leopoldo, Francisca, Antônia) is logged, ranked, and filtered to create a "Golden Dataset" for future fine-tuning.
+  ### 4.1 Interaction Logging & Quality Signals
+  Every interaction with the Cat-Suite (Leopoldo, Francisca, Antônia) is logged so the team can see what works and what doesn't. The signals are used to tune prompts, Style Capsule templates and product flows. They are not used to train or fine-tune models; all model inference runs on hosted APIs.
 
   **The Loop:**
   1. **Interaction:** User chats with AI.
@@ -3808,13 +3502,11 @@
   3. **Evaluation:**
     - **Implicit:** User accepts the suggestion (e.g., "Add to Cart") -> Positive Signal.
     - **Explicit:** "This isn't what I meant" / Retry -> Negative Signal.
-  4. **Promotion:** High-quality interactions are promoted to the `golden_dataset` table.
-  5. **Training (Monthly):** This clean dataset is used to retrain custom LoRAs (Visual) and potentially fine-tune open-source conversational models at scale.
-  6. **Replacement Strategy:** Once our proprietary models reach parity with paid APIs (Anthropic/BFL), we switch inference to our own hosted models to reduce costs by ~70%.
+  4. **Review:** Recurring failure patterns are reviewed and turned into prompt and template fixes.
 
   ### 4.2 Database Schema (Drizzle ORM + Neon PostgreSQL)
 
-  We use a structured logging schema to ensure data is "Training-Ready" from Day 1.
+  We use a structured logging schema so interactions can be analysed from Day 1.
 
   **`chat_sessions`**
   *Context isolation per user. All AI conversations stored as JSONB messages array.*
@@ -3832,16 +3524,6 @@
   - `role`: Enum (`artist`, `customer`, `admin`)
   - `stripe_customer_id`, `stripe_connect_id`: Text
   - `created_at`, `updated_at`: Timestamp
-
-  **`golden_dataset` (The Vault — Future)**
-  *Waitlist for the Hall of Fame. Implemented when Expert Panel scoring begins.*
-  - `id`: UUID (PK)
-  - `interaction_id`: UUID (FK → chat session message)
-  - `input_text`: Text (The perfect prompt)
-  - `output_text`: Text (The perfect response)
-  - `reasoning`: Text (Why this is golden?)
-  - `score`: Float (0.0 - 1.0)
-  - `reviewer_id`: UUID (Human or 'system')
 
   ### 4.3 Async Logging Workflow
 
@@ -3861,10 +3543,10 @@
   **The Scenario:** A major incumbent (Printful/Printify) launches an AI Design tool in 6 months.
   **The Defense:** Why Merch From wins.
 
-  ### 16.1 The Data Moat: Curation > Volume
-  **Them:** They train on *everything* (Grandma's birthday shirts, corporate logos, meme trash). Their AI regresses to the "average."
-  **Us:** We train exclusively on **"Expert-scored" Streetwear**.
-  - **Taste is Hard to Copy:** You can't program "Taste" without a "Human in the Loop" curator like our dataset panel.
+  ### 16.1 The Curation Moat: Taste > Volume
+  **Them:** Generic prompts on generic models. Output regresses to the "average."
+  **Us:** Curated **Style Capsules** (prompt templates + hand-picked reference images) on hosted frontier models, with print professionals reviewing production files.
+  - **Taste is Hard to Copy:** Curation and print know-how sit around the model, not inside a custom-trained one.
   - **Result:** We don't output "designs"; we output "cool."
 
   ### 16.2 The Emotional Moat: "Leopoldo" vs. "The Dashboard"
@@ -3890,7 +3572,7 @@
   - **Trust:** Gen Z creators verify this. They can visit our shop in Barcelos.
 
   ### 16.5 The "18-Month Lead" Thesis
-  We don't need to be the *only* AI tool forever. We just need to be the **Best AI for Musicians/Creators** for 18 months. By the time they copy the "Tech," we will have locked in the "Trust" and the "Dataset."
+  We don't need to be the *only* AI tool forever. We just need to be the **Best AI for Musicians/Creators** for 18 months. By the time they copy the "Tech," we will have locked in the "Trust" and the print-production workflow.
 
   ---
 
@@ -3951,24 +3633,12 @@
    - **Cost:** $0 (deterministic, rule-based)
    - **Speed:** <3s per design
    - **Quality:** K-Means clustering for spot colors, Moiré-prevention angles, Pantone matching
-   - **Why not Attention U-Net (yet):** Custom ML model requires 5,000+ expert-scored designs to train; OpenCV is production-ready today
-   - **Migration path:** Replace with fine-tuned U-Net when dataset reaches 5,000+ scored designs (Year 2)
+   - **No trained model:** separation is rule-based, so there is no training data or model to maintain
 
-   **LoRA Fine-Tuning Strategy (Proprietary Aesthetic):**
-   - **Initial LoRAs (Pre-Beta, Week 1-2):** 4 styles trained on Expert's 100 archive designs
-     - `american-traditional-v1` (20 tattoo-inspired designs)
-     - `vintage-band-v1` (20 concert poster designs)
-     - `skull-art-v1` (20 skull-focused designs)
-     - `minimalist-logo-v1` (20 clean, modern designs)
-   - **Cost:** 4 × $2 = $8 total
-   - **Training Time:** 4 × 30 min = 2 hours (automated via Replicate)
-   
-   **Monthly Retraining (Beta Phase):**
-   - Aggregate all customer designs rated 3/3 (excellent)
-   - Retrain LoRAs monthly with new data
-   - Version increment: `v1` → `v2` → `v3` → ... → `v10`
-   - Cost: $8/month (4 LoRAs × $2)
-   - By Month 9: 10,000+ customer-approved designs in training dataset
+   **Style Strategy (Style Capsules):**
+   - Styles are prompt templates plus curated reference images, applied at generation time through reference-guided editing (`fal-ai/nano-banana-2/edit`)
+   - No per-style training: adding a style means curating references and writing a template
+   - Custom LoRA training was tested in Aug 2026 and retired on 2026-08-24
    
    **Future Negotiation Path (Year 2+):**
    - At 5,000+ artists, approach Black Forest Labs for enterprise commercial license
@@ -4121,7 +3791,7 @@
   - GLM-4.7 family — Fully deprecated, non-EU
   - Llama 3.1 8B via Ollama — Not needed; Mistral Small 4 is cheaper than self-hosting at this scale
   - FLUX.1 [dev] self-hosted — Replaced by BFL API FLUX 2-only routing (no GPU infra to manage)
-  - Attention U-Net — Deferred; OpenCV color separation sufficient for MVP
+  - Attention U-Net — Not planned; OpenCV color separation is rule-based and needs no trained model
   - Real-ESRGAN — Cloudinary upscaling sufficient for MVP
 
   ---
@@ -4159,10 +3829,10 @@
 
   **Key Measures:**
   1. **SOP Documentation:** Complete library of production processes
-  2. **AI Training:** Custom AI assistant for production guidance
+  2. **AI Assistant:** Production-guidance assistant built on hosted LLMs
   3. **Brazilian Agency:** Outsourced design work (human-in-the-loop)
   4. **Production Manager:** Hire by Month 7-8 (not Month 12)
-  5. **Expert Panel:** Expert, Expert B, Expert C for quality validation
+  5. **Print QA Reviewers:** Experienced printers validate production quality
 
   ---
 
@@ -4229,8 +3899,6 @@
 
   **Production AI Stack (Future):**
   - Self-host Voxtral (Apache 2.0) at 250+ artists to eliminate voice costs
-  - Custom LoRA fine-tuning on FLUX 2 via BFL infrastructure with Expert-scored designs for proprietary aesthetic
-  - Attention U-Net for advanced color separation (when dataset is large enough)
   - **Image generation remains API-only** — costs stay <1% of revenue, no GPU infrastructure to manage
 
   ---
@@ -4547,7 +4215,7 @@
 | **Mistral Small 4** (LLM) | ~$0.15/1M input, ~$0.60/1M output | Mistral API | FAQ, order tracking, simple queries (~70% of traffic) |
 | **Voxtral Transcribe 2** (STT) | $0.003/min | Mistral API | Real-time voice transcription |
 | **ElevenLabs TTS** (TTS) | ~$0.00/min (grant-covered) | ElevenLabs API | Premium character voice synthesis |
-| **Image Generation** (fal.ai) | $0.04–0.08/image | fal.ai API | FLUX 2 Dev/LoRA + Kontext iterative editing |
+| **Image Generation** (fal.ai) | $0.04–0.08/image | fal.ai API | Nano Banana 2 reference-guided generation + edits |
 
 ### Cost Scenarios
 
@@ -4577,7 +4245,7 @@
 - **Portuguese Native:** Both STT and TTS support Portuguese natively
 - **Self-Hosting:** Apache 2.0 weights enable migration to own infrastructure at scale
 
-  #### **Francisca's Visual Style Gallery: LoRA Selection UX**
+  #### **Francisca's Visual Style Gallery: Style Capsule Selection UX**
 
   **The Customer Experience:**
   Instead of describing styles in confusing technical terms, customers see a visual gallery of example designs and click to select their preferred aesthetic.
@@ -4604,27 +4272,27 @@
 
   **How It Works:**
   1. Customer clicks "🎨 American Traditional" card
-  2. System maps selection → `american-traditional-v3` LoRA (behind the scenes)
+  2. System maps selection → `american-traditional` Style Capsule (behind the scenes)
   3. Francisca asks: "Describe your design"
   4. Customer: "Skull with roses"
   5. System constructs prompt: `"american traditional skull with roses, bold lines, limited color palette"`
-  6. Calls Replicate API with selected LoRA
+  6. Calls `fal-ai/nano-banana-2/edit` with the prompt plus the capsule's anchor reference image
   7. Customer sees generated image (no technical details exposed)
 
   **Natural Language Fallback:**
   - If customer types "I want an American Traditional skull", system detects keyword
-  - Maps to same LoRA as clicking visual card
+  - Maps to the same Style Capsule as clicking the visual card
   - Works seamlessly both ways (click or type)
 
-  **LoRA Registry (Backend Database Schema):**
+  **Style Registry (Backend Database Schema):**
   ```typescript
-  interface LoRAStyle {
+  interface StyleCapsule {
     id: string;
     displayName: string;           // "American Traditional"
     slug: string;                  // "american-traditional"
-    replicateModel: string;        // "your-account/flux-dev:american-traditional-v3"
-    triggerWord: string;           // "american traditional"
-    version: string;               // "v3"
+    promptTemplate: string;        // macro style instructions prepended to the user prompt
+    referenceImages: string[];     // curated style reference library (anchor picked per call)
+    version: string;               // "v1"
     exampleImages: string[];       // [Cloudinary URLs of 3 examples]
     description: string;           // "Bold lines, vintage tattoo aesthetic"
     bestFor: string;              // "Band merch, tattoo-inspired designs"
@@ -4636,71 +4304,31 @@
   1.  **Visual Style Selection:**
       - Francisca presents visual gallery of 6 style cards with example images
       - Customer clicks preferred aesthetic (e.g., "American Traditional")
-      - System selects appropriate fine-tuned LoRA behind the scenes
+      - System selects the matching Style Capsule (prompt template + anchor reference image) behind the scenes
   2.  **Asset Prep:** User uploads a logo -> OpenCV processes background -> Francisca confirms clarity.
-   3. **Generation:** Francisca constructs prompt with trigger word + user description, calls fal.ai API with selected LoRA
-  4.  **Refinement:** User says "Make the snake green." → Regenerates with same LoRA, modified prompt
-  5.  **Finalize:** User approves → Real-ESRGAN upscales to 4K → U-Net color separation → Halftoning → Print-ready files
+   3. **Generation:** Francisca combines the capsule's prompt template with the user description and calls `fal-ai/nano-banana-2/edit` with the anchor reference image
+  4.  **Refinement:** User says "Make the snake green." → Edit re-anchored to the base image with the same capsule and the accumulated instructions
+  5.  **Finalize:** User approves → 4K final render (Nano Banana 2 native) → OpenCV color separation → Halftoning → Print-ready files
 
-  #### **Expert's Expert Dataset Strategy: The Unfair Advantage**
+  #### **Differentiation: The Print-Production Workflow**
 
-  **The Moat:** While competitors rely on generic AI models, MerchFrom's color separation AI is trained on Expert's 30+ years of screen printing expertise. This proprietary dataset is **impossible to replicate** and becomes more valuable with every design.
+  **The Moat:** Generic image generators stop at a picture. MerchFrom's advantage is what happens after generation: deterministic color separation, halftoning and print prep (OpenCV, rule-based), informed by 30+ years of screen-printing practice, plus an artist workflow that goes from idea to print-ready files and a storefront. There is no proprietary model and no training dataset; image generation runs on hosted APIs (fal.ai). Custom LoRA training was tried once and retired on 2026-08-24.
 
-  **Dataset Growth Trajectory:**
-  ```
-  Phase 1 (Pre-Launch, Week 1-2):
-    - 100 existing designs (Expert's archive, excellent quality)
-    - +400 "good quality" separations via Separation Studio (fast augmentation)
-    - Total: 500 real-world samples → Build OpenCV baseline + begin expert panel scoring
-  
-  Phase 2 (Beta - 10 Artists, Month 1-3):
-    - 10 artists × 30 designs = 300 new designs
-    - Expert curates 10 new designs/day = +900 expert samples
-    - +500 "good quality" Separation Studio augmentations
-    - Total: 500 → 2,200 samples → Retrain weekly
-
-  Phase 3 (Beta - 50 Artists, Month 4-6):
-    - 50 artists × 30 designs = 1,500 new designs
-    - Expert curates 10/day = +900 expert samples
-    - +500 "good quality" augmentations
-    - Total: 2,200 → 5,100 samples → Retrain bi-weekly
-
-  Phase 4 (Beta - 100 Artists, Month 7-9):
-    - 100 artists × 30 designs = 3,000 new designs
-    - Expert curates 10/day = +900 expert samples
-    - +500 "good quality" augmentations
-    - Total: 5,100 → 9,500 samples → Retrain monthly
-
-  Public Launch (Month 10+):
-    - 10,000+ expert-curated samples
-    - World-class screen printing separation dataset
-    - Accuracy: 98%+ (production-ready, minimal human review)
-    - Value: €200K+ in labor equivalent
-  ```
-
-  **Quality Assurance: Dual Metrics System**
+  **Quality Assurance**
 
   **1. Customer Approval Rating (Lightweight, Every Design)**
   - User rates final design: 1 = Poor, 2 = Okay, 3 = Excellent
   - Triggers human review if rating < 2
   - Tracks user satisfaction per artist, style, complexity
-  - Data feeds back into model training priorities
 
-  **2. Internal Manual Audit (Deep, Representative Sample)**
-  - Expert + expert panel scores 10% of designs monthly
-  - 5-point rubric with detailed improvement notes:
+  **2. Print File Review (Representative Sample)**
+  - Print professionals review a sample of production files before printing, using a 5-point rubric:
     - **Color Accuracy (1-5):** Pantone matching precision
     - **Edge Quality (1-5):** Clean vector boundaries, no bleeding
     - **Halftone Compatibility (1-5):** Moiré prevention, proper angles
     - **Registration Complexity (1-5):** Screen count optimization
     - **Production Readiness (1-5):** Overall print-ready quality
-  - Aggregate scores guide model retraining focus areas
-  - Creates high-confidence ground truth for supervised learning
-
-  **Why This Works:**
-  - **Customer rating = volume metric** (10,000s/month, broad coverage)
-  - **Manual audit = precision metric** (100s/month, deep insight)
-  - Combined: Fast iteration + quality guarantee
+  - Findings adjust separation parameters, prompt templates and style reference curation (no model training)
 
   #### **Revised AI Unit Economics (v3.2 - Updated):**
   - **Conversation (Mistral Small 4):** ~$0.0003 per simple interaction (70% of traffic)
@@ -5417,7 +5045,7 @@
   ### 1. The Technology Acquisition (Target: $50M - $100M)
   **Potential Acquirers:** Printful, Redbubble, Gelato
   - **Why they buy:** They have the volume but lack the **AI Design Agent technology**. Acquiring Merch From gives them the "Leopoldo/Francisca" engine to offer AI design to their millions of users.
-  - **The Asset:** The "Cat-Suite" Agent Architecture + Expert-Trained Dataset.
+  - **The Asset:** The "Cat-Suite" Agent Architecture + the print-production pipeline (color separation and print prep).
 
   ### 2. The Native Commerce Acquisition (Target: $100M+)
   **Potential Acquirers:** Shopify, Squarespace, Wix
@@ -5784,24 +5412,18 @@
   - [ ] A/B testing framework
   - [ ] Documentation complete
 
-  ### Phase 6: Dataset Collection System (Month 7 Post-Launch)
-  **Goal:** Build world's highest-quality screen printing dataset with Expert Curator Panel
+  ### Phase 6: Print Quality Review (Month 7 Post-Launch)
+  **Goal:** Systematic review of production output by print professionals
 
-  - [ ] Database schema for design quality scoring created
-  - [ ] Database schema for refinement preferences created
-  - [ ] Expert scoring interface built (1-5 rubric for 4 categories)
+  - [ ] Database schema for print-file quality review created
+  - [ ] Review interface built (1-5 rubric for 4 categories)
   - [ ] Automated metadata capture (color count, dimensions, complexity)
   - [ ] Design session logging with full conversation history
-  - [ ] Refinement tracking (before/after images + instructions)
+  - [ ] Refinement tracking (before/after images + instructions) for UX analysis
   - [ ] User acceptance tracking (which refinements were approved)
   - [ ] Production validation workflow (score printed results)
-  - [ ] Dataset export functionality (ML training format)
-  - [ ] Dataset readiness dashboard (count, avg quality, coverage)
-  - [ ] Expert Panel scoring workflow (50-100 designs/month per expert)
-  - [ ] Dataset quality metrics >4.0 average score (multi-expert validation)
-  - [ ] Milestone tracking: 100 designs (Month 7) → 5,000 (Month 18) - world's best dataset
-  - [ ] Panel methodology documentation (for future scaling)
-  - [ ] Production correlation tracking (design scores vs. actual print quality)
+  - [ ] Quality dashboard (review count, average score, coverage)
+  - [ ] Production correlation tracking (file review scores vs. actual print quality)
 
   ---
 
@@ -5847,7 +5469,6 @@
 
   **AI & ML (Phase 2: Scale - Self-Hosted Migration at 250+ Artists):**
   - **Self-hosted Voxtral** (Apache 2.0 weights) — Eliminate per-minute STT/TTS costs at scale
-  - **Custom LoRA fine-tuning** (via Replicate / Modal) — Train on Expert-scored designs for proprietary aesthetic
   - **Failover:** OpenRouter API remains as high-availability backup for image generation; Mistral API direct for LLM
 
   **Infrastructure:**
@@ -5983,264 +5604,34 @@
     Real cost: Opportunity cost only, no cash flow impact
   ```
 
-  **Proprietary Dataset Strategy: Building Competitive Moat**
-
-  While using APIs during Year 1, we're simultaneously building a high-quality proprietary dataset:
-
-  **Dataset Collection Process (Expert Curator Panel):**
-  1. **Every design generated** = dataset entry with metadata
-  2. **Artist feedback loops** = scored refinements ("make it more vintage" = preference data)
-  3. **World-class expert scoring** = Panel of 3 masters (Expert A, Expert B, Expert C) with 70+ years combined expertise
-  4. **Multi-perspective validation** = Each expert brings specialized knowledge (process printing, traditional techniques, quality mastery)
-  5. **Remote contract model** = Cost-effective, no relocation, scalable
-
-  **Quality Scoring Rubric (1-5 Scale):**
-  - **Print-readiness:** Color separation potential, halftone compatibility
-  - **Design execution:** Prompt adherence, aesthetic quality
-  - **Technical specs:** DPI, dimensions, bleed areas
-  - **Production efficiency:** Screen count optimization, registration complexity
-
-  **Dataset Growth Projections (Expert Panel Curation):**
-  ```
-  Month 7 (Launch): 100 designs (panel scoring begins)
-  Month 12: 1,200 designs (expert-scored, multi-validated)
-  Month 18: 5,000 designs (ready for fine-tuning)
-  Month 24: 10,000+ designs (world-class screen print dataset)
-  ```
-
   **Competitive Advantage:**
-  - **Year 1:** Launch fast, validate demand, gather data
-  - **Year 2:** Migrate to self-hosted Voxtral + custom LoRAs trained on 5,000+ real user designs
-  - **Year 3:** Own the only screen-print-optimized AI model in the market
-  - **Exit Value:** Proprietary dataset + fine-tuned model = defensible IP moat
+  - **Year 1:** Launch fast on hosted APIs, validate demand, refine the print-production workflow
+  - **Year 2:** Move speech-to-text to self-hosted Voxtral (Apache 2.0 weights) at 250+ artists
+  - **Year 3:** Deepen print-prep automation and artist workflow integration
+  - Image generation stays on hosted APIs (fal.ai: Nano Banana 2 primary, Seedream 5.0 Pro fallback). No model training or fine-tuning is planned.
 
   **Investor Pitch Positioning:**
 
-  > "We're launching with proven Mistral APIs to achieve profitability fast—AI costs are just $0.02–0.04 per design, completely negligible. But we're not stopping there. From Day 1, we're building a proprietary dataset of expert-scored screen printing designs. By Year 2, when we hit 250+ artists, we'll migrate to self-hosted Voxtral (Apache 2.0) and custom LoRAs fine-tuned on 5,000+ real-world designs. That's when our margin expansion accelerates—competitors stay locked into expensive APIs while our voice costs drop to near-zero. We're building both a profitable business AND a defensible AI moat."
+  > "We're launching with proven hosted APIs to reach profitability fast; AI costs are a small fraction of each design. The differentiation is the print-production workflow around generation: color separation, print prep and fulfilment that generic image tools don't do. At 250+ artists we move speech-to-text to self-hosted Voxtral (Apache 2.0), which lowers voice costs further."
 
   **Why This Strategy Wins:**
   - ✅ **Capital efficiency** - No premature infrastructure investment
   - ✅ **De-risked execution** - Validate business before building deep tech
-  - ✅ **Margin expansion story** - Clear path to 80% AI cost reduction
-  - ✅ **Defensible moat** - Proprietary dataset = competitive advantage
+  - ✅ **Margin expansion story** - Clear path to lower voice costs
+  - ✅ **Defensible position** - Print-production workflow and artist integration
   - ✅ **Investor confidence** - Shows strategic thinking beyond launch
 
   **Technical Migration Plan (Month 18-24):**
 
   **Phase 1: Infrastructure Setup (Month 18)**
   - Acquire NVIDIA A6000 GPU (€5,000 from profits)
-  - Install self-hosted Voxtral STT + TTS (Apache 2.0 weights)
+  - Install self-hosted Voxtral STT (Apache 2.0 weights). ElevenLabs TTS via API (grant).
   - Set up inference API wrapper
   - Deploy monitoring and logging
 
-   **Phase 2: Fine-Tuning (Month 19-20)**
-   - Export 5,000-image dataset with scores
-   - Fine-tune FLUX 2 with custom LoRAs via BFL API infrastructure
-   - Train 4 initial style LoRAs (American Traditional, Vintage Band, Skull Art, Minimalist Logo)
-   - Deploy LoRA visual gallery for customer style selection
-
-   **Phase 3: Monthly LoRA Retraining (Month 7+)**
-   - Retrain LoRAs monthly with customer-approved designs (3/3 ratings)
-   - Version each LoRA cohort (v1, v2, v3...)
-   - A/B test new versions vs. existing versions
-   - Keep all versions until Month 7, then replace with latest
-
-   **Phase 4: Scale Optimization (Month 12+)**
-   - Evaluate self-hosted Voxtral (Apache 2.0) for voice cost elimination
-   - Maintain Replicate API as fallback
-   - Continue monthly LoRA retraining
-  - Begin continuous fine-tuning on new data
-
-   **Fallback Strategy:**
-   If fine-tuned LoRA quality is insufficient:
-   - Fall back to base FLUX 2 Flex if fine-tuned model underperforms
-   - Continue collecting customer feedback for retraining
-   - License custom LoRA dataset to other platforms (revenue stream)
-  - Publish research paper (brand authority)
-  - Revisit in Year 3 with larger dataset
-
-  ---
-
-  ### 5.3 ML Training Infrastructure: Google Colab Strategy
-
-  **Cost-Efficient ML Training Without Capital Investment**
-
-  We're using Google Colab for ML model training - the same infrastructure used by leading AI companies for experimentation and model development. This approach eliminates €5,000+ in hardware costs while maintaining professional-grade training capabilities.
-
-  **Google Colab Overview:**
-  - **Free GPU Access:** Tesla T4 (15GB VRAM) for model training
-  - **Free TPU Access:** Even faster training for computer vision models
-  - **Zero Setup:** Browser-based Jupyter notebooks, instant access
-  - **Industry Standard:** Used by Google, startups, and researchers worldwide
-
-  **Cost Comparison (2-Year Period):**
-  ```
-  Self-Hosted ML Infrastructure:
-    NVIDIA RTX 4090 GPU:           €2,000
-    High-end workstation:          €3,000
-    Electricity (24 months):       €1,200
-    Maintenance & upgrades:        €800
-    ────────────────────────────
-    Total 2-Year Cost:             €7,000
-
-  Google Colab Approach:
-    Months 1-6 (Free Tier):        €0
-    Months 7-24 (Colab Pro):       €180 (€10/month × 18)
-    ────────────────────────────
-    Total 2-Year Cost:             €180
-    
-    ✅ SAVINGS: €6,820 (97% cost reduction)
-  ```
-
-  **Training Workflow:**
-  ```python
-  # Weekly ML Training Cycle (Google Colab)
-
-  1. Expert Panel Scores Designs (Monday-Thursday):
-    - 80-100 new expert-scored separations weekly
-    - Data automatically synced to Google Drive
-
-  2. Model Training Session (Friday):
-    - Open Colab notebook with free GPU
-    - Load Expert Panel's latest scores from Drive
-    - Train model on 100+ new data points
-    - Validate improvements with A/B test set
-    - Export trained model (2-3 hours)
-    
-  3. Deployment (Friday afternoon):
-    - Download trained model from Colab
-    - Deploy to staging environment
-    - Run automated validation tests
-    - Schedule production deployment
-
-  Total Weekly Cost: €0 (Free Tier) or €2.50 (Pro Tier)
-  ```
-
-  **Colab Free Tier Capabilities (Months 1-6):**
-  - **GPU Time:** ~15 hours/week
-  - **Session Length:** 12 hours maximum
-  - **RAM:** 12GB (sufficient for image datasets)
-  - **Storage:** Google Drive integration (unlimited with Drive storage)
-  - **Perfect For:** Weekly training with <5,000 images
-
-  **Colab Pro Upgrade (€10/month, Months 7+):**
-  - **GPU Time:** ~45 hours/week (3x more)
-  - **Better GPUs:** Tesla V100, occasional A100 access
-  - **Session Length:** 24 hours (2x longer)
-  - **RAM:** Up to 32GB (2.5x more)
-  - **Background Execution:** Keeps running when browser closed
-  - **Priority Access:** Faster resource allocation
-
-  **When to Upgrade to Colab Pro:**
-  - Dataset exceeds 5,000 scored designs (Month 6-7)
-  - Training frequency increases to 2-3x weekly
-  - Experimenting with multiple model architectures
-  - Need longer uninterrupted training sessions
-
-  **ROI Analysis:**
-  ```
-  €10/month Colab Pro Investment:
-    - Eliminates €5,000 hardware purchase
-    - No electricity costs (€50/month saved)
-    - No maintenance/upgrades needed
-    - Professional GPU access on-demand
-    - Instant scaling when needed
-    
-  Net Monthly Savings vs Self-Hosted: €40+
-  Annual Savings: €480+
-  ```
-
-  **Technical Implementation:**
-  ```typescript
-  // Automated data sync to Google Drive
-  interface CoLabTrainingPipeline {
-    // Step 1: Export Expert Panel scores from Neon PostgreSQL
-    exportScores: () => Promise<void>;
-    
-    // Step 2: Sync to Google Drive (automated)
-    syncToGoogleDrive: () => Promise<void>;
-    
-    // Step 3: Colab training (manual trigger)
-    // User opens Colab notebook, runs training cells
-    
-    // Step 4: Download trained model
-    downloadModel: () => Promise<Buffer>;
-    
-    // Step 5: Deploy to production
-    deployModel: (modelBuffer: Buffer) => Promise<void>;
-  }
-
-  // Google Drive Structure
-  /My Drive/merch_from_ml/
-    ├── datasets/
-    │   ├── designs/              # Design images
-    │   ├── expert_scores.csv     # Expert scores (auto-synced)
-    │   └── validation_set/       # Holdout test set
-    ├── models/
-    │   ├── checkpoints/          # Training checkpoints
-    │   └── production/           # Final deployed models
-    ├── notebooks/
-    │   ├── training.ipynb        # Main training notebook
-    │   ├── evaluation.ipynb     # Model evaluation
-    │   └── ab_testing.ipynb      # A/B test framework
-    └── results/
-        └── experiments/          # Training logs, metrics
-  ```
-
-  **Scaling Path:**
-  ```
-  Months 1-6: Colab Free Tier
-    - Training 1x per week
-    - Dataset: 500-3,000 images
-    - Cost: €0/month
-    - GPU hours: Sufficient
-
-  Months 7-18: Colab Pro
-    - Training 2-3x per week
-    - Dataset: 3,000-10,000 images
-    - Cost: €10/month
-    - GPU hours: Abundant
-    - Better GPUs (V100)
-
-  Months 19-24: Evaluate Self-Hosting
-    - Only if training daily
-    - Dataset: 10,000+ images
-    - Continuous model updates needed
-    - Break-even: ~5 hours GPU/day
-
-  Realistic: Colab Pro sufficient for 18-24 months
-  ```
-
-  **Investor Advantages:**
-  - ✅ **Capital Efficiency:** €6,820 saved over 2 years (deployed to growth)
-  - ✅ **Professional Infrastructure:** Same tools as Google/DeepMind
-  - ✅ **Instant Scaling:** Upgrade to Pro in 1 click when needed
-  - ✅ **Zero Maintenance:** No hardware management overhead
-  - ✅ **Risk Mitigation:** No sunk costs if pivot needed
-  - ✅ **Proven Technology:** Industry-standard ML development platform
-
-  **Why This Approach is Strategic:**
-
-  Most startups waste €5,000-10,000 on premature ML infrastructure that sits idle 95% of the time. We're following best practices from successful AI companies:
-
-  1. **Start with managed services** (Colab Free)
-  2. **Scale with proven demand** (Colab Pro at Month 7)
-  3. **Self-host only at true scale** (if ever needed)
-
-  This strategy demonstrates:
-  - **Financial discipline** - Not burning investor capital on unnecessary hardware
-  - **Technical competence** - Using industry-standard tools correctly
-  - **Strategic thinking** - Right tool for each growth phase
-  - **Capital efficiency** - €6,820 saved goes to marketing, inventory, growth
-
-  **Future Evaluation Criteria for Self-Hosting:**
-  - Training >20 hours/week consistently
-  - Dataset >50,000 images
-  - Colab Pro costs exceed €150/month
-  - Need for 24/7 continuous training
-  - Multiple models training simultaneously
-
-  **Bottom Line:** Google Colab gives us enterprise-grade ML training infrastructure for €0-10/month instead of €7,000+ in capital expenditure. This is exactly how successful AI companies bootstrap their ML operations.
+  **Phase 2: Scale Optimization (Month 19+)**
+  - Evaluate self-hosted Voxtral (Apache 2.0) for voice cost elimination
+  - Keep the Voxtral API as fallback
 
   ---
 
@@ -6395,9 +5786,9 @@
   }
   ```
 
-  ### 5.4 Dataset Collection Schema (For Future Fine-Tuning)
+  ### 5.4 Print Quality Review Schema
 
-  **Design Quality Scoring Table:**
+  **Print Quality Review Table:**
   ```sql
   CREATE TABLE design_quality_scores (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -6406,7 +5797,7 @@
     image_url TEXT NOT NULL,
     prompt TEXT NOT NULL,
     
-    -- Expert Scoring (1-5 scale)
+    -- Reviewer Scoring (1-5 scale, print professionals)
     print_readiness_score INTEGER CHECK (print_readiness_score BETWEEN 1 AND 5),
     design_execution_score INTEGER CHECK (design_execution_score BETWEEN 1 AND 5),
     technical_specs_score INTEGER CHECK (technical_specs_score BETWEEN 1 AND 5),
@@ -6436,32 +5827,7 @@
   CREATE INDEX idx_quality_printed ON design_quality_scores(was_printed, print_quality_actual);
   ```
 
-  **Dataset Export View (For Fine-Tuning):**
-  ```sql
-  CREATE VIEW ml_training_dataset AS
-  SELECT 
-    dqs.id,
-    dqs.image_url,
-    dqs.prompt,
-    dqs.overall_score,
-    dqs.print_readiness_score,
-    dqs.color_count,
-    dqs.estimated_screens,
-    ds.category,
-    ds.conversation_history,
-    CASE 
-      WHEN dqs.overall_score >= 4.5 THEN 'excellent'
-      WHEN dqs.overall_score >= 3.5 THEN 'good'
-      WHEN dqs.overall_score >= 2.5 THEN 'acceptable'
-      ELSE 'needs_improvement'
-    END AS quality_label
-  FROM design_quality_scores dqs
-  JOIN chat_sessions cs ON dqs.chat_session_id = cs.id
-  WHERE dqs.overall_score IS NOT NULL
-  ORDER BY dqs.created_at DESC;
-  ```
-
-  **Refinement Preference Data (For LoRA Fine-Tuning):**
+  **Refinement History (UX Analytics):**
   ```sql
   CREATE TABLE design_refinement_preferences (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -6474,21 +5840,20 @@
     created_at TIMESTAMP DEFAULT NOW()
   );
 
-  -- This captures real user preferences for fine-tuning
+  -- Used to analyse which edit instructions users accept
   CREATE INDEX idx_accepted_refinements ON design_refinement_preferences(user_accepted, preference_strength DESC);
   ```
 
   **Admin Dashboard Queries:**
   ```sql
-  -- Dataset readiness check
+  -- Quality overview
   SELECT 
-    COUNT(*) as total_scored_designs,
+    COUNT(*) as total_reviewed_designs,
     AVG(overall_score) as avg_quality,
     COUNT(*) FILTER (WHERE overall_score >= 4.0) as excellent_designs,
     COUNT(*) FILTER (WHERE was_printed = true) as validated_prints
   FROM design_quality_scores;
 
-  -- Fine-tuning readiness threshold: 5,000+ scored designs with avg quality > 3.5
   ```
 
   ---
@@ -6852,7 +6217,6 @@
   - **Image generation stays API-only.** At $0.015/image weighted average, costs remain <1% of revenue even at scale. Self-hosting FLUX would require GPU cluster + DevOps overhead that exceeds savings until 200K+ images/month.
   - Mistral API processes all data in Europe (GDPR-native)
   - BFL API direct for FLUX 2; OpenRouter available as unified fallback
-  - Custom LoRA fine-tuning on FLUX 2 via BFL infrastructure for proprietary aesthetic
 
   ### Production Automation Costs (Per Design)
 
@@ -6875,7 +6239,7 @@
   - Automated (OpenRouter + OpenCV halftoning): $0.02–0.04/design (16 seconds)
   - **Savings: 99.97% cost reduction + 99.7% time reduction** ✅
   
-  **Note:** FLUX 2 fine-tuned with custom LoRAs via BFL API ensures MerchFrom signature style (proprietary aesthetic moat)
+  **Note:** Consistent house style comes from Style Capsules (prompt templates + curated reference images), not from a trained model
   - **Savings: 99.9% cost reduction + 99.5% time reduction**
 
   ### NPM Dependencies
@@ -7067,13 +6431,13 @@
    - Database queries <100ms
 
    ### Phase 2: AI Artwork Generation with Voice (Weeks 5-8)
-   **Goal:** Implement FLUX 2 fine-tuned integration with **voice-powered design refinement**
+   **Goal:** Implement reference-guided image generation (fal.ai Nano Banana 2) with **voice-powered design refinement**
 
   **Deliverables:**
   - Design category selector UI
-  - LoRA visual style gallery (4 initial styles)
+  - Style Capsule visual gallery (4 initial styles)
   - Category preset configurations (5+ categories)
-   - FLUX 2 fine-tuned with custom LoRAs via BFL API infrastructure
+   - Reference-guided generation via `fal-ai/nano-banana-2/edit` (Style Capsule anchor images)
   - **Voice-powered design refinement** ("Make it darker", "Add more distortion")
   - **`<Artifact>` component for design preview display**
   - **`<Workflow>` component for design iteration tracking**
@@ -7628,8 +6992,8 @@
 
    **4. Design Generation System** *(Week 5-7)*
    - Category presets
-   - FLUX 2 fine-tuned integration (custom LoRAs via BFL)
-   - LoRA visual style gallery
+   - Reference-guided generation integration (fal.ai Nano Banana 2)
+   - Style Capsule visual gallery
    - Design session management
    → *Core differentiator, parallel to commerce*
 
@@ -7693,13 +7057,12 @@
     - Cache recent responses for retry logic
     - Alternative: Direct API integration with Anthropic as backup
 
-   **Risk: FLUX 2 Fine-Tuned Output Quality Inconsistency**
+   **Risk: Generated Output Quality Inconsistency**
   - **Impact:** Generated designs not print-ready
-  - **Likelihood:** Low (fine-tuned on Expert's expert designs)
+  - **Likelihood:** Low (reference-guided generation produced production-ready results in Aug 2026 testing)
   - **Mitigation:**
     - Comprehensive validation layer before presenting to user
-    - Fallback to base FLUX 2 Flex if LoRA fails
-    - Monthly LoRA retraining with customer-approved designs
+    - Fallback to Seedream 5.0 Pro if Nano Banana 2 output fails validation
     - Option to upload own artwork as fallback
     - Human review queue for edge cases
     - Collect feedback to tune prompts over time
@@ -7723,7 +7086,7 @@
     - Confidence scoring on validations
     - Continuous improvement with real print outcomes
     - Override mechanism for experienced creators
-    - Partner with print experts for ground truth data
+    - Partner with print experts to calibrate validation rules
 
   ### 12.1 Riskiest Assumptions Matrix
 
@@ -7732,7 +7095,7 @@
   | **1. UX Intuitiveness**<br>(Proactive UI > Passive Dashboard) | **Low**<br>(Mitigated) | **Design is Guided, not Open-Ended.** The AI leads with options (cards, buttons) rather than waiting for text. Users just "react" rather than "initiate." Validation: Monitor click-through rate on proactive suggestions. | Users stop engaging when AI asks open-ended questions. | **Reinforce Shortcuts:** Increase prominence of visual menu for common tasks. |
   | **2. Value Proposition**<br>(Premium Quality @ Standard Price) | **Medium** | **Price Parity, Quality Superiority.** We sell for €30 (standard venue price), but give a €50 quality shirt. Risk is artists lowering price to €20 and eroding margin. Validation: Monitor average retail price set by artists. | Average artist markup drops below 20% (indicating they feel forced to race-to-the-bottom). | **Education & Niche Focus:** Double down on "Buy Less, Buy Better" messaging. Disqualify budget-focused artists early. We do NOT compromise on quality to compete on price. |
   | **3. Expansion Scalability**<br>(Quality relies on Systems, not Heroes) | **Low** | **Expert is Support, NOT Lead.** Expansion relies on the "Merch From Playbook" and a hired Ops Manager, not Expert's daily presence. Validation: Document 100% of SOPs by Month 12. | Brazil hub fails quality audits despite following SOPs. | **Founder Deployment:** Victor relocates to Brazil for 3 months to retrain/restructure personally. |
-  | **4. AI Reliability & Failure Value**<br>(Failures become Training Assets) | **Low**<br>(Mitigated) | **The "Frustration Protocol":** Repeated user edits trigger auto-handoff to Human Designer (Brazil Agency). Critical Twist: Every manual fix is instantly tagged for the training dataset, turning today's failure into tomorrow's capability. | Human intervention rate exceeds 30% (unsustainable agency cost). | **Scale Human Layer:** If AI struggles, we simply treat the "Human Desk" as a core feature (charging a small fee for "Pro Design Support") while the model catches up. |
+  | **4. AI Reliability & Failure Value**<br>(Failures become Learning Assets) | **Low**<br>(Mitigated) | **The "Frustration Protocol":** Repeated user edits trigger auto-handoff to Human Designer (Brazil Agency). Critical Twist: Every manual fix is logged and reviewed to improve prompt templates and style references, turning today's failure into tomorrow's capability. | Human intervention rate exceeds 30% (unsustainable agency cost). | **Scale Human Layer:** If AI struggles, we simply treat the "Human Desk" as a core feature (charging a small fee for "Pro Design Support") while the pipeline catches up. |
   | **5. Portugal Logistics**<br>(Shipping Competitiveness from PT) | **Low** | **Contract Leverage:** We don't pay consumer rates. Contracts with DHL/DPD provide competitive flat rates across EU Zones. Network effects mean costs *decrease* as we scale. Validation: Compare DPD Zone 1 rate vs Printful Local. | Shipping costs exceed competitor total landed cost by >20%. | **Dynamic Carrier Aggregation:** Integrate multi-carrier API (Packlink/SendCloud) to algorithmically select the cheapest route per package if single-contract rates fail. |
 
   **Key Definitions:**
@@ -8022,7 +7385,7 @@
   - Fyul merger shows consolidation appetite in POD sector
   - Needs premium differentiation to compete with dominant player
   - In-house production capability (they lack)
-  - Expert dataset IP (unique moat not replicable by acquisition)
+  - Print-production know-how and color-separation pipeline (hard to replicate by acquisition)
 
   **Trigger Events:**
   - 100+ active artists, €100K MRR
@@ -8265,8 +7628,8 @@
 
   ## 4. Data Architecture & Logging Logic (The "Brain" Strategy)
 
-  ### 4.1 The "Golden Dataset" Strategy
-  We are not just building a product; we are building a proprietary dataset. Every interaction with the Cat-Suite (Leopoldo, Francisca, Antônia) is logged, ranked, and filtered to create a "Golden Dataset" for future fine-tuning.
+  ### 4.1 Interaction Logging & Quality Signals
+  Every interaction with the Cat-Suite (Leopoldo, Francisca, Antônia) is logged so the team can see what works and what doesn't. The signals are used to tune prompts, Style Capsule templates and product flows. They are not used to train or fine-tune models; all model inference runs on hosted APIs.
 
   **The Loop:**
   1. **Interaction:** User chats with AI.
@@ -8274,13 +7637,11 @@
   3. **Evaluation:**
     - **Implicit:** User accepts the suggestion (e.g., "Add to Cart") -> Positive Signal.
     - **Explicit:** "This isn't what I meant" / Retry -> Negative Signal.
-  4. **Promotion:** High-quality interactions are promoted to the `golden_dataset` table.
-  5. **Training (Monthly):** This clean dataset is used to retrain custom LoRAs (Visual) and potentially fine-tune open-source conversational models at scale.
-  6. **Replacement Strategy:** Once our proprietary models reach parity with paid APIs (Anthropic/BFL), we switch inference to our own hosted models to reduce costs by ~70%.
+  4. **Review:** Recurring failure patterns are reviewed and turned into prompt and template fixes.
 
   ### 4.2 Database Schema (Drizzle ORM + Neon PostgreSQL)
 
-  We use a structured logging schema to ensure data is "Training-Ready" from Day 1.
+  We use a structured logging schema so interactions can be analysed from Day 1.
 
   **`chat_sessions`**
   *Context isolation per user. All AI conversations stored as JSONB messages array.*
@@ -8298,16 +7659,6 @@
   - `role`: Enum (`artist`, `customer`, `admin`)
   - `stripe_customer_id`, `stripe_connect_id`: Text
   - `created_at`, `updated_at`: Timestamp
-
-  **`golden_dataset` (The Vault — Future)**
-  *Waitlist for the Hall of Fame. Implemented when Expert Panel scoring begins.*
-  - `id`: UUID (PK)
-  - `interaction_id`: UUID (FK → chat session message)
-  - `input_text`: Text (The perfect prompt)
-  - `output_text`: Text (The perfect response)
-  - `reasoning`: Text (Why this is golden?)
-  - `score`: Float (0.0 - 1.0)
-  - `reviewer_id`: UUID (Human or 'system')
 
   ### 4.3 Async Logging Workflow
 
@@ -8327,10 +7678,10 @@
   **The Scenario:** A major incumbent (Printful/Printify) launches an AI Design tool in 6 months.
   **The Defense:** Why Merch From wins.
 
-  ### 16.1 The Data Moat: Curation > Volume
-  **Them:** They train on *everything* (Grandma's birthday shirts, corporate logos, meme trash). Their AI regresses to the "average."
-  **Us:** We train exclusively on **"Expert-scored" Streetwear**.
-  - **Taste is Hard to Copy:** You can't program "Taste" without a "Human in the Loop" curator like our dataset panel.
+  ### 16.1 The Curation Moat: Taste > Volume
+  **Them:** Generic prompts on generic models. Output regresses to the "average."
+  **Us:** Curated **Style Capsules** (prompt templates + hand-picked reference images) on hosted frontier models, with print professionals reviewing production files.
+  - **Taste is Hard to Copy:** Curation and print know-how sit around the model, not inside a custom-trained one.
   - **Result:** We don't output "designs"; we output "cool."
 
   ### 16.2 The Emotional Moat: "Leopoldo" vs. "The Dashboard"
@@ -8356,7 +7707,7 @@
   - **Trust:** Gen Z creators verify this. They can visit our shop in Barcelos.
 
   ### 16.5 The "18-Month Lead" Thesis
-  We don't need to be the *only* AI tool forever. We just need to be the **Best AI for Musicians/Creators** for 18 months. By the time they copy the "Tech," we will have locked in the "Trust" and the "Dataset."
+  We don't need to be the *only* AI tool forever. We just need to be the **Best AI for Musicians/Creators** for 18 months. By the time they copy the "Tech," we will have locked in the "Trust" and the print-production workflow.
 
   ---
 
@@ -8416,24 +7767,12 @@
    - **Cost:** $0 (deterministic, rule-based)
    - **Speed:** <3s per design
    - **Quality:** K-Means clustering for spot colors, Moiré-prevention angles, Pantone matching
-   - **Why not Attention U-Net (yet):** Custom ML model requires 5,000+ expert-scored designs to train; OpenCV is production-ready today
-   - **Migration path:** Replace with fine-tuned U-Net when dataset reaches 5,000+ scored designs (Year 2)
+   - **No trained model:** separation is rule-based, so there is no training data or model to maintain
 
-   **LoRA Fine-Tuning Strategy (Proprietary Aesthetic):**
-   - **Initial LoRAs (Pre-Beta, Week 1-2):** 4 styles trained on Expert's 100 archive designs
-     - `american-traditional-v1` (20 tattoo-inspired designs)
-     - `vintage-band-v1` (20 concert poster designs)
-     - `skull-art-v1` (20 skull-focused designs)
-     - `minimalist-logo-v1` (20 clean, modern designs)
-   - **Cost:** 4 × $2 = $8 total
-   - **Training Time:** 4 × 30 min = 2 hours (automated via Replicate)
-   
-   **Monthly Retraining (Beta Phase):**
-   - Aggregate all customer designs rated 3/3 (excellent)
-   - Retrain LoRAs monthly with new data
-   - Version increment: `v1` → `v2` → `v3` → ... → `v10`
-   - Cost: $8/month (4 LoRAs × $2)
-   - By Month 9: 10,000+ customer-approved designs in training dataset
+   **Style Strategy (Style Capsules):**
+   - Styles are prompt templates plus curated reference images, applied at generation time through reference-guided editing (`fal-ai/nano-banana-2/edit`)
+   - No per-style training: adding a style means curating references and writing a template
+   - Custom LoRA training was tested in Aug 2026 and retired on 2026-08-24
    
    **Future Negotiation Path (Year 2+):**
    - At 5,000+ artists, approach Black Forest Labs for enterprise commercial license
@@ -8586,7 +7925,7 @@
   - GLM-4.7 family — Fully deprecated, non-EU
   - Llama 3.1 8B via Ollama — Not needed; Mistral Small 4 is cheaper than self-hosting at this scale
   - FLUX.1 [dev] self-hosted — Replaced by BFL API FLUX 2-only routing (no GPU infra to manage)
-  - Attention U-Net — Deferred; OpenCV color separation sufficient for MVP
+  - Attention U-Net — Not planned; OpenCV color separation is rule-based and needs no trained model
   - Real-ESRGAN — Cloudinary upscaling sufficient for MVP
 
   ---
@@ -8624,10 +7963,10 @@
 
   **Key Measures:**
   1. **SOP Documentation:** Complete library of production processes
-  2. **AI Training:** Custom AI assistant for production guidance
+  2. **AI Assistant:** Production-guidance assistant built on hosted LLMs
   3. **Brazilian Agency:** Outsourced design work (human-in-the-loop)
   4. **Production Manager:** Hire by Month 7-8 (not Month 12)
-  5. **Expert Panel:** Expert, Expert B, Expert C for quality validation
+  5. **Print QA Reviewers:** Experienced printers validate production quality
 
   ---
 
@@ -8694,8 +8033,6 @@
 
   **Production AI Stack (Future):**
   - Self-host Voxtral (Apache 2.0) at 250+ artists to eliminate voice costs
-  - Custom LoRA fine-tuning on FLUX 2 via BFL infrastructure with Expert-scored designs for proprietary aesthetic
-  - Attention U-Net for advanced color separation (when dataset is large enough)
   - **Image generation remains API-only** — costs stay <1% of revenue, no GPU infrastructure to manage
 
   ---

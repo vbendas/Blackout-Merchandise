@@ -149,7 +149,7 @@ Speak to the creators doing the real work — not the top 5%, not the hobbyists.
 | **Sub-hero** | "Premium Ethical Merch for Artists Who Give a Damn." | "Premium merch, zero compromise on ethics. Every item made on-demand in Portugal." |
 | **Artist pitch** | "Your Art. Your Merch Empire. Zero Upfront Costs." | "You made the art. You keep the margin. We handle the rest." |
 | **Fan pitch** | "Premium merchandise from artists you love. Support them directly." | "Wear your identity. Support real artists. Every purchase goes directly to the creator." |
-| **Investor pitch** | "The premium merch platform with in-house production, proprietary AI pipeline, and zero artist risk." | "The $13.4B market that puts artists first. In-house production, proprietary workflow data, 12-month AI window." |
+| **Investor pitch** | "The premium merch platform with in-house production, a print-ready AI workflow, and zero artist risk." | "The $13.4B market that puts artists first. In-house production, proprietary workflow data, 12-month AI window." |
 
 ### Feature Messaging
 
@@ -339,7 +339,7 @@ Action:  "€300K seed. 16-18% equity. 24-month runway to profitability."
 - ✅ "Proprietary workflow data: artist style preferences, design-to-conversion correlations"
 - ✅ "Conversational UX powered by EU technology (Mistral, Paris)"
 - ✅ "AI is our moat, not our brand"
-- ✅ "Expert-scored training dataset — world's only screen print AI training data"
+- ✅ "Print-ready output: color separation and print prep built into the design flow"
 - ❌ "AI-powered merchandise platform" (unless qualified with moat explanation)
 
 **When talking to press/media:**
@@ -437,7 +437,7 @@ GOTS-certified. Artist keeps 50%+.
 - Market: $11.4B POD, 23.6% CAGR. Marketplace collapse accelerating.
 - Traction: X artists onboarded. Y% from Redbubble/Society6 migration.
 - Product: Voice-driven design (category exclusive). SEO storefronts shipping.
-- Moat: Proprietary style-preference dataset growing X designs/day.
+- Moat: Print-ready workflow; X designs/day through print prep.
 - Ask: Opening $2-5M seed at 1,000 artists / $100K MRR."
 ```
 

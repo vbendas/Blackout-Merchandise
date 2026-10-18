@@ -12,14 +12,13 @@ Production pipeline, facility planning, and operational procedures.
 | [[Production-Automation-Reference]] | Technical reference for Phase 8+ development |
 | [[Contingency-Plans]] | Viral spikes, equipment failure, bulk drops |
 | [[Color-Separation-Reference]] | Color separation algorithms and Pantone matching |
-| [[ML-Training-Reference]] | ML training pipeline for design quality scoring |
 
 ---
 
 ## Production Pipeline
 
 ```
-Design (FLUX 2) → OpenCV Color Separation → Halftoning → Print-Ready Files
+Design (Nano Banana 2 via fal.ai) → OpenCV Color Separation → Halftoning → Print-Ready Files
                                     ↓
                           Mockup Generation (Cloudinary)
 ```

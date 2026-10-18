@@ -101,7 +101,7 @@
   **AI Differentiation Window:**
   - Merch From's multi-modal AI (text + image + voice) is **category-exclusive today**
   - 12-month head start before incumbents close the gap
-  - Sustainable moat: proprietary dataset + workflow integration, not just image generation
+  - Sustainable moat: print-production workflow (color separation, print prep) + artist workflow integration, not just image generation
 
   **Why This Timing is Optimal:**
   1. Fyul merger distraction (18-24 months reduced R&D)
@@ -164,7 +164,7 @@
   | **Founder Expertise** | 9 years screen printing + CS degree + 12 years marketing = triple-threat doesn't exist elsewhere |
   | **€113K Owned Equipment** | Competitors outsource; we have invested capital in production infrastructure |
   | **Cat-Suite Brand Narrative** | Unique character-driven experience (Leopoldo, Francisca, Antônia) creates emotional connection |
-  | **Expert-Scored Dataset** | Validated by **Expert A (6,600+ students)** & Expert Panel - no competitor has this quality depth |
+  | **Print-Production Workflow** | Built-in color separation and print prep that turns a generated design into press-ready files; generic generators stop at the image |
   | **Showroom vs Workshop UX** | Genuine product innovation: Apple-esque "Showroom" frontend vs gritty "Workshop" backend |
   | **Ethical-First Positioning** | Not an "add-on" tier—core brand value attracts values-aligned artists |
   | **Screen Print Mastery** | Premium multi-color work (8-20+ colors) that 95% of printers can't execute |
@@ -186,10 +186,10 @@
 
    ### AI Safety Nets (Hallucination Mitigation)
    We prioritize customer satisfaction over AI autonomy. To mitigate "hallucinations" or unprintable designs:
-   1.  **Expert Scoring Loop:** The AI pre-scores its own designs for "Printability" using expert-trained model. Low scores trigger a "Francisca suggests edits" flow rather than showing the user a bad design.
+   1.  **Printability Checks:** Generated designs go through automated print-prep checks (resolution, color count, separability). Problems trigger a "Francisca suggests edits" flow rather than showing the user a bad design.
    2.  **Human-in-the-Loop Routing:** Users have an explicit "Ask a Human Designer" option if they feel stuck or frustrated.
    3.  **Frustration Detection:** If the AI detects negative sentiment or repeated rejections, the case is automatically routed to a human designer for review.
-   4.  **Failure-as-Data:** Every "failed" interaction or rejected design is anonymized and fed back into the training data to improve the model, effectively turning operational friction into a competitive moat.
+   4.  **Failure Review:** "Failed" interactions and rejected designs are reviewed to improve prompts, Style Capsule reference images and print-prep rules. No model is trained on this data; generation runs on hosted APIs (fal.ai, Nano Banana 2).
    
    ---
    
@@ -218,7 +218,7 @@
    
    | Threat Level | Scenario | Our Counter-Strategy |
    |--------------|-----------|---------------------|
-   | **HIGH** | Add AI Design Assistant (ChatGPT wrapper) | Counter: **Expert-scored dataset** (6,600+ student validation from Expert) vs. generic LLM |
+   | **HIGH** | Add AI Design Assistant (ChatGPT wrapper) | Counter: **Print-ready output** (built-in color separation and print prep) vs. generic image generation |
    | **HIGH** | Launch "Fyul Conversational" brand | Counter: **Cat-Suite personalities** (emotional connection) vs. generic bot |
    | **MEDIUM** | Premium blank tier (organic/fair-trade) | Counter: **In-house production** (Pantone precision) vs. outsourced provider network |
    | **LOW** | Voice interface via existing providers | Counter: **Mistral Voxtral** (real-time voice, open weights, EU-based) + **Mistral Large** (character chat) + Cat-Suite context awareness |
@@ -257,14 +257,10 @@
    
    ### Moat Defense Strategy
    
-   **Timeline for AI Dataset IP Protection:**
-   - **Months 1-3:** Capture expert panel scoring data (Expert, Expert B, Expert C)
-   - **Months 3-6:** Train and validate proprietary model
-   - **Months 6-12:** Patent key training methodologies
-   
-   **Exclusive Relationships:**
-   - Expert panel (Expert: 6,600+ students, Expert B/Expert C: proprietary techniques)
-   - Not contractually transferable to competitors
+   **Workflow Defense:**
+   - Image generation uses hosted, off-the-shelf models (reference-guided generation on fal.ai: Nano Banana 2 primary, Seedream 5.0 Pro fallback); the defensible part is the print-production workflow around it
+   - Color separation, print prep and in-house production are hard to copy without owning the press
+   - No proprietary model training is planned (the LoRA plan was retired on 2026-08-24)
    
    ---
    
@@ -279,10 +275,10 @@
   **The Scenario:** A major incumbent (Printful/Printify) launches an AI Design tool in 6 months.
   **The Defense:** Why Merch From wins.
 
-  ### 16.1 The Data Moat: Curation > Volume
-  **Them:** They train on *everything* (Grandma's birthday shirts, corporate logos, meme trash). Their AI regresses to the "average."
-  **Us:** We train exclusively on **"Expert-scored" Streetwear**.
-  - **Taste is Hard to Copy:** You can't program "Taste" without a "Human in the Loop" curator like our dataset panel.
+  ### 16.1 The Curation Moat: Curation > Volume
+  **Them:** Generic text-to-image output that regresses to the "average."
+  **Us:** **Style Capsules**: prompt templates plus curated style reference images, with one anchor image attached to each generation call on hosted models.
+  - **Taste is Hard to Copy:** Curating the reference library and the print-prep rules takes printing experience, not more compute.
   - **Result:** We don't output "designs"; we output "cool."
 
   ### 16.2 The Emotional Moat: "Leopoldo" vs. "The Dashboard"
@@ -308,7 +304,7 @@
   - **Trust:** Gen Z creators verify this. They can visit our shop in Barcelos.
 
   ### 16.5 The "18-Month Lead" Thesis
-  We don't need to be the *only* AI tool forever. We just need to be the **Best AI for Musicians/Creators** for 18 months. By the time they copy the "Tech," we will have locked in the "Trust" and the "Dataset."
+  We don't need to be the *only* AI tool forever. We just need to be the **Best AI for Musicians/Creators** for 18 months. By the time they copy the "Tech," we will have locked in the "Trust" and the "Workflow."
 
   ---
 

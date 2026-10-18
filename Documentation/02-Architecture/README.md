@@ -15,7 +15,6 @@ Technical architecture, technology stack, and infrastructure decisions.
 | [[Mockup-Architecture-Reference]] | Mockup generation pipeline |
 | [[EU-AI-Act-Compliance]] | EU AI Act compliance strategy and sandbox participation |
 | [[Human-in-the-Loop]] | AI + human oversight policy and organizational structure |
-| [[European-Language-Fine-Tuning]] | European language and dialect fine-tuning strategy |
 | [[Open-Source-Strategy]] | Open-source tooling and SDK roadmap |
 | [[Data-Sovereignty-Security-Position]] | Data residency, security controls, and certification roadmap |
 | [[Privacy-Policy]] | Privacy policy and data handling |

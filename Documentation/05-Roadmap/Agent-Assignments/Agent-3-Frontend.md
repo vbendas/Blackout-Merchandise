@@ -94,7 +94,7 @@
 
 **Features:**
 - [ ] Show generated artwork
-- [ ] Metadata: LoRA style, prompt
+- [ ] Metadata: style preset, prompt
 - [ ] Action buttons: Apply, Download, Regenerate
 - [ ] Fullscreen viewer with high-res
 - [ ] Comparison slider (before/after)

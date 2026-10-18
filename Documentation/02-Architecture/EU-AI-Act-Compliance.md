@@ -65,25 +65,21 @@ Under Article 52 of the EU AI Act, Merch From's Cat-Suite AI agents fall under *
 
 ---
 
-## Data Governance & Training Data
+## Data Governance
 
-### Training Data Transparency
+### No Model Training
 
-**Requirement:** High-risk and general-purpose AI models must document training data. While we fall under limited risk, we voluntarily exceed requirements.
+The platform does not train, fine-tune or otherwise build AI models. Image generation runs through hosted APIs on fal.ai (Nano Banana 2 primary, Seedream 5.0 Pro as the documented fallback), using reference-guided generation: a prompt plus curated style reference images. A LoRA training experiment in August 2026 was retired on 2026-08-24, and no training or fine-tuning of any kind is planned. Obligations that apply to providers of trained or general-purpose models (training-data summaries, model cards) therefore do not apply; the platform's obligations are those of a deployer of hosted AI systems.
 
 **Our Commitments:**
 
-1. **No artist artwork used for model training without explicit opt-in**
-   - Default: Artist designs are NEVER used to train or fine-tune any model
-   - Opt-in program: Artists may contribute anonymized design patterns for MerchFrom-specific LoRA fine-tuning, with revenue-sharing for contributors
+1. **Artist artwork is never used to train models**
+   - Artist designs and uploads are used only as inputs to generation requests for that artist
+   - Style reference images are sent to the hosted API per request; they are not used to build a dataset
 
-2. **Public training data registry**
-   - Publish a living document listing all datasets used for any fine-tuning
-   - Include: source, license, preprocessing steps, retention period
-
-3. **Synthetic data preference**
-   - Where possible, use synthetic data for internal model training
-   - Expert panel scoring data (Phase 9+) is proprietary but documented
+2. **Provider transparency**
+   - Publish a list of the hosted AI providers and endpoints in use, and what data each receives
+   - Update the list whenever a provider or model changes
 
 ### Data Residency
 
@@ -184,10 +180,9 @@ We will publish and maintain:
    - You can request deletion of all conversation history
    - Human review is guaranteed for all production decisions
 
-3. **Model Card Repository** (GitHub)
-   - For any fine-tuned models we create
-   - Training data summary, performance metrics, limitations, bias assessments
-   - Open-source where possible
+3. **AI Provider Register** (GitHub)
+   - Hosted models and endpoints in use, with the data each one receives
+   - Known limitations observed in production review
 
 ---
 
@@ -207,7 +202,7 @@ We will publish and maintain:
 
 - [ ] Quarterly AI Act compliance self-audit
 - [ ] Annual third-party audit (budget: €5,000-10,000)
-- [ ] Model cards published for all fine-tuned models
+- [ ] AI provider register published and kept current
 - [ ] Staff training on AI Act obligations (human leads)
 - [ ] Incident response plan for AI-related complaints
 - [ ] Update risk classification if system scope changes
