@@ -1,149 +1,112 @@
 # Blackout Merchandise
 
-AI-powered premium merchandise platform for artists and creators. Features three AI "Cat-Suite" brand ambassadors (Leopoldo, Francisca, Antonia) that guide artists through design, production, and sales.
+Blackout Merchandise is a merchandise platform for artists and creators. An artist describes a design in a chat with one of three cat "brand ambassador" agents (Leopoldo, Francisca and Antonia), the design is generated through hosted image-generation APIs, and the platform then prepares it for print: colour separations, halftones, films, proofs and job sheets for screen printing, or print-ready files for DTG/DTF. Artists sell the result in their own shop with Stripe checkout, and the production team works the orders from station screens in the print shop.
 
-## Quick Start
+## Who it is for
 
-### Prerequisites
-- Node.js 20+
-- Bun (for /app)
-- npm (for /platform)
-- Python 3 (static server for /mainpage)
-- PostgreSQL database (Neon)
-- Clerk account (auth)
-- Stripe account (payments)
+- Artists, bands, tattooers and other creators who want to sell merch without handling print preparation themselves.
+- The print-shop team that turns approved designs into printed garments (pre-press, production, support).
 
-### Setup
+## Built with
 
-1. **Clone and install dependencies**
-   ```bash
-   # App (uses Bun)
-   cd app
-   bun install
+The active code is in `platform/` (the app), `mainpage/` (the public website) and `src/db/` (the shared database schema). Last commit per directory before this README was written: `platform/`, `mainpage/` and `src/` on 2026-10-17; `app/` on 2026-08-24; `merchstation/` and `services/` on 2026-07-11; everything else earlier.
 
-   # Platform (uses npm)
-   cd ../platform
-   npm install
-   ```
-   Mainpage is a static site: nothing to install.
-
-2. **Configure environment**
-   ```bash
-   # Copy and configure .env files
-   cp .env.example app/.env.local
-   cp .env.example platform/.env.local   # platform reads its own .env.local
-   ```
-   The root `.env.example` lists the app's variables. Platform needs more keys than it lists (see Environment Variables below).
-
-3. **Run database migrations**
-   ```bash
-   bunx drizzle-kit generate
-   bunx drizzle-kit migrate
-   ```
-
-4. **Start development servers**
-   ```bash
-   # Main app (port 3000)
-   cd app && bun dev
-
-   # Platform (port 3000)
-   cd platform && npm run dev
-
-   # Website, static (127.0.0.1:3000)
-   cd mainpage && npm run dev
-   ```
-   All three use port 3000: run one at a time or move one, e.g. `cd platform && npm run dev -- -p 3001`.
-
-## Project Structure
-
-```
-/blackout-merchandise
-├── /app              # Main application (Next.js 16, React 19)
-│   └── src/
-│       ├── app/      # API routes & protected pages
-│       ├── components/
-│       ├── hooks/
-│       ├── lib/      # AI, utilities
-│       └── types/
-├── /mainpage         # Website: static HTML/CSS/JS, no framework, no build step
-│                     #   (members-only door, apply flow, press board, faq/, agents/, watch/, studio/)
-├── /platform         # Agent-first platform app (Next.js 16, React 19)
-│   └── lib/catalog/  # Blank-catalog source of truth
-├── /src              # Shared backend (Drizzle ORM)
-│   └── db/           # Database schema & operations
-└── /Documentation    # Project docs
-```
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 16, React 19, Tailwind CSS v4 (app, platform) |
-| Website | Static HTML/CSS/JS (mainpage) |
-| UI Components | shadcn/ui (app, platform) |
-| Database | PostgreSQL (Neon), Drizzle ORM |
+| Area | Stack |
+|------|-------|
+| App (`platform/`) | Next.js 16, React 19, TypeScript, Tailwind CSS 4, shadcn/ui |
+| Database | PostgreSQL (Neon in production, PGlite for the local demo), Drizzle ORM |
 | Auth | Clerk |
-| Payments | Stripe |
-| AI (app) | Mistral, MiniMax, ElevenLabs |
-| AI (platform) | Anthropic, fal, ElevenLabs |
+| Payments | Stripe (Checkout and Connect) |
+| Agents | Anthropic API via the Anthropic TypeScript SDK (Claude Sonnet by default, Haiku for simple turns) |
+| Image generation | fal.ai hosted APIs: Nano Banana 2 (`fal-ai/nano-banana-2`, `/edit`) with style reference images, Ideogram background removal |
+| Voice | ElevenLabs |
+| Email | Resend |
+| Print pipeline | TypeScript engine in `platform/lib/print` (sharp, ag-psd, pdfkit, pdf-lib), a job queue in Postgres and a separate worker process |
+| File storage | Cloudflare R2, or local disk with `PRINT_STORAGE_DRIVER=local` |
+| Website (`mainpage/`) | Static HTML, CSS and JavaScript, no build step |
+| Tests | Node's test runner through `tsx` |
 
-## Commands
+Image generation uses hosted APIs only. The project does not train or fine-tune models.
 
-### App
-```bash
-cd app
-bun install          # Install deps
-bun dev              # Dev server
-bun run build        # Production build
-bun lint             # ESLint
-bun typecheck        # TypeScript
-bun test:unit        # Unit tests
-```
+## Repository layout
 
-### Platform
+| Directory | What it is |
+|-----------|------------|
+| `platform/` | The main app: artist studio and chat agents, shops and checkout, admin, pre-press, production stations, print worker |
+| `mainpage/` | Public website (static pages: door, apply flow, press board, FAQ, agents page, film) |
+| `src/` | Shared Drizzle schema and seed data (`src/db/`), used by `platform/` and the legacy `app/` |
+| `Documentation/` | Product, architecture, roadmap and development docs; old notes are in `Documentation/99-Archive/` |
+| `app/` | Legacy: the first Next.js app (Bun), replaced by `platform/` |
+| `merchstation/` | Legacy: terminal UI for catalogue management |
+| `services/` | Legacy: Python services (colour separation, mockup generator, print engine), replaced by `platform/lib/print` |
+| `drizzle/` | Legacy: migrations for `app/` (the platform has its own in `platform/drizzle/`) |
+| `data/` | Pantone colour reference data |
+| `plans/` | Legacy: feature plans from May 2026 |
+| `openspec/` | Legacy: OpenSpec change proposals for `app/` |
+| `scripts/` | Legacy: one-off scripts for `app/` (asset upload, migrations) |
+| `python/` | Legacy: early print-processing prototype |
+| `Animation/` | Legacy: animation prototype (separate Next.js project) |
+| `Workspace/` | Legacy: one-off supplier catalogue extraction scripts |
+| `OpenCode/` | Legacy: agent task notes from an earlier tooling setup |
+
+Dot-directories (`.claude/`, `.opencode/`, `.taskmaster/`, `.husky/`) hold editor, agent and git-hook configuration.
+
+## Running the app locally
+
+Requirements: Node.js 20 or newer and npm. Python 3 is only needed to serve the website.
+
+### Option 1: local demo, no external services
+
+The demo builds a local PGlite database with the catalogue, sample shops, designs run through the real print pipeline and production jobs. It does not call Neon, R2, fal or any other service. The build takes a few minutes and a few GB of memory and disk.
+
 ```bash
 cd platform
-npm install          # Install deps
-npm run dev          # Dev server
-npm run build        # Production build
-npm run lint         # ESLint
-npm run db:migrate   # Apply platform migrations (platform/drizzle)
-npm run seed         # Seed the blank catalog (needs DATABASE_URL in platform/.env.local)
+npm ci
+npm run demo:local            # add "-- --reset" to wipe and rebuild
+
+LOCAL_DB_DIR=.local-demo/db PRINT_STORAGE_DRIVER=local PRINT_STORAGE_DIR=.local-demo/print-storage \
+  AUTH_DEV_BYPASS=1 NEXT_PUBLIC_APP_URL=http://localhost:3030 npx next dev --webpack -p 3030
 ```
 
-### Mainpage
+Then open http://localhost:3030/dev. Run the build and the dev server one at a time; the local database takes one process at a time.
+
+### Option 2: against a Postgres database
+
+```bash
+cd platform
+npm ci
+cp ../.env.example .env.local   # then fill in the values
+npm run db:migrate              # apply platform/drizzle migrations
+npm run seed                    # blank catalogue
+npm run seed:print              # ink system
+npm run dev                     # http://localhost:3000
+npm run worker                  # in a second terminal, for print jobs
+```
+
+The root `.env.example` covers the shared keys (`DATABASE_URL`, Clerk, Stripe, ElevenLabs, `NEXT_PUBLIC_APP_URL`). The platform also reads `FAL_API_KEY`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `ELEVENLABS_AGENT_ID` and the print storage settings (`PRINT_STORAGE_DRIVER=local` with `PRINT_STORAGE_DIR`, or the `R2_*` variables); see `process.env` usage in `platform/lib` and [Platform-Plan.md](./Documentation/Dev/Platform-Plan.md). For local development without Clerk, set `AUTH_DEV_BYPASS=1` (ignored in production).
+
+### Website
+
 ```bash
 cd mainpage
-npm run dev          # Static server (python3 http.server, 127.0.0.1:3000)
+npm run dev                     # python3 http.server on 127.0.0.1:3000
 ```
-No install, build or lint step.
 
-### Database
+## Tests
+
 ```bash
-bunx drizzle-kit generate   # Create migration
-bunx drizzle-kit migrate    # Apply migration
-bunx drizzle-kit studio     # GUI editor
+cd platform
+npm test                        # unit and integration tests (tsx --test)
+npm run lint
+npx tsc --noEmit
 ```
 
-## Documentation
+## Status
 
-- [Full Documentation](./Documentation/)
-- [Product Requirements](./Documentation/PRD.md)
-- [Development Roadmap](./Documentation/05-Roadmap/Roadmap.md)
-- [AI System Prompts](./Documentation/03-Cat-Suite/AI-System-Prompts.md)
+Solo project under active development. The print-preparation pipeline and production stations are built and waiting on checks against real prints; see [ROADMAP.md](./ROADMAP.md) for what comes next.
 
-## Environment Variables
-
-See the root `.env.example` for the app's variables (mainpage needs none):
-
-- `DATABASE_URL` - PostgreSQL connection
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` - Auth
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` / `STRIPE_SECRET_KEY` - Payments
-- `MISTRAL_API_KEY` - AI
-- `ELEVENLABS_API_KEY` - Voice
-
-Platform reads `platform/.env.local`, and the root `.env.example` does not list every key it uses (for example `FAL_API_KEY`, `ELEVENLABS_AGENT_ID` and `RESEND_API_KEY`). See `process.env` usage in `platform/lib`, `platform/app` and `platform/scripts`, and [Platform-Plan.md](./Documentation/Dev/Platform-Plan.md).
+More documentation: [CONTRIBUTING.md](./CONTRIBUTING.md), [DEPLOYMENT.md](./DEPLOYMENT.md), [TESTING.md](./TESTING.md), [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) and the [Documentation](./Documentation/) folder.
 
 ## License
 
-Proprietary - All rights reserved.
+The code is released under the [MIT License](./LICENSE). Third-party fonts and assets keep their own licences; see [mainpage/LICENCES.md](./mainpage/LICENCES.md).
