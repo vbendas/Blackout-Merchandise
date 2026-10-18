@@ -42,3 +42,20 @@ graphify-out/cache/
 
 # Print-prep sample packs (platform/scripts/print-samples.ts), for opening in Photoshop and GTX Graphics Lab
 /print-prep-samples/
+
+# Environment files (keep the example template tracked)
+.env.*
+!.env.example
+
+# Build output and caches
+.next/
+__pycache__/
+
+# Local MCP configuration (may contain tokens)
+.mcp.json
+.cursor/mcp.json
+
+# Color-separation generated output
+services/color-separation/output/
+services/color-separation/color_separation_output_*/
+services/color-separation/print_pipeline_v2_*/
