@@ -508,7 +508,7 @@ export async function renderJobSheetPdf(input: JobSheetInput): Promise<Buffer> {
     layout: 'landscape',
     margin: PAGE.margin,
     bufferPages: true,
-    info: { Title: pdfText(`Job sheet ${title}`), Author: 'MerchFrom', Subject: pdfText(design.name), CreationDate: new Date(input.generatedAt) },
+    info: { Title: pdfText(`Job sheet ${title}`), Author: 'Blackout Merchandise', Subject: pdfText(design.name), CreationDate: new Date(input.generatedAt) },
   });
   const chunks: Buffer[] = [];
   doc.on('data', (c: Buffer) => chunks.push(c));
@@ -519,7 +519,7 @@ export async function renderJobSheetPdf(input: JobSheetInput): Promise<Buffer> {
   const s = new Sheet(doc);
 
   // Header
-  s.label('MerchFrom · Job sheet', PAGE.margin, s.y);
+  s.label('Blackout Merchandise · Job sheet', PAGE.margin, s.y);
   s.label(`Generated ${view.generated}`, PAGE.margin, s.y, CONTENT_WIDTH, 'right');
   s.y += 12;
   const titleHeight = s.text(title, PAGE.margin, s.y, { size: 20, bold: true, width: CONTENT_WIDTH });

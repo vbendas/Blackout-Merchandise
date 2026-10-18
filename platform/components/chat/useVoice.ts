@@ -23,7 +23,7 @@ export function pickAudioMimeType(): string | undefined {
 
 export function micPermissionErrorMessage(error: unknown): string {
   if (error instanceof DOMException && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError')) {
-    return 'Microphone access was denied. Allow microphone access to talk to MerchFrom.';
+    return 'Microphone access was denied. Allow microphone access to talk to Blackout Merchandise.';
   }
   return 'Could not access the microphone.';
 }

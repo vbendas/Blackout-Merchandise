@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-All major technical decisions for the Merch From platform.
+All major technical decisions for the Blackout Merchandise platform.
 
 ---
 

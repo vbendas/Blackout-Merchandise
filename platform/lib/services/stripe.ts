@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
 import { db, schema } from '@/lib/db';
 
-// Everything MerchFrom needs from Stripe for wave 2 (Money): Connect Express
+// Everything Blackout Merchandise needs from Stripe for wave 2 (Money): Connect Express
 // onboarding, hosted Checkout with destination charges, and webhook
 // verification, behind one interface with two implementations — a real one
 // on the `stripe` SDK and an in-memory mock — so onboarding -> checkout ->
@@ -19,7 +19,7 @@ import { db, schema } from '@/lib/db';
 // that table goes through one place.
 
 export function appBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_APP_URL ?? 'https://merchfrom.com').replace(/\/$/, '');
+  return (process.env.NEXT_PUBLIC_APP_URL ?? 'https://blackoutmerch.example').replace(/\/$/, '');
 }
 
 // -- gateway contract ---------------------------------------------------
@@ -42,9 +42,9 @@ export interface CreateCheckoutSessionInput {
   /** lowercase ISO currency, e.g. 'eur' */
   currency: string;
   customerEmail?: string;
-  /** what MerchFrom keeps: Σ base cost + shipping (see checkout.ts). Omit
+  /** what Blackout Merchandise keeps: Σ base cost + shipping (see checkout.ts). Omit
    * entirely for a plain (non-Connect) charge — bulk orders (checkout.ts's
-   * buildBulkCheckout) pay 100% to MerchFrom with no connected account at
+   * buildBulkCheckout) pay 100% to Blackout Merchandise with no connected account at
    * all, so there is no application fee to set, only ever a POD concept. */
   applicationFeeAmountCents?: number;
   /** the connected account that receives the transfer. Omitting this (along
@@ -226,7 +226,7 @@ class RealStripeGateway implements StripeGateway {
       customer_email: params.customerEmail,
       // A destination charge (POD, split with the artist's Connect account)
       // only when destinationAccountId is given; a bulk order omits it for a
-      // plain 100%-to-MerchFrom charge — see the interface doc.
+      // plain 100%-to-Blackout Merchandise charge — see the interface doc.
       ...(params.destinationAccountId
         ? {
             payment_intent_data: {
@@ -430,11 +430,11 @@ export function stripeModeFor(env: { STRIPE_MOCK?: string; STRIPE_SECRET_KEY?: s
 // the mock gateway ever needs to be true for (real Stripe keeps no local
 // state at all, so this only matters pre-launch).
 declare global {
-  var __merchfromStripeGateway: StripeGateway | undefined;
+  var __blackoutmerchStripeGateway: StripeGateway | undefined;
 }
 
 export function getStripeGateway(): StripeGateway {
-  if (!globalThis.__merchfromStripeGateway) {
+  if (!globalThis.__blackoutmerchStripeGateway) {
     const mode = stripeModeFor({
       STRIPE_MOCK: process.env.STRIPE_MOCK,
       STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
@@ -443,10 +443,10 @@ export function getStripeGateway(): StripeGateway {
     if (mode === 'closed') {
       console.error('[stripe] No real STRIPE_SECRET_KEY and STRIPE_MOCK is not set: checkout, payouts and webhooks are switched off.');
     }
-    globalThis.__merchfromStripeGateway =
+    globalThis.__blackoutmerchStripeGateway =
       mode === 'real' ? new RealStripeGateway(process.env.STRIPE_SECRET_KEY!) : mode === 'mock' ? new MockStripeGateway() : new ClosedStripeGateway();
   }
-  return globalThis.__merchfromStripeGateway;
+  return globalThis.__blackoutmerchStripeGateway;
 }
 
 export function isStripeMockMode(): boolean {
@@ -518,7 +518,7 @@ export async function startOnboarding(storeId: string, urls: { returnUrl: string
   let accountId = existing[0]?.accountId;
   if (!accountId) {
     const artistRows = await db.select({ email: schema.users.email }).from(schema.users).where(eq(schema.users.id, store.artistId)).limit(1);
-    const email = artistRows[0]?.email ?? `artist-${storeId}@merchfrom.test`;
+    const email = artistRows[0]?.email ?? `artist-${storeId}@blackoutmerch.test`;
     const created = await gateway.createExpressAccount({ storeId, country: store.country ?? 'ES', email });
     accountId = created.accountId;
     await db.insert(schema.stripeAccounts).values({ storeId, accountId, chargesEnabled: false, payoutsEnabled: false });

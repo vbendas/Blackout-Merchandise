@@ -415,8 +415,8 @@ function renderDmContent(row: NotificationRow): string {
   const payload = (row.payload as Record<string, unknown> | null) ?? {};
   const text = typeof payload.message === 'string' ? payload.message : row.event.replace(/[._]/g, ' ');
   const prompt = typeof payload.prompt === 'string' ? payload.prompt : undefined;
-  const lines = [`MerchFrom — ${text}`, appUrl('/chat')];
-  if (prompt) lines.push(`Reply in MerchFrom: "${prompt}"`);
+  const lines = [`Blackout Merchandise — ${text}`, appUrl('/chat')];
+  if (prompt) lines.push(`Reply in Blackout Merchandise: "${prompt}"`);
   return lines.join('\n');
 }
 

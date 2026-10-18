@@ -67,7 +67,7 @@ verify_project() {
 }
 
 # Main script
-echo -e "${BLUE}🚀 Merch-From Code Verification${NC}"
+echo -e "${BLUE}🚀 Blackout Merchandise Code Verification${NC}"
 echo -e "${BLUE}===============================${NC}"
 
 total_errors=0

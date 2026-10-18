@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-MerchFrom is in **Phase 3 (Frontend Content Suite)** — building pixel-perfect frontends for all key surfaces for the crowdfunding video. The main website is complete, with waitlist landing page and other surfaces pending.
+Blackout Merchandise is in **Phase 3 (Frontend Content Suite)** — building pixel-perfect frontends for all key surfaces for the crowdfunding video. The main website is complete, with waitlist landing page and other surfaces pending.
 
 ### Score Breakdown
 

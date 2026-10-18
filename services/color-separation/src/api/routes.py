@@ -25,7 +25,7 @@ from src.api.models import (
 from src.spot_color_separator import SpotColorSeparator, SeparationConfig
 
 app = FastAPI(
-    title="Merch From - Spot Color Separation API",
+    title="Blackout Merchandise - Spot Color Separation API",
     description="AI-powered spot color separation for screen printing with Magna HB inks",
     version="1.0.0",
 )
@@ -62,7 +62,7 @@ async def download_image(url: str, output_dir: Path) -> Path:
 async def root():
     """Root endpoint."""
     return {
-        "service": "Merch From - Spot Color Separation",
+        "service": "Blackout Merchandise - Spot Color Separation",
         "version": "1.0.0",
         "status": "running",
     }

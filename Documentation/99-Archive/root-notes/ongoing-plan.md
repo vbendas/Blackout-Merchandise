@@ -1,4 +1,4 @@
-# Ongoing Plan - Merch-From Hardening (Wave 1)
+# Ongoing Plan - Blackout Merchandise Hardening (Wave 1)
 
 Date: 2026-02-12  
 Scope: `app/` + `mainpage/`  

@@ -1,4 +1,4 @@
-# MerchFrom Community Ownership & Tokenization Vision
+# Blackout Merchandise Community Ownership & Tokenization Vision
 
 > **Document Status:** Active Strategy — Year 1 groundwork required
 > **Target Phase:** Year 1-3 (SCF grants start Year 1)
@@ -30,7 +30,7 @@
 
 We practice what we preach. Our equal wage model extends beyond compensation to **ownership structure**. Just as we reject ego-driven salary hierarchies, we reject traditional equity concentration.
 
-**30% of Merch From will be owned by the people building, using, and supporting it — artists, employees, customers, and community.**
+**30% of Blackout Merchandise will be owned by the people building, using, and supporting it — artists, employees, customers, and community.**
 
 This isn't a marketing gimmick. It's hardcoded into our cap table and, ultimately, into Soroban smart contracts on the **Stellar network**.
 
@@ -38,7 +38,7 @@ This isn't a marketing gimmick. It's hardcoded into our cap table and, ultimatel
 
 ### Why Tokenization Aligns with Our Brand
 
-| Traditional Company | Tokenized Merch From |
+| Traditional Company | Tokenized Blackout Merchandise |
 |---------------------|----------------------|
 | Founder: 60-70%, Employees: 0.5-2% each | Founder: 60%+, Community: 30%, balanced distribution |
 | Cap table is secret | Ownership visible on Stellar blockchain |
@@ -78,7 +78,7 @@ This isn't a marketing gimmick. It's hardcoded into our cap table and, ultimatel
 >
 > We're issuing real MRCH founding tokens on the Stellar blockchain to top-tier backers at campaign close. No promises. No IOUs. Real tokens in your Stellar wallet, visible on stellarexpert.io.
 >
-> When MerchFrom profits, **30% goes to MRCH holders — automatically, every quarter, in euros.** From day one, your tokens vote on how this platform evolves. This founding cohort closes when the campaign ends — permanently.
+> When Blackout Merchandise profits, **30% goes to MRCH holders — automatically, every quarter, in euros.** From day one, your tokens vote on how this platform evolves. This founding cohort closes when the campaign ends — permanently.
 
 **What This Creates:**
 - Real on-chain tokens from day one — backers check their wallet, not a spreadsheet
@@ -242,7 +242,7 @@ This is the most important UX decision in the entire MRCH architecture.
 
 Artists are not crypto investors. They are designers, musicians, and creators. When their quarterly distribution arrives, they should see this in their LOBSTR wallet:
 
-> **€16.00 received — your Q1 profit share from MerchFrom.**
+> **€16.00 received — your Q1 profit share from Blackout Merchandise.**
 
 Not this:
 
@@ -302,7 +302,7 @@ Deliverables to propose:
 5. Artist-facing wallet integration (LOBSTR mobile + Freighter browser extension)
 
 **Grant narrative:**
-> *"MerchFrom is tokenizing 30% of a real merchandise company for 500+ European artists — the first equity-backed creator economy RWA on Stellar. Artists receive quarterly profit distributions in EURC directly to their Stellar wallets. No speculation, no volatility. Real euros for real ownership."*
+> *"Blackout Merchandise is tokenizing 30% of a real merchandise company for 500+ European artists — the first equity-backed creator economy RWA on Stellar. Artists receive quarterly profit distributions in EURC directly to their Stellar wallets. No speculation, no volatility. Real euros for real ownership."*
 
 Includes free Soroban security audit — eliminates a key implementation risk and saves €10-30K.
 
@@ -342,7 +342,7 @@ SDF is actively building MiCA compliance tooling into Stellar because they need 
 ...is exactly the reference case SDF needs to demonstrate their EU institutional roadmap. We are not asking SDF to fund a crypto experiment. We are asking them to fund **the first MiCA-compliant, equity-backed creator economy RWA on Stellar** — a proof of concept for their institutional growth strategy.
 
 **In every SCF application, lead with this sentence:**
-> *"MerchFrom is the first MiCA-compliant equity-backed creator token on Stellar — a real company, real artists, real euros distributed on-chain."*
+> *"Blackout Merchandise is the first MiCA-compliant equity-backed creator token on Stellar — a real company, real artists, real euros distributed on-chain."*
 
 **MiCA classification for MRCH:**
 Under MiCA, MRCH tokens most likely classify as utility tokens (granting platform access, governance rights, and profit-sharing entitlements). This is a favorable classification — not a security, not e-money. Formal legal opinion should be obtained during Year 1 Q1-Q2 funded by the Instaward grant, then cited in the Build Award application as evidence of regulatory readiness. This single step turns a potential risk into a demonstrated advantage.
@@ -377,7 +377,7 @@ Under MiCA, MRCH tokens most likely classify as utility tokens (granting platfor
 - [ ] **Commission MiCA legal opinion** — confirm token classification (utility token with deferred financial rights)
 - [ ] **Draft crypto-asset whitepaper** — TOKENIZATION_VISION.md is already most of the required content
 - [ ] **File with CMVM** (Portugal's MiCA regulator) if required at offering scale
-- [ ] **Join Stellar Developer Discord** — introduce MerchFrom in `#projects` channel
+- [ ] **Join Stellar Developer Discord** — introduce Blackout Merchandise in `#projects` channel
 - [ ] **Find Portugal/EU Stellar Ambassador** — accelerates Build Award processing
 - [ ] **Submit SCF Build Award application** — with live token + verified founding holder count
 
@@ -546,7 +546,7 @@ Stellar DEX is built directly into the protocol. However, DEX trading is **inten
 > "Printful and Redbubble are corporations extracting value from creators. We're a **community-owned collective** where creators literally own the platform. Check our MRCH token distribution on the Stellar blockchain — it's all public. We practice what we preach."
 
 **"If You Know, You Know"**
-> "If you understand why decentralized ownership matters, you get why Merch From is different. We're not asking you to trust us — our ownership structure is **enforced by immutable Soroban code**. Zero trust required. Verify, don't trust."
+> "If you understand why decentralized ownership matters, you get why Blackout Merchandise is different. We're not asking you to trust us — our ownership structure is **enforced by immutable Soroban code**. Zero trust required. Verify, don't trust."
 
 **"Aligned Incentives"**
 > "Every artist who joins doesn't just get better margins — they get **ownership**. Every employee doesn't just get equal wages — they get equal equity. When we win, everyone wins. Literally. Check the smart contract on the Stellar blockchain."
@@ -561,7 +561,7 @@ Stellar DEX is built directly into the protocol. However, DEX trading is **inten
 ### Media Angles
 
 - Tech: "Print-on-Demand Startup Tokenizes 30% Equity for Creator Community on Stellar"
-- Crypto: "Stellar's First Creator Economy RWA: MerchFrom Distributes Real Equity to 500+ European Artists"
+- Crypto: "Stellar's First Creator Economy RWA: Blackout Merchandise Distributes Real Equity to 500+ European Artists"
 - Business: "How One Founder is Disrupting Merch with Stellar-Powered Community Ownership"
 - EU/Fintech: "MiCA-Compliant Artist Equity Token Launches on Stellar in Portugal — Quarterly EURC Payouts"
 

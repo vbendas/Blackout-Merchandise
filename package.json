@@ -1,5 +1,5 @@
 {
-  "name": "merch-from-monorepo",
+  "name": "blackout-merchandise-monorepo",
   "private": true,
   "workspaces": ["app", "mainpage"],
   "dependencies": {

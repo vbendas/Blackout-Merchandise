@@ -1,6 +1,6 @@
 # QA & Automation Strategy
 
-> **Goal:** Ensure "Merch From" delivers a premium, robust experience through automated validation of performance, accessibility, and resilience.
+> **Goal:** Ensure "Blackout Merchandise" delivers a premium, robust experience through automated validation of performance, accessibility, and resilience.
 
 ---
 
@@ -10,7 +10,7 @@
 **Frequency:** On every PR merge to `main`.
 
 ### Script 1: The "Happy Path" Checkout
-1.  **Home:** Navigate to `/`. Assert Hero text contains "Merch From".
+1.  **Home:** Navigate to `/`. Assert Hero text contains "Blackout Merchandise".
 2.  **Interaction:** Click `#chat-input`. Type "I want to start a store".
 3.  **AI Response:** Wait for `#ai-response` bubble to appear (timeout: 5s).
 4.  **Navigation:** Click "Showroom" link. Assert URL is `/app/showroom`.

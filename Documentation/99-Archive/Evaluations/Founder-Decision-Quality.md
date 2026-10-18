@@ -186,7 +186,7 @@ Savings:  $39,498 (61% reduction) ✅
 
 ✅ **Non-Financial Benefits**
 - Proprietary LoRA dataset (competitive moat)
-- Brand consistency ("the MerchFrom look")
+- Brand consistency ("the Blackout Merchandise look")
 - Print-ready designs (98%+ U-Net accuracy)
 - Self-improving (monthly retraining with customer feedback)
 

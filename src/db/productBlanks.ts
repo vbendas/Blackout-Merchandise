@@ -114,7 +114,7 @@ export async function seedProductBlanks() {
       baseCost: 350, // $3.50
       suggestedRetail: 1200, // $12.00
       imageUrls: [
-        'https://res.cloudinary.com/merch-from/image/upload/v1/product-blanks/tshirt-black.jpg',
+        'https://res.cloudinary.com/blackout-merchandise/image/upload/v1/product-blanks/tshirt-black.jpg',
       ],
       colors: [
         { name: 'Black', hex: '#000000', available: true },
@@ -145,7 +145,7 @@ export async function seedProductBlanks() {
       baseCost: 250, // $2.50
       suggestedRetail: 800, // $8.00
       imageUrls: [
-        'https://res.cloudinary.com/merch-from/image/upload/v1/product-blanks/mug-white.jpg',
+        'https://res.cloudinary.com/blackout-merchandise/image/upload/v1/product-blanks/mug-white.jpg',
       ],
       colors: [
         { name: 'White', hex: '#FFFFFF', available: true },
@@ -167,7 +167,7 @@ export async function seedProductBlanks() {
       baseCost: 450, // $4.50
       suggestedRetail: 1500, // $15.00
       imageUrls: [
-        'https://res.cloudinary.com/merch-from/image/upload/v1/product-blanks/bottle-black.jpg',
+        'https://res.cloudinary.com/blackout-merchandise/image/upload/v1/product-blanks/bottle-black.jpg',
       ],
       colors: [
         { name: 'Black', hex: '#000000', available: true },
@@ -189,7 +189,7 @@ export async function seedProductBlanks() {
       baseCost: 300, // $3.00
       suggestedRetail: 1000, // $10.00
       imageUrls: [
-        'https://res.cloudinary.com/merch-from/image/upload/v1/product-blanks/tote-natural.jpg',
+        'https://res.cloudinary.com/blackout-merchandise/image/upload/v1/product-blanks/tote-natural.jpg',
       ],
       colors: [
         { name: 'Natural', hex: '#F5DEB3', available: true },
@@ -210,7 +210,7 @@ export async function seedProductBlanks() {
       baseCost: 400, // $4.00
       suggestedRetail: 1200, // $12.00
       imageUrls: [
-        'https://res.cloudinary.com/merch-from/image/upload/v1/product-blanks/cap-black.jpg',
+        'https://res.cloudinary.com/blackout-merchandise/image/upload/v1/product-blanks/cap-black.jpg',
       ],
       colors: [
         { name: 'Black', hex: '#000000', available: true },

@@ -47,7 +47,7 @@ export function ProductCard({ name, artist, price, imageSrc, category, className
       {/* Info */}
       <div className="p-4 space-y-1">
         <p className="text-xs text-muted-foreground">
-          Merch from <span className="text-foreground">@{artist}</span>
+          Merch by <span className="text-foreground">@{artist}</span>
         </p>
         <h3 className="font-medium text-sm truncate">{name}</h3>
         <p className="font-semibold">&euro;{price}</p>

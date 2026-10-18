@@ -2,7 +2,7 @@
 
 ## Mission Accomplished ✅
 
-Successfully created the foundational layout structure for the MerchFrom app redesign with all required components, context, and state management.
+Successfully created the foundational layout structure for the Blackout Merchandise app redesign with all required components, context, and state management.
 
 ---
 

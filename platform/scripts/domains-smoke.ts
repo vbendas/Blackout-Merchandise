@@ -63,7 +63,7 @@ async function main() {
   // AUTH_DEV_BYPASS=1 serves in the browser.
   const user = await getOrCreateUserFromClerk({
     clerkId: 'dev-bypass',
-    email: process.env.AUTH_DEV_EMAIL ?? 'dev@merchfrom.test',
+    email: process.env.AUTH_DEV_EMAIL ?? 'dev@blackoutmerch.test',
     displayName: 'Dev Artist',
     imageUrl: null,
     publicMetadataRole: process.env.AUTH_DEV_ROLE ?? null,

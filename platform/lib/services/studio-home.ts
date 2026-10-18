@@ -31,7 +31,7 @@ export interface StudioHomeShop {
   name: string;
   slug: string;
   url: string;
-  /** the address as people read it, e.g. 'merchfrom.com/hellslain-merch' */
+  /** the address as people read it, e.g. 'blackoutmerch.example/hellslain-merch' */
   urlLabel: string;
   /** published: fans can open it */
   live: boolean;

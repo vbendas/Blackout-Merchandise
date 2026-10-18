@@ -86,8 +86,8 @@ const R2: R2Config = {
   accountId: 'acct',
   accessKeyId: 'AKIDEXAMPLE',
   secretAccessKey: 'secretkeyexample',
-  bucket: 'merchfrom-print',
-  publicBucket: 'merchfrom-proofs',
+  bucket: 'blackoutmerch-print',
+  publicBucket: 'blackoutmerch-proofs',
   publicBaseUrl: 'https://proofs.example.com',
 };
 const NOW = new Date('2026-10-15T08:30:00Z');
@@ -113,7 +113,7 @@ test('R2: the upload URL is a presigned PUT, bound to the content type, in the p
   assert.equal(ticket.expiresAt, '2026-10-15T09:00:00.000Z');
 
   const url = new URL(ticket.url);
-  assert.equal(url.origin + url.pathname, `https://acct.r2.cloudflarestorage.com/merchfrom-print/${KEY}`, 'uploads are private: never the public bucket');
+  assert.equal(url.origin + url.pathname, `https://acct.r2.cloudflarestorage.com/blackoutmerch-print/${KEY}`, 'uploads are private: never the public bucket');
   assert.equal(url.searchParams.get('X-Amz-Algorithm'), 'AWS4-HMAC-SHA256');
   assert.equal(url.searchParams.get('X-Amz-Credential'), 'AKIDEXAMPLE/20261015/auto/s3/aws4_request');
   assert.equal(url.searchParams.get('X-Amz-Date'), '20261015T083000Z');

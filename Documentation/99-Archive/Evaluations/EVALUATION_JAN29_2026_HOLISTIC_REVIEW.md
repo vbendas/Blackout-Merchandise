@@ -1,6 +1,6 @@
 > Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
 
-# MerchFrom: Holistic Evaluation & Decision Analysis
+# Blackout Merchandise: Holistic Evaluation & Decision Analysis
 
 **Evaluation Date:** January 29, 2026  
 **Evaluator:** Independent Technical & Business Analysis  
@@ -12,7 +12,7 @@
 
 ## Executive Summary
 
-This evaluation represents a **comprehensive holistic assessment** of MerchFrom following the PRD v3.1 update cycle (January 26-29, 2026). The project has undergone significant strategic refinement based on founder feedback, resulting in:
+This evaluation represents a **comprehensive holistic assessment** of Blackout Merchandise following the PRD v3.1 update cycle (January 26-29, 2026). The project has undergone significant strategic refinement based on founder feedback, resulting in:
 
 1. **80% AI cost reduction** (€1,800 → €550/month)
 2. **Founder dependency mitigation** (comprehensive delegation strategy)
@@ -206,12 +206,12 @@ Defer to Production:
 - **Printify:** $1B+ valuation, well-funded
 - **Gelato:** $75M raised, global network
 
-**MerchFrom's Position:**
+**Blackout Merchandise's Position:**
 - **Premium niche:** Not competing on price, but on quality + ethics + AI
 - **Founder moat:** 9-year track record, €113K equipment, unique expertise
 - **Technical differentiation:** AI-powered design + production automation (when built)
 
-**Risk:** Market is crowded, but MerchFrom's premium positioning and founder credibility provide differentiation.
+**Risk:** Market is crowded, but Blackout Merchandise's premium positioning and founder credibility provide differentiation.
 
 **Verdict:** Market opportunity is solid but execution-dependent. Premium positioning limits TAM but increases margins. **Score: 7.5/10**
 
@@ -301,7 +301,7 @@ The founder dependency mitigation plan (Section 1.6.1) creates a **new moat**: o
 **Competitive Comparison:**
 - **Printful/Printify:** Have scale but not founder expertise
 - **Local shops:** Have expertise but not AI/tech
-- **MerchFrom:** Has both + operational system to scale
+- **Blackout Merchandise:** Has both + operational system to scale
 
 **Verdict:** Moats are **strengthening**. The delegation system is particularly smart — it transforms founder expertise from a single point of failure into a scalable asset. **Score: 8.7/10**
 
@@ -698,7 +698,7 @@ ROI: Infinite (savings > time cost)
 **Rating:** 9.0/10 (Investment Grade)
 
 **Thesis:**
-MerchFrom has evolved from a well-documented concept to a **production-ready platform with exceptional founder maturity**. The January 29 evaluation demonstrates:
+Blackout Merchandise has evolved from a well-documented concept to a **production-ready platform with exceptional founder maturity**. The January 29 evaluation demonstrates:
 
 1. **Strategic maturity:** Founder can receive and act on critical feedback
 2. **Financial discipline:** 80% cost reduction while maintaining quality
@@ -773,7 +773,7 @@ Upside (if 300 artists by Month 24):
 
 ### **Overall Score: 8.9/10** ⭐⭐⭐⭐⭐
 
-**This is the highest score in MerchFrom's history.**
+**This is the highest score in Blackout Merchandise's history.**
 
 **What Changed:**
 - **Technical:** 80% cost reduction, simplified stack

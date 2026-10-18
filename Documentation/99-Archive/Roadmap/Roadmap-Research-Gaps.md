@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-Market research across 300+ sources reveals **six critical gaps** in the current Merch From roadmap. The most urgent: **traffic and discovery** — the #1 creator pain point is entirely unaddressed. The AI moat has a 12-month half-life. Creator success enablement is missing. These gaps must be closed to justify the €300K raise and reach the 1,000 artists / $100K monthly GMV seed trigger.
+Market research across 300+ sources reveals **six critical gaps** in the current Blackout Merchandise roadmap. The most urgent: **traffic and discovery** — the #1 creator pain point is entirely unaddressed. The AI moat has a 12-month half-life. Creator success enablement is missing. These gaps must be closed to justify the €300K raise and reach the 1,000 artists / $100K monthly GMV seed trigger.
 
 | Gap | Priority | Status | Proposed Fix |
 |-----|----------|--------|--------------|
@@ -55,7 +55,7 @@ Market research across 300+ sources reveals **six critical gaps** in the current
 ## GAP 2: AI Moat Conversion — HIGH
 
 ### Research Finding
-> *"Merch From's AI advantage has an estimated 12-month half-life. The moat converts from 'having AI' to 'AI + proprietary workflow data + artist-specific training.'"* — POD Competition Report, Section 8.1.4
+> *"Blackout Merchandise's AI advantage has an estimated 12-month half-life. The moat converts from 'having AI' to 'AI + proprietary workflow data + artist-specific training.'"* — POD Competition Report, Section 8.1.4
 
 **Evidence:**
 - AI image generation is commoditizing rapidly — background removal is already universal, basic text-to-image is available on every major platform (POD report Section 6.2)
@@ -144,7 +144,7 @@ Market research across 300+ sources reveals **six critical gaps** in the current
 ## GAP 5: Business Outcome Metrics — MEDIUM
 
 ### Research Finding
-Top platforms track GMV, creator retention, and cohort economics. Merch From's success criteria are engineering-focused (tests pass, build succeeds) with no business metrics.
+Top platforms track GMV, creator retention, and cohort economics. Blackout Merchandise's success criteria are engineering-focused (tests pass, build succeeds) with no business metrics.
 
 **Evidence:**
 - The milestone for follow-on seed round: 1,000 active artists OR $100,000 monthly GMV (POD report Section 9.2.1)

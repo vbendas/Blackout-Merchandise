@@ -1,4 +1,4 @@
-# MerchFrom Development Log
+# Blackout Merchandise Development Log
 
 **Purpose:** Track daily progress, technical decisions, and session outcomes for development accountability
 **Last Updated:** October 17, 2026

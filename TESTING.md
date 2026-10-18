@@ -1,6 +1,6 @@
 # Testing Guide
 
-This document outlines the testing infrastructure and best practices for the Merch From project.
+This document outlines the testing infrastructure and best practices for the Blackout Merchandise project.
 
 ## Overview
 

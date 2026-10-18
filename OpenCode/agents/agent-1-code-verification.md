@@ -79,7 +79,7 @@ Run `cat app/biome.json` to verify content created correctly.
 **Explanation:** We need a single script that runs all verification checks in correct order (format → lint → type check → secrets) for both projects. This script will be executable and provide clear colored output showing pass/fail status for each check.
 
 **Subtasks:**
-1. Create `verify.sh` in project root (`/Merch-From`)
+1. Create `verify.sh` in project root (`/blackout-merchandise`)
 2. Implement `verify_project()` function that:
    - Takes project directory, package manager, and project name as arguments
    - Changes to project directory

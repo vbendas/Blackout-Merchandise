@@ -274,7 +274,7 @@ test('what goes wrong comes back as a plain sentence, as data and as a notice', 
   assert.equal(await say(run(print.approveDesignTool, ctx, { designId, versionId: randomUUID() })), "That version of the design wasn't found.");
 
   // Another shop's design is not theirs to look at or approve.
-  const stranger = await seedUser(h.db, { email: 'tool-stranger@merchfrom.test', withStore: true });
+  const stranger = await seedUser(h.db, { email: 'tool-stranger@blackoutmerch.test', withStore: true });
   const theirs = artistCtx({ userId: stranger.userId, storeId: stranger.storeId });
   assert.equal(await say(run(print.getPrintProofTool, theirs, { designId })), 'There are no print files for this design yet. Prepare them first.');
   assert.equal(await say(run(print.approveDesignTool, theirs, { designId })), 'There are no print files for this design yet. Prepare them first.');

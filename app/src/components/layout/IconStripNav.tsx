@@ -143,7 +143,7 @@ export function IconStripNav() {
         {/* Logo */}
         <div className="mb-2 flex justify-center">
           <a href="/" aria-label="Go to mainpage">
-            <img src="/logo/short.png" alt="MerchFrom" className="h-12 w-12 object-contain" />
+            <img src="/logo/short.png" alt="Blackout Merchandise" className="h-12 w-12 object-contain" />
           </a>
         </div>
 

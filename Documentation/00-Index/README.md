@@ -1,6 +1,6 @@
-# Merch From Documentation Hub
+# Blackout Merchandise Documentation Hub
 
-Welcome to the Merch From knowledge base. Everything is organized and interconnected using Obsidian-style wiki links.
+Welcome to the Blackout Merchandise knowledge base. Everything is organized and interconnected using Obsidian-style wiki links.
 
 ---
 
@@ -77,7 +77,7 @@ Documentation/
 
 ## The Project at a Glance
 
-**Merch From** is an AI-powered premium merchandise platform for artists who care about quality.
+**Blackout Merchandise** is an AI-powered premium merchandise platform for artists who care about quality.
 
 ### Key Differentiators
 1. **Cat-Suite AI Agents** — Leopoldo, Francisca, Antonia guide the entire artist journey

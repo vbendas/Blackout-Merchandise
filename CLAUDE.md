@@ -1,11 +1,11 @@
-# CLAUDE.md - MerchFrom Development Guide
+# CLAUDE.md - Blackout Merchandise Development Guide
 
 > **Last Updated:** October 11, 2026
 > **Project Score:** 8.4/10 (Pre-MVP, Phase 3)
 
 ## Project Overview
 
-**MerchFrom** is an AI-powered premium merchandise platform for artists/creators. It features three AI "Cat-Suite" brand ambassadors (Leopoldo, Francisca, Antonia) that guide artists through design, production, and sales.
+**Blackout Merchandise** is an AI-powered premium merchandise platform for artists/creators. It features three AI "Cat-Suite" brand ambassadors (Leopoldo, Francisca, Antonia) that guide artists through design, production, and sales.
 
 **Mission:** Help artists, brands, and companies design, source, and sell premium quality merchandise through an AI-managed platform with professional visual tools.
 
@@ -16,7 +16,7 @@
 ## Repository Structure
 
 ```
-/Merch-From (Monorepo)
+/blackout-merchandise (Monorepo)
 ├── /app                    # Main application (Cat-Suite, Auth, Commerce)
 │   ├── src/
 │   │   ├── app/            # Next.js App Router routes
@@ -75,7 +75,7 @@
 └── drizzle.config.ts       # Drizzle configuration
 ```
 
-Retired site versions (website-v2, website-v3, the old Next.js mainpage) live outside the repo in `~/Documents/GitHub/_archive/merch-from-2026-10-11/` (website-v3 is also in git history).
+Retired site versions (website-v2, website-v3, the old Next.js mainpage) live outside the repo in `~/Documents/GitHub/_archive/blackout-merchandise-2026-10-11/` (website-v3 is also in git history).
 
 ---
 
@@ -283,9 +283,9 @@ mouth_o_shape, mouth_wide_open, mouth_teeth_showing, blep
 
 ### Cloudinary Asset Path
 ```
-merch-from/avatars/[character]/[expression]
+blackout-merchandise/avatars/[character]/[expression]
 ```
-Example: `merch-from/avatars/leopoldo/happy`
+Example: `blackout-merchandise/avatars/leopoldo/happy`
 
 ---
 

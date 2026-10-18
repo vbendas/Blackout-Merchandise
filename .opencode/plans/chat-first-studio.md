@@ -3,7 +3,7 @@
 > **Author:** Claude Opus 4 + Victor
 > **Date:** February 10, 2026
 > **Target:** Kimi K2.5 Implementation
-> **Repository:** /Users/victorbendas/Documents/GitHub/Merch-From
+> **Repository:** /path/to/blackout-merchandise
 
 ---
 
@@ -46,7 +46,7 @@ Replace the split-panel MerchStudio (MockupViewer + StudioChat) with a **fully c
 ## What Gets Removed
 - `MockupViewer.tsx` (interactive canvas with zoom/pan)
 - `DesignOverlay.tsx` (drag-to-move/resize)
-- `MerchFromStudio.tsx` (split-panel orchestrator)
+- `BlackoutMerchStudio.tsx` (split-panel orchestrator)
 - `StudioChat.tsx` (separate chat with own state)
 - `StudioHeader.tsx` (studio top bar)
 - `StudioProgressBar.tsx`
@@ -655,7 +655,7 @@ When user confirms:
 - `app/src/components/studio/MockupViewer.tsx`
 - `app/src/components/studio/DesignOverlay.tsx`
 - `app/src/components/studio/StudioChat.tsx`
-- `app/src/components/studio/MerchFromStudio.tsx`
+- `app/src/components/studio/BlackoutMerchStudio.tsx`
 - `app/src/components/studio/StudioHeader.tsx`
 - `app/src/components/studio/StudioProgressBar.tsx`
 - `app/src/components/studio/HalftonePreview.tsx`
@@ -733,7 +733,7 @@ Remove `StudioProvider` from provider hierarchy if StudioContext was fully remov
 | `app/src/components/studio/MockupViewer.tsx` | Replaced by mockup cards in chat |
 | `app/src/components/studio/DesignOverlay.tsx` | No interactive canvas |
 | `app/src/components/studio/StudioChat.tsx` | Replaced by FloatingAssistant |
-| `app/src/components/studio/MerchFromStudio.tsx` | No split-panel layout |
+| `app/src/components/studio/BlackoutMerchStudio.tsx` | No split-panel layout |
 | `app/src/components/studio/StudioHeader.tsx` | No studio header bar |
 | `app/src/components/studio/StudioProgressBar.tsx` | No progress bar |
 | `app/src/components/studio/HalftonePreview.tsx` | CSS overlay for canvas |

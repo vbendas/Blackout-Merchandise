@@ -10,7 +10,7 @@
 
 ## How to Use This Document
 
-This is a **single source of truth** for all data points used in Merch From marketing. Every statistic includes:
+This is a **single source of truth** for all data points used in Blackout Merchandise marketing. Every statistic includes:
 - The exact figure
 - The source
 - Confidence level (High/Medium/Low)
@@ -73,7 +73,7 @@ This is a **single source of truth** for all data points used in Merch From mark
 | Label 360 Deal | **18-25%** net | $8.75-14 | Trapped artists |
 | Society6 | **~5%** | $1.50 | Avoid |
 | Redbubble (Standard) | **~5-10%** | $3.00 | Avoid |
-| Merch From | **~50%+** | $17.50+ | **Our target** |
+| Blackout Merchandise | **~50%+** | $17.50+ | **Our target** |
 
 ---
 
@@ -173,7 +173,7 @@ This is a **single source of truth** for all data points used in Merch From mark
 
 ---
 
-## Merch From Specific
+## Blackout Merchandise Specific
 
 | Metric | Value | Context |
 |--------|-------|---------|
@@ -226,7 +226,7 @@ Use these in priority order for maximum impact:
 - [x] Competitive data included
 - [x] Sustainability data included
 - [x] Regional data included
-- [x] Merch From-specific metrics included
+- [x] Blackout Merchandise-specific metrics included
 - [x] No unverified claims
 
 ---

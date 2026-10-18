@@ -168,7 +168,7 @@ export async function resolveVoiceCaller(callerToken?: string | null): Promise<V
   if (DEV_BYPASS) {
     const user = await getOrCreateUserFromClerk({
       clerkId: 'dev-bypass',
-      email: process.env.AUTH_DEV_EMAIL ?? 'dev@merchfrom.test',
+      email: process.env.AUTH_DEV_EMAIL ?? 'dev@blackoutmerch.test',
       displayName: DEV_DISPLAY_NAME,
       imageUrl: null,
       // the same role the rest of the app gives the dev user (lib/auth.ts)
@@ -203,17 +203,17 @@ export async function ensureAgent(params: EnsureAgentParams = {}): Promise<{ age
   if (!secret) throw new Error('VOICE_BRIDGE_SECRET is not set.');
 
   const created = await client().conversationalAi.agents.create({
-    name: params.name ?? 'MerchFrom',
+    name: params.name ?? 'Blackout Merchandise',
     conversationConfig: {
       agent: {
-        firstMessage: params.firstMessage ?? "Hi, I'm MerchFrom. What are we making today?",
+        firstMessage: params.firstMessage ?? "Hi, I'm Blackout Merchandise. What are we making today?",
         language: 'en',
         prompt: {
-          prompt: 'You help artists design, price and sell merchandise on MerchFrom.',
+          prompt: 'You help artists design, price and sell merchandise on Blackout Merchandise.',
           llm: 'custom-llm',
           customLlm: {
             url: `${appUrl}/api/voice/llm`,
-            modelId: 'merchfrom-agent',
+            modelId: 'blackoutmerch-agent',
             // Static bridge auth — see app/api/voice/llm/route.ts header comment.
             requestHeaders: { authorization: `Bearer ${secret}` },
           },

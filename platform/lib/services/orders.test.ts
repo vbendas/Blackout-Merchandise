@@ -40,7 +40,7 @@ const snapshot = (orderId: string, over: Partial<CheckoutSessionSnapshot> = {}):
   taxCents: 0,
   shippingCents: 0,
   currency: 'eur',
-  customerEmail: 'fan@merchfrom.test',
+  customerEmail: 'fan@blackoutmerch.test',
   paymentIntentId: `pi_${orderId}`,
   metadata: { orderId },
   shippingDetails: null,
@@ -52,7 +52,7 @@ const snapshot = (orderId: string, over: Partial<CheckoutSessionSnapshot> = {}):
 async function pendingOrder(productId: string, colourCode = 'C002'): Promise<string> {
   const [order] = await h.db
     .insert(schema.orders)
-    .values({ storeId: h.artist.storeId, orderType: 'pod', status: 'pending', totalAmount: 2500, fanEmail: 'fan@merchfrom.test' })
+    .values({ storeId: h.artist.storeId, orderType: 'pod', status: 'pending', totalAmount: 2500, fanEmail: 'fan@blackoutmerch.test' })
     .returning({ id: schema.orders.id });
   await h.db.insert(schema.orderItems).values({ orderId: order.id, productId, quantity: 1, priceAtPurchase: 2500, colourCode, size: 'M' });
   return order.id;
@@ -64,7 +64,7 @@ const needsOf = (pack: { neededFor: unknown }) => pack.neededFor as (PackNeed & 
 
 test('staff read any shop’s order in full, the artist only their own, and an id that is no order is nothing', async () => {
   const orderId = await seedShopOrder(h.db, { storeId: h.artist.storeId, productId: h.productId, colourCode: 'C002', qty: 2 });
-  const stranger = await seedUser(h.db, { email: 'other-shop@merchfrom.test', withStore: true });
+  const stranger = await seedUser(h.db, { email: 'other-shop@blackoutmerch.test', withStore: true });
 
   const detail = await orders.getOrderForStaff(orderId);
   assert.ok(detail);
@@ -74,7 +74,7 @@ test('staff read any shop’s order in full, the artist only their own, and an i
   assert.equal(detail.orderType, 'pod');
   assert.equal(detail.status, 'paid');
   assert.equal(detail.productionStatus, 'queued');
-  assert.equal(detail.fanEmail, 'fan@merchfrom.test', 'staff see the fan’s email, as the artist does');
+  assert.equal(detail.fanEmail, 'fan@blackoutmerch.test', 'staff see the fan’s email, as the artist does');
   assert.deepEqual(detail.lines, [{ label: 'Underwriter tee', colour: 'Black', size: 'M', qty: 2, unitCents: 2500 }]);
   assert.deepEqual(detail.totals, { grossCents: 2500, shippingCents: 0, taxCents: 0, feeCents: 0, transferCents: 0 });
   assert.equal(detail.tracking, null);

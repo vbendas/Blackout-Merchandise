@@ -6,7 +6,7 @@
 **Deciders:** Victor Bendas
 
 ## Context
-Merch From needs an AI provider for LLM (chat), STT (speech-to-text), TTS (text-to-speech), and image generation. The Cat-Suite agents require character personalities, voice interaction, and real-time conversation capabilities. We also need best-in-class image generation for product mockups.
+Blackout Merchandise needs an AI provider for LLM (chat), STT (speech-to-text), TTS (text-to-speech), and image generation. The Cat-Suite agents require character personalities, voice interaction, and real-time conversation capabilities. We also need best-in-class image generation for product mockups.
 
 ## Decision
 Adopt Mistral AI as the sole provider for voice and text, and Black Forest Labs (BFL) for image generation:
@@ -52,9 +52,9 @@ We explicitly reject AI replacement of humans:
 
 ### Open-Source Commitment
 We will open-source non-critical tooling:
-- `merchfrom-cli` — Artist-facing CLI (MIT)
-- `@merchfrom/sdk` — Integration SDK (MIT)
-- `merchfrom-ai-governance` — EU AI Act compliance toolkit (Apache 2.0)
+- `blackoutmerch-cli` — Artist-facing CLI (MIT)
+- `@blackoutmerch/sdk` — Integration SDK (MIT)
+- `blackoutmerch-ai-governance` — EU AI Act compliance toolkit (Apache 2.0)
 
 ## Migration Plan
 1. Phase 5: Replace MiniMax API calls with Mistral API

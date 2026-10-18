@@ -26,7 +26,7 @@ function formatTime(iso: string): string {
 const authorLabel: Record<TicketMessage['author'], string> = {
   artist: 'Artist',
   admin: 'Support',
-  system: 'MerchFrom',
+  system: 'Blackout Merchandise',
 };
 
 export function TicketCard({ card, ctx }: { card: TicketCardType; ctx: CardActionContext }) {

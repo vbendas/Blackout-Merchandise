@@ -207,7 +207,7 @@ const R2: R2Config = {
   accountId: 'acct',
   accessKeyId: 'AKIDEXAMPLE',
   secretAccessKey: 'secretkeyexample',
-  bucket: 'merchfrom-print',
+  bucket: 'blackoutmerch-print',
   publicBucket: null,
   publicBaseUrl: null,
 };
@@ -220,7 +220,7 @@ test('objectUrl: the route for local files and for private ones, the public doma
   assert.equal(await objectUrl(key, 'private', { download: 'My art v1.psd' }), `/api/print-files/${key}?download=My+art+v1.psd`);
   assert.equal(await objectUrl(key, 'private', { expiresInSeconds: 300.4 }), `/api/print-files/${key}?ttl=300`);
 
-  setPrintStorageDriver(createR2Driver({ ...R2, publicBucket: 'merchfrom-proofs', publicBaseUrl: 'https://proofs.example.com/' }));
+  setPrintStorageDriver(createR2Driver({ ...R2, publicBucket: 'blackoutmerch-proofs', publicBaseUrl: 'https://proofs.example.com/' }));
   assert.equal(await objectUrl(key, 'public'), `https://proofs.example.com/${key}`);
   assert.equal(await objectUrl(key, 'private'), `/api/print-files/${key}`, 'private objects never get a public URL');
   assert.equal(await objectUrl(key, 'public', { download: 'a.webp' }), `/api/print-files/${key}?download=a.webp`, 'a download name needs the route');
@@ -361,7 +361,7 @@ test('R2: a put is one signed PUT with the body, type and metadata', async () =>
 
   const [call] = calls;
   assert.equal(call.method, 'PUT');
-  assert.equal(call.url, `https://acct.r2.cloudflarestorage.com/merchfrom-print/${key}`);
+  assert.equal(call.url, `https://acct.r2.cloudflarestorage.com/blackoutmerch-print/${key}`);
   assert.deepEqual(call.body, data);
   assert.equal(call.headers.get('content-type'), 'image/vnd.adobe.photoshop');
   assert.equal(call.headers.get('x-amz-meta-visibility'), 'private');
@@ -554,7 +554,7 @@ test('R2: refuses a body past the single-upload limit before sending anything', 
 });
 
 test('R2: public files go to the public bucket, and reads look in both', async () => {
-  const cfg: R2Config = { ...R2, publicBucket: 'merchfrom-proofs', publicBaseUrl: 'https://proofs.example.com' };
+  const cfg: R2Config = { ...R2, publicBucket: 'blackoutmerch-proofs', publicBaseUrl: 'https://proofs.example.com' };
   const store = new Map<string, { body: Buffer; type: string; visibility: string }>();
   const { fetch, calls } = stubFetch(async (call) => {
     const url = new URL(call.url);
@@ -580,7 +580,7 @@ test('R2: public files go to the public bucket, and reads look in both', async (
   const psd = printKey(DESIGN, 1, 'darks.psd');
   await putObject({ key: proof, data: Buffer.from('webp'), contentType: 'image/webp', visibility: 'public' });
   await putObject({ key: psd, data: Buffer.from('psd'), contentType: 'image/vnd.adobe.photoshop', visibility: 'private' });
-  assert.deepEqual([...store.keys()].sort(), [`/merchfrom-print/${psd}`, `/merchfrom-proofs/${proof}`]);
+  assert.deepEqual([...store.keys()].sort(), [`/blackoutmerch-print/${psd}`, `/blackoutmerch-proofs/${proof}`]);
 
   assert.equal((await getObject(proof)).toString(), 'webp');
   assert.equal((await getObject(psd)).toString(), 'psd');
@@ -607,7 +607,7 @@ test('R2: presigned URLs carry the expiry, the download name and a signature tha
   assert.equal(calls.length, 0, 'signing makes no request');
 
   const url = new URL(signed);
-  assert.equal(url.origin + url.pathname, `https://acct.r2.cloudflarestorage.com/merchfrom-print/${key}`);
+  assert.equal(url.origin + url.pathname, `https://acct.r2.cloudflarestorage.com/blackoutmerch-print/${key}`);
   assert.equal(url.searchParams.get('X-Amz-Algorithm'), 'AWS4-HMAC-SHA256');
   assert.equal(url.searchParams.get('X-Amz-Credential'), 'AKIDEXAMPLE/20261015/auto/s3/aws4_request');
   assert.equal(url.searchParams.get('X-Amz-Date'), DATETIME);
@@ -647,7 +647,7 @@ test('R2: an EU or custom endpoint replaces the default host', async () => {
   const driver = createR2Driver({ ...R2, endpoint: 'https://acct.eu.r2.cloudflarestorage.com/' }, { fetch, now: () => NOW, sleep: noSleep });
   setPrintStorageDriver(driver);
   await putObject({ key: printKey(DESIGN, 1, 'a.txt'), data: Buffer.from('a'), contentType: 'text/plain', visibility: 'private' });
-  assert.ok(calls[0].url.startsWith('https://acct.eu.r2.cloudflarestorage.com/merchfrom-print/print/'));
+  assert.ok(calls[0].url.startsWith('https://acct.eu.r2.cloudflarestorage.com/blackoutmerch-print/print/'));
   const { expected, actual } = checkHeaderSignature(calls[0], R2);
   assert.equal(actual, expected);
 });

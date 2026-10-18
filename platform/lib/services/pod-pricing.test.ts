@@ -46,7 +46,7 @@ before(async () => {
   pricing = await import('@/lib/services/pricing-admin');
   pod = await import('@/lib/pricing/pod');
   quotes = await import('@/lib/services/quotes');
-  ownerId = (await seedUser(t.db, { email: 'owner@merchfrom.test', role: 'admin' })).userId;
+  ownerId = (await seedUser(t.db, { email: 'owner@blackoutmerch.test', role: 'admin' })).userId;
   owner = { userId: ownerId, role: 'admin' };
 });
 

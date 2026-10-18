@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 //
-// MerchStation — Terminal Product Management for MerchFrom
+// MerchStation — Terminal Product Management for Blackout Merchandise
 //
 // Usage:
 //   merchstation              Launch the TUI
@@ -18,7 +18,7 @@ if (args.includes('--version') || args.includes('-v')) {
 }
 if (args.includes('--help') || args.includes('-h')) {
     console.log(`
-  merchstation v0.1.0 — Terminal Product Management for MerchFrom
+  merchstation v0.1.0 — Terminal Product Management for Blackout Merchandise
 
   Usage:
     merchstation              Launch the TUI

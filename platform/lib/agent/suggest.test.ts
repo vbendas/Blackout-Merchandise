@@ -37,7 +37,7 @@ test('the system prompt tells the model the employee’s areas and nothing more'
   const none = prompt.stableSystemText('staff', {});
   assert.match(none, /no admin areas yet/);
 
-  assert.match(prompt.stableSystemText('admin'), /talking to the MerchFrom owner/);
+  assert.match(prompt.stableSystemText('admin'), /talking to the Blackout Merchandise owner/);
   const artist = prompt.stableSystemText('artist');
   assert.doesNotMatch(artist, /employee|owner has every admin area/);
 });
@@ -67,7 +67,7 @@ test('home chips: the owner keeps the full set, an employee sees their own areas
 
 test('guidance treats staff like the owner: the admin state, no shop checklist', async () => {
   const session = {
-    user: { id: '00000000-0000-4000-8000-000000000001', displayName: 'Ana Ruiz', email: 'ana@merchfrom.test' },
+    user: { id: '00000000-0000-4000-8000-000000000001', displayName: 'Ana Ruiz', email: 'ana@blackoutmerch.test' },
     store: null,
     role: 'staff' as const,
     actor: { userId: '00000000-0000-4000-8000-000000000001', role: 'staff' as const, permissions: { support: 'view' as const } },

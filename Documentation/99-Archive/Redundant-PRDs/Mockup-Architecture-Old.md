@@ -29,7 +29,7 @@
 ## 1. Executive Summary
 
 ### Purpose
-The Product Mockup Generation System transforms final artwork into photorealistic product images used for customer approval and product listings on the Merch From platform.
+The Product Mockup Generation System transforms final artwork into photorealistic product images used for customer approval and product listings on the Blackout Merchandise platform.
 
 ### Solution Approach
 **Hybrid architecture** combining:

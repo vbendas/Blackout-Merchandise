@@ -5,8 +5,8 @@ import json
 import os
 from pathlib import Path
 
-TEMPLATES_DIR = Path("/Users/victorbendas/Documents/GitHub/Merch-From/services/mockup-generator/templates/stanley-stella")
-DATA_DIR = Path("/Users/victorbendas/Documents/GitHub/Merch-From/services/mockup-generator/data")
+TEMPLATES_DIR = Path(__file__).resolve().parents[1] / "templates" / "stanley-stella"
+DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 # Print area estimates by category
 PRINT_AREAS = {

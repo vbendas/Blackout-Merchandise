@@ -28,7 +28,7 @@ interface ConnectDiscordData {
 export const connectDiscordTool = defineTool({
   name: 'connect_discord',
   description:
-    "Show whether the artist's Discord account is linked, and how to link it if not. MerchFrom can DM proofs ready, new sales, shipping updates and payouts to Discord — it's optional and can be turned off any time with update_notification_prefs. Call this when the artist asks to connect/link Discord, or wants to see their Discord status.",
+    "Show whether the artist's Discord account is linked, and how to link it if not. Blackout Merchandise can DM proofs ready, new sales, shipping updates and payouts to Discord — it's optional and can be turned off any time with update_notification_prefs. Call this when the artist asks to connect/link Discord, or wants to see their Discord status.",
   input: z.object({}).strict(),
   scope: 'both',
   readOnly: true,

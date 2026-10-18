@@ -7,13 +7,13 @@ interface LogoProps {
   priority?: boolean;
 }
 
-/** The MerchFrom logo: the brush mark in soft white #F2EFE9 (public/logo.png,
+/** The Blackout Merchandise logo: the brush mark in soft white #F2EFE9 (public/logo.png,
  * cut from Assets/Logo/logo.png), the same file as the website's header. */
 export function Logo({ height, className, priority }: LogoProps) {
   return (
     <Image
       src="/logo.png"
-      alt="MerchFrom"
+      alt="Blackout Merchandise"
       width={Math.round((height * 360) / 271)}
       height={height}
       className={className}

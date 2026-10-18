@@ -64,7 +64,7 @@ async function main() {
 
   const user = await getOrCreateUserFromClerk({
     clerkId: 'dev-bypass',
-    email: process.env.AUTH_DEV_EMAIL ?? 'dev@merchfrom.test',
+    email: process.env.AUTH_DEV_EMAIL ?? 'dev@blackoutmerch.test',
     displayName: 'Dev Artist',
     imageUrl: null,
     publicMetadataRole: null,
@@ -133,7 +133,7 @@ async function main() {
   const saleDelivery = deliveries.find((d) => d.content.includes('Cruiser 2.0 sold x2'));
   check('mock gateway recorded the sale DM', !!saleDelivery, saleDelivery?.content);
   check('DM content includes the chat deep link', !!saleDelivery?.content.includes('/studio'));
-  check('DM content includes the reply-with-prompt hint', !!saleDelivery?.content.includes('Reply in MerchFrom: "Show order ORD-1001"'));
+  check('DM content includes the reply-with-prompt hint', !!saleDelivery?.content.includes('Reply in Blackout Merchandise: "Show order ORD-1001"'));
 
   // -- 4. unlink, then prove drainPending fails closed -----------------------
   console.log('\n=== unlink, then a since-unlinked pending row ===');

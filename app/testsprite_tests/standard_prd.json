@@ -1,10 +1,10 @@
 {
   "meta": {
-    "project": "Merch From",
+    "project": "Blackout Merchandise",
     "date": "2025-12-30",
     "prepared_by": "Victor Teixeira Bendas"
   },
-  "product_overview": "Merch From is an AI-powered conversational commerce platform designed specifically for artists, bands, and creators to design, produce, and sell premium quality, ethically sourced merchandise without upfront costs. Leveraging unique AI agents—Leopoldo, Francisca, and Antônia—the platform offers guided merch design, store management via chat, and in-house production control, enabling artists to focus on brand experience while ensuring quality and sustainability.",
+  "product_overview": "Blackout Merchandise is an AI-powered conversational commerce platform designed specifically for artists, bands, and creators to design, produce, and sell premium quality, ethically sourced merchandise without upfront costs. Leveraging unique AI agents—Leopoldo, Francisca, and Antônia—the platform offers guided merch design, store management via chat, and in-house production control, enabling artists to focus on brand experience while ensuring quality and sustainability.",
   "core_goals": [
     "Enable artists to easily create and sell premium, ethical merchandise without upfront inventory risk.",
     "Leverage AI-driven conversational interfaces to simplify store management and design workflows.",

@@ -71,7 +71,7 @@ class CloudinaryUploader:
         img_byte_arr.seek(0)
         
         # Generate public ID
-        public_id = f"merch-from/mockups/{mockup_id}/{view}_{resolution}"
+        public_id = f"blackout-merchandise/mockups/{mockup_id}/{view}_{resolution}"
         
         # Upload to Cloudinary
         result = cloudinary.uploader.upload(

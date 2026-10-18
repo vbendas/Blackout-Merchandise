@@ -294,8 +294,8 @@ export function SettingsForm({ displayName, email, imageUrl, locale, discord, sh
           <div style={{ marginTop: 18 }}>
             <Toggle
               id="press-board"
-              label="Show my shop's name on the MerchFrom press board"
-              hint="The live board on merchfrom.com shows what is being printed: the garment, how many, the ink and the stage. When on, it names your shop beside your runs and shop orders. When off, they read Private."
+              label="Show my shop's name on the Blackout Merchandise press board"
+              hint="The live board on blackoutmerch.example shows what is being printed: the garment, how many, the ink and the stage. When on, it names your shop beside your runs and shop orders. When off, they read Private."
               checked={pressBoard}
               disabled={busy}
               note={notes.pressBoard}

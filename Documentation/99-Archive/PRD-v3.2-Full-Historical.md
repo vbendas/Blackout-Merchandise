@@ -1,6 +1,6 @@
 > Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
 
-  # Merch From: Product Requirements Document
+  # Blackout Merchandise: Product Requirements Document
 
   ---
 
@@ -44,7 +44,7 @@
   | Antonia | Operations & Support | Shipping, returns, first-tier support |
 
   ### Competitive Positioning
-  | Feature | Merch From | Fyul (Printful+Printify) | Gelato |
+  | Feature | Blackout Merchandise | Fyul (Printful+Printify) | Gelato |
   |---------|-----------|-------------------------|--------|
   | AI Design | ✅ Cat-Suite | ❌ 3D Design Maker (not AI) | ❌ B2B only |
   | Voice Interface | ✅ Mistral Voxtral (Real-Time Voice-to-Voice) | ❌ | ❌ |
@@ -99,7 +99,7 @@
 
   ## 1. Project Overview
 
-  **Merch From** is a conversational commerce platform that empowers artists, bands, and creators to manage their merchandise business through natural AI-powered conversation. While the **Visual Editor** handles the store's aesthetic customization, AI agents actively manage operations, product creation, and sales strategy.
+  **Blackout Merchandise** is a conversational commerce platform that empowers artists, bands, and creators to manage their merchandise business through natural AI-powered conversation. While the **Visual Editor** handles the store's aesthetic customization, AI agents actively manage operations, product creation, and sales strategy.
 
   **Mission:** Help artists, brands, and companies design, source, and sell premium quality merchandise through an AI-managed platform with professional visual tools. Creates focus on the product, while the artist controls the brand experience.
 
@@ -214,7 +214,7 @@
   - **AI Quality Specialist** for Spider.cloud - Advanced AI testing, deliberately making AI systems fail for quality assurance (Nov 2025)
   - **Corporate AI Success:** Built and sold data intent management system to **Chiliz (Socios.com)** using OpenAI API
   - **Currently enrolled:** MBA IA e Automação focusing on RAG systems and LLM training
-  - **Systematic preparation:** 12 months of deliberate AI industry positioning for Merch From launch
+  - **Systematic preparation:** 12 months of deliberate AI industry positioning for Blackout Merchandise launch
 
   **Real-World Technical Impact:**
   - **Built N8n automation workflows** reducing manual reporting by 60% (**240+ hours/month saved** at Accenture)
@@ -223,7 +223,7 @@
   - **Automated reporting workflows** using Zapier and Google Apps Script, reducing manual tasks by **55%**
   - **Sold AI solution to major corporation:** Data intent management system for Chiliz/Socios.com (crypto/sports platform)
   - **Developed 8-agent AI orchestration system** (Orchestrator, Frontend, Backend, Database, Security, Tester, DevOps, Docs) with Linear + Neon + GitHub integration
-  - **Can build Merch From platform in 4 weeks** using multi-agent AI instead of 6 months manual coding
+  - **Can build Blackout Merchandise platform in 4 weeks** using multi-agent AI instead of 6 months manual coding
 
   ---
 
@@ -319,7 +319,7 @@
   #### **Phase 3: The "All-In" Reality (The Campervan Story)**
   **Decision:** Extend runway 4.5x by living the lean startup.
   - **Narrative:** In November 2024, Victor moved into a campervan to maximize capital for the business. He drove from Ireland to Portugal and currently lives off-grid on a land plot in a forest in Porto with his three cats.
-  - **Why:** To drastically reduce cost of living, buying the financial freedom and time needed to plan, build, and launch **Merch From** properly.
+  - **Why:** To drastically reduce cost of living, buying the financial freedom and time needed to plan, build, and launch **Blackout Merchandise** properly.
   - **Execution:**
     - Purchased and renovated Mercedes 308D (1993)
     - Full electrical/solar off-grid setup
@@ -394,7 +394,7 @@
   >
   > *This isn't a pitch from someone who needs rescue. This is an invitation to join a systematically de-risked opportunity built by a founder who's already proven he can execute under capital constraints.*
   >
-  > *That's the discipline and resourcefulness I'll bring as CEO of Merch From."*
+  > *That's the discipline and resourcefulness I'll bring as CEO of Blackout Merchandise."*
 
   **Why This Story Matters:**
   - **For Investors:** Proof of capital efficiency, strategic thinking, and execution ability
@@ -414,7 +414,7 @@
   ### 1.6.1 Founder Dependency & Delegation Strategy
 
   **The Challenge:**
-  Merch From's success depends on Victor's unique triple-threat expertise (craft + tech + marketing). This creates a single point of failure risk.
+  Blackout Merchandise's success depends on Victor's unique triple-threat expertise (craft + tech + marketing). This creates a single point of failure risk.
 
   **Mitigation Measures:**
 
@@ -503,7 +503,7 @@
 
   **Building the World's Only Expert-Scored Screen Print Dataset**
 
-  To train Merch From's AI with unparalleled accuracy, we've assembled a panel of **three world-class screen printing authorities** to curate and score our training dataset. This approach reduces dependency on any single expert while creating the highest-quality AI training data in the industry.
+  To train Blackout Merchandise's AI with unparalleled accuracy, we've assembled a panel of **three world-class screen printing authorities** to curate and score our training dataset. This approach reduces dependency on any single expert while creating the highest-quality AI training data in the industry.
 
   #### **The Expert Panel:**
 
@@ -576,7 +576,7 @@
 
   **Lean, Local-First Approach**
 
-  Rather than relocating experts internationally, Merch From will expand by **hiring and training local talent** in each market, supported by Victor's 9 years of screen printing expertise as Head of Training.
+  Rather than relocating experts internationally, Blackout Merchandise will expand by **hiring and training local talent** in each market, supported by Victor's 9 years of screen printing expertise as Head of Training.
 
   #### **Phase 1: Portugal Operations (Months 1-24)**
   - **Production Manager:** Hired locally in Portugal
@@ -647,7 +647,7 @@
   | **Buyers (Fans)** | Tired of generic "drop-shipped" quality and uninspired designs. Want authentic, premium products that reflect artist values. |
   | **The Industry** | Reliance on single-source manufacturing creates supply chain fragility. No platform combines AI design + premium production + ethical sourcing. |
 
-  ### The Solution (Merch From)
+  ### The Solution (Blackout Merchandise)
 
   | Solution Component | How It Works |
   |-------------------|--------------|
@@ -665,7 +665,7 @@
 
    ### Direct Competitors (Print-on-Demand Platforms)
    
-   | Feature | **Merch From** | Fyul (Printful+Printify) | Redbubble | Spring (Teespring) | SPOD |
+   | Feature | **Blackout Merchandise** | Fyul (Printful+Printify) | Redbubble | Spring (Teespring) | SPOD |
    |---------|----------------|-------------------------|-----------|-------------------|------|
    | **Store Builder** | ✅ **Visual Editor** (Manual Drag & Drop) | ❌ Complex dashboard | ❌ Complex dashboard | ⚠️ Basic templates | ⚠️ Limited | ❌ Complex |
    | **AI Merch Design** | ✅ Full Cat-Suite (Francisca) | ❌ 3D Design Maker (not AI) | ❌ None | ❌ None | ❌ None | ❌ None |
@@ -704,7 +704,7 @@
    - No ethical/vegan focus
    - Limited customization
 
-  ### Merch From's Unfair Advantages
+  ### Blackout Merchandise's Unfair Advantages
 
   | Advantage | Why Competitors Can't Replicate |
   |-----------|--------------------------------|
@@ -729,7 +729,7 @@
 
   ### Positioning Statement
 
-  > **For independent artists and ethical brands** who want premium merchandise without the complexity, **Merch From** is the **AI-powered conversational commerce platform** that **designs, produces, and fulfills in-house with zero upfront cost**. Unlike Printful or Redbubble which outsource production and offer generic quality, **we combine owned manufacturing, expert screen printing, and a unique AI personality to deliver merch that actually matches your brand's values.**
+  > **For independent artists and ethical brands** who want premium merchandise without the complexity, **Blackout Merchandise** is the **AI-powered conversational commerce platform** that **designs, produces, and fulfills in-house with zero upfront cost**. Unlike Printful or Redbubble which outsource production and offer generic quality, **we combine owned manufacturing, expert screen printing, and a unique AI personality to deliver merch that actually matches your brand's values.**
 
    ### AI Safety Nets (Hallucination Mitigation)
    We prioritize customer satisfaction over AI autonomy. To mitigate "hallucinations" or unprintable designs:
@@ -782,11 +782,11 @@
    
    1. **Touring Bands** - Need bulk orders + quick turnaround
       - Fyul outsources: 10-14 days production
-      - Merch From in-house: 3-5 days shipping
+      - Blackout Merchandise in-house: 3-5 days shipping
    
    2. **Pantone Precision** - Brand-conscious artists
       - Fyul/Gelato: Digital approximation ("closest match")
-      - Merch From: Exact Magna IM6 ink mixing OR calibrated DTG
+      - Blackout Merchandise: Exact Magna IM6 ink mixing OR calibrated DTG
    
    3. **Metal/Punk Network** - Victor's 9-year relationships
       - Blackout client portfolio: Meta, Google, Sepultura, Electric Picnic
@@ -794,11 +794,11 @@
    
    4. **Artist Education** - AI helps beginners
       - Fyul/Gelato: Expects existing design assets
-      - Merch From: AI-assisted creation from scratch
+      - Blackout Merchandise: AI-assisted creation from scratch
    
    5. **Ethical Certification Path** - B-Corp trajectory
       - Fyul/Gelato: Ethical as add-on tier
-      - Merch From: Ethical as core DNA (equal wages, vegan/fair-trade standard)
+      - Blackout Merchandise: Ethical as core DNA (equal wages, vegan/fair-trade standard)
    
    ### Moat Defense Strategy
    
@@ -952,7 +952,7 @@
   - **Mobile:** Logo + Hamburger menu to maximize screen real estate for chat.
 
   #### 7. Artist Attribution & Previews
-  - **Design:** Minimal text: "Merch from @artist_name".
+  - **Design:** Minimal text: "Merch by @artist_name".
   - **Interaction:** Hover/Tap reveals a "mini-profile" card with 3 top-selling items and Instagram link.
 
   #### 8. Marketing Landing Page Effects (Scroll-Scrubbing Video)
@@ -1075,7 +1075,7 @@
   **Anonymous Homepage Design:**
   ```
   ┌─────────────────────────────────────────────────────────────────┐
-  │  MERCH FROM              [Portfolio]  [About]  [Login]          │
+  │  BLACKOUT MERCHANDISE              [Portfolio]  [About]  [Login]          │
   ├─────────────────────────────────────────────────────────────────┤
   │                                                                 │
   │      "We help artists to produce, design and                   │
@@ -1209,7 +1209,7 @@
   **Pain Point:** Overwhelmed by Spreadshirt's dashboard.
 
   **The Journey:**
-  1.  **Entry:** Alex sees a TikTok about "Merch From." Taps link.
+  1.  **Entry:** Alex sees a TikTok about "Blackout Merchandise." Taps link.
   2.  **Visual Setup (No Auth Yet):**
       *   Alex uses the **Visual Editor** to pick a dark "Industrial" theme and drop in his logo. It takes 5 minutes to make the shop look cool.
   3.  **Merch Creation (AI Managed):**
@@ -1230,7 +1230,7 @@
   **Pain Point:** Fans complain the Redbubble shirts feel "cheap."
 
   **The Journey:**
-  1.  **Entry:** They import their Redbubble designs into Merch From.
+  1.  **Entry:** They import their Redbubble designs into Blackout Merchandise.
   2.  **The Upgrade:**
       *   *Leopoldo:* "I see you sell these for €25 but only keep €3. Criminal! Here, we use Organic Cotton blanks. You sell for €30 (fans will pay for quality), and you keep €14. That is 4x your profit."
       *   *Band:* "But is the quality actually better?"
@@ -1267,7 +1267,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
     *   *Vibe:* "Describe your art style in three words."
 4.  **The Sentinel Check (VIP Intercept):**
     *   **Logic:** If user mentions >10k followers or "Touring", the AI **interrupts the script**.
-    *   **VIP Branch:** "Wow, 50k is serious. Listen, I can fast-track you to the Beta right now... but I need a favor. Would you record a quick 'I'm joining Merch From' shoutout for us?"
+    *   **VIP Branch:** "Wow, 50k is serious. Listen, I can fast-track you to the Beta right now... but I need a favor. Would you record a quick 'I'm joining Blackout Merchandise' shoutout for us?"
     *   **Result:** We capture a testimonial *before* they even use the product.
 5.  **Completion:** "I've filed your application. Stay tuned."
 
@@ -1310,7 +1310,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
    - "What stops me from selling is..." — [Artist Name], Digital Artist
    
    ### Pricing Validation
-   - "I'd switch to Merch From if margins were..." — [Artist Name], Pricing sensitivity
+   - "I'd switch to Blackout Merchandise if margins were..." — [Artist Name], Pricing sensitivity
    - "My fans would pay more for..." — [Artist Name], Quality premium
    
    ### Feature Prioritization
@@ -1345,7 +1345,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
    When quotes are collected, these become investor materials:
    
    #### Margins
-   > "I make €2 per €25 shirt on Redbubble. That's criminal. Merch From offered me €14 for the same sale." — Existing POD Artist
+   > "I make €2 per €25 shirt on Redbubble. That's criminal. Blackout Merchandise offered me €14 for the same sale." — Existing POD Artist
    
    #### Quality
    > "Fans constantly tell me my Redbubble shirts feel cheap. I'd pay €5 more for premium quality." — Touring Band
@@ -1408,7 +1408,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
       - Desired products (poll: tees, hoodies, hats, stickers, etc.)
       - Monthly social reach (followers/streams)
       - Values alignment: "Do you prioritize organic/fair-trade/eco-friendly products?"
-    - "Reserve Your Artist Slug" CTA (e.g., `merchfrom.com/yourname`)
+    - "Reserve Your Artist Slug" CTA (e.g., `blackoutmerch.example/yourname`)
 
   **Phase 3: Traffic Generation (Weeks 6-8)**
   - **Reddit:** Post in r/WeAreTheMusicMakers, r/bandmembers, r/streetwearstartup
@@ -1727,12 +1727,12 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
     - **Cultural alignment** that reduces onboarding friction and increases employee retention
     - **Community validation** that the business is authentically rooted in local values, not extractive
   - **Narrative for Grant Applications:** The combination of founder residence, existing community ties, and pre-validated hiring pool strengthens grant positioning significantly:
-    - *"MerchFrom is not a coastal tech startup seeking interior subsidy. It's a founder relocating to the interior with personal financial commitment (residential land purchase) and active integration into an existing community network committed to sustainable, ethical production."*
+    - *"Blackout Merchandise is not a coastal tech startup seeking interior subsidy. It's a founder relocating to the interior with personal financial commitment (residential land purchase) and active integration into an existing community network committed to sustainable, ethical production."*
     - This positioning unlocks municipality-level support programs, ESG-focused grant streams, and interior depopulation initiatives (e.g., *Programa de Valorização do Interior*).
 
   **Creative Studio Hub — Music, Recording, Streaming & Photography:**
 
-  The industrial unit includes a **Creative Studio Hub** — three dedicated creative spaces serving both MerchFrom internal production and the broader creative community of Castelo Branco. Access is free, governed through the MerchFrom platform's booking module, and open to musicians, bands, actors, digital creators, photographers, and illustrators.
+  The industrial unit includes a **Creative Studio Hub** — three dedicated creative spaces serving both Blackout Merchandise internal production and the broader creative community of Castelo Branco. Access is free, governed through the Blackout Merchandise platform's booking module, and open to musicians, bands, actors, digital creators, photographers, and illustrators.
 
   > **Full specification, equipment budgets, and grant narrative:** See [`/Documentation/06-Creative-Studio/Creative-Studio-Hub.md`](../06-Creative-Studio/Creative-Studio-Hub.md)
 
@@ -1744,17 +1744,17 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   | **Meeting + Streaming Room** | Artist onboarding, team meetings, partner calls | Streaming sessions, content production, workshops |
   | **Photo Studio** | Product photography, catalog shoots, campaign imagery | Portrait sessions, lookbooks, editorial content |
 
-  **Booking System (MerchFrom Platform):**
-  - Application gate — creatives apply, MerchFrom approves
+  **Booking System (Blackout Merchandise Platform):**
+  - Application gate — creatives apply, Blackout Merchandise approves
   - 2 hours per booking, max 1 booking per week
   - Approval expires after 3 months of inactivity (keeps network active)
   - No-show: 1 lifetime warning, then 3-month suspension
   - Waitlist queue for full slots; freed slots auto-notify next in line
-  - Full calendar transparency — all bookings visible as "MerchFrom" or "[Artist Name]"
+  - Full calendar transparency — all bookings visible as "Blackout Merchandise" or "[Artist Name]"
 
   **Why this is strategic, not charitable:**
   - Organic content flywheel — community sessions generate authentic social content at zero paid-media cost
-  - Network building — approved users are warm leads who have experienced MerchFrom firsthand
+  - Network building — approved users are warm leads who have experienced Blackout Merchandise firsthand
   - Platform engagement — booking through the app creates habit-forming touchpoints beyond merch transactions
   - Relationship moat — a trusted physical creative hub in a community is not replicable by remote competitors
   - Talent pipeline — active community users are natural candidates for future production and operational roles
@@ -1774,13 +1774,13 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   - **Talent pool:** Smaller city (55K). Mitigation: remote-first for tech, pre-existing community network for production/support roles
   - **Supplier distance:** 200km to Barcelos. Mitigation: bulk ordering schedules, local Centro region suppliers, WATC Studio partnership (Barcelos-based)
   - **Grant uncertainty:** Opportunities, not entitlements. Mitigation: confirm with municipality before marketing; founder residential commitment de-risks the "will you stay?" question
-  - **Studio scheduling conflicts:** MerchFrom internal shoots may compete with community bookings. Mitigation: MerchFrom books via the same system with no priority override — plan sessions in advance and respect the queue like everyone else.
+  - **Studio scheduling conflicts:** Blackout Merchandise internal shoots may compete with community bookings. Mitigation: Blackout Merchandise books via the same system with no priority override — plan sessions in advance and respect the queue like everyone else.
 
   **Next Steps:**
   1. Complete residential land acquisition in Castelo Branco
   2. Document community network (names, roles, availability) for grant applications
   3. Contact Castelo Branco municipality (Invest CB / ALECB) for land terms confirmation
-  4. Identify open Portugal 2030 calls compatible with Merch From's investment structure and interior location
+  4. Identify open Portugal 2030 calls compatible with Blackout Merchandise's investment structure and interior location
   5. Do NOT promise Castelo Branco in crowdfunding until municipality confirmation received
   6. Add Creative Studio Hub to grant application narrative as community social program + organic marketing infrastructure
   7. Scope studio build-out costs and include in facility financial model
@@ -2366,14 +2366,14 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   #### **Marketing Messaging**
 
   **Crowdfunding Headline:**
-  > **"Back Merch From. Earn with Merch From. Build the Future Together."**
+  > **"Back Blackout Merchandise. Earn with Blackout Merchandise. Build the Future Together."**
 
   **Transparency Badge:**
   > **📊 Transparent Profit-Sharing**  
   > All profit distributions documented with full audit trail. Team members receive detailed statements showing exactly how profit is shared.
 
   **Key Pitch (€499 Tier):**
-  > Your €499 backing puts you at the Strategic Partner level. Join our exclusive community of 20 partners who help shape Merch From's future. Quarterly calls with the founder, co-marketing opportunities, and recognition as a platform builder. You're not just backing a project—you're co-creating it.
+  > Your €499 backing puts you at the Strategic Partner level. Join our exclusive community of 20 partners who help shape Blackout Merchandise's future. Quarterly calls with the founder, co-marketing opportunities, and recognition as a platform builder. You're not just backing a project—you're co-creating it.
 
   **Why No Profit-Sharing for Backers?**
   > We believe in clean, ethical business. Artists earn from their sales (40-60% margins). Our core team earns from building the platform. Backers support the mission and get incredible access, recognition, and community—not passive income. We're not an MLM; we're building sustainable ethical commerce.
@@ -2675,12 +2675,12 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   | Platform | Base Cost (Black Tee) | Rec. Retail Price | **Artist Keeps (Profit)** | Notes |
   | :--- | :--- | :--- | :--- | :--- |
-  | **Merch From** | **€15.00** (Heavyweight) | **€30.00** | **€15.00** | **Premium Organic 220gsm** |
+  | **Blackout Merchandise** | **€15.00** (Heavyweight) | **€30.00** | **€15.00** | **Premium Organic 220gsm** |
   | Printful | €12.95 (Standard Gildan) | €25.00 | €12.05 | Basic 150gsm (Gildan 64000) |
   | Redbubble | €18.00 (Base + Markups) | €22.00 | €4.00 | Artist has little control. Volume play. |
   | Local Shop | €8.00 (Bulk 50+) | €30.00 | €22.00 | Requires upfront cash (€400+) + Risk. |
 
-  **The Sweet Spot:** Merch From beats Printful on **Quality-Adjusted Profit**. To get a 220gsm tee on Printful, base price jumps to ~€19.00, dropping profit to €6.00. We offer better profit than POD with significantly better quality.
+  **The Sweet Spot:** Blackout Merchandise beats Printful on **Quality-Adjusted Profit**. To get a 220gsm tee on Printful, base price jumps to ~€19.00, dropping profit to €6.00. We offer better profit than POD with significantly better quality.
 
   #### 2. Marketing the "Premium" Justification
   How do we teach artists to sell a €30 tee?
@@ -2692,7 +2692,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   **Argument B: The "Fan Lifetime Value"**
   *   If a fan buys a €20 shirt and it shrinks, LTV = €20.
-  *   If a fan buys a €30 Merch From shirt and it lasts, they buy the hoodie next. LTV = €100+.
+  *   If a fan buys a €30 Blackout Merchandise shirt and it lasts, they buy the hoodie next. LTV = €100+.
 
   #### 3. New Feature: Use of Funds Transparency Widget
   **"The Transparency Pie Chart"**
@@ -2715,7 +2715,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   **How It Works:**
   1.  **The Position:** Every waitlist applicant gets a queue number (e.g., "You're #847").
-  2.  **The Referral Link:** Each applicant gets a unique link: `merchfrom.com/waitlist?ref=alex123`
+  2.  **The Referral Link:** Each applicant gets a unique link: `blackoutmerch.example/waitlist?ref=alex123`
   3.  **The Bump:** When someone signs up via your link, BOTH of you move up the queue.
   4.  **The Leaderboard:** Top referrers get fastest access to Beta testing.
 
@@ -2748,7 +2748,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   ### 2.1 The "Cat-Suite" – Multi-Agent Brand Architecture
 
-  Merch From is powered by a trio of specialized AI agents—the "Cat-Suite"—who manage the platform's core functions. This narrative turns the founder's "van life with three cats" story into a unique brand asset.
+  Blackout Merchandise is powered by a trio of specialized AI agents—the "Cat-Suite"—who manage the platform's core functions. This narrative turns the founder's "van life with three cats" story into a unique brand asset.
 
   #### **1. Leopoldo: CEO (Chief Executive Officer)**
   - **Role:** Waitlist qualification, artist recruitment, and "gatekeeper".
@@ -2946,7 +2946,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   #### **Expert's Expert Dataset Strategy: The Unfair Advantage**
 
-  **The Moat:** While competitors rely on generic AI models, MerchFrom's color separation AI is trained on Expert's 30+ years of screen printing expertise. This proprietary dataset is **impossible to replicate** and becomes more valuable with every design.
+  **The Moat:** While competitors rely on generic AI models, Blackout Merchandise's color separation AI is trained on Expert's 30+ years of screen printing expertise. This proprietary dataset is **impossible to replicate** and becomes more valuable with every design.
 
   **Dataset Growth Trajectory:**
   ```
@@ -3099,7 +3099,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   **Simplified Model (v3.1):**
 
   #### **Platform Merch Coins (Only Type)**
-  - **Issued by:** Merch From platform
+  - **Issued by:** Blackout Merchandise platform
   - **Label:** Simply "**Merch Coin**" (simple, no artist prefix)
   - **Sources:**
     - Crowdfunding backer rewards
@@ -3392,7 +3392,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
      - Chat history and transcripts
 
   4. **Email Integration:**
-     - support@merchfrom.com
+     - support@blackoutmerch.example
      - Auto-responses for common queries
      - Ticket creation from email
 
@@ -3712,21 +3712,21 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   ## 4. Exit Strategy (The "Big Picture")
 
-  Investors need to know the destination. While we are building a profitable standalone business, we are positioning Merch From as a strategic acquisition target for three distinct buyer categories:
+  Investors need to know the destination. While we are building a profitable standalone business, we are positioning Blackout Merchandise as a strategic acquisition target for three distinct buyer categories:
 
   ### 1. The Technology Acquisition (Target: $50M - $100M)
   **Potential Acquirers:** Printful, Redbubble, Gelato
-  - **Why they buy:** They have the volume but lack the **AI Design Agent technology**. Acquiring Merch From gives them the "Leopoldo/Francisca" engine to offer AI design to their millions of users.
+  - **Why they buy:** They have the volume but lack the **AI Design Agent technology**. Acquiring Blackout Merchandise gives them the "Leopoldo/Francisca" engine to offer AI design to their millions of users.
   - **The Asset:** The "Cat-Suite" Agent Architecture + Expert-Trained Dataset.
 
   ### 2. The Native Commerce Acquisition (Target: $100M+)
   **Potential Acquirers:** Shopify, Squarespace, Wix
-  - **Why they buy:** These platforms want to keep creators inside their ecosystem. Merch From becomes their "native merch arm"—allowing any Shopify user to launch a premium print-on-demand line with one click.
+  - **Why they buy:** These platforms want to keep creators inside their ecosystem. Blackout Merchandise becomes their "native merch arm"—allowing any Shopify user to launch a premium print-on-demand line with one click.
   - **The Asset:** The seamless "Store-in-a-Box" experience.
 
   ### 3. The Vertical Integration Acquisition (Target: $200M+)
   **Potential Acquirers:** Live Nation / Ticketmaster, Universal Music Group
-  - **Why they buy:** They control the artists but outsource the merch. Merch From allows them to vertically integrate merchandise production for their mid-tier touring artists, capturing the 40% margin they currently lose to third parties.
+  - **Why they buy:** They control the artists but outsource the merch. Blackout Merchandise allows them to vertically integrate merchandise production for their mid-tier touring artists, capturing the 40% margin they currently lose to third parties.
   - **The Asset:** The "Anchor Tenant" production capacity (VOLT-M) + Ethical Brand Halo.
 
   ### 4. The "Empire Builder" Path (Founder's Preferred Strategy)
@@ -3778,7 +3778,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   Standardized naming for catalog product images stored in Cloudinary:
   
   ```
-  merch-from/products/{product_sku}/{type}-{color}.{ext}
+  blackout-merchandise/products/{product_sku}/{type}-{color}.{ext}
   ```
   
   | Type Code | Description | Example |
@@ -3792,7 +3792,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   
   **Cloudinary Folder Structure:**
   ```
-  merch-from/
+  blackout-merchandise/
   └── products/
       └── {sku}/
           ├── 001-front-black.jpg
@@ -3804,7 +3804,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   
   **Variant-Specific Images:** Append variant SKU for color-specific variants:
   ```
-  merch-from/products/{product_sku}/variants/{variant_sku}.jpg
+  blackout-merchandise/products/{product_sku}/variants/{variant_sku}.jpg
   ```
 
   This convention enables AI agents to programmatically construct image URLs and enables automated gallery generation.
@@ -4471,7 +4471,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   }
 
   // Google Drive Structure
-  /My Drive/merch_from_ml/
+  /My Drive/blackout_merch_ml/
     ├── datasets/
     │   ├── designs/              # Design images
     │   ├── expert_scores.csv     # Expert scores (auto-synced)
@@ -4970,9 +4970,9 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   | Folder | Access Level | Content Type | Operational Role |
   | :--- | :--- | :--- | :--- |
-  | **`merch-from/stores/`** | **Public (CDN)** | • Mockups (WebP/AVIF)<br>• Artist Avatars<br>• Store Banners | **Marketing Layer.** High-performance delivery via Cloudinary CDN with `f_auto,q_auto` optimization. |
-  | **`merch-from/uploads/`** | **Signed URLs** | • Raw sketches<br>• Initial logo uploads | **Input Layer.** Accessible by the **Artist** (uploader) and **Francisca** (AI vision analysis). |
-  | **`merch-from/production/`** | **Restricted (signed)** | • **300 DPI Print Files**<br>• Color-Separated Files<br>• `.ai` / `.psd` source | **The Core IP.** High security. Only accessible by **Victor (Admin)** and **Production Manager**. |
+  | **`blackout-merchandise/stores/`** | **Public (CDN)** | • Mockups (WebP/AVIF)<br>• Artist Avatars<br>• Store Banners | **Marketing Layer.** High-performance delivery via Cloudinary CDN with `f_auto,q_auto` optimization. |
+  | **`blackout-merchandise/uploads/`** | **Signed URLs** | • Raw sketches<br>• Initial logo uploads | **Input Layer.** Accessible by the **Artist** (uploader) and **Francisca** (AI vision analysis). |
+  | **`blackout-merchandise/production/`** | **Restricted (signed)** | • **300 DPI Print Files**<br>• Color-Separated Files<br>• `.ai` / `.psd` source | **The Core IP.** High security. Only accessible by **Victor (Admin)** and **Production Manager**. |
 
   ### 5.6 Integration Points
   - **OpenRouter API:** Multi-model AI routing with fallbacks
@@ -5163,7 +5163,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   - Automated (OpenRouter + OpenCV halftoning): $0.02–0.04/design (16 seconds)
   - **Savings: 99.97% cost reduction + 99.7% time reduction** ✅
   
-  **Note:** FLUX 2 fine-tuned with custom LoRAs via BFL API ensures MerchFrom signature style (proprietary aesthetic moat)
+  **Note:** FLUX 2 fine-tuned with custom LoRAs via BFL API ensures Blackout Merchandise signature style (proprietary aesthetic moat)
   - **Savings: 99.9% cost reduction + 99.5% time reduction**
 
   ### NPM Dependencies
@@ -5733,7 +5733,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   ---
 
   ### Phase 9: Social Commerce Integration Hub (Month 10+ Post-Launch)
-  **Goal:** Enable artists to syndicate their MerchFrom product catalog to Discord, Meta (Instagram/Facebook Shop), TikTok Shop, and Twitch with a few clicks from their dashboard.
+  **Goal:** Enable artists to syndicate their Blackout Merchandise product catalog to Discord, Meta (Instagram/Facebook Shop), TikTok Shop, and Twitch with a few clicks from their dashboard.
 
   > **Full Specification:** See `Documentation/Dev/SOCIAL_COMMERCE_HUB.md`
 
@@ -5743,7 +5743,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   - Inventory tracking operational
 
   **Strategic Vision:**
-  MerchFrom becomes the **Social Commerce Operating System** — the single source of truth for creator merchandise, automatically pushing products to 5+ platforms while aggregating orders back into a unified system.
+  Blackout Merchandise becomes the **Social Commerce Operating System** — the single source of truth for creator merchandise, automatically pushing products to 5+ platforms while aggregating orders back into a unified system.
 
   **Deliverables:**
 
@@ -5761,7 +5761,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   - **Embedded Activity:** Interactive storefront in voice/text channels via Discord Embedded App SDK
   - **Cat-Suite Presence:** Leopoldo greets users in Activity; Francisca and Antonia active in community channels
   - **OAuth Flow:** Artists connect Discord server from `/dashboard/integrations`
-  - **Revenue Strategy:** Always default to off-site checkout (redirect to MerchFrom direct) — Discord IAP takes 15-30% vs 0% on direct. Embedded Activity is a discovery tool, not a checkout surface.
+  - **Revenue Strategy:** Always default to off-site checkout (redirect to Blackout Merchandise direct) — Discord IAP takes 15-30% vs 0% on direct. Embedded Activity is a discovery tool, not a checkout surface.
   - **Monetization Note:** Discord takes 15-30% + 6% Stripe on in-app purchases
 
   **Three-Stage Rollout:**
@@ -5779,7 +5779,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   - **Permissions:** `catalog_management`, `commerce_manage_accounts`
 
   **4. TikTok Shop Integration**
-  - **Partner Portal:** MerchFrom registered as TikTok Shop Partner (US + Global)
+  - **Partner Portal:** Blackout Merchandise registered as TikTok Shop Partner (US + Global)
   - **Products API:** Create/update products via TikTok Open API
   - **Order Sync:** Bidirectional order ingestion and fulfillment status updates
   - **EU Compliance (Dec 2024):** Manufacturer + Responsible Person fields for EU sellers
@@ -5788,7 +5788,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   **5. Twitch Extension (Engagement Channel)**
   - **Panel Extension:** Persistent merch showcase below stream
   - **Overlay Extension:** "Now Selling" pop-up triggered by streamer
-  - **External Link CTA:** "Get It" button redirects to MerchFrom e-shop
+  - **External Link CTA:** "Get It" button redirects to Blackout Merchandise e-shop
   - **Commerce Limitation:** Twitch prohibits external payments in Extensions — used for engagement/redirect only
 
   **6. Dashboard UX ("Connect Channels")**
@@ -5858,15 +5858,15 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   ```
 
   **Pricing Model (Artist Revenue Protection):**
-  - MerchFrom uses **fixed base costs** (tees €15, hoodies €25+)
+  - Blackout Merchandise uses **fixed base costs** (tees €15, hoodies €25+)
   - Artists set their own retail price and keep the spread
-  - Platform fees are deducted from **artist net**, never from MerchFrom base cost
-  - **Strategy:** Always prefer off-site checkout (redirect to MerchFrom e-shop) to maximize artist margins
+  - Platform fees are deducted from **artist net**, never from Blackout Merchandise base cost
+  - **Strategy:** Always prefer off-site checkout (redirect to Blackout Merchandise e-shop) to maximize artist margins
 
   **Platform Fee Impact Example (€35 Tee):**
   | Platform | Fee | Artist Net |
   |----------|-----|------------|
-  | MerchFrom Direct | 0% | €20 |
+  | Blackout Merchandise Direct | 0% | €20 |
   | TikTok Shop (~5%) | €1.75 | €18.25 |
   | Meta Checkout (~5%) | €1.75 | €18.25 |
   | Discord IAP (15-30%) | €3-6 | €14-17 |
@@ -6019,7 +6019,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   | :--- | :--- | :--- | :--- | :--- |
   | **1. UX Intuitiveness**<br>(Proactive UI > Passive Dashboard) | **Low**<br>(Mitigated) | **Design is Guided, not Open-Ended.** The AI leads with options (cards, buttons) rather than waiting for text. Users just "react" rather than "initiate." Validation: Monitor click-through rate on proactive suggestions. | Users stop engaging when AI asks open-ended questions. | **Reinforce Shortcuts:** Increase prominence of visual menu for common tasks. |
   | **2. Value Proposition**<br>(Premium Quality @ Standard Price) | **Medium** | **Price Parity, Quality Superiority.** We sell for €30 (standard venue price), but give a €50 quality shirt. Risk is artists lowering price to €20 and eroding margin. Validation: Monitor average retail price set by artists. | Average artist markup drops below 20% (indicating they feel forced to race-to-the-bottom). | **Education & Niche Focus:** Double down on "Buy Less, Buy Better" messaging. Disqualify budget-focused artists early. We do NOT compromise on quality to compete on price. |
-  | **3. Expansion Scalability**<br>(Quality relies on Systems, not Heroes) | **Low** | **Expert is Support, NOT Lead.** Expansion relies on the "Merch From Playbook" and a hired Ops Manager, not Expert's daily presence. Validation: Document 100% of SOPs by Month 12. | Brazil hub fails quality audits despite following SOPs. | **Founder Deployment:** Victor relocates to Brazil for 3 months to retrain/restructure personally. |
+  | **3. Expansion Scalability**<br>(Quality relies on Systems, not Heroes) | **Low** | **Expert is Support, NOT Lead.** Expansion relies on the "Blackout Merchandise Playbook" and a hired Ops Manager, not Expert's daily presence. Validation: Document 100% of SOPs by Month 12. | Brazil hub fails quality audits despite following SOPs. | **Founder Deployment:** Victor relocates to Brazil for 3 months to retrain/restructure personally. |
   | **4. AI Reliability & Failure Value**<br>(Failures become Training Assets) | **Low**<br>(Mitigated) | **The "Frustration Protocol":** Repeated user edits trigger auto-handoff to Human Designer (Brazil Agency). Critical Twist: Every manual fix is instantly tagged for the training dataset, turning today's failure into tomorrow's capability. | Human intervention rate exceeds 30% (unsustainable agency cost). | **Scale Human Layer:** If AI struggles, we simply treat the "Human Desk" as a core feature (charging a small fee for "Pro Design Support") while the model catches up. |
   | **5. Portugal Logistics**<br>(Shipping Competitiveness from PT) | **Low** | **Contract Leverage:** We don't pay consumer rates. Contracts with DHL/DPD provide competitive flat rates across EU Zones. Network effects mean costs *decrease* as we scale. Validation: Compare DPD Zone 1 rate vs Printful Local. | Shipping costs exceed competitor total landed cost by >20%. | **Dynamic Carrier Aggregation:** Integrate multi-carrier API (Packlink/SendCloud) to algorithmically select the cheapest route per package if single-contract rates fail. |
 
@@ -6274,7 +6274,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
     - *Note:* Notify customers of "Free Digital Upgrade" (often perceived as premium for detail, though slower for bulk).
   - **Layer 3: Local Offload (External):**
     - Activate the "Neighbor Network." In Barcelos, we are surrounded by industrial printers.
-    - *Protocol:* Victor personally oversees QC at partner facility to maintain the "Merch From Standard."
+    - *Protocol:* Victor personally oversees QC at partner facility to maintain the "Blackout Merchandise Standard."
 
   **Prevention Strategy:**
   - **Spare Parts Kit:** Hold critical spares (relays, sensors, print heads) on-site (Value: ~€2k investment).
@@ -6284,7 +6284,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   To ensure outsourced orders (Scenario 1 & 2) are indistinguishable from in-house production:
 
   1.  **The "Magna Mandate":** Partners must agree to use **Magna Colours HB** (Water-based) inks. If they don't stock it, *we supply the ink kits* for our jobs. Zero tolerance for Plastisol substitution.
-  2.  **The "First Pull" Protocol:** For any overflow batch >100 units, a Merch From Quality Manager (or Victor) must physically visit the partner facility to sign off on the first printed unit (registration, cure, hand feel) before the run proceeds.
+  2.  **The "First Pull" Protocol:** For any overflow batch >100 units, a Blackout Merchandise Quality Manager (or Victor) must physically visit the partner facility to sign off on the first printed unit (registration, cure, hand feel) before the run proceeds.
   3.  **Blind Logistics:** We supply the blanks and the shipping labels. The partner functions solely as a labor unit; they never interact with shipping software or branding.
   4.  **The "Ghost" Audit:** Twice a year, we run a test "Ghost" order (fake customer) to verify their unmonitored quality and pack presentation.
 
@@ -6488,7 +6488,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   1. **White-Label SaaS** (€2,000-5,000/month)
     - Custom domain (merch.recordlabel.com)
-    - Agency/label branding (remove Merch From logos)
+    - Agency/label branding (remove Blackout Merchandise logos)
     - Centralized admin dashboard for roster management
     - Bulk ordering interface for tours
     - Custom API access
@@ -6613,7 +6613,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   ## 16. Defensibility & Moats (The "Anti-Copy" Strategy)
 
   **The Scenario:** A major incumbent (Printful/Printify) launches an AI Design tool in 6 months.
-  **The Defense:** Why Merch From wins.
+  **The Defense:** Why Blackout Merchandise wins.
 
   ### 16.1 The Data Moat: Curation > Volume
   **Them:** They train on *everything* (Grandma's birthday shirts, corporate logos, meme trash). Their AI regresses to the "average."
@@ -6625,7 +6625,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   **Them:** A utility tool. Cold, efficient, silent.
   **Us:** A **Relationship**.
   - Users bond with Leopoldo & Francisca. The "Cat-Suite" has personality, humor, and opinions.
-  - **Switching Cost:** Leaving Merch From feels like "firing your manager," not just canceling a subscription.
+  - **Switching Cost:** Leaving Blackout Merchandise feels like "firing your manager," not just canceling a subscription.
   - **Narrative:** "We are the Anti-Corporate Merch Partner."
 
   ### 16.3 The Vertical Integrity Moat: "Printers who Code"
@@ -7041,7 +7041,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   - Ticket management (create, assign, resolve)
   - FAQ/knowledge base (searchable, categorized)
   - Live chat (optional, via Cat-Suite agents)
-  - Email integration (support@merchfrom.com)
+  - Email integration (support@blackoutmerch.example)
 
   #### **C. Analytics & Reporting**
   - **Artist Dashboard:**
@@ -7079,13 +7079,13 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   We practice what we preach. Our equal wage model extends beyond compensation to **ownership structure**. Just as we reject ego-driven salary hierarchies, we reject traditional equity concentration.
 
-  **Core Principle:** 30% of Merch From will be owned by the people building, using, and supporting it—artists, employees, customers, and community. This isn't a marketing gimmick. It's hardcoded into our cap table and, ultimately, into blockchain smart contracts.
+  **Core Principle:** 30% of Blackout Merchandise will be owned by the people building, using, and supporting it—artists, employees, customers, and community. This isn't a marketing gimmick. It's hardcoded into our cap table and, ultimately, into blockchain smart contracts.
 
   > *"We're not just ethical about what we print on. We're ethical about who owns us. Our employees, artists, and community hold real equity—not just promises. If you know, you know."*
 
   ### 20.2 Why Tokenization Aligns with Our Brand
 
-  | Traditional Company | Tokenized Merch From |
+  | Traditional Company | Tokenized Blackout Merchandise |
   |---------------------|----------------------|
   | Founder: 60-70%, Employees: 0.5-2% each | Founder: 60%+, Community: 30%, balanced distribution |
   | Cap table is secret | Ownership visible on blockchain |
@@ -7117,7 +7117,7 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
   - **Apply for SCF Instaward** — initial grant funds the MiCA legal consultation
 
   **Crowdfunding Message:**
-  > *"Founding Owners — You don't just back us. You own us. Right now. We're issuing real MRCH founding tokens on the Stellar blockchain to top-tier backers at campaign close. No promises. No IOUs. Real tokens in your Stellar wallet, visible on stellarexpert.io. When MerchFrom profits, 30% goes to MRCH holders — automatically, every quarter, in euros. And from day one, your tokens vote on how this platform evolves. This founding cohort closes when the campaign ends."*
+  > *"Founding Owners — You don't just back us. You own us. Right now. We're issuing real MRCH founding tokens on the Stellar blockchain to top-tier backers at campaign close. No promises. No IOUs. Real tokens in your Stellar wallet, visible on stellarexpert.io. When Blackout Merchandise profits, 30% goes to MRCH holders — automatically, every quarter, in euros. And from day one, your tokens vote on how this platform evolves. This founding cohort closes when the campaign ends."*
 
   **This creates:**
   - Real on-chain tokens from day one — backers check their wallet, not a spreadsheet
@@ -7246,14 +7246,14 @@ To create exclusivity and gather rich intent data, we replace the standard "Sign
 
   - [ ] Commission MiCA legal opinion on MRCH token classification
   - [ ] Draft crypto-asset whitepaper (TOKENIZATION_VISION.md is already most of it)
-  - [ ] Join Stellar Developer Discord — introduce MerchFrom in `#projects` channel
+  - [ ] Join Stellar Developer Discord — introduce Blackout Merchandise in `#projects` channel
   - [ ] Find Portugal/EU Stellar Ambassador — accelerates Build Award processing
   - [ ] SCF Build Award application — with live token + verified founding holder count
 
   #### MiCA Is Our Grant Superpower
 
   Every SCF application leads with:
-  > *"MerchFrom is the first MiCA-compliant, equity-backed creator economy RWA on Stellar — a real company, real artists, real euros distributed on-chain."*
+  > *"Blackout Merchandise is the first MiCA-compliant, equity-backed creator economy RWA on Stellar — a real company, real artists, real euros distributed on-chain."*
 
   This positions us as a reference case for SDF's EU institutional roadmap, not just another grant applicant. Portugal/EU jurisdiction + EURC distributions + Stellar native compliance controls (freeze/clawback) = a project SDF needs to exist.
 

@@ -25,8 +25,8 @@ before(async () => {
   t = await setupTestDb();
   cat = await seedTestCatalogue(t.db);
   products = await import('@/lib/services/products');
-  storeId = (await seedUser(t.db, { email: 'artist@merchfrom.test', withStore: true })).storeId!;
-  otherStoreId = (await seedUser(t.db, { email: 'other@merchfrom.test', withStore: true })).storeId!;
+  storeId = (await seedUser(t.db, { email: 'artist@blackoutmerch.test', withStore: true })).storeId!;
+  otherStoreId = (await seedUser(t.db, { email: 'other@blackoutmerch.test', withStore: true })).storeId!;
 });
 
 after(async () => {

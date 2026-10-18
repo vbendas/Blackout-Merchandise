@@ -9,7 +9,7 @@
 
 ## Overview
 
-Complete database schema for Merch-From. This is the source of truth for all data modeling.
+Complete database schema for Blackout Merchandise. This is the source of truth for all data modeling.
 
 **Key Note**: The schema is defined in TypeScript using Drizzle ORM and lives in `/src/db/schema.ts`.
 

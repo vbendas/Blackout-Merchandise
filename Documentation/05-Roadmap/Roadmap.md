@@ -1,4 +1,4 @@
-# MerchFrom Master Roadmap
+# Blackout Merchandise Master Roadmap
 
 > **Document Version:** 4.3 — PRODUCTION STATIONS BUILT  
 > **Last Updated:** October 17, 2026  
@@ -717,7 +717,7 @@ Each style preset (American Traditional, Japanese, Blackwork, Vintage 90's, Real
 
 ### Phase 9: Social Commerce Hub (Jan-May 2027, 17 weeks)
 
-**Goal:** Enable artists to syndicate their MerchFrom catalog to Discord, Meta, TikTok, Twitch.
+**Goal:** Enable artists to syndicate their Blackout Merchandise catalog to Discord, Meta, TikTok, Twitch.
 
 | Platform | Timeline | Integration |
 |----------|----------|-------------|

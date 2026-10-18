@@ -116,7 +116,7 @@ export function RegisterForm({ defaultDisplayName }: RegisterFormProps) {
           Shop URL
         </label>
         <div className="flex items-center gap-2">
-          <span className="label mf-dim shrink-0">merchfrom.com/</span>
+          <span className="label mf-dim shrink-0">blackoutmerch.example/</span>
           <input
             id="slug"
             className={inputClass}

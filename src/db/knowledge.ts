@@ -43,7 +43,7 @@ export async function getKnowledgeForPrompt(): Promise<string> {
     }
 
     const lines: string[] = [
-        '--- VERIFIED FACTS ABOUT MERCHFROM ---',
+        '--- VERIFIED FACTS ABOUT BLACKOUT MERCHANDISE ---',
     ];
 
     for (const s of settings) {

@@ -2,7 +2,7 @@
 
 15 Oct 2026. The build plan for `Documentation/Dev/Print-Prep-Plan.md`, Phases 0 and 1, run as parallel work packages (WP) by subagents. WP0 (the contract: schema, types, stubs, dependencies, test harness) is done. WP1 to WP9 run in parallel on top of it. WP10 integrates and reviews, and WP11 updates the docs.
 
-- **Worktree:** `/Users/victorbendas/Documents/GitHub/Merch-From-print-prep`
+- **Worktree:** `/path/to/blackout-merchandise-print-prep`
 - **Branch:** `feat/print-prep`, from `22678b3`
 - **Platform:** `./platform`
 - **Shared schema:** `./src/db/schema.ts`
@@ -11,7 +11,7 @@
 
 **Where you work**
 - Work only inside the worktree.
-- Never edit `/Users/victorbendas/Documents/GitHub/Merch-From`: other sessions use that tree. You may read the AutoThresh behaviour docs in `/Users/victorbendas/Documents/GitHub/Merch-From/Autotresh/docs` (read-only; clean-room: behaviour only, never its code or assets).
+- Never edit `/path/to/blackout-merchandise`: other sessions use that tree. You may read the AutoThresh behaviour docs in `/path/to/blackout-merchandise/Autotresh/docs` (read-only; clean-room: behaviour only, never its code or assets).
 - No `git commit`, `git push`, branch changes or stashes. WP10 and the owner decide what gets committed.
 
 **Data and services**

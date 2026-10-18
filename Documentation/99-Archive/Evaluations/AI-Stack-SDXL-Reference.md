@@ -191,7 +191,7 @@ POST /api/design/generate
   "prompt": "vintage skull with roses",
   "style": "american_traditional",
   "text": {
-    "content": "MERCH FROM",
+    "content": "BLACKOUT MERCHANDISE",
     "style": "vintage_poster"
   },
   "config": {
@@ -418,7 +418,7 @@ python train_network.py \
 
 ---
 
-## 8. Integration with MerchFrom
+## 8. Integration with Blackout Merchandise
 
 ### API Endpoints
 
@@ -553,7 +553,7 @@ const DesignGenerator = () => {
 
 ### The Verdict
 
-**SDXL wins for MerchFrom** because:
+**SDXL wins for Blackout Merchandise** because:
 
 1. **Workflow is edit-focused** → ControlNet advantage is critical
 2. **Speed matters** → 13s vs 57s affects customer satisfaction

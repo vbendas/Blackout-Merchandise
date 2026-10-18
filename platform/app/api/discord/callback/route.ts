@@ -5,7 +5,7 @@ import { completeLink } from '@/lib/services/discord';
 
 // Discord's redirect_uri target: exchanges `code` for a token, reads the
 // authorizing user, and stores the link. The signed `state` (not this
-// route's own session) is what proves which MerchFrom user this is for —
+// route's own session) is what proves which Blackout Merchandise user this is for —
 // requireUser() here is only a defence-in-depth check that a session cookie
 // is still present, matching the pattern in app/api/stripe/connect/route.ts.
 export const dynamic = 'force-dynamic';

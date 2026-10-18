@@ -44,9 +44,9 @@ export const CHARACTER_OVERRIDES: Record<AgentName, Partial<Record<Expression, s
  * Cloudinary folder paths for each agent
  */
 export const AGENT_FOLDERS: Record<AgentName, string> = {
-  Leopoldo: 'merch-from/avatars/leopoldo',
-  Francisca: 'merch-from/avatars/francisca',
-  Antônia: 'merch-from/avatars/antonia',
+  Leopoldo: 'blackout-merchandise/avatars/leopoldo',
+  Francisca: 'blackout-merchandise/avatars/francisca',
+  Antônia: 'blackout-merchandise/avatars/antonia',
 };
 
 /**

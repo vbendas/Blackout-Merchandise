@@ -74,15 +74,15 @@ test('garbage is nobody', () => {
 });
 
 test('resolveVoiceCaller: a valid token is its user; a raw user id, a Clerk id or no token is nobody', async () => {
-  const { userId, storeId } = await seedUser(t.db, { email: 'voice-artist@merchfrom.test', withStore: true });
+  const { userId, storeId } = await seedUser(t.db, { email: 'voice-artist@blackoutmerch.test', withStore: true });
   const caller = await voice.resolveVoiceCaller(voice.mintVoiceCallerToken(userId));
   assert.equal(caller?.userId, userId);
   assert.equal(caller?.storeId, storeId);
   assert.equal(caller?.role, 'artist');
 
-  const { userId: ownerId } = await seedUser(t.db, { email: 'voice-owner@merchfrom.test', role: 'admin' });
+  const { userId: ownerId } = await seedUser(t.db, { email: 'voice-owner@blackoutmerch.test', role: 'admin' });
   assert.equal(await voice.resolveVoiceCaller(ownerId), null, 'the owner’s id, unsigned, is never trusted');
-  assert.equal(await voice.resolveVoiceCaller('test-voice-owner@merchfrom.test'), null, 'nor their Clerk id');
+  assert.equal(await voice.resolveVoiceCaller('test-voice-owner@blackoutmerch.test'), null, 'nor their Clerk id');
   assert.equal(await voice.resolveVoiceCaller(null), null);
   assert.equal(await voice.resolveVoiceCaller(undefined), null);
   // signed by us, for nobody we know

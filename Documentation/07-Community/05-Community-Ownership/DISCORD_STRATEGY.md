@@ -1,4 +1,4 @@
-# MerchFrom Discord Strategy
+# Blackout Merchandise Discord Strategy
 
 > **Document Status:** Active Strategy
 > **Phase Coverage:** Pre-Launch → Post-Launch → Phase 9
@@ -24,7 +24,7 @@
 
 ## 1. Vision
 
-Discord is not a support channel. It is the **private room where artists watch MerchFrom get built and have a real voice in shaping it.**
+Discord is not a support channel. It is the **private room where artists watch Blackout Merchandise get built and have a real voice in shaping it.**
 
 Three jobs to do at different stages:
 
@@ -41,7 +41,7 @@ The architecture of the Discord is the first impression. A well-structured serve
 ## 2. Server Architecture
 
 ```
-MERCH FROM
+BLACKOUT MERCHANDISE
 ├── 📣 #announcements          (admin only — product updates, drops, milestones)
 ├── 🎟️ #waitlist-updates       (automated or manual — countdown, cohort news)
 │
@@ -79,7 +79,7 @@ FOUNDING CIRCLE (role-gated: Tier 2+)
 
 Post this (or a variant) as the first pinned message when the server opens:
 
-> **Welcome to MerchFrom.**
+> **Welcome to Blackout Merchandise.**
 >
 > This is the place where artists, builders, and believers watch something get made.
 >
@@ -115,7 +115,7 @@ Run these even with zero members — content builds the culture before the crowd
 
 ## 4. Layer 2 — Artist Networking Flywheel
 
-**Goal:** Make the Discord valuable *to artists*, not just to MerchFrom. If artists find collaborators, feedback, and peers here — it grows itself.
+**Goal:** Make the Discord valuable *to artists*, not just to Blackout Merchandise. If artists find collaborators, feedback, and peers here — it grows itself.
 
 ### Recurring Programs
 
@@ -135,7 +135,7 @@ Run these even with zero members — content builds the culture before the crowd
 4. Winner announced in `#announcements` — prize: free sample print or priority production slot
 5. Winner featured in the bi-weekly Artist Spotlight
 
-**Why this works:** Low-cost for MerchFrom (a sample print), high-value for artists (visibility + free merch), creates recurring engagement cadence, and generates real product content for social media.
+**Why this works:** Low-cost for Blackout Merchandise (a sample print), high-value for artists (visibility + free merch), creates recurring engagement cadence, and generates real product content for social media.
 
 ### Cross-Promotion Engine
 
@@ -152,9 +152,9 @@ This is the flywheel. Seed it with the first 10-15 beta artists and it becomes s
 
 Monthly AMA with one beta artist. Format:
 - 48h async thread (no voice required)
-- Artist answers questions about their work, their process, their experience with MerchFrom
+- Artist answers questions about their work, their process, their experience with Blackout Merchandise
 - Builds social proof that real artists use the platform
-- Builds community *between* artists (not just artist → MerchFrom)
+- Builds community *between* artists (not just artist → Blackout Merchandise)
 
 ---
 
@@ -169,7 +169,7 @@ This layer automates and scales what Layers 1 and 2 build manually.
 Before the bot exists, run the concept manually to train the community to expect it:
 
 - Weekly "Top Drops" digest in `#drop-alerts`
-- Weekly "This week on MerchFrom" with stats (units sold, new artists, active designs)
+- Weekly "This week on Blackout Merchandise" with stats (units sold, new artists, active designs)
 - Monthly leaderboard post ("Top 3 selling artists this month")
 
 This creates appetite for the automated version before it ships.
@@ -198,14 +198,14 @@ Full interactive storefront inside Discord voice/text channels via Discord Embed
 - **Cat-Suite Presence:** Leopoldo greets users in the Activity
 - **Browsable catalog** without leaving Discord
 - **Artist profile** with their story and full product range
-- **CTA:** "Get It" button redirects to MerchFrom direct (not IAP — see revenue note below)
+- **CTA:** "Get It" button redirects to Blackout Merchandise direct (not IAP — see revenue note below)
 
-**Revenue Note:** Discord takes 15-30% on in-app purchases. The Embedded Activity is optimized for **discovery and engagement**, not direct checkout. Always redirect to MerchFrom direct where the artist keeps their full margin. The bot should link out — not complete the transaction inside Discord.
+**Revenue Note:** Discord takes 15-30% on in-app purchases. The Embedded Activity is optimized for **discovery and engagement**, not direct checkout. Always redirect to Blackout Merchandise direct where the artist keeps their full margin. The bot should link out — not complete the transaction inside Discord.
 
 **Platform Fee Impact (€35 Tee example):**
 | Checkout Path | Fee | Artist Net |
 |---------------|-----|------------|
-| MerchFrom Direct | 0% | €20 |
+| Blackout Merchandise Direct | 0% | €20 |
 | Discord IAP (15-30%) | €3-6 | €14-17 |
 
 **Decision:** Default to off-site checkout. Embedded Activity is a discovery tool.
@@ -215,7 +215,7 @@ Full interactive storefront inside Discord voice/text channels via Discord Embed
 From PRD Phase 9 — artists connect from `/dashboard/integrations`:
 
 1. Artist clicks "Connect Discord" on their dashboard
-2. OAuth flow authorizes MerchFrom bot on their server
+2. OAuth flow authorizes Blackout Merchandise bot on their server
 3. Bot joins with `Send Messages`, `Use Slash Commands`, `Create Public Threads` scopes
 4. Artist selects which channel receives drop alerts
 5. All future drops auto-post to that channel via `/merch drop`
@@ -230,7 +230,7 @@ Roles are visible in the server and create social proof at a glance. A new membe
 |------|---------|---------|
 | `🌱 Seedling` | Joined server (waitlist) | On the journey |
 | `🎨 Studio Artist` | Posted first WIP in #studio-wip | Active creative |
-| `🔥 Drop Creator` | Launched first product on MerchFrom | In production |
+| `🔥 Drop Creator` | Launched first product on Blackout Merchandise | In production |
 | `💎 Founding Artist` | Beta cohort member | Pioneer |
 | `🏆 Top Seller` | Leaderboard recognition (monthly) | Proven seller |
 | `🔒 Founding Supporter` | Crowdfunding Tier 2+ backer | Financial believer |
@@ -239,7 +239,7 @@ Roles are visible in the server and create social proof at a glance. A new membe
 **Role assignment:**
 - `🌱 Seedling` — auto on join via bot
 - `🎨 Studio Artist` — manual or bot-triggered on first WIP post
-- `🔥 Drop Creator` — webhook from MerchFrom platform on first product launch
+- `🔥 Drop Creator` — webhook from Blackout Merchandise platform on first product launch
 - `🏆 Top Seller` — auto-assigned monthly by bot from leaderboard data
 - Crowdfunding roles — assigned manually after Kickstarter/crowdfunding confirmation
 
@@ -358,7 +358,7 @@ Discord bots are not just utility tools — they are **extensions of the Cat-Sui
 | Feature | Description | AI Role |
 |---------|-------------|---------|
 | **Pre-launch campaigns** | "Create a poll for my fans about colorways" → bot generates poll, posts it, summarizes results | Small 4 |
-| **Analytics Q&A** | "How did my drop perform last week?" → queries MerchFrom API, returns formatted stats with insights | Small 4 |
+| **Analytics Q&A** | "How did my drop perform last week?" → queries Blackout Merchandise API, returns formatted stats with insights | Small 4 |
 | **Order follow-ups** | "Remind me to check on the Portugal shipment" → scheduled natural language reminders | Small 4 |
 | **Support triage** | Handles 80% of artist questions; escalates 20% to human Head of Customer Success | Small 4 → Large 3 |
 | **Fan engagement ideas** | "What should I post before my drop?" → creative campaign suggestions | Large 3 |
@@ -368,7 +368,7 @@ Discord bots are not just utility tools — they are **extensions of the Cat-Sui
 #### Example Interactions
 
 ```
-@merchfrom-bot How did my Luna Tee drop do?
+@blackoutmerch-bot How did my Luna Tee drop do?
 
 🐱 Antonia: Grand news! Your Luna Tee drop did well:
    • 42 units sold in 7 days
@@ -381,7 +381,7 @@ Discord bots are not just utility tools — they are **extensions of the Cat-Sui
 ```
 
 ```
-@merchfrom-bot Create a poll: should my next drop be hoodies or tees?
+@blackoutmerch-bot Create a poll: should my next drop be hoodies or tees?
 
 🎭 Francisca: Claro! Here's your poll:
 
@@ -396,7 +396,7 @@ Post this in #announcements? [Yes] [Edit] [Cancel]
 
 ### Customer-Facing Bot (Powered by Mistral Small 4)
 
-**Deployed in:** MerchFrom community server + artist servers
+**Deployed in:** Blackout Merchandise community server + artist servers
 **AI Model:** Mistral Small 4 (primary), Mistral Large 3 (escalation)
 **Persona:** Antonia (friendly, direct, helpful)
 
@@ -413,7 +413,7 @@ Post this in #announcements? [Yes] [Edit] [Cancel]
 #### Example Interactions
 
 ```
-@merchfrom-bot Where's my order?
+@blackoutmerch-bot Where's my order?
 
 📦 Antonia: No bother, let me check...
    
@@ -432,7 +432,7 @@ Post this in #announcements? [Yes] [Edit] [Cancel]
 ```
 Discord Bot (Node.js / Bun)
 ├─ Artist Bot Module
-│  ├─ OAuth connection to MerchFrom API
+│  ├─ OAuth connection to Blackout Merchandise API
 │  ├─ Command parser (/merch drop, /merch analytics, /merch poll)
 │  ├─ Mistral Small 4 client (natural language)
 │  └─ Escalation router (to Large 3 or human)
@@ -451,7 +451,7 @@ Discord Bot (Node.js / Bun)
 │
 └─ Deployment
    ├─ Self-hosted (open-source template)
-   └─ Managed hosting (MerchFrom-hosted, paid tier)
+   └─ Managed hosting (Blackout Merchandise-hosted, paid tier)
 ```
 
 **Tech Stack:**
@@ -482,22 +482,22 @@ The Discord bot templates will be open-sourced under MIT license:
 
 | Template | Repository | Target User |
 |----------|-----------|-------------|
-| `artist-support-bot` | `github.com/merchfrom/discord-bots/artist-support` | Self-hosting artists |
-| `customer-support-bot` | `github.com/merchfrom/discord-bots/customer-support` | Community managers |
-| `drop-announcement-bot` | `github.com/merchfrom/discord-bots/drop-announcement` | Any Discord server |
+| `artist-support-bot` | `github.com/blackoutmerch/discord-bots/artist-support` | Self-hosting artists |
+| `customer-support-bot` | `github.com/blackoutmerch/discord-bots/customer-support` | Community managers |
+| `drop-announcement-bot` | `github.com/blackoutmerch/discord-bots/drop-announcement` | Any Discord server |
 
 **Self-host:**
 ```bash
-git clone github.com/merchfrom/discord-bots
+git clone github.com/blackoutmerch/discord-bots
 cd discord-bots/artist-support-bot
 cp .env.example .env
-# Add Discord token + MerchFrom API key
+# Add Discord token + Blackout Merchandise API key
 bun install
 bun run start
 ```
 
 **Managed hosting (paid):**
-- MerchFrom hosts and manages the bot
+- Blackout Merchandise hosts and manages the bot
 - Artist connects via dashboard OAuth
 - Higher rate limits, priority support, custom branding
 
@@ -514,7 +514,7 @@ Every bot interaction follows the same human oversight model as the app:
 
 **Example handoff:**
 ```
-@merchfrom-bot /human
+@blackoutmerch-bot /human
 
 📦 Antonia: No bother at all, I'm getting Marta (Head of Customer Success) 
            for you now. She'll be with you within 4 hours.
@@ -532,7 +532,7 @@ Every bot interaction follows the same human oversight model as the app:
 | Phase | Timeline | Deliverable |
 |-------|----------|-------------|
 | **Phase 1** | Q3 2026 | Basic slash commands (/merch drop, /merch shop) — rule-based, no AI |
-| **Phase 2** | Q4 2026 | AI-powered support bot (Mistral Small 4) in MerchFrom server |
+| **Phase 2** | Q4 2026 | AI-powered support bot (Mistral Small 4) in Blackout Merchandise server |
 | **Phase 3** | Q1 2027 | Artist-facing bot templates (open-source) |
 | **Phase 4** | Q2 2027 | Full Cat-Suite persona integration, cross-channel context |
 | **Phase 5** | Q3 2027 | Embedded Activity (Discord storefront), advanced analytics |

@@ -84,7 +84,7 @@ export function CollapsibleNav({ className = '' }: CollapsibleNavProps): React.R
                 <button onClick={handleLogoClick} className="cursor-pointer">
                   <Image
                     src="/logo/short.png"
-                    alt="MerchFrom"
+                    alt="Blackout Merchandise"
                     width={100}
                     height={36}
                     className="object-contain opacity-90 hover:opacity-100 transition-opacity"
@@ -257,7 +257,7 @@ export function CollapsibleNav({ className = '' }: CollapsibleNavProps): React.R
                 <div className="flex h-16 items-center justify-between border-b border-zinc-800 px-4">
                   <Image
                     src="/logo/short.png"
-                    alt="MerchFrom"
+                    alt="Blackout Merchandise"
                     width={120}
                     height={44}
                     className="object-contain"

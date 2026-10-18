@@ -8,7 +8,7 @@ export type SupportTicket = typeof schema.supportTickets.$inferSelect;
 export type TicketMessage = typeof schema.ticketMessages.$inferSelect;
 export type TicketStatus = SupportTicket['status'];
 /** Which side a reply comes from: the person who opened the ticket, or
- * MerchFrom (the owner or a staff member who handles support). */
+ * Blackout Merchandise (the owner or a staff member who handles support). */
 export type ReplyRole = 'artist' | 'admin';
 
 export interface TicketWithMessages {

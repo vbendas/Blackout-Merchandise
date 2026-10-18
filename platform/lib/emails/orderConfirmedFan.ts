@@ -17,7 +17,7 @@ export function orderConfirmedFanEmail(payload: OrderConfirmedFanPayload) {
     rows,
     buttonLabel: 'View order status',
     buttonUrl: payload.orderStatusUrl ?? appUrl('/'),
-    footerNote: `Order ${reference} · MerchFrom — premium merch for artists.`,
+    footerNote: `Order ${reference} · Blackout Merchandise — premium merch for artists.`,
   });
   return { subject: `Order confirmed — ${reference}`, html, text };
 }

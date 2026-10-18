@@ -1,6 +1,6 @@
 > Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
 
-# MerchFrom: Comprehensive Evaluation — February 23, 2026
+# Blackout Merchandise: Comprehensive Evaluation — February 23, 2026
 
 **Evaluation Date:** February 23, 2026  
 **Evaluator:** MiniMax-M2.5  

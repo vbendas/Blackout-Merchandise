@@ -28,7 +28,7 @@ export function Step1Welcome({ onNext }: Step1WelcomeProps) {
         transition={{ delay: 0.3 }}
         className="space-y-3"
       >
-        <h1 className="text-3xl font-bold text-white">Welcome to MerchFrom</h1>
+        <h1 className="text-3xl font-bold text-white">Welcome to Blackout Merchandise</h1>
         <p className="text-lg text-zinc-400 leading-relaxed">
           I'm Leopoldo, your personal guide. We're building a premium merchandise platform for artists who care about
           quality.

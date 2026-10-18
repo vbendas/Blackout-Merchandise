@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the comprehensive testing infrastructure established for the Merch From project. The project now has a full testing suite that provides confidence for deployments.
+This document summarizes the comprehensive testing infrastructure established for the Blackout Merchandise project. The project now has a full testing suite that provides confidence for deployments.
 
 ## What Was Accomplished
 

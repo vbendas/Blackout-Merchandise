@@ -14,7 +14,7 @@
 **Deciders:** Victor Bendas
 
 ### Context
-Merch From needs an AI provider for LLM (chat), STT (speech-to-text), and TTS (text-to-speech). The Cat-Suite agents require character personalities, voice interaction, and real-time conversation capabilities.
+Blackout Merchandise needs an AI provider for LLM (chat), STT (speech-to-text), and TTS (text-to-speech). The Cat-Suite agents require character personalities, voice interaction, and real-time conversation capabilities.
 
 ### Decision
 Adopt Mistral AI as the sole AI provider for the entire voice and text pipeline:
@@ -51,7 +51,7 @@ Adopt Mistral AI as the sole AI provider for the entire voice and text pipeline:
 **Deciders:** Victor Bendas
 
 ### Context
-Merch From needs an industrial facility for screen printing production. Original plan was Porto (rent €1,000-1,200/month, purchase €100-120K in Year 2-3).
+Blackout Merchandise needs an industrial facility for screen printing production. Original plan was Porto (rent €1,000-1,200/month, purchase €100-120K in Year 2-3).
 
 ### Decision
 Relocate facility to Castelo Branco, Portugal (interior region):

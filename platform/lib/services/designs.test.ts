@@ -63,8 +63,8 @@ before(async () => {
     return { url, key: url, contentType: input.contentType, bytes: input.data.byteLength };
   };
 
-  const a = await seedUser(t.db, { email: 'a@merchfrom.test', withStore: true });
-  const b = await seedUser(t.db, { email: 'b@merchfrom.test', withStore: true });
+  const a = await seedUser(t.db, { email: 'a@blackoutmerch.test', withStore: true });
+  const b = await seedUser(t.db, { email: 'b@blackoutmerch.test', withStore: true });
   storeA = a.storeId!;
   storeB = b.storeId!;
 });

@@ -72,7 +72,7 @@ async function testBridge(): Promise<void> {
     method: 'POST',
     headers: { authorization: `Bearer ${secret}`, 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: 'merchfrom-agent',
+      model: 'blackoutmerch-agent',
       stream: true,
       messages: [{ role: 'user', content: 'Show me hoodies in bottle green' }],
     }),

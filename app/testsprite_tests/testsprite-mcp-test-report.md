@@ -1,6 +1,6 @@
 # TestSprite Backend Verification Report
 
-**Project:** Merch-From  
+**Project:** Blackout Merchandise  
 **Date:** 2026-01-04  
 **Test Suite:** Backend API Verification  
 
@@ -28,7 +28,7 @@ TestSprite generated tests assuming a traditional **REST API** architecture wher
 - `POST /clerk` → Processes Clerk webhook
 - `POST /stripe` → Processes Stripe webhook
 
-However, **Merch-From uses Convex**, which is an **RPC-style backend**:
+However, **Blackout Merchandise uses Convex**, which is an **RPC-style backend**:
 - **Mutations/Queries** are invoked via the Convex client SDK, not HTTP endpoints
 - **HTTP Actions** (`/clerk`, `/stripe`) are exposed via `convex/http.ts` but served from **Convex Cloud**, not `localhost:3000`
 - The Next.js dev server on port 3000 only serves the frontend

@@ -15,13 +15,13 @@ export interface StaffInvitePayload {
 /** The owner's invitation to join the team. The link only works after the
  * invitee signs in with this same address, so the email says which one. */
 export function staffInviteEmail(payload: StaffInvitePayload) {
-  const subject = 'Join the MerchFrom team';
+  const subject = 'Join the Blackout Merchandise team';
   const role = payload.title?.trim() ? ` as ${escapeHtml(payload.title.trim())}` : '';
   const { html, text } = renderEmail({
-    preheader: `${payload.invitedBy} added you to the MerchFrom team.`,
+    preheader: `${payload.invitedBy} added you to the Blackout Merchandise team.`,
     heading: subject,
     paragraphs: [
-      `${escapeHtml(payload.invitedBy)} invited you to work in the MerchFrom admin${role}.`,
+      `${escapeHtml(payload.invitedBy)} invited you to work in the Blackout Merchandise admin${role}.`,
       'Open the link and sign in with this email address. The link works once.',
     ],
     rows: [

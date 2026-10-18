@@ -2,7 +2,7 @@
 > Method: 7 reviewers (typography, colour & material, components & system, layout & pages, motion, Aurora template, art direction), each fact-checked adversarially; refuted claims removed. Screenshot names (`home-desktop-NN` etc.) refer to the scroll-through captures taken on 6 Oct 2026 at 1440x900 and 390x844, kept in `v3-review-shots-2026-10-06/scroll/`.
 > Owner decisions taken after this review: Pressroom Terminal direction, hazard-orange accent, display face via specimen test, Mornsey cleared as a stamp layer. Implementation plan: `Website-v3-Round9-Pressroom-Terminal-Plan.md`.
 
-# MerchFrom website-v3: consolidated design review
+# Blackout Merchandise website-v3: consolidated design review
 
 Scope: read-only review of website-v3, with the platform app and the Aurora template as the bridge. Seven reviewers contributed. Refuted claims are removed and "partly" claims are corrected. Citations are repo-relative file:line, or screenshot names from the scroll captures.
 
@@ -35,7 +35,7 @@ Corrected framing: the home is roughly half ink already (black hero, ZERO, Shop 
 ## 2. Keep
 
 - **Halftone B&W photography of real tattooed people in metal and hardcore tees.** This is the most on-scene asset. Halftone.tsx and globals.css:487-510 stay. The hover-to-tone idea is good.
-- **The fitted edge-to-edge condensed MERCHFROM masthead on black** (home-desktop-00) and the FittedWord mechanic. It works with any heavier face once the width factor is retuned.
+- **The fitted edge-to-edge condensed BLACKOUT MERCHANDISE masthead on black** (home-desktop-00) and the FittedWord mechanic. It works with any heavier face once the width factor is retuned.
 - **Ink bands cutting the paper** (`data-theme='ink'`, globals.css:73-84). Black is the right alt base.
 - **Token architecture.** `--paper`/`--signal` re-scoped per theme means a swap is mostly token work. Primary text contrast is excellent: 14.27:1 on paper, 14.69:1 on dark.
 - **Set List** (SetList.tsx, home-desktop-06/07). It is the closest thing to a walkthrough.
@@ -104,8 +104,8 @@ Corrected framing: the home is roughly half ink already (black hero, ZERO, Shop 
 | Sev | Issue | Evidence | Fix |
 |---|---|---|---|
 | Critical | The hero fold has no product and no composer. `.home-cover-media` is max(640px,100vh), the photo is a front-print tee crop, and the composer is 1.8 viewports down. | Cover.tsx:119-185; globals.css:587-603, 599; home-desktop-00/01 | Re-compose the cover as an "app on the cover". Wordmark at about 40-60% height, one-sentence promise, composer with artist-specific chips above 900px, and a 2-line textarea instead of an input. |
-| Critical | The platform is never shown; there is no product UI anywhere on the site | home-desktop-00..14 | Add a Product band: a framed app window (rail, chat, mockup card, quote, approve) built from Aurora structure in MerchFrom tokens. Honest about MCP status. |
-| Major | The giant-word device is overused: cover, CLOTH, ZERO, APPLY, page words and footer. The CLOTH and ZERO frames look sparse partly because they are scroll-scrub states. | Cloth.tsx:50; ZeroUpfront.tsx:30; ApplySection.tsx:44; EditorialPage.tsx:46-52 | Keep giant words for MERCHFROM (cover, footer) and APPLY. Elsewhere use a mono-indexed condensed h2 at 56-72px with content in the first viewport. |
+| Critical | The platform is never shown; there is no product UI anywhere on the site | home-desktop-00..14 | Add a Product band: a framed app window (rail, chat, mockup card, quote, approve) built from Aurora structure in Blackout Merchandise tokens. Honest about MCP status. |
+| Major | The giant-word device is overused: cover, CLOTH, ZERO, APPLY, page words and footer. The CLOTH and ZERO frames look sparse partly because they are scroll-scrub states. | Cloth.tsx:50; ZeroUpfront.tsx:30; ApplySection.tsx:44; EditorialPage.tsx:46-52 | Keep giant words for BLACKOUT MERCHANDISE (cover, footer) and APPLY. Elsewhere use a mono-indexed condensed h2 at 56-72px with content in the first viewport. |
 | Major | Vertical padding is large and information density low. `.home-section` is 96-120px with 48-64px gaps; `.home-statement` is 96px. | globals.css:675-720 | Halve the padding. Fold the Statement into Cloth. Merge Zero and Paths into one "How you earn" band with a worked price example. Target about 8 desktop screens. |
 | Major | Catalog and gallery titles use a different system. "The blanks." and "Work" are Barlow sentence case; GalleryView.tsx:75 is clamp(3.25rem,11vw,9.5rem), about 152px at 1440. | GridView.tsx; GalleryView.tsx:75,81; catalog-desktop-00; gallery-desktop-00 | Use the EditorialPage header pattern. Catalog already has the mono index and stat strip, so do not add another. Rename "Work" (needs six-locale copy at en.ts:139). Add Gallery to the desktop nav. |
 | Major | No role-specific entry points. PrintedFor is disabled (`CLIENTS_ARE_REAL=false`, PrintedFor.tsx:11-17). The RolePicker (six options) looks like disabled grey text. | RolePicker.tsx; waitlist-desktop-00 | "Who it is for" tiles with real photos, example run and lead time. Restyle RolePicker as bordered chips with an ink-filled selected state. |
@@ -189,7 +189,7 @@ Shared constraints:
 - Re-derive the FittedWord width factor for any new face.
 - Test pt/de/es/fr/nl strings in fitted words.
 - Swap OG, icon and apple-icon TTFs, and the platform fonts, in the same change.
-- Specimen renderings exist only for the local fonts (shots/local-font-specimens.jpg, specimens/local-diacritics-test.jpg). Anton, Big Shoulders and the rest were not rendered.
+- Specimen renderings exist only for the local fonts (specimens/local-diacritics-test.jpg; the earlier shots/local-font-specimens.jpg was removed with the rename). Anton, Big Shoulders and the rest were not rendered.
 
 ### Palettes (contrast figures corrected)
 

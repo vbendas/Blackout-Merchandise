@@ -26,7 +26,7 @@ import type { Card, Chip, ToolUi } from '@/lib/ui-cards/schemas';
 // artist calls a bulk order: a batch they order for themselves, from a shop
 // product or brand-new artwork, shipped to their own address, quoted with
 // quantity breaks at 25/50/100 units, approved via a proof, and paid 100% up
-// front to MerchFrom (no Stripe Connect transfer, unlike the fan storefront's
+// front to Blackout Merchandise (no Stripe Connect transfer, unlike the fan storefront's
 // POD sales). Every write here goes through lib/services/bulk.ts, which owns
 // the bulk_orders state machine; nothing here touches the DB directly.
 //
@@ -923,7 +923,7 @@ interface PayRunData extends RunData {
 export const payBulkOrderTool = defineTool({
   name: 'pay_bulk_order',
   description:
-    'Start payment for a run whose proof is approved ("awaiting payment"). Returns the run\'s quote with a "Pay now" link to a secure checkout charging 100% to MerchFrom — no split with the artist, since this is their own run, not a fan sale. Pass runNumber (3 for "Run 3"); omit it to pay the run open in this conversation.',
+    'Start payment for a run whose proof is approved ("awaiting payment"). Returns the run\'s quote with a "Pay now" link to a secure checkout charging 100% to Blackout Merchandise — no split with the artist, since this is their own run, not a fan sale. Pass runNumber (3 for "Run 3"); omit it to pay the run open in this conversation.',
   input: z.object({ ...runTarget }).strict(),
   scope: 'artist',
   run: async (ctx, input): Promise<ToolResult<PayRunData>> => {

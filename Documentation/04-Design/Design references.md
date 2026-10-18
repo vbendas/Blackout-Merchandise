@@ -1,7 +1,7 @@
-# Design References: Merch From Visual Strategy
+# Design References: Blackout Merchandise Visual Strategy
 
 ## Overview
-This document serves as the aesthetic and structural guide for **Merch From**, covering both the public-facing homepage and the authenticated app experience.
+This document serves as the aesthetic and structural guide for **Blackout Merchandise**, covering both the public-facing homepage and the authenticated app experience.
 
 > **Architecture Pivot (Jan 10, 2026):** Adopted "Velvet Rope" strategy — mysterious portfolio homepage for anonymous visitors, full AI app for authenticated users.
 
@@ -19,9 +19,9 @@ Invite-only platforms don't explain themselves. The public homepage should creat
 
 ### Logo & Brand Identity: "Chrome Metal"
 **Style:** Aggressive, sharp, Y2K/Metalheart chrome aesthetic.
-- **Wordmark ("MERCH FROM"):** High-detail chrome text.
+- **Wordmark ("BLACKOUT MERCHANDISE"):** High-detail chrome text.
   - *Usage:* Desktop Hero headers, packaging, large format prints.
-- **Monogram ("MF"):** Stylized jagged initials.
+- **Monogram ("B"):** Single initial; the current placeholder is a plain white "B" on black.
   - *Usage:* App icon, favicon, mobile headers, social avatars.
 - **Vibe:** "Not a tech company. A culture brand."
 
@@ -43,7 +43,7 @@ Invite-only platforms don't explain themselves. The public homepage should creat
 ### Homepage Structure
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  MERCH FROM              [Portfolio]  [About]  [Login]          │
+│  BLACKOUT MERCHANDISE              [Portfolio]  [About]  [Login]          │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │      "We help artists to produce, design and                   │
@@ -150,7 +150,7 @@ All photography — portfolio, social media, crowdfunding, founder storytelling 
 **Why Analog:**
 - **Craft signal** — Grain, texture, imperfection = human touch, not corporate polish
 - **Underground credibility** — Streetwear, indie music, zine culture all embrace analog
-- **Differentiation** — Printful/Printify = sterile product shots; Merch From = editorial, raw, alive
+- **Differentiation** — Printful/Printify = sterile product shots; Blackout Merchandise = editorial, raw, alive
 - **Storytelling** — Documentary feel for founder journey, crowdfund, behind-the-scenes
 
 ### Film Stock References
@@ -178,7 +178,7 @@ All photography — portfolio, social media, crowdfunding, founder storytelling 
 
 ### Application Areas
 - ✅ Website portfolio (Velvet Rope homepage)
-- ✅ @merchfrom Instagram
+- ✅ @blackoutmerch Instagram
 - ✅ Founder personal Instagram (storytelling)
 - ✅ Crowdfunding campaign visuals
 - ✅ AI-generated portfolio mockups

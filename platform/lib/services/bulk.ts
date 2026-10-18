@@ -19,7 +19,7 @@ import type { CheckoutSessionSnapshot } from '@/lib/services/stripe';
 
 // Bulk orders (service path B, Platform-Plan.md §6): an artist orders a run
 // for themselves — from a shop product or brand-new artwork — shipped to
-// their own address, paid 100% to MerchFrom (no Connect transfer). This
+// their own address, paid 100% to Blackout Merchandise (no Connect transfer). This
 // file owns the bulk_orders row end to end: quoting with quantity breaks,
 // the proof round-trip (delegating the proofs-table plumbing to
 // proofs.ts's bulk-scoped functions, but keeping the bulk_orders status
@@ -797,7 +797,7 @@ async function ensureLineProduct(storeId: string, line: BulkQuoteLine): Promise<
  * idempotency table under a distinct synthetic key so the two never collide.
  * Unlike the POD path, this is where the `orders` / `order_items` rows are
  * *created* (bulk_orders stands in for "pending" until payment): applies
- * 100% of the charge as MerchFrom's application fee (transferCents 0 — no
+ * 100% of the charge as Blackout Merchandise's application fee (transferCents 0 — no
  * Connect transfer for a bulk order) and moves bulk_orders straight from
  * 'awaiting_payment' to 'in_production' (see the state machine's 'paid'
  * value doc above).

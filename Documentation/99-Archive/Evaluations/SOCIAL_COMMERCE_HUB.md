@@ -1,12 +1,12 @@
 # Social Commerce Integration Hub: Architecture & Implementation Plan
 
-> **Strategic Vision:** Transform MerchFrom into a **Social Commerce Operating System** that lets creators syndicate their product catalog to Discord, Twitch, Instagram Shop, Facebook Shop, and TikTok Shop with a few clicks from their artist dashboard.
+> **Strategic Vision:** Transform Blackout Merchandise into a **Social Commerce Operating System** that lets creators syndicate their product catalog to Discord, Twitch, Instagram Shop, Facebook Shop, and TikTok Shop with a few clicks from their artist dashboard.
 
 ---
 
 ## Executive Summary
 
-This document outlines the architecture for building a **Unified Catalog Syndication Engine** that positions MerchFrom as the single source of truth for creator merchandise, automatically pushing products to 5+ social commerce platforms.
+This document outlines the architecture for building a **Unified Catalog Syndication Engine** that positions Blackout Merchandise as the single source of truth for creator merchandise, automatically pushing products to 5+ social commerce platforms.
 
 ### The Opportunity
 | Metric | Value |
@@ -17,7 +17,7 @@ This document outlines the architecture for building a **Unified Catalog Syndica
 | **TikTok Shop GMV (2024)** | $20B+ (fastest-growing commerce channel) |
 | **Facebook Marketplace Users** | 1B+ monthly |
 
-### Strategic Fit with MerchFrom
+### Strategic Fit with Blackout Merchandise
 This integration extends the Cat-Suite AI paradigm:
 - **Leopoldo** → Manages catalog syndication strategy across platforms
 - **Francisca** → Ensures designs meet each platform's visual requirements
@@ -29,7 +29,7 @@ This integration extends the Cat-Suite AI paradigm:
 
 ```mermaid
 graph TD
-    subgraph MerchFrom_Core["MerchFrom Core (Convex)"]
+    subgraph BlackoutMerch_Core["Blackout Merchandise Core (Convex)"]
         CATALOG[("Product Catalog<br/>products table")]
         STORE[("Artist Store<br/>artistStores table")]
         SYNC[("Sync Jobs<br/>catalogSyncJobs")]
@@ -110,7 +110,7 @@ export const discordIntegrations = defineTable({
 #### Revenue Considerations
 - **Discord Fee:** 15% (first $1M) → 30% thereafter + 6% Stripe
 - **Mandate (Oct 2024):** Must offer pricing equal to or lower than other platforms
-- **Recommendation:** Use Discord for engagement/drops, redirect to MerchFrom for bulk orders
+- **Recommendation:** Use Discord for engagement/drops, redirect to Blackout Merchandise for bulk orders
 
 ---
 
@@ -133,7 +133,7 @@ Streamers sell merch during live streams. Twitch is the LIVE moment of conversio
 #### Recommended Strategy: **Engagement → Redirect**
 Since actual purchases can't happen in Twitch, we use the Extension for:
 1. **Product showcase** — Visual gallery of available merch
-2. **"Get It" button** — Opens external link to MerchFrom store
+2. **"Get It" button** — Opens external link to Blackout Merchandise store
 3. **Bits for previews** — Spend Bits to see exclusive unreleased designs
 4. **Stock countdown** — Live inventory updates during streams
 
@@ -167,8 +167,8 @@ export const twitchIntegrations = defineTable({
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
 | **Catalog Feed** | Meta Catalog API | Product data synchronization |
-| **Order Sync** | Commerce Platform Webhooks | Ingest orders into MerchFrom |
-| **Checkout** | On-site (Meta) or Off-site (MerchFrom) | Flexible payment handling |
+| **Order Sync** | Commerce Platform Webhooks | Ingest orders into Blackout Merchandise |
+| **Checkout** | On-site (Meta) or Off-site (Blackout Merchandise) | Flexible payment handling |
 | **Product Tagging** | Auto-enabled once catalog synced | Products in posts/Reels |
 
 #### Sync Requirements (Meta Mandates)
@@ -264,12 +264,12 @@ export const tiktokIntegrations = defineTable({
 
 ### Core Concept: **Transform-Once, Push-Everywhere**
 
-The artist's MerchFrom product becomes the "golden record." Each platform adapter transforms it to meet platform-specific requirements.
+The artist's Blackout Merchandise product becomes the "golden record." Each platform adapter transforms it to meet platform-specific requirements.
 
 ```mermaid
 flowchart LR
     subgraph Source["Source of Truth"]
-        MF["MerchFrom Product"]
+        MF["Blackout Merchandise Product"]
     end
     
     subgraph Adapters["Platform Adapters"]
@@ -371,7 +371,7 @@ export const products = defineTable({
 
 ## Order Aggregation
 
-Orders from all platforms flow into MerchFrom's unified order system.
+Orders from all platforms flow into Blackout Merchandise's unified order system.
 
 ```mermaid
 sequenceDiagram
@@ -420,7 +420,7 @@ sequenceDiagram
 
 | Platform | Risk | Mitigation |
 |----------|------|------------|
-| **Discord** | Mandatory pricing parity (Oct 2024 policy) | Offer same or lower prices as MerchFrom direct |
+| **Discord** | Mandatory pricing parity (Oct 2024 policy) | Offer same or lower prices as Blackout Merchandise direct |
 | **Twitch** | No direct commerce (Bits only) | Use as engagement/redirect channel, not sales |
 | **Meta** | App Review delays (2-4 weeks) | Submit early, have staging environment ready |
 | **TikTok** | EU compliance complexity (Dec 2024) | Build Manufacturer/RP management into dashboard |
@@ -437,10 +437,10 @@ sequenceDiagram
 ### Business Considerations
 
 > [!IMPORTANT]
-> **MerchFrom Pricing Model:**  
-> MerchFrom charges a **fixed base cost per product type**, NOT a percentage.
+> **Blackout Merchandise Pricing Model:**  
+> Blackout Merchandise charges a **fixed base cost per product type**, NOT a percentage.
 >
-> | Product Type | MerchFrom Base Cost |
+> | Product Type | Blackout Merchandise Base Cost |
 > |--------------|---------------------|
 > | T-Shirts | €15 |
 > | Hoodies (Basic) | €25+ |
@@ -448,13 +448,13 @@ sequenceDiagram
 >
 > **How Artist Revenue Works:**
 > 1. Artist sets their own retail price (e.g., €35 for a tee)
-> 2. Artist net = Retail Price - MerchFrom Base Cost (€35 - €15 = **€20**)
-> 3. MerchFrom base cost is NEVER affected by platform fees
+> 2. Artist net = Retail Price - Blackout Merchandise Base Cost (€35 - €15 = **€20**)
+> 3. Blackout Merchandise base cost is NEVER affected by platform fees
 >
 > **Platform Fee Impact:**
 > | Platform | Fee | Who Pays? |
 > |----------|-----|-----------|
-> | MerchFrom Direct | 0% | N/A - Artist keeps full spread |
+> | Blackout Merchandise Direct | 0% | N/A - Artist keeps full spread |
 > | Discord (IAP) | 15-30% + Stripe | Deducted from Artist Net |
 > | TikTok Shop | ~5% + payment | Deducted from Artist Net |
 > | Meta Checkout | ~5% (varies) | Deducted from Artist Net |
@@ -463,7 +463,7 @@ sequenceDiagram
 > - Retail: €35 | Base: €15 | Platform Fee: €1.75
 > - Artist Net: €35 - €15 - €1.75 = **€18.25**
 
-**Strategy:** Always prefer **off-site checkout** (redirect to MerchFrom e-shop) where platform fees are zero —maximizing artist margins.
+**Strategy:** Always prefer **off-site checkout** (redirect to Blackout Merchandise e-shop) where platform fees are zero —maximizing artist margins.
 
 ---
 
@@ -522,7 +522,7 @@ Since this is primarily integration/infrastructure work, tests will focus on:
 |------|-------|------------------|
 | **Discord Bot Install** | 1. Create test Discord server<br/>2. Install bot via OAuth<br/>3. Run `/merch shop` | Activity launches, products display |
 | **Meta Catalog Sync** | 1. Connect test Business Manager<br/>2. Trigger sync<br/>3. Check Commerce Manager | Products appear in catalog |
-| **TikTok Product Creation** | 1. Connect sandbox TikTok Shop<br/>2. Create product in MerchFrom<br/>3. Check TikTok Seller Center | Product listed correctly |
+| **TikTok Product Creation** | 1. Connect sandbox TikTok Shop<br/>2. Create product in Blackout Merchandise<br/>3. Check TikTok Seller Center | Product listed correctly |
 | **Order Ingestion** | 1. Place test order on TikTok/Meta<br/>2. Monitor webhook logs<br/>3. Check orders table | Order created with correct source |
 
 ---
@@ -531,7 +531,7 @@ Since this is primarily integration/infrastructure work, tests will focus on:
 
 > [!IMPORTANT]
 > **Before proceeding, please confirm:**
-> 1. Does this architecture align with your vision for MerchFrom's multi-platform presence?
+> 1. Does this architecture align with your vision for Blackout Merchandise's multi-platform presence?
 > 2. Do you want to prioritize any specific platform for Phase 1?
 > 3. Should we explore "on-site" vs "off-site" checkout defaults for each platform?
 > 4. Is the proposed timeline (5 months to full parity) acceptable given current MVP status?

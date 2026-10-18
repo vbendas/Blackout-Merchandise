@@ -209,7 +209,7 @@ def main():
             aw25_count += 1
     
     # Save to JSON
-    output_file = '/Users/victorbendas/Documents/GitHub/Merch-From/Workspace/stanley_stella_products_final_v3.json'
+    output_file = str(Path(__file__).resolve().parent / 'stanley_stella_products_final_v3.json')
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(unique_products, f, indent=2, ensure_ascii=False)
     
@@ -226,7 +226,7 @@ def main():
     print(f"\nProducts saved to: {output_file}")
     
     # Also create a CSV for easy viewing
-    csv_file = '/Users/victorbendas/Documents/GitHub/Merch-From/Workspace/stanley_stella_products.csv'
+    csv_file = str(Path(__file__).resolve().parent / 'stanley_stella_products.csv')
     with open(csv_file, 'w', encoding='utf-8') as f:
         f.write("SKU,Name,URL,Type,Weight (GSM),Colors,AW25\n")
         for p in unique_products:

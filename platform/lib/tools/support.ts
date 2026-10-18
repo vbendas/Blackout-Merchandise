@@ -150,7 +150,7 @@ export const replyTicketTool = defineTool({
       return { data: { ok: false, error: 'forbidden' }, ui: { cards: [noticeCard(`reply_403_${randomUUID()}`, 'warning', "That ticket isn't yours.")] } };
     }
 
-    // Someone else's ticket is answered from the MerchFrom side.
+    // Someone else's ticket is answered from the Blackout Merchandise side.
     const side = ownTicket(found.ticket, ctx) ? 'artist' : 'admin';
     const updated = await replyTicket(input.id, ctx.userId, input.text, side);
     if (!updated) return { data: { ok: false, error: 'not_found' }, ui: { cards: [noticeCard(`reply_err_${randomUUID()}`, 'warning', 'Ticket not found.')] } };

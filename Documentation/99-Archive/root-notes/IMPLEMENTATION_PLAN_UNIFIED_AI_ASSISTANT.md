@@ -397,7 +397,7 @@ FloatingChat (fixed bottom-right)
 4. Remove `ActiveState` component (moved to FloatingChat)
 5. Keep `CatalogPageContent` for catalog view
 6. Keep `EshopDashboard` for eshop view
-7. Keep `MerchFromStudio` for studio view
+7. Keep `BlackoutMerchStudio` for studio view
 8. Keep `SupportState` (or integrate into chat)
 
 9. Simplify state management:

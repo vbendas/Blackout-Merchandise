@@ -61,7 +61,7 @@ const INTENT_DESCRIPTIONS: Record<IntentCategory, string> = {
     'Greetings, small talk, platform overview, unclear requests, multiple topics, asking what agents can do, vague questions',
 };
 
-const SYSTEM_PROMPT = `You are an intent classification system for MerchFrom, a premium merchandise platform for artists.
+const SYSTEM_PROMPT = `You are an intent classification system for Blackout Merchandise, a premium merchandise platform for artists.
 
 Classify the user's message into exactly ONE of these intent categories:
 - onboarding: ${INTENT_DESCRIPTIONS.onboarding}
@@ -173,8 +173,8 @@ USER MESSAGE: "${safeMessage}"`;
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://merchfrom.com',
-        'X-Title': 'Merch From Intent Classifier',
+        'HTTP-Referer': 'https://blackoutmerch.example',
+        'X-Title': 'Blackout Merchandise Intent Classifier',
       },
       body: JSON.stringify({
         model: 'mistralai/mistral-small-2501',

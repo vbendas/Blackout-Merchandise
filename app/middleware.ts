@@ -20,19 +20,19 @@ const isProtectedRoute = createRouteMatcher([
   '/data-rights', // Data rights portal (requires auth for personal data)
 ]);
 
-// Shop subdomain patterns (e.g., artistname.merchfrom.com)
+// Shop subdomain patterns (e.g., artistname.blackoutmerch.example)
 
 export default clerkMiddleware((auth, req: NextRequest) => {
   // Handle subdomain routing for artist shops
   const hostname = req.headers.get('host') || '';
   const url = req.nextUrl;
   
-  // Check if this is a shop subdomain (e.g., artist.merchfrom.com, but not www.merchfrom.com)
+  // Check if this is a shop subdomain (e.g., artist.blackoutmerch.example, but not www.blackoutmerch.example)
   // In development, localhost:3000/artistname would need manual routing
   const isLocalDev = hostname.includes('localhost');
   
-  if (!isLocalDev && hostname !== 'merchfrom.com' && !hostname.includes('www.merchfrom.com')) {
-    // This is likely a subdomain like artist.merchfrom.com
+  if (!isLocalDev && hostname !== 'blackoutmerch.example' && !hostname.includes('www.blackoutmerch.example')) {
+    // This is likely a subdomain like artist.blackoutmerch.example
     const slug = hostname.split('.')[0];
     
     // Only proceed if it looks like a shop subdomain (not www, app, api, etc.)

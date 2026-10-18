@@ -240,8 +240,8 @@ export default function DataRightsPortal() {
             <p className="text-zinc-400">Need help with your data rights?</p>
             <p className="text-zinc-300">
               Contact our Data Protection Officer:{' '}
-              <a href="mailto:dpo@merchfrom.com" className="text-zinc-100 underline hover:text-zinc-200">
-                dpo@merchfrom.com
+              <a href="mailto:dpo@blackoutmerch.example" className="text-zinc-100 underline hover:text-zinc-200">
+                dpo@blackoutmerch.example
               </a>
             </p>
           </div>

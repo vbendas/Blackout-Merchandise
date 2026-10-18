@@ -171,7 +171,7 @@ def main():
     unique_products.sort(key=lambda x: x['sku'])
     
     # Save to JSON
-    output_file = '/Users/victorbendas/Documents/GitHub/Merch-From/Workspace/stanley_stella_products_v2.json'
+    output_file = str(Path(__file__).resolve().parent / 'stanley_stella_products_v2.json')
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(unique_products, f, indent=2, ensure_ascii=False)
     

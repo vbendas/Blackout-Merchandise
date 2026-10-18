@@ -2,7 +2,7 @@
 
 All items below were applied or decided by WP10 on 15 Oct 2026; see print-prep-build-status.md for what was done and what the owner still has to do.
 
-- WP6: port the seed test /private/tmp/claude-501/-Users-victorbendas-Documents-GitHub-Merch-From/7ca60e71-9b6a-4e8d-8331-289386da2c99/scratchpad/wp6/seed-pglite.test.ts into scripts/test (frozen area, WP10 owns). Seed inserts only when no active ink_systems row.
+- WP6: port the seed test /private/tmp/claude-501/-Users-victorbendas-Documents-GitHub-blackout-merchandise/7ca60e71-9b6a-4e8d-8331-289386da2c99/scratchpad/wp6/seed-pglite.test.ts into scripts/test (frozen area, WP10 owns). Seed inserts only when no active ink_systems row.
 - WP6: colour names exported as clientColourName (contract name), COLOUR_NAMES, CLIENT_COLOUR_NAMES.
 - WP8: add "components/**/*.test.ts" to the package.json test globs (WP8 has 34 tests in components/studio/approve/).
 - WP8: no Undo yet. WP7 was asked to add revokeApproval (only while no order has used the packs). Wire Undo in components/studio/approve/ApprovalBox (WP8 files) once it exists.

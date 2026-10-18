@@ -406,7 +406,7 @@ test('the admin layout lets in anyone with an admin area and no one else', async
 
 test('production and supplier actions need Production Work, and record what they did', async () => {
   const actions = await import('@/app/(chat)/admin/actions');
-  const { storeId } = await seedUser(t.db, { email: 'shop-for-actions@merchfrom.test', withStore: true });
+  const { storeId } = await seedUser(t.db, { email: 'shop-for-actions@blackoutmerch.test', withStore: true });
   const [order] = await t.db.insert(schema.orders).values({ storeId: storeId!, status: 'paid', totalAmount: 2500, productionStatus: 'packed' }).returning();
   const calls: [string, () => Promise<unknown>][] = [
     ['advanceProductionAction', () => actions.advanceProductionAction(order.id)],
@@ -436,7 +436,7 @@ test('production and supplier actions need Production Work, and record what they
 test('team actions are the owner’s alone', async () => {
   const actions = await import('@/app/(chat)/admin/team/actions');
   const calls: [string, () => Promise<unknown>][] = [
-    ['inviteStaffAction', () => actions.inviteStaffAction({ email: 'gate@merchfrom.test', permissions: { prepress: 'view' } })],
+    ['inviteStaffAction', () => actions.inviteStaffAction({ email: 'gate@blackoutmerch.test', permissions: { prepress: 'view' } })],
     ['resendInviteAction', () => actions.resendInviteAction(ID)],
     ['revokeInviteAction', () => actions.revokeInviteAction(ID)],
     ['saveMemberAction', () => actions.saveMemberAction(ID, { permissions: { prepress: 'manage' } })],
@@ -453,7 +453,7 @@ test('team actions are the owner’s alone', async () => {
   }
 
   await setDev('admin');
-  const invited = await inRequest(() => actions.inviteStaffAction({ email: 'gate@merchfrom.test', title: 'Printer', permissions: { prepress: 'work' } }));
+  const invited = await inRequest(() => actions.inviteStaffAction({ email: 'gate@blackoutmerch.test', title: 'Printer', permissions: { prepress: 'work' } }));
   assert.ok(invited.acceptUrl?.includes('/staff-invite?token='), JSON.stringify(invited));
   const bad = await inRequest(() => actions.saveMemberAction('not-an-id', { permissions: {} }));
   assert.ok(bad.error);

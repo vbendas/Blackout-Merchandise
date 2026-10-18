@@ -31,8 +31,8 @@ before(async () => {
   commerce = await import('./commerce');
   admin = await import('./admin');
 
-  const a = await seedUser(t.db, { email: 'shop-a@merchfrom.test', withStore: true });
-  const b = await seedUser(t.db, { email: 'shop-b@merchfrom.test', withStore: true });
+  const a = await seedUser(t.db, { email: 'shop-a@blackoutmerch.test', withStore: true });
+  const b = await seedUser(t.db, { email: 'shop-b@blackoutmerch.test', withStore: true });
   artistA = { userId: a.userId, storeId: a.storeId! };
   artistB = { userId: b.userId, storeId: b.storeId! };
   // Replies notify the ticket's owner; keep that in the app (no email outbox).
@@ -63,7 +63,7 @@ function ctx(role: Role, opts: { userId?: string; storeId?: string | null; permi
 
 async function staffUser(): Promise<string> {
   counter += 1;
-  return (await seedUser(t.db, { email: `cross-${counter}@merchfrom.test`, role: 'staff' })).userId;
+  return (await seedUser(t.db, { email: `cross-${counter}@blackoutmerch.test`, role: 'staff' })).userId;
 }
 
 type Data = { ok?: boolean; error?: string };
@@ -78,7 +78,7 @@ test('tickets: your own, or anyone’s with Support View', async () => {
   assert.equal(await read(ctx('admin')), true);
 });
 
-test('answering someone else’s ticket needs Support Work, and comes from the MerchFrom side', async () => {
+test('answering someone else’s ticket needs Support Work, and comes from the Blackout Merchandise side', async () => {
   const viewer = await staffUser();
   const refused = await support.replyTicketTool.run(ctx('staff', { userId: viewer, permissions: { support: 'view' } }), { id: ticketId, text: 'On it.' });
   assert.equal((refused.data as Data).error, 'forbidden');

@@ -26,7 +26,7 @@ before(async () => {
   tools = await import('@/lib/tools/bulk');
   bulk = await import('@/lib/services/bulk');
   products = await import('@/lib/services/products');
-  const user = await seedUser(t.db, { email: 'artist@merchfrom.test', withStore: true });
+  const user = await seedUser(t.db, { email: 'artist@blackoutmerch.test', withStore: true });
   storeId = user.storeId!;
   ctx = { userId: user.userId, clerkId: 'clerk-artist', role: 'artist', storeId, conversationId: randomUUID(), idempotencyKey: 'k', locale: 'en' };
 });

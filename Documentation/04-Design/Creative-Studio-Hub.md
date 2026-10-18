@@ -1,21 +1,21 @@
 # Creative Studio Hub — Facility Design, Equipment & Strategy
 
 > **Status:** Planned — contingent on Castelo Branco industrial land grant approval
-> **Location:** MerchFrom Industrial Unit, Castelo Branco
+> **Location:** Blackout Merchandise Industrial Unit, Castelo Branco
 > **Last Updated:** April 2026
 
 ---
 
 ## 1. Overview
 
-The Creative Studio Hub is an integrated facility within the MerchFrom industrial unit comprising three dedicated creative spaces: a Combined Music + Recording Room, a Meeting + Streaming Room, and a Photo Studio.
+The Creative Studio Hub is an integrated facility within the Blackout Merchandise industrial unit comprising three dedicated creative spaces: a Combined Music + Recording Room, a Meeting + Streaming Room, and a Photo Studio.
 
 The hub serves two simultaneous purposes that reinforce each other:
 
-- **Internal:** Content production for MerchFrom and partner artists — product photography, social media content, artist sessions, live streams, brand materials
+- **Internal:** Content production for Blackout Merchandise and partner artists — product photography, social media content, artist sessions, live streams, brand materials
 - **Community:** Free-access creative infrastructure for musicians, bands, actors, digital influencers, content creators, photographers, and illustrators in Castelo Branco and the surrounding region
 
-Access is managed through a booking module built into the MerchFrom platform. MerchFrom staff and community creatives use the exact same system, with full calendar transparency.
+Access is managed through a booking module built into the Blackout Merchandise platform. Blackout Merchandise staff and community creatives use the exact same system, with full calendar transparency.
 
 ---
 
@@ -31,7 +31,7 @@ One integrated space with a **glass-separated control corner** housing the iMac,
 - Vocal sessions and acoustic recordings
 - Live streaming and live session content
 - Podcast recording
-- MerchFrom artist sessions and brand content
+- Blackout Merchandise artist sessions and brand content
 - Visual production — projected backgrounds for live sessions, recordings, and social content
 - Stage show rehearsal with actual stage visuals (bands preparing for live performances)
 
@@ -55,7 +55,7 @@ A dual-function room split between an **8-person meeting area** at the front and
 - Community workshops and small gatherings
 
 **Design notes:**
-The streaming corner is a full production setup — gaming/streaming PC, dual monitors, two cameras, 3-point LED lighting, and a USB mic/interface. Artists in the MerchFrom network can book this room to produce their own content independently, generating organic reach that extends to their audiences.
+The streaming corner is a full production setup — gaming/streaming PC, dual monitors, two cameras, 3-point LED lighting, and a USB mic/interface. Artists in the Blackout Merchandise network can book this room to produce their own content independently, generating organic reach that extends to their audiences.
 
 ---
 
@@ -64,7 +64,7 @@ The streaming corner is a full production setup — gaming/streaming PC, dual mo
 A dedicated shooting room with controllable lighting, multiple backdrop options, and floor space for full-body, group, product flat lay, and editorial shoots.
 
 **Primary uses:**
-- MerchFrom product photography (all catalog items photographed here)
+- Blackout Merchandise product photography (all catalog items photographed here)
 - Artist press photos and portrait sessions
 - Editorial and lookbook content for social media
 - Community photographer bookings (portrait clients, content shoots)
@@ -315,12 +315,12 @@ These costs cover the physical build-out of the studio spaces within the industr
 
 ## 6. Booking System Specification
 
-The Creative Studio Hub is booked entirely through the MerchFrom platform. There is no separate system, no external calendar, no manual coordination. MerchFrom staff book the same way community users do.
+The Creative Studio Hub is booked entirely through the Blackout Merchandise platform. There is no separate system, no external calendar, no manual coordination. Blackout Merchandise staff book the same way community users do.
 
 ### Access Flow
 
 1. **Apply** — Creative submits an application (name, creative discipline, intended use)
-2. **Approved** — MerchFrom reviews and approves access (typically within 48h)
+2. **Approved** — Blackout Merchandise reviews and approves access (typically within 48h)
 3. **Book** — Approved users see the live calendar and book available slots
 4. **Use** — Show up, use the space, leave it clean
 
@@ -334,11 +334,11 @@ The Creative Studio Hub is booked entirely through the MerchFrom platform. There
 | **No-show — first offence** | Warning. One lifetime grace per user. |
 | **No-show — second offence** | 3-month access suspension. User must reapply after suspension ends. |
 | **Waitlist** | When slots are full, users join a queue. Freed slots auto-notify next in line. |
-| **Calendar transparency** | All bookings visible to everyone as "MerchFrom" or "[Artist Name]". No hidden slots. |
+| **Calendar transparency** | All bookings visible to everyone as "Blackout Merchandise" or "[Artist Name]". No hidden slots. |
 
 ### Rationale
 
-The 3-month expiry and 3-month no-show suspension are deliberately symmetrical — stay active, keep access; waste a slot, lose access for the same window it takes to earn it back. The waitlist protects people who want the space from those who book and don't appear. The transparency rule signals that MerchFrom operates under the same constraints as community users — no invisible priority.
+The 3-month expiry and 3-month no-show suspension are deliberately symmetrical — stay active, keep access; waste a slot, lose access for the same window it takes to earn it back. The waitlist protects people who want the space from those who book and don't appear. The transparency rule signals that Blackout Merchandise operates under the same constraints as community users — no invisible priority.
 
 ---
 
@@ -347,19 +347,19 @@ The 3-month expiry and 3-month no-show suspension are deliberately symmetrical �
 This hub is not a charitable side project. It is a compounding strategic infrastructure investment.
 
 ### Organic Content Engine
-Partner artists and community creatives generate content naturally while using the space — recordings, shoots, rehearsal clips, behind-the-scenes — shared to their audiences and MerchFrom's. Authentic reach with zero paid-media cost.
+Partner artists and community creatives generate content naturally while using the space — recordings, shoots, rehearsal clips, behind-the-scenes — shared to their audiences and Blackout Merchandise's. Authentic reach with zero paid-media cost.
 
 ### Network Flywheel
-Every approved community user is a warm connection to MerchFrom. They have experienced the brand physically. Studio users are pre-qualified leads for the merch platform with a relationship already established.
+Every approved community user is a warm connection to Blackout Merchandise. They have experienced the brand physically. Studio users are pre-qualified leads for the merch platform with a relationship already established.
 
 ### Artist-Rooted Identity, Made Physical
 "By artists, for artists" is a claim. The studio hub is the proof. It exists weekly, in the community, used by real people. Competitors can copy UI features — they cannot copy a trusted physical presence embedded in a creative community.
 
 ### Platform Engagement Driver
-The booking system lives inside the MerchFrom app. Community creatives open the app regularly to manage bookings. This is habit-forming engagement outside of merch transactions — the app becomes part of their creative routine.
+The booking system lives inside the Blackout Merchandise app. Community creatives open the app regularly to manage bookings. This is habit-forming engagement outside of merch transactions — the app becomes part of their creative routine.
 
 ### Talent Pipeline
-Active studio users become familiar with MerchFrom's values, team, and culture. Top performers in the community network are natural candidates for production, content, and operational roles as the team scales.
+Active studio users become familiar with Blackout Merchandise's values, team, and culture. Top performers in the community network are natural candidates for production, content, and operational roles as the team scales.
 
 ### Relationship Moat
 A physical creative hub embedded in a community that trusts the brand is not replicable by a remote competitor. This is the kind of defensibility that doesn't show up in a feature comparison table.
@@ -368,7 +368,7 @@ A physical creative hub embedded in a community that trusts the brand is not rep
 
 ## 8. Grant Narrative (Castelo Branco / Portugal 2030)
 
-The Creative Studio Hub reframes MerchFrom from "a tech company seeking cheap industrial land" to "a creative infrastructure investment in the region."
+The Creative Studio Hub reframes Blackout Merchandise from "a tech company seeking cheap industrial land" to "a creative infrastructure investment in the region."
 
 **Key grant arguments:**
 
@@ -380,4 +380,4 @@ The Creative Studio Hub reframes MerchFrom from "a tech company seeking cheap in
 
 **Positioning statement for grant applications:**
 
-> *"MerchFrom's industrial unit includes a community Creative Studio Hub — a free-access music recording, rehearsal, photo, and streaming facility for local creatives, governed through the MerchFrom platform. It functions simultaneously as a social program for the Castelo Branco region, an organic marketing infrastructure for the business, and a physical proof of our founding principle: this platform exists to serve artists, not extract from them."*
+> *"Blackout Merchandise's industrial unit includes a community Creative Studio Hub — a free-access music recording, rehearsal, photo, and streaming facility for local creatives, governed through the Blackout Merchandise platform. It functions simultaneously as a social program for the Castelo Branco region, an organic marketing infrastructure for the business, and a physical proof of our founding principle: this platform exists to serve artists, not extract from them."*

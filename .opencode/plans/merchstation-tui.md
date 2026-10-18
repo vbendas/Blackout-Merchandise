@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-**MerchStation** is an AI-powered TUI (Terminal User Interface) control center for managing the Merch From platform. It uses OpenCode as the intelligent backend with a "Plan → Review → Execute" workflow to ensure safe, auditable operations on production data.
+**MerchStation** is an AI-powered TUI (Terminal User Interface) control center for managing the Blackout Merchandise platform. It uses OpenCode as the intelligent backend with a "Plan → Review → Execute" workflow to ensure safe, auditable operations on production data.
 
 **Core Philosophy**: LLM plans, human reviews, deterministic code executes.
 

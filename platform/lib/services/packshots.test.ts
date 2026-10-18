@@ -30,7 +30,7 @@ before(async () => {
 
   t = await setupTestDb();
   const { schema } = await import('@/lib/db');
-  await seedUser(t.db, { email: 'packshots@merchfrom.test' });
+  await seedUser(t.db, { email: 'packshots@blackoutmerch.test' });
   await t.db.insert(schema.colours).values([
     { code: 'C002', name: 'Black', hex: '#111111' },
     { code: 'C001', name: 'White', hex: '#FFFFFF', isLight: true },

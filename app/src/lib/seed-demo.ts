@@ -9,7 +9,7 @@ async function seed() {
     .insert(users)
     .values({
       clerkId: 'demo_user_001',
-      email: 'demo@merchfrom.com',
+      email: 'demo@blackoutmerch.example',
       displayName: 'Demo Artist',
       role: 'artist',
     })

@@ -129,7 +129,7 @@ export function MobileSidebar(): React.ReactElement {
                 <div className="w-7 h-7 rounded-lg bg-zinc-800 flex items-center justify-center">
                   <Icon icon="lucide:sparkles" className="w-4 h-4 text-zinc-400" />
                 </div>
-                <span className="font-semibold text-white">Merch From</span>
+                <span className="font-semibold text-white">Blackout Merchandise</span>
               </div>
 
               <motion.button

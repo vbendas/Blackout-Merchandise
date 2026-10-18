@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
     // Upload to Cloudinary with original dimensions preserved
     const uploadResult = await cloudinary.uploader.upload(base64, {
-      folder: `merch-from/studio/references/${userId}`,
+      folder: `blackout-merchandise/studio/references/${userId}`,
       transformation: [
         { quality: 'auto:good', fetch_format: 'auto' },
       ],

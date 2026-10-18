@@ -156,7 +156,7 @@ export async function buildCheckout(req: CheckoutRequest): Promise<BuildCheckout
     stripeLineItems.push({ name: `${product.name} — ${colourName} / ${line.size}`, unitAmountCents: unitCents, quantity: line.qty });
   }
 
-  // MerchFrom keeps base cost + shipping; the artist's transfer is the
+  // Blackout Merchandise keeps base cost + shipping; the artist's transfer is the
   // spread on the garment sale only (see stripe.ts's transferAmountCents doc
   // for why this must be an explicit Stripe transfer amount, not the
   // charge's implicit remainder — that remainder would include tax).
@@ -224,7 +224,7 @@ export async function buildCheckout(req: CheckoutRequest): Promise<BuildCheckout
  * there is no order row yet — bulk_orders stands in for "pending" until
  * markBulkPaid materialises orders/order_items. One line item per bulk
  * line plus Setup/Shipping as plain line items, and no destinationAccountId
- * / transferAmountCents / applicationFeeAmountCents at all: MerchFrom is
+ * / transferAmountCents / applicationFeeAmountCents at all: Blackout Merchandise is
  * simply the merchant of record here, not splitting anything with the
  * artist (see stripe.ts's CreateCheckoutSessionInput doc for what omitting
  * those does).

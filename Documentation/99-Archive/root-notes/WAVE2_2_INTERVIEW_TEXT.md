@@ -142,8 +142,8 @@ export class OpenRouterProvider {
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://merchfrom.com',
-        'X-Title': 'Merch From Waitlist',
+        'HTTP-Referer': 'https://blackoutmerch.example',
+        'X-Title': 'Blackout Merchandise Waitlist',
       },
       body: JSON.stringify({
         model: options.model,
@@ -179,7 +179,7 @@ import {
 
 const provider = new OpenRouterProvider(process.env.OPENROUTER_API_KEY!);
 
-const LEOPOLDO_SYSTEM_PROMPT = `You are Leopoldo, the onboarding agent for Merch From - an AI-powered premium merchandise platform for artists.
+const LEOPOLDO_SYSTEM_PROMPT = `You are Leopoldo, the onboarding agent for Blackout Merchandise - an AI-powered premium merchandise platform for artists.
 
 Your personality:
 - Warm and welcoming, like a friend who happens to be an expert
@@ -194,7 +194,7 @@ Your personality:
 
 Your goal:
 - Make them feel heard and understood
-- Build excitement about Merch From
+- Build excitement about Blackout Merchandise
 - Ask one question at a time
 - Don't be repetitive with "That's great!" - vary your responses
 - End with warmth and anticipation for the next question
@@ -246,7 +246,7 @@ User's response: ${userResponse}
 
 ${isFollowUp ? 'This is a follow-up. Ask a natural follow-up question based on their response, or acknowledge and move to wrap up if this feels complete.' : 'Acknowledge their answer warmly, and ask the next question naturally.'}
 
-${isLastQuestion(questionId) && !isFollowUp ? 'This is the last question. After acknowledging their answer, wrap up the interview with enthusiasm about Merch From and thank them for their time.' : ''}`;
+${isLastQuestion(questionId) && !isFollowUp ? 'This is the last question. After acknowledging their answer, wrap up the interview with enthusiasm about Blackout Merchandise and thank them for their time.' : ''}`;
     }
 
     // Call OpenRouter with MiniMax M2-her
@@ -466,7 +466,7 @@ export function Step4Interview({ data, onUpdate, onNext, onBack }: Step4Intervie
       confused: 'confused',
     };
     
-    return `https://res.cloudinary.com/drhfgth7c/image/upload/v1738189941/merch-from/avatars/leopoldo/${expressions[leopoldoExpression]}_attr1_subject.png`;
+    return `https://res.cloudinary.com/drhfgth7c/image/upload/v1738189941/blackout-merchandise/avatars/leopoldo/${expressions[leopoldoExpression]}_attr1_subject.png`;
   };
 
   return (

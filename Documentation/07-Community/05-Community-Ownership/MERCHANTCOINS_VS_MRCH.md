@@ -54,7 +54,7 @@ MerchCoins are a **promotional discount currency** — functionally identical to
 
 ## MRCH Tokens: What They Are
 
-MRCH tokens are **on-chain equity** — they represent a fractional ownership stake in MerchFrom, issued as a Stellar Asset on the Stellar blockchain. Holding MRCH means owning a piece of the company and receiving quarterly profit distributions in EURC (Circle's Euro stablecoin).
+MRCH tokens are **on-chain equity** — they represent a fractional ownership stake in Blackout Merchandise, issued as a Stellar Asset on the Stellar blockchain. Holding MRCH means owning a piece of the company and receiving quarterly profit distributions in EURC (Circle's Euro stablecoin).
 
 **They are:**
 - Equity instruments representing 30% of the company, tokenized
@@ -81,7 +81,7 @@ MerchCoins are a database column. MRCH tokens are a Stellar blockchain asset. Th
 ### Marketing
 Artists need to understand both clearly and separately:
 - *"You have 50 Merch Coins — use them as €50 off your next order."*
-- *"You have earned 5,000 MRCH tokens — you own 0.017% of MerchFrom and will receive quarterly profit distributions."*
+- *"You have earned 5,000 MRCH tokens — you own 0.017% of Blackout Merchandise and will receive quarterly profit distributions."*
 
 Conflating these would cause confusion, erode trust in both systems, and create regulatory exposure.
 

@@ -83,7 +83,7 @@ def extract_all_skus():
 products = extract_all_skus()
 
 # Save to JSON
-output_file = Path('/Users/victorbendas/Documents/GitHub/Merch-From/Workspace/stanley_stella_all_products.json')
+output_file = Path(__file__).resolve().parent / 'stanley_stella_all_products.json'
 with open(output_file, 'w', encoding='utf-8') as f:
     json.dump(products, f, indent=2, ensure_ascii=False)
 

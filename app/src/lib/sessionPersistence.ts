@@ -8,9 +8,9 @@ import type { ProductListItem } from '@/lib/ProductListContext';
 import type { StudioMessage } from '@/types/quickActions';
 
 // Storage keys
-const STUDIO_SESSION_KEY = 'merchfrom_studio_session';
-const PRODUCT_LIST_KEY = 'merchfrom_product_list';
-const CHAT_MESSAGES_KEY = 'merchfrom_chat_messages';
+const STUDIO_SESSION_KEY = 'blackoutmerch_studio_session';
+const PRODUCT_LIST_KEY = 'blackoutmerch_product_list';
+const CHAT_MESSAGES_KEY = 'blackoutmerch_chat_messages';
 
 // Types
 export interface DesignInstance {

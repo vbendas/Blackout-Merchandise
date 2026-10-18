@@ -456,8 +456,8 @@ export function Composer({ onSend, disabled, dropdownPosition, upload, isDraggin
         ) : (
           <button
             type="button"
-            aria-label="Talk to MerchFrom"
-            title="Talk to MerchFrom"
+            aria-label="Talk to Blackout Merchandise"
+            title="Talk to Blackout Merchandise"
             onClick={onOpenVoice}
             disabled={disabled}
             data-voice-trigger=""

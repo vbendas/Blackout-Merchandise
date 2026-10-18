@@ -53,7 +53,7 @@ interface AddDomainData {
 export const addCustomDomainTool = defineTool({
   name: 'add_custom_domain',
   description:
-    "Connect a custom domain the artist owns (e.g. merch.theirband.com) to their shop, so it serves at their own URL instead of merchfrom.com/their-slug. Call this when the artist wants to use their own domain. An apex domain (example.com) needs an A record at their DNS provider; a subdomain (shop.example.com) needs a CNAME. DNS changes can take from a few minutes up to an hour to propagate. Returns the exact records to add — tell the artist to add them, then ask to check the domain.",
+    "Connect a custom domain the artist owns (e.g. merch.theirband.com) to their shop, so it serves at their own URL instead of blackoutmerch.example/their-slug. Call this when the artist wants to use their own domain. An apex domain (example.com) needs an A record at their DNS provider; a subdomain (shop.example.com) needs a CNAME. DNS changes can take from a few minutes up to an hour to propagate. Returns the exact records to add — tell the artist to add them, then ask to check the domain.",
   input: z.object({ hostname: z.string().min(3).max(253) }).strict(),
   scope: 'both',
   run: async (ctx, input): Promise<ToolResult<AddDomainData>> => {
@@ -111,7 +111,7 @@ interface RemoveDomainData {
 export const removeDomainTool = defineTool({
   name: 'remove_domain',
   description:
-    "Disconnect a custom domain from the shop; it goes back to serving only at merchfrom.com/[slug]. Sensitive action: shows a confirm card and only executes once the human clicks confirm. Omit hostname to remove the shop's most recently added domain.",
+    "Disconnect a custom domain from the shop; it goes back to serving only at blackoutmerch.example/[slug]. Sensitive action: shows a confirm card and only executes once the human clicks confirm. Omit hostname to remove the shop's most recently added domain.",
   input: z.object({ hostname: z.string().max(253).optional() }).strict(),
   scope: 'both',
   confirm: true,

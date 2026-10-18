@@ -148,7 +148,7 @@ export function StoreOnboarding({ onStoreCreated }: StoreOnboardingProps) {
                 className="bg-zinc-800/60 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-zinc-500"
               />
               <p className="text-xs text-zinc-500">
-                merchfrom.com/shop/
+                blackoutmerch.example/shop/
                 <span className={slug ? 'text-zinc-300' : 'text-zinc-600'}>
                   {slug || 'your-store-url'}
                 </span>

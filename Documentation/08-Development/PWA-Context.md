@@ -7,7 +7,7 @@
 ## 📋 Project Overview
 
 ### What is the PWA?
-Progressive web app for Merch-From artists and customers to browse, interact with products, and manage accounts.
+Progressive web app for Blackout Merchandise artists and customers to browse, interact with products, and manage accounts.
 
 ### Current Phase
 - **Phase**: Phase 1 - MVP
@@ -370,9 +370,9 @@ bun build  # Always run after changes
 
 ## 🔗 Quick Links
 
-- **Codebase Root**: `/Users/victorbendas/Documents/GitHub/Merch-From`
-- **PWA App**: `/Users/victorbendas/Documents/GitHub/Merch-From/app`
-- **Database Schema**: `/Users/victorbendas/Documents/GitHub/Merch-From/src/db/schema.ts`
+- **Codebase Root**: `/path/to/blackout-merchandise`
+- **PWA App**: `/path/to/blackout-merchandise/app`
+- **Database Schema**: `/path/to/blackout-merchandise/src/db/schema.ts`
 - **Design System**: `Documentation/05-Shared/Design-System.md`
 - **CLAUDE.md** (in repo): Core development guide
 

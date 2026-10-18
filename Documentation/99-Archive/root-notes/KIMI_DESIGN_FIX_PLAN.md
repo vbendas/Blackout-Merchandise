@@ -21,7 +21,7 @@
 
 The goal was to adopt Kimi's **UX PATTERNS** and **RESPONSIVE BEHAVIOR**, not their visual design:
 
-| Kimi Feature | What to Adopt | What to Keep (Merch From) |
+| Kimi Feature | What to Adopt | What to Keep (Blackout Merchandise) |
 |--------------|---------------|---------------------------|
 | **Sidebar collapse** | ✅ Collapsible 72px/280px | Dark theme, avatars |
 | **Mobile drawer** | ✅ Slide-out with backdrop | Dark theme styling |

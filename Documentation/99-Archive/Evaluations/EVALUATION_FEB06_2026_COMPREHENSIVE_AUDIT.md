@@ -1,6 +1,6 @@
 > Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
 
-# MerchFrom: Comprehensive Evaluation — February 6, 2026
+# Blackout Merchandise: Comprehensive Evaluation — February 6, 2026
 
 **Evaluation Date:** February 6, 2026
 **Evaluator:** Claude Code (Opus 4)
@@ -13,7 +13,7 @@
 
 ## Executive Summary
 
-MerchFrom has made genuine progress since the Feb 1 codebase audit reality check. The workspace UI is polished, the unified selection system works, and scrolling bugs are fixed. However, **the fundamental gap identified across the last 4 evaluations remains unchanged: the core product (AI conversational commerce) is still simulated.**
+Blackout Merchandise has made genuine progress since the Feb 1 codebase audit reality check. The workspace UI is polished, the unified selection system works, and scrolling bugs are fixed. However, **the fundamental gap identified across the last 4 evaluations remains unchanged: the core product (AI conversational commerce) is still simulated.**
 
 This evaluation goes deeper than any prior evaluation, examining not just feature completion but code-level quality, architectural integrity, documentation accuracy, and strategic coherence. It reveals several issues that no prior evaluation caught — including a critical schema duplication between projects, database operations that will fail at runtime, and a marketing homepage with zero SSR (killing SEO).
 
@@ -295,7 +295,7 @@ This means the test suite provides false confidence. It proves the functions exi
 
 13. **Cloudinary Design Preview** — Use Cloudinary's overlay/transformation API to generate mockup previews. Artist uploads design -> Cloudinary overlays it on a t-shirt template -> instant product mockup. No custom rendering server needed.
 
-14. **Split the Monorepo DB Package** — Create a proper `@merchfrom/db` package in the monorepo that both `/app` and `/mainpage` import. This eliminates the schema duplication risk permanently and sets up for proper dependency management.
+14. **Split the Monorepo DB Package** — Create a proper `@blackoutmerch/db` package in the monorepo that both `/app` and `/mainpage` import. This eliminates the schema duplication risk permanently and sets up for proper dependency management.
 
 15. **Customer Discovery Sprint** — Spend 1 week doing 5-10 artist interviews using the existing Customer-Validation-Framework. Post in screen printing forums, tattoo artist communities, Instagram DM artists with 5K-50K followers. This is the single highest-ROI activity available right now.
 
@@ -338,7 +338,7 @@ This means the test suite provides false confidence. It proves the functions exi
 
 ## Final Assessment
 
-MerchFrom is a project with exceptional vision, thorough documentation, and a genuinely talented founder with rare domain expertise. The marketing page and workspace UI are visually impressive. The database schema is thoughtfully designed. The brand identity is distinctive and memorable.
+Blackout Merchandise is a project with exceptional vision, thorough documentation, and a genuinely talented founder with rare domain expertise. The marketing page and workspace UI are visually impressive. The database schema is thoughtfully designed. The brand identity is distinctive and memorable.
 
 **The central tension remains what it has been for a month: this is a beautifully documented, carefully designed product that doesn't work yet.** The AI chat — the core differentiator — is simulated. The checkout — the revenue mechanism — has runtime bugs. The marketing page — the acquisition channel — is invisible to search engines.
 

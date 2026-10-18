@@ -207,7 +207,7 @@ def main():
             aw25_count += 1
     
     # Save to JSON
-    output_file = '/Users/victorbendas/Documents/GitHub/Merch-From/Workspace/stanley_stella_products_complete.json'
+    output_file = str(Path(__file__).resolve().parent / 'stanley_stella_products_complete.json')
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(unique_products, f, indent=2, ensure_ascii=False)
     

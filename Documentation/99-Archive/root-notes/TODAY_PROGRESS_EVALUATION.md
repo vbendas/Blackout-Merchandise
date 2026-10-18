@@ -1,4 +1,4 @@
-# MerchFrom - Today's Progress Evaluation
+# Blackout Merchandise - Today's Progress Evaluation
 
 > **Session Date**: January 30, 2026  
 > **Duration**: ~2-3 hours  
@@ -130,7 +130,7 @@
 
 ✅ Cataloged all 292 OpenCode skills  
 ✅ Organized by category (Database, Frontend, Testing, etc.)  
-✅ Identified top 20 most relevant skills for MerchFrom  
+✅ Identified top 20 most relevant skills for Blackout Merchandise  
 ✅ Created quick reference by task type  
 
 **Impact**: Easy skill discovery for future development

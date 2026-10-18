@@ -10,7 +10,7 @@
 
 ## About This Archive
 
-This document preserves the **full text of all dated project evaluations** conducted during MerchFrom's development. These evaluations are intended for:
+This document preserves the **full text of all dated project evaluations** conducted during Blackout Merchandise's development. These evaluations are intended for:
 
 1. **Investor Transparency** — Show the honest journey, including struggles and improvements
 2. **Founder Accountability** — Track decisions and their outcomes over time
@@ -47,7 +47,7 @@ Feb 24, 2026: █████████░ 8.9/10 (AI real, 5 P0s resolved, Ph
 
 ## Executive Summary
 
-MerchFrom is an ambitious AI-powered premium merchandise platform targeting independent artists and ethical-conscious creators. After thorough analysis of 10,956+ lines of documentation, the project demonstrates **exceptional planning depth** but remains largely **conceptual with minimal production code**.
+Blackout Merchandise is an ambitious AI-powered premium merchandise platform targeting independent artists and ethical-conscious creators. After thorough analysis of 10,956+ lines of documentation, the project demonstrates **exceptional planning depth** but remains largely **conceptual with minimal production code**.
 
 ### Overall Score: **7.2/10** (Weighted Average)
 
@@ -157,7 +157,7 @@ T-Shirt Economics:
 - Printful raised $106M, does $300M+ revenue
 - Printify valued at $1B+
 - Gelato raised $75M
-- **MerchFrom competing against well-capitalized incumbents**
+- **Blackout Merchandise competing against well-capitalized incumbents**
 
 ---
 
@@ -450,7 +450,7 @@ Assumptions: Working product, 50 waitlist signups, 5 pilot artists
 
 ## Executive Summary
 
-MerchFrom has made **significant progress** since the last evaluation 8 days ago. The project has transitioned from "mostly conceptual with minimal production code" to **functional backend infrastructure with working AI integration**. The architecture pivot to Convex and the "Velvet Rope" strategy demonstrate strategic clarity.
+Blackout Merchandise has made **significant progress** since the last evaluation 8 days ago. The project has transitioned from "mostly conceptual with minimal production code" to **functional backend infrastructure with working AI integration**. The architecture pivot to Convex and the "Velvet Rope" strategy demonstrate strategic clarity.
 
 ### Overall Score: **8.0/10** (Weighted Average) — Up from 7.2/10
 
@@ -909,7 +909,7 @@ DESIGN STRATEGY
 
 ## Executive Summary
 
-MerchFrom continues to demonstrate **consistent forward momentum**. Since the last evaluation 3 days ago, focus has shifted to **frontend polish and community strategy**. The footer implementation and Discord integration represent tangible visual and strategic progress.
+Blackout Merchandise continues to demonstrate **consistent forward momentum**. Since the last evaluation 3 days ago, focus has shifted to **frontend polish and community strategy**. The footer implementation and Discord integration represent tangible visual and strategic progress.
 
 ### Overall Score: **8.2/10** (Weighted Average) — Up from 8.0/10
 
@@ -1263,7 +1263,7 @@ This session marked a **significant strategic refinement** of the creator platfo
 
 ### 1. Merchandise Studio PWA Strategy (NEW)
 
-**Decision:** The creator backend ("Cat-Suite") becomes a dedicated, install-required PWA at `studio.merchfrom.com`.
+**Decision:** The creator backend ("Cat-Suite") becomes a dedicated, install-required PWA at `studio.blackoutmerch.example`.
 
 | Aspect | Decision |
 |--------|----------|
@@ -1970,7 +1970,7 @@ dataBreachLogs {
 }
 ```
 
-**Critique:** This is **enterprise-grade compliance implementation**. Most startups implement GDPR as an afterthought; MerchFrom treats it as first-class feature.
+**Critique:** This is **enterprise-grade compliance implementation**. Most startups implement GDPR as an afterthought; Blackout Merchandise treats it as first-class feature.
 
 ---
 
@@ -2023,7 +2023,7 @@ Jan 22:  ████████▓░ 8.6/10 (GDPR complete, mobile polish, ag
 
 ## Executive Summary
 
-MerchFrom has executed a **strategic AI stack pivot** that fundamentally improves the project's economics, technical defensibility, and commercial viability. This evaluation focuses on the decision to replace Flux 2 Flex ($0.06/image) with FLUX.1 [dev] fine-tuned via Replicate ($0.006/image) and the introduction of custom LoRA training for brand-consistent, print-ready designs.
+Blackout Merchandise has executed a **strategic AI stack pivot** that fundamentally improves the project's economics, technical defensibility, and commercial viability. This evaluation focuses on the decision to replace Flux 2 Flex ($0.06/image) with FLUX.1 [dev] fine-tuned via Replicate ($0.006/image) and the introduction of custom LoRA training for brand-consistent, print-ready designs.
 
 This is the **most significant technical decision** since the Convex → Drizzle migration, with projected cost savings of **42% on total AI stack costs** and the foundation for a proprietary visual style moat.
 
@@ -2059,7 +2059,7 @@ This is the **most significant technical decision** since the Convex → Drizzle
 
 **Full evaluation available at:** `Documentation/00-Evaluations/EVALUATION_JAN24_2026_AI_STACK_PIVOT.md`
 
-**Verdict:** The AI stack pivot transforms MerchFrom from "API wrapper with nice UX" to "proprietary AI platform with technical defensibility". This is the difference between seed funding and Series A. Score: 8.7/10.
+**Verdict:** The AI stack pivot transforms Blackout Merchandise from "API wrapper with nice UX" to "proprietary AI platform with technical defensibility". This is the difference between seed funding and Series A. Score: 8.7/10.
 
 **Next milestone:** 9.0/10 requires customer validation (Beta Cohort 1 launch, Month 1).
 
@@ -2087,7 +2087,7 @@ This is the **most significant technical decision** since the Convex → Drizzle
 
 ## Executive Summary
 
-This evaluation represents a **comprehensive holistic assessment** of MerchFrom following the PRD v3.1 update cycle (January 26-29, 2026). The project has undergone significant strategic refinement based on founder feedback, resulting in:
+This evaluation represents a **comprehensive holistic assessment** of Blackout Merchandise following the PRD v3.1 update cycle (January 26-29, 2026). The project has undergone significant strategic refinement based on founder feedback, resulting in:
 
 1. **80% AI cost reduction** (€1,800 → €550/month)
 2. **Founder dependency mitigation** (comprehensive delegation strategy)
@@ -2275,7 +2275,7 @@ Jan 29:  █████████░ 8.9/10 (Holistic refinement, 80% cost re
 **Rating:** 9.0/10 (Investment Grade)
 
 **Thesis:**
-MerchFrom has evolved from a well-documented concept to a **production-ready platform with exceptional founder maturity**. The January 29 evaluation demonstrates strategic maturity, financial discipline, risk awareness, and execution readiness.
+Blackout Merchandise has evolved from a well-documented concept to a **production-ready platform with exceptional founder maturity**. The January 29 evaluation demonstrates strategic maturity, financial discipline, risk awareness, and execution readiness.
 
 **Valuation Justification:**
 ```
@@ -2524,7 +2524,7 @@ Rounded to 1 decimal:          8.5/10
 
 ## Final Assessment
 
-MerchFrom has achieved **technical readiness** for the next phase. The infrastructure is sound, the architecture is scalable, and the foundation is solid.
+Blackout Merchandise has achieved **technical readiness** for the next phase. The infrastructure is sound, the architecture is scalable, and the foundation is solid.
 
 **The remaining gap is the core value proposition: AI-powered merchandise design.**
 
@@ -2548,7 +2548,7 @@ MerchFrom has achieved **technical readiness** for the next phase. The infrastru
 
 ## Executive Summary
 
-MerchFrom has achieved a **major technical milestone** with the implementation of context-aware agent routing using MiniMax M2-Her, replacing the failing keyword-based system. This represents a significant advancement in AI capabilities and moves the project closer to true conversational commerce.
+Blackout Merchandise has achieved a **major technical milestone** with the implementation of context-aware agent routing using MiniMax M2-Her, replacing the failing keyword-based system. This represents a significant advancement in AI capabilities and moves the project closer to true conversational commerce.
 
 This is the **highest score since the January 29 peak**, driven by working AI implementation.
 
@@ -2851,7 +2851,7 @@ Feb 20:  ████████▓▓ 8.7/10  Context-aware routing, voice pip
 
 ### The Bottom Line
 
-MerchFrom has crossed a technical threshold: The AI chat system is now genuinely intelligent with context-aware routing, not just a wrapper around API calls. This represents the difference between "AI-powered" (marketing) and "AI-powered" (reality).
+Blackout Merchandise has crossed a technical threshold: The AI chat system is now genuinely intelligent with context-aware routing, not just a wrapper around API calls. This represents the difference between "AI-powered" (marketing) and "AI-powered" (reality).
 
 **Score: 8.7/10** — The highest score since the Jan 29 peak, driven by working AI implementation.
 
@@ -3274,7 +3274,7 @@ mainpage/src/db/schema.ts              (still exists — schema duplication unre
 | Complete FLUX 2 design gen | +0.1 | Week 2 |
 | Launch crowdfunding campaign | +0.3 | June 30 |
 
-**Verdict:** Merch From crossed the threshold from "well-documented idea" to "functional product with market timing." The next 7 weeks determine whether it becomes "funded startup."
+**Verdict:** Blackout Merchandise crossed the threshold from "well-documented idea" to "functional product with market timing." The next 7 weeks determine whether it becomes "funded startup."
 
 ---
 

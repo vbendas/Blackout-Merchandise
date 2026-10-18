@@ -19,8 +19,8 @@ import sharp from "sharp";
 import { readdir, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const SOURCE_DIR =
-  "/Users/victorbendas/Documents/GitHub/Merch-From/data/LoRAs/American Traditional";
+// Repository root (this file lives in app/scripts/).
+const SOURCE_DIR = path.resolve(__dirname, "../../data/LoRAs/American Traditional");
 const OUTPUT_DIR = path.join(SOURCE_DIR, "white-bg");
 const LOG_PATH = path.join(OUTPUT_DIR, "batch-log.json");
 const COST_PER_IMAGE = 0.01;

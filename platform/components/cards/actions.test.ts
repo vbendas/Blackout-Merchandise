@@ -13,14 +13,14 @@ test('a path inside the Studio is a site path, with its query', () => {
 test('anything that could reach another site, or is not a path, is not a site path', () => {
   assert.equal(isSitePath('//evil.test/studio'), false, 'protocol-relative');
   assert.equal(isSitePath('/\\evil.test'), false, 'a backslash form some browsers read as //');
-  assert.equal(isSitePath('https://merchfrom.com/studio'), false);
+  assert.equal(isSitePath('https://blackoutmerch.example/studio'), false);
   assert.equal(isSitePath('javascript:alert(1)'), false);
   assert.equal(isSitePath('studio/approve'), false);
   assert.equal(isSitePath(''), false);
 });
 
 test('a web address is a web url, and a site path is not', () => {
-  assert.equal(isWebUrl('https://merchfrom.com/shop'), true);
+  assert.equal(isWebUrl('https://blackoutmerch.example/shop'), true);
   assert.equal(isWebUrl('http://localhost:3000'), true);
   assert.equal(isWebUrl('/studio/approve/abc'), false);
   assert.equal(isWebUrl('javascript:alert(1)'), false);

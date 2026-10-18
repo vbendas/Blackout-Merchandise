@@ -1,16 +1,16 @@
 # Data Protection Impact Assessment (DPIA)
 
 **Date:** January 21, 2026  
-**Project:** MerchFrom - AI-Powered Merchandise Platform  
-**Controller:** MerchFrom Ltd, Portugal  
-**Data Protection Officer:** Victor Mendes - dpo@merchfrom.com  
+**Project:** Blackout Merchandise - AI-Powered Merchandise Platform  
+**Controller:** Blackout Merchandise Ltd, Portugal  
+**Data Protection Officer:** Victor Mendes - dpo@blackoutmerch.example  
 
 ---
 
 ## 1. Processing Overview
 
 ### Purpose
-MerchFrom is an AI-powered premium merchandise platform that enables artists, brands, and companies to design, source, and sell high-quality merchandise through AI-managed workflows with professional visual tools.
+Blackout Merchandise is an AI-powered premium merchandise platform that enables artists, brands, and companies to design, source, and sell high-quality merchandise through AI-managed workflows with professional visual tools.
 
 ### Data Types Processed
 1. **Personal Identity Data** - Name, email addresses, profile images
@@ -111,7 +111,7 @@ MerchFrom is an AI-powered premium merchandise platform that enables artists, br
 ## 6. International Data Transfers
 
 ### EU to US Transfers
-MerchFrom processes data through several US-based service providers:
+Blackout Merchandise processes data through several US-based service providers:
 
 1. **Stripe** - Payment processing
 2. **OpenRouter** - AI model access
@@ -138,7 +138,7 @@ MerchFrom processes data through several US-based service providers:
 4. **Communication** - Notify affected individuals if high risk to rights/freedoms
 
 ### Breach Notification Team
-- **Primary Contact:** Victor Mendes (DPO) - dpo@merchfrom.com
+- **Primary Contact:** Victor Mendes (DPO) - dpo@blackoutmerch.example
 - **Technical Lead:** Security Team
 - **Legal Counsel:** External privacy attorney
 - **Communications:** PR/Comms team
@@ -154,7 +154,7 @@ MerchFrom processes data through several US-based service providers:
 ## 8. Conclusion
 
 ### Assessment Result
-**Acceptable** - The identified risks are effectively mitigated through the implemented safeguards. MerchFrom's data processing activities comply with GDPR requirements while enabling the core business functions.
+**Acceptable** - The identified risks are effectively mitigated through the implemented safeguards. Blackout Merchandise's data processing activities comply with GDPR requirements while enabling the core business functions.
 
 ### Residual Risk
 **Low-Medium** - Primary residual risks relate to:

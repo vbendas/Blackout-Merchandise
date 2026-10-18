@@ -1,4 +1,4 @@
-# Merch From — Crowdfunding Campaign Copy
+# Blackout Merchandise — Crowdfunding Campaign Copy
 
 > **Campaign Platform:** Indiegogo (Flexible Funding Recommended)
 > **Campaign Duration:** 30 days
@@ -28,7 +28,7 @@
 
 > "I'm Victor. For 9 years, I ran a print shop in Ireland serving Meta and Google. I watched artists pay $300 minimums for screen printing, then get stuck with inventory they couldn't sell. Meanwhile, platforms like Redbubble and Society6 were paying artists $1.50 per t-shirt. Something had to change.
 >
-> So we built Merch From. Premium merch, vegan, fair-trade, and organic as standard, with zero upfront costs for artists. Our AI helps you design. Our team in Portugal handles production. You keep the profits.
+> So we built Blackout Merchandise. Premium merch, vegan, fair-trade, and organic as standard, with zero upfront costs for artists. Our AI helps you design. Our team in Portugal handles production. You keep the profits.
 >
 > We've already secured our industrial unit in Castelo Branco, Portugal — €0.01 per square meter through a municipal grant. Our equipment is shipping. Now we need your help to finish the build-out and launch the platform.
 >
@@ -60,7 +60,7 @@ The "easy" platforms aren't easy on your wallet:
 | **Redbubble (Standard)** | ~10% net | **~$3.00** |
 | **Zazzle** | ~7% net after fees | **~$2.10** |
 | **Amazon Merch** | 6-12% royalty | **$1.80-$3.60** |
-| **Merch From** | **50%+** | **$15.00+** |
+| **Blackout Merchandise** | **50%+** | **$15.00+** |
 
 - **Society6** purged the majority of its artists in 2025 and fixed royalties at 5% (Michael Essek)
 - **Redbubble** imposed a 50% platform fee on Standard accounts, plus excess markup fees (Redbubble Blog)
@@ -86,7 +86,7 @@ The fast-fashion approach to merch is destroying the planet and your brand:
 
 ---
 
-## THE SOLUTION: MERCH FROM
+## THE SOLUTION: BLACKOUT MERCHANDISE
 
 ### "Premium Merch, Powered by AI, Built for Artists"
 
@@ -168,7 +168,7 @@ The facility in Castelo Branco is real. The equipment is purchased. The AI pipel
 - Identity-based merch (community-built, limited edition) is counterfeit-proof
 
 ### THE MATH
-| What You Sell | Artist Net (Merch From) | Equivalent Spotify Streams |
+| What You Sell | Artist Net (Blackout Merchandise) | Equivalent Spotify Streams |
 |---------------|------------------------|---------------------------|
 | 1 T-Shirt ($35) | **$17.50 (50%)** | 8,750 streams |
 | 1 Hoodie ($60) | **$30.00 (50%)** | 15,000 streams |
@@ -200,7 +200,7 @@ Voice-driven merchandise design is a **genuine category first**. No competitor c
 
 New EU laws will **ban generic environmental claims** ("eco-friendly," "green," "sustainable") unless third-party certified. Penalties: up to 4% of annual turnover.
 
-Platforms built on genuine sustainability — like Merch From — will gain competitive advantage. Platforms built on greenwashing will face existential compliance risk.
+Platforms built on genuine sustainability — like Blackout Merchandise — will gain competitive advantage. Platforms built on greenwashing will face existential compliance risk.
 
 ---
 
@@ -288,7 +288,7 @@ Platforms built on genuine sustainability — like Merch From — will gain comp
 - Transparent value — no hidden fees, no margin games
 - Drives artist revenue from day one. Every coin spent supports a creator.
 
-Compare to platform fees elsewhere: Society6 keeps 95%, Redbubble keeps 50%, Zazzle keeps 35-50%. At Merch From, every coin you spend goes to the artist whose product you buy, not to platform fees.
+Compare to platform fees elsewhere: Society6 keeps 95%, Redbubble keeps 50%, Zazzle keeps 35-50%. At Blackout Merchandise, every coin you spend goes to the artist whose product you buy, not to platform fees.
 
 ---
 
@@ -407,7 +407,7 @@ Irish gypsy, optimistic, "the hunter." Your order tracker. Finds solutions befor
 ### Artist Testimonials
 *(Video quotes from waitlist artists)*
 
-> *"I was making $12/month on Redbubble. With Merch From, I can actually build a merch business."*
+> *"I was making $12/month on Redbubble. With Blackout Merchandise, I can actually build a merch business."*
 > — [Artist Name], [Genre/Style]
 
 > *"Finally, a platform that cares about quality AND ethics. My fans deserve better than fast-fashion dropshipping."*

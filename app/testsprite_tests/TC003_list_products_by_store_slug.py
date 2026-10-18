@@ -2,7 +2,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 BASE_URL = "http://localhost:3000"
-AUTH = HTTPBasicAuth("vbendas@merchfrom.com", "REDACTED")
+AUTH = HTTPBasicAuth("vbendas@blackoutmerch.example", "REDACTED")
 TIMEOUT = 30
 
 def test_list_products_by_store_slug():

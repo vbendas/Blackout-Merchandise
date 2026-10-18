@@ -1,6 +1,6 @@
 # Privacy Implementation Guide
 
-**Project:** MerchFrom - AI-Powered Merchandise Platform  
+**Project:** Blackout Merchandise - AI-Powered Merchandise Platform  
 **Framework:** GDPR Compliance Implementation  
 **Last Updated:** January 21, 2026  
 
@@ -8,7 +8,7 @@
 
 ## Overview
 
-MerchFrom implements comprehensive GDPR compliance across all platform operations. This guide provides developers with implementation details, testing procedures, and maintenance requirements for privacy features.
+Blackout Merchandise implements comprehensive GDPR compliance across all platform operations. This guide provides developers with implementation details, testing procedures, and maintenance requirements for privacy features.
 
 ### Platform Purpose
 AI-powered merchandise platform enabling artists, brands, and companies to design, source, and sell premium quality merchandise through AI-managed workflows with professional visual tools.
@@ -161,7 +161,7 @@ await db.delete(consents)
 ### Contact Information
 **Name:** Victor Mendes  
 **Title:** Data Protection Officer  
-**Email:** dpo@merchfrom.com  
+**Email:** dpo@blackoutmerch.example  
 **Location:** Portugal  
 
 ### Responsibilities
@@ -172,7 +172,7 @@ await db.delete(consents)
 - Privacy impact assessments
 
 ### Escalation Procedures
-1. **Standard Issues:** Contact dpo@merchfrom.com
+1. **Standard Issues:** Contact dpo@blackoutmerch.example
 2. **Urgent Matters:** Mark email "URGENT - GDPR"
 3. **Breach Reporting:** Immediately notify within 24 hours
 4. **Regulatory Inquiries:** Forward to DPO immediately
@@ -400,9 +400,9 @@ PRIVACY_LOG_RETENTION=90d
 5. **Communication** - Notify affected individuals if high risk
 
 ### Contact Information
-- **DPO:** Victor Mendes - dpo@merchfrom.com
-- **Security Team:** security@merchfrom.com
-- **Legal Counsel:** legal@merchfrom.com
+- **DPO:** Victor Mendes - dpo@blackoutmerch.example
+- **Security Team:** security@blackoutmerch.example
+- **Legal Counsel:** legal@blackoutmerch.example
 
 ---
 

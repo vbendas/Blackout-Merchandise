@@ -23,7 +23,7 @@ const TEMPLATES = {
           <p>Total: €${((data.total as number) / 100).toFixed(2)}</p>
           <p>We'll send you another email when your order ships.</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="color: #666; font-size: 12px;">Merch From - Premium Creator Commerce</p>
+          <p style="color: #666; font-size: 12px;">Blackout Merchandise - Premium Creator Commerce</p>
         </body>
       </html>
     `,
@@ -39,7 +39,7 @@ const TEMPLATES = {
           <p>Your order #${data.orderId} is on its way!</p>
           <p>Tracking: ${data.trackingNumber || 'N/A'}</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="color: #666; font-size: 12px;">Merch From - Premium Creator Commerce</p>
+          <p style="color: #666; font-size: 12px;">Blackout Merchandise - Premium Creator Commerce</p>
         </body>
       </html>
     `,
@@ -55,7 +55,7 @@ const TEMPLATES = {
           <p>We hope you love your merch!</p>
           <p>Leave a review to earn rewards on your next order.</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="color: #666; font-size: 12px;">Merch From - Premium Creator Commerce</p>
+          <p style="color: #666; font-size: 12px;">Blackout Merchandise - Premium Creator Commerce</p>
         </body>
       </html>
     `,
@@ -72,7 +72,7 @@ const TEMPLATES = {
           <p>Earnings: €${((data.artistEarnings as number) / 100).toFixed(2)}</p>
           <p>Log in to your dashboard to start production.</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="color: #666; font-size: 12px;">Merch From - Premium Creator Commerce</p>
+          <p style="color: #666; font-size: 12px;">Blackout Merchandise - Premium Creator Commerce</p>
         </body>
       </html>
     `,
@@ -87,7 +87,7 @@ export async function sendEmail({ to, template, data }: SendEmailParams) {
     }
 
     const result = await resend.emails.send({
-      from: 'Merch From <orders@merchfrom.com>',
+      from: 'Blackout Merchandise <orders@blackoutmerch.example>',
       to,
       subject: templateConfig.subject,
       html: templateConfig.html(data),

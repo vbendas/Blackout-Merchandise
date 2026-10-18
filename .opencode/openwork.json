@@ -1,11 +1,11 @@
 {
   "version": 1,
   "workspace": {
-    "name": "Merch-From",
+    "name": "Blackout Merchandise",
     "createdAt": 1771605491338,
     "preset": "starter"
   },
   "authorizedRoots": [
-    "/Users/victorbendas/Documents/GitHub/Merch-From"
+    "/path/to/blackout-merchandise"
   ]
 }

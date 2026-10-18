@@ -30,7 +30,7 @@ export function useUtmParams(): UtmParams {
 
     setUtmParams({ ...captured, source });
 
-    const stored = localStorage.getItem('merchfrom_utm');
+    const stored = localStorage.getItem('blackoutmerch_utm');
     let storedParams: UtmParams = {};
     try {
       storedParams = stored ? JSON.parse(stored) : {};
@@ -39,7 +39,7 @@ export function useUtmParams(): UtmParams {
     }
 
     if (!storedParams.source && source !== 'direct') {
-      localStorage.setItem('merchfrom_utm', JSON.stringify(captured));
+      localStorage.setItem('blackoutmerch_utm', JSON.stringify(captured));
     } else if (storedParams.source && !captured.source) {
       setUtmParams(storedParams);
     }
@@ -52,5 +52,5 @@ export function getUtmSource(): string {
   if (typeof window === 'undefined') return 'direct';
 
   const params = new URLSearchParams(window.location.search);
-  return params.get('utm_source') ?? params.get('ref') ?? localStorage.getItem('merchfrom_utm_source') ?? 'direct';
+  return params.get('utm_source') ?? params.get('ref') ?? localStorage.getItem('blackoutmerch_utm_source') ?? 'direct';
 }

@@ -310,7 +310,7 @@ import {
 const speechClient = new MiniMaxSpeechClient(process.env.MINIMAX_API_KEY!);
 const aiProvider = new OpenRouterProvider(process.env.OPENROUTER_API_KEY!);
 
-const LEOPOLDO_SYSTEM_PROMPT = `You are Leopoldo, the onboarding agent for Merch From.
+const LEOPOLDO_SYSTEM_PROMPT = `You are Leopoldo, the onboarding agent for Blackout Merchandise.
 
 Personality: Warm, slightly Brazilian accent, passionate about quality merch.
 Keep responses under 100 words. Be conversational and engaging.`;
@@ -766,7 +766,7 @@ export function VoiceInterview({ onTranscribed, isProcessing }: VoiceInterviewPr
       <div className="text-center space-y-4">
         <div className="relative inline-block">
           <Avatar
-            src="https://res.cloudinary.com/drhfgth7c/image/upload/v1738189941/merch-from/avatars/leopoldo/speaking_a_attr1_subject.png"
+            src="https://res.cloudinary.com/drhfgth7c/image/upload/v1738189941/blackout-merchandise/avatars/leopoldo/speaking_a_attr1_subject.png"
             className="w-24 h-24 border-2 border-rose-500/30"
             isBordered
           />

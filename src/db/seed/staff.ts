@@ -16,7 +16,7 @@ async function seedStaff() {
   // Create staff members matching Human-in-the-Loop personas
   const ricardo = await createStaff({
     name: 'Ricardo',
-    email: 'ricardo@merchfrom.com',
+    email: 'ricardo@blackoutmerch.example',
     role: 'head_of_operations',
     department: 'Operations',
   });
@@ -24,7 +24,7 @@ async function seedStaff() {
 
   const ines = await createStaff({
     name: 'Inês',
-    email: 'ines@merchfrom.com',
+    email: 'ines@blackoutmerch.example',
     role: 'head_of_design',
     department: 'Design',
   });
@@ -32,7 +32,7 @@ async function seedStaff() {
 
   const marta = await createStaff({
     name: 'Marta',
-    email: 'marta@merchfrom.com',
+    email: 'marta@blackoutmerch.example',
     role: 'head_of_customer_success',
     department: 'Support',
   });

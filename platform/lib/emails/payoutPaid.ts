@@ -11,7 +11,7 @@ export function payoutPaidEmail(payload: PayoutPaidPayload) {
   const { html, text } = renderEmail({
     heading: 'Payout sent',
     paragraphs: [`Your payout of ${amount} has been sent${payload.arrivalDate ? `, arriving ${payload.arrivalDate}` : ''}.`],
-    buttonLabel: 'Open MerchFrom',
+    buttonLabel: 'Open Blackout Merchandise',
     buttonUrl: appUrl('/studio'),
   });
   return { subject: `Payout sent: ${amount}`, html, text };

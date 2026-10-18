@@ -5,7 +5,7 @@ BASE_URL = "http://localhost:3000"
 TIMEOUT = 30
 
 def test_create_new_product_with_authentication():
-    auth = HTTPBasicAuth("vbendas@merchfrom.com", "REDACTED")
+    auth = HTTPBasicAuth("vbendas@blackoutmerch.example", "REDACTED")
     product_data = {
         "storeSlug": "test-store-slug",
         "name": "Test Product",

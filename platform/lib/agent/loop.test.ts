@@ -37,7 +37,7 @@ after(async () => {
 
 async function staffSetup(permissions: PermissionMap, suspended = false) {
   counter += 1;
-  const { userId } = await seedUser(t.db, { email: `loop-${counter}@merchfrom.test`, role: 'staff' });
+  const { userId } = await seedUser(t.db, { email: `loop-${counter}@blackoutmerch.test`, role: 'staff' });
   const conversation = await conversations.getOrCreateConversation(userId, 'staff');
   const base = {
     userId,
@@ -123,7 +123,7 @@ test('a confirm-gated tool outside the caller’s access never gets a confirm ca
 
 test('an artist calling a staff tool by name is refused the same way', async () => {
   counter += 1;
-  const { userId, storeId } = await seedUser(t.db, { email: `loop-artist-${counter}@merchfrom.test`, withStore: true });
+  const { userId, storeId } = await seedUser(t.db, { email: `loop-artist-${counter}@blackoutmerch.test`, withStore: true });
   const conversation = await conversations.getOrCreateConversation(userId, 'artist');
   const base = { userId, clerkId: `test-artist-${counter}`, role: 'artist' as const, storeId, conversationId: conversation.id, locale: 'en' };
   const block = toolUse('list_production', {});
@@ -134,7 +134,7 @@ test('an artist calling a staff tool by name is refused the same way', async () 
 
 test('a confirmed step whose access was taken away is declined, without running or calling the model', async () => {
   const { base } = await staffSetup({ applications: 'view' });
-  const [signup] = await t.db.insert(schema.waitlistSignups).values({ email: `wait-${counter}@merchfrom.test` }).returning();
+  const [signup] = await t.db.insert(schema.waitlistSignups).values({ email: `wait-${counter}@blackoutmerch.test` }).returning();
   const block = toolUse('approve_waitlist', { id: signup.id, email: signup.email });
   const message = await conversations.appendMessage(base.conversationId, 'assistant', { blocks: [block], ui: null });
   // Offered while they still had Work; pending their click.
@@ -186,7 +186,7 @@ test('the voice bridge acts for nobody named by a bare user id, the owner’s in
   const { POST } = await import('@/app/api/voice/llm/route');
   const { mintVoiceCallerToken } = await import('@/lib/services/voice');
   counter += 1;
-  const { userId: ownerId } = await seedUser(t.db, { email: `loop-owner-${counter}@merchfrom.test`, role: 'admin' });
+  const { userId: ownerId } = await seedUser(t.db, { email: `loop-owner-${counter}@blackoutmerch.test`, role: 'admin' });
 
   for (const body of [{ user_id: ownerId }, { elevenlabs_extra_body: { user_id: ownerId } }, { user_token: ownerId }, { elevenlabs_extra_body: { user_token: ownerId } }]) {
     const response = await POST(voiceRequest(body) as never);
@@ -205,8 +205,8 @@ test('the voice bridge acts for nobody named by a bare user id, the owner’s in
 
 test('an attached design is described to the model only when it is the caller’s own shop’s', async () => {
   counter += 1;
-  const mine = await seedUser(t.db, { email: `loop-designs-${counter}@merchfrom.test`, withStore: true });
-  const theirs = await seedUser(t.db, { email: `loop-designs-other-${counter}@merchfrom.test`, withStore: true });
+  const mine = await seedUser(t.db, { email: `loop-designs-${counter}@blackoutmerch.test`, withStore: true });
+  const theirs = await seedUser(t.db, { email: `loop-designs-other-${counter}@blackoutmerch.test`, withStore: true });
   const [own] = await t.db.insert(schema.designs).values({ storeId: mine.storeId!, source: 'upload', widthPx: 4000, heightPx: 3000, readiness: 'ready' }).returning();
   const [other] = await t.db.insert(schema.designs).values({ storeId: theirs.storeId!, source: 'upload', widthPx: 1200, heightPx: 900, readiness: 'needs_cleanup' }).returning();
   const conversation = await conversations.getOrCreateConversation(mine.userId, 'artist');

@@ -66,8 +66,8 @@ before(async () => {
   bulk = await import('@/lib/services/bulk');
   bulk.runHooks.notify = async () => {};
   bulk.runHooks.markPacksNeededForOrder = async () => {};
-  storeId = (await seedUser(t.db, { email: 'areas@merchfrom.test', withStore: true })).storeId!;
-  otherStoreId = (await seedUser(t.db, { email: 'areas-other@merchfrom.test', withStore: true })).storeId!;
+  storeId = (await seedUser(t.db, { email: 'areas@blackoutmerch.test', withStore: true })).storeId!;
+  otherStoreId = (await seedUser(t.db, { email: 'areas-other@blackoutmerch.test', withStore: true })).storeId!;
   front = await design(storeId, 1000, 1200);
   back = await design(storeId, 1000, 1000);
   tall = await design(storeId, 1000, 2000);
@@ -100,7 +100,7 @@ test('migration 0005 copies a product\'s one placement and its design into the l
 
     // Rows as the app wrote them before: one placement and the design.
     await client.exec(`
-      insert into users (id, clerk_id, email, role) values ('00000000-0000-4000-8000-000000000001', 'm', 'm@merchfrom.test', 'artist');
+      insert into users (id, clerk_id, email, role) values ('00000000-0000-4000-8000-000000000001', 'm', 'm@blackoutmerch.test', 'artist');
       insert into artist_stores (id, artist_id, slug, name) values ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000001', 'm', 'm');
       insert into designs (id, store_id, source) values ('00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000002', 'upload');
       insert into blanks (code, name, type) values ('STTU169', 'Tee', 'T-shirts');
@@ -564,7 +564,7 @@ test('a sale pays the shop the base cost with every extra: the Stripe fee and th
   await t.db.insert(schema.stripeAccounts).values({ storeId, accountId: 'acct_areas', chargesEnabled: true, payoutsEnabled: true });
   if (!(await t.db.select().from(schema.shippingZones)).length) await t.db.insert(schema.shippingZones).values({ name: 'Spain', countries: ['ES'], flatCents: 495 });
 
-  const checkout = await buildCheckout({ storeSlug: store.slug, lines: [{ productId: made.value.id, colourCode: cat.black, size: 'M', qty: 2 }], country: 'ES', email: 'fan@merchfrom.test' });
+  const checkout = await buildCheckout({ storeSlug: store.slug, lines: [{ productId: made.value.id, colourCode: cat.black, size: 'M', qty: 2 }], country: 'ES', email: 'fan@blackoutmerch.test' });
   assert.ok(checkout.ok, checkout.ok ? '' : checkout.error);
   const [order] = await t.db.select().from(schema.orders).where(eq(schema.orders.stripeCheckoutSessionId, checkout.value.sessionId));
   assert.ok(order.shippingCents > 0);

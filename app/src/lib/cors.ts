@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 
 const ALLOWED_ORIGINS = [
-  'https://merchfrom.com',
-  'https://www.merchfrom.com',
+  'https://blackoutmerch.example',
+  'https://www.blackoutmerch.example',
   'http://localhost:3000',
   'http://localhost:3001',
 ];
@@ -14,7 +14,7 @@ function isAllowedOrigin(origin: string): boolean {
   if (ALLOWED_ORIGINS.includes(origin)) return true;
 
   // Allow Vercel preview deployments
-  if (origin.match(/^https:\/\/merch-from-.*-vbendas\.vercel\.app$/)) return true;
+  if (origin.match(/^https:\/\/blackout-merchandise-.*-vbendas\.vercel\.app$/)) return true;
 
   return false;
 }

@@ -605,7 +605,7 @@ export async function seedProduct(
 export async function seedShopOrder(db: TestDb, input: { storeId: string; productId: string; colourCode?: string; qty?: number }): Promise<string> {
   const [order] = await db
     .insert(schema.orders)
-    .values({ storeId: input.storeId, orderType: 'pod', status: 'paid', totalAmount: 2500, productionStatus: 'queued', fanEmail: 'fan@merchfrom.test' })
+    .values({ storeId: input.storeId, orderType: 'pod', status: 'paid', totalAmount: 2500, productionStatus: 'queued', fanEmail: 'fan@blackoutmerch.test' })
     .returning({ id: schema.orders.id });
   await db.insert(schema.orderItems).values({ orderId: order.id, productId: input.productId, quantity: input.qty ?? 1, priceAtPurchase: 2500, colourCode: input.colourCode ?? 'C002', size: 'M' });
   return order.id;
@@ -618,7 +618,7 @@ export async function seedRun(
 ): Promise<{ orderId: string; bulkOrderId: string }> {
   const [order] = await db
     .insert(schema.orders)
-    .values({ storeId: input.storeId, orderType: 'bulk', status: 'paid', totalAmount: 90000, productionStatus: 'queued', fanEmail: 'artist@merchfrom.test' })
+    .values({ storeId: input.storeId, orderType: 'bulk', status: 'paid', totalAmount: 90000, productionStatus: 'queued', fanEmail: 'artist@blackoutmerch.test' })
     .returning({ id: schema.orders.id });
 
   const quoteLines = [];
@@ -688,10 +688,10 @@ export async function bootstrapPrint(opts: Parameters<typeof makeFakes>[1] = {})
   const inkSystem = await import('@/lib/services/ink-system');
 
   await seedCatalogue(t.db);
-  const artist = await seedUser(t.db, { email: 'artist@merchfrom.test', withStore: true });
+  const artist = await seedUser(t.db, { email: 'artist@blackoutmerch.test', withStore: true });
   // The artist's notes stay in the app: no dev email outbox or Discord rows from the tests.
   await t.db.insert(schema.notificationPrefs).values({ userId: artist.userId, email: false, discordDm: false });
-  const owner = await seedUser(t.db, { email: 'owner@merchfrom.test', role: 'admin' });
+  const owner = await seedUser(t.db, { email: 'owner@blackoutmerch.test', role: 'admin' });
   const storeId = artist.storeId as string;
   const designId = await seedDesign(t.db, storeId);
   fakes.registerDesign(designId, Buffer.from(`artwork:${designId}`));
@@ -713,7 +713,7 @@ export async function bootstrapPrint(opts: Parameters<typeof makeFakes>[1] = {})
     productId,
     staff: async (permissions, o = {}) => {
       staffCount += 1;
-      const { userId } = await seedUser(t.db, { email: `staff${staffCount}@merchfrom.test`, role: 'staff' });
+      const { userId } = await seedUser(t.db, { email: `staff${staffCount}@blackoutmerch.test`, role: 'staff' });
       await t.db.update(schema.users).set({ displayName: o.name ?? `Staff ${staffCount}` }).where(eq(schema.users.id, userId));
       return { userId, role: 'staff', permissions, suspended: o.suspended ?? false };
     },

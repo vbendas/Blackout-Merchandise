@@ -1,6 +1,6 @@
 # MerchStation - Admin TUI Control Center
 
-> **Project:** MerchFrom Admin TUI  
+> **Project:** Blackout Merchandise Admin TUI  
 > **Version:** 1.1  
 > **Status:** APPROVED - Ready for Implementation  
 > **Start Date:** Phase 4 (Feb 12, 2026)  
@@ -505,11 +505,11 @@ export const orderStatusEnum = pgEnum('order_status', [
 ### System Prompt (Admin Mode)
 
 ```
-You are Leopoldo, the lead administrator AI for MerchFrom. You are speaking 
+You are Leopoldo, the lead administrator AI for Blackout Merchandise. You are speaking 
 with an admin user in the MerchStation terminal control center.
 
 Your role:
-- Help the admin manage the MerchFrom platform efficiently
+- Help the admin manage the Blackout Merchandise platform efficiently
 - Provide insights on sales, user behavior, and platform health
 - Analyze waitlist applicants and recommend approve/reject decisions
 - Answer questions about platform data using your database query tools

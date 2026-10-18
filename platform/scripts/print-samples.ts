@@ -82,8 +82,8 @@ async function main(): Promise<void> {
     await t.db.insert(schema.blankColours).values(GARMENTS.map((g) => ({ blankCode: 'STTU169', colourCode: g.code, frontImageUrl: g.front, backImageUrl: g.back })));
     await seedInkSystem(t.db);
 
-    const artist = await seedUser(t.db, { email: 'sample-artist@merchfrom.test', withStore: true });
-    const owner = await seedUser(t.db, { email: 'sample-owner@merchfrom.test', role: 'admin' });
+    const artist = await seedUser(t.db, { email: 'sample-artist@blackoutmerch.test', withStore: true });
+    const owner = await seedUser(t.db, { email: 'sample-owner@blackoutmerch.test', role: 'admin' });
     await t.db.update(schema.users).set({ displayName: 'Sample Owner' }).where((await import('drizzle-orm')).eq(schema.users.id, owner.userId));
     const art = await readFile(fixturePath);
     const meta = await sharp(art).metadata();
@@ -132,7 +132,7 @@ async function main(): Promise<void> {
     await t.db.update(schema.products).set({ status: 'live' }).where(eq(schema.products.id, product.id));
     await t.db.insert(schema.productColours).values(GARMENTS.map((g) => ({ productId: product.id, colourCode: g.code })));
     const order = async (type: 'pod' | 'bulk', items: { productId: string; colourCode: string; size: string; qty: number }[]) => {
-      const [row] = await t.db.insert(schema.orders).values({ storeId: artist.storeId!, orderType: type, status: 'paid', totalAmount: 25000, productionStatus: 'queued', fanEmail: 'fan@merchfrom.test' }).returning();
+      const [row] = await t.db.insert(schema.orders).values({ storeId: artist.storeId!, orderType: type, status: 'paid', totalAmount: 25000, productionStatus: 'queued', fanEmail: 'fan@blackoutmerch.test' }).returning();
       await t.db.insert(schema.orderItems).values(items.map((i) => ({ orderId: row.id, productId: i.productId, quantity: i.qty, priceAtPurchase: 2500, colourCode: i.colourCode, size: i.size })));
       return row.id;
     };

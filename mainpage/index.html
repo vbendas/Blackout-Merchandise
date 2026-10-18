@@ -6,9 +6,9 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#000000">
 <meta name="robots" content="noindex">
-<title>MerchFrom</title>
+<title>Blackout Merchandise</title>
 <meta name="description" content="We help artists, brands and creators to design, source and sell premium merchandise. By application.">
-<meta property="og:title" content="MerchFrom">
+<meta property="og:title" content="Blackout Merchandise">
 <meta property="og:description" content="We help artists, brands and creators to design, source and sell premium merchandise.">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
@@ -592,7 +592,7 @@ input:focus-visible{outline:none}
 <body>
 
 <header class="top">
-  <a href="./" class="label wm" id="wm" data-home><img src="img/logo.png" alt="MerchFrom" width="360" height="271" class="pre"></a>
+  <a href="./" class="label wm" id="wm" data-home><img src="img/logo.png" alt="Blackout Merchandise" width="360" height="271" class="pre"></a>
   <div class="top-r">
     <span class="label clk" id="top-clock" aria-hidden="true" hidden><span class="where">Barcelona</span><span class="v">--:--</span></span>
     <a href="#press" id="presslink" class="label toppress r"><i class="dot pulse" aria-hidden="true"></i><span class="u">On the press<span class="now"> now</span></span><span class="cnt" aria-hidden="true"><span class="sep">&middot;</span><span id="cnt-runs"></span><span class="cnt-t"><span class="cnt-w">runs on the queue</span><span class="cnt-n">runs</span></span></span><span class="sr" id="cnt-sr"></span></a>
@@ -604,7 +604,7 @@ input:focus-visible{outline:none}
 <div id="announce" class="sr" aria-live="polite" aria-atomic="true"></div>
 
 <!-- 1. THE DOOR -->
-<main id="v-door" class="view door" aria-label="MerchFrom">
+<main id="v-door" class="view door" aria-label="Blackout Merchandise">
   <div class="door-top">
     <p id="g-slogan" class="slogan"><span class="sr">We help artists, brands and creators to design, source and sell premium merchandise.</span><span class="sl-in" aria-hidden="true"><span class="hero-slot" id="hero-slot"></span>We help artists, brands and creators to&nbsp;<span class="w">design, source and sell</span> premium merchandise.</span></p>
     <div class="door-act" id="door-act">
@@ -687,7 +687,7 @@ input:focus-visible{outline:none}
       <li><span class="no" aria-hidden="true">01</span><h3>Art creation</h3><p>No artwork yet? We design it with you, from a brief or around your logo.</p></li>
       <li><span class="no" aria-hidden="true">02</span><h3>Art preparation</h3><p>Every file checked and made print-ready: resolution, clean-up, colour separations.</p></li>
       <li><span class="no" aria-hidden="true">03</span><h3>Production</h3><p>Printed, folded and tagged in-house in Barcelona, after you approve the proof.</p></li>
-      <li><span class="no" aria-hidden="true">04</span><h3>Your e-shop</h3><p>Your own store at merchfrom.com/you or on your domain. Each piece is made as it sells.</p></li>
+      <li><span class="no" aria-hidden="true">04</span><h3>Your e-shop</h3><p>Your own store at blackoutmerch.example/you or on your domain. Each piece is made as it sells.</p></li>
       <li><span class="no" aria-hidden="true">05</span><h3>Payments</h3><p>Checkout and payments handled for you. Your margin is paid out with each sale.</p></li>
       <li><span class="no" aria-hidden="true">06</span><h3>Logistics</h3><p>Packed and shipped worldwide, direct to your fans, within 72 hours.</p></li>
       <li><span class="no" aria-hidden="true">07</span><h3>Customer care</h3><p>Orders, tracking and your fans&rsquo; questions, answered for you.</p></li>
@@ -797,9 +797,9 @@ input:focus-visible{outline:none}
 <!-- 5. ASK -->
 <div id="v-ask" class="ask" hidden role="dialog" aria-modal="true" aria-labelledby="a-h">
   <div class="a-top">
-    <a href="./" class="a-wm" data-home><img src="img/logo.png" alt="MerchFrom" width="360" height="271"></a>
+    <a href="./" class="a-wm" data-home><img src="img/logo.png" alt="Blackout Merchandise" width="360" height="271"></a>
     <div class="a-r">
-      <span class="label" id="a-by"><i class="dot pulse" aria-hidden="true"></i><span class="dim">Answers by the MerchFrom agent</span></span>
+      <span class="label" id="a-by"><i class="dot pulse" aria-hidden="true"></i><span class="dim">Answers by the Blackout Merchandise agent</span></span>
       <button type="button" class="ulink" id="a-close">Close<span class="xesc"> &middot; Esc</span></button>
     </div>
   </div>
@@ -918,7 +918,7 @@ function footer(id){
   return '<footer class="cfoot" aria-label="Contact">'+
     '<span class="fi f-ask"><a class="flink" href="#ask">Ask</a></span>'+
     '<span class="fi faq"><a class="flink" href="./faq/">FAQ</a></span>'+
-    '<span class="fi write"><span class="label">Write</span><a class="flink lc" href="mailto:hello@merchfrom.com">hello@merchfrom.com</a></span>'+
+    '<span class="fi write"><span class="label">Write</span><a class="flink lc" href="mailto:hello@blackoutmerch.example">hello@blackoutmerch.example</a></span>'+
     '<span class="fi agents"><a class="flink" href="./agents/">For agents</a></span>'+
     '<span class="fi place label">Barcelona, ES</span>'+
   '</footer>';
@@ -1473,7 +1473,7 @@ var apStep=0, apProfile=null, apName='', apBusy=false, apRun=0, apSending=false;
 var PRIVACY_URL=STUDIO_ORIGIN+'/privacy', PREVIEW_LIMIT=12000;
 $('#ap-priv').href=PRIVACY_URL;
 /* The application goes to the Studio, which stores it and answers 200 { ok: true }. */
-var APPLY_URL=STUDIO_ORIGIN+'/api/apply', APPLY_LIMIT=15000, APPLY_MAIL='hello@merchfrom.com';
+var APPLY_URL=STUDIO_ORIGIN+'/api/apply', APPLY_LIMIT=15000, APPLY_MAIL='hello@blackoutmerch.example';
 var APPLY_FAIL="That didn't go through. Try again, or write to "+APPLY_MAIL+".";
 var APPLY_WAIT='Too many tries. Wait a minute and send again.';
 
@@ -1765,7 +1765,7 @@ function buildPreview(run,ctl){
   var sec=el('section','mp'); sec.setAttribute('aria-label','Preview: merch for '+P.name);
   var head=el('div','mp-head label'); head.appendChild(el('span','','Preview · '+P.name)); head.appendChild(el('span','rt','Not an order'));
   var strip=el('div','mp-strip');
-  var url=el('div','url'); url.appendChild(document.createTextNode('merchfrom.com/'+slug(P.name))); url.appendChild(el('span','label','(Preview)'));
+  var url=el('div','url'); url.appendChild(document.createTextNode('blackoutmerch.example/'+slug(P.name))); url.appendChild(el('span','label','(Preview)'));
   var mark=el('div','mark',P.logo); mark.setAttribute('aria-hidden','true');
   var nav=el('nav','label'); nav.setAttribute('aria-label','Shop preview sections'); P.nav.forEach(function(n){ nav.appendChild(el('span','',n)); });
   strip.appendChild(url); strip.appendChild(mark); strip.appendChild(nav);
@@ -1793,7 +1793,7 @@ function buildPreview(run,ctl){
     [head,strip].concat(Array.prototype.slice.call(ul.children),[foot]).forEach(function(e,i){
       if(RM) return; e.style.opacity='0'; setTimeout(function(){ e.style.opacity=''; riseIn(e); },120*i);
     });
-    say('Preview: '+P.items.join(', ')+'. Shop header: merchfrom.com/'+slug(P.name)+'.');
+    say('Preview: '+P.items.join(', ')+'. Shop header: blackoutmerch.example/'+slug(P.name)+'.');
     var y=sec.getBoundingClientRect().top+scrollY-(innerWidth<701?64:84);
     window.scrollTo({top:Math.max(0,y),behavior:RM?'auto':'smooth'});
     return true;
@@ -1930,7 +1930,7 @@ $('#w-close').addEventListener('click',closeWatchNav);
 window.addEventListener('message',function(e){
   if(e.origin!==location.origin) return;
   var d=e.data||{};
-  if(d.type!=='merchfrom:watch'||cur!=='watch') return;
+  if(d.type!=='blackoutmerch:watch'||cur!=='watch') return;
   if(d.action==='close') closeWatchNav();
   else if(d.action==='apply'){ wClosing=true; wInApp=false; location.hash='apply'; }
 });
@@ -1942,7 +1942,7 @@ window.addEventListener('message',function(e){
 /* Used only when faq/faq.json does not load. A copy of that file, entry for entry (same order, same fields,
    links included), and read through the same cleanFaq: edit faq.json and this list together. */
 var FALLBACK_FAQ=[
-  {id:'what',q:'What is MerchFrom?',a:'A merch production house in Barcelona. We help artists, brands and creators to design, source and sell premium merchandise. An assistant works with you from the first brief to the press, and we print, fold, tag and ship.',keywords:['merchfrom','what','about','merch','production','company','barcelona','premium']},
+  {id:'what',q:'What is Blackout Merchandise?',a:'A merch production house in Barcelona. We help artists, brands and creators to design, source and sell premium merchandise. An assistant works with you from the first brief to the press, and we print, fold, tag and ship.',keywords:['blackoutmerch','what','about','merch','production','company','barcelona','premium']},
   {id:'who',q:'Who is it for?',a:'Bands and musicians, tattoo artists and studios, illustrators, labels and collectives, festivals and promoters, brands and companies. If you make something people want to wear, apply.',keywords:['who','for','bands','musicians','tattoo','festival','label','brand','creator','illustrator']},
   {id:'by-application',q:'Why is it by application?',a:'We take a limited number of artists each month. We are not an open storefront, and we read every application, one by one.',keywords:['why','application','invite','limited','exclusive','members','open','access','waitlist']},
   {id:'apply',q:'How do I apply, and what happens next?',a:'Choose Apply on the door. Tell us who you are, what the run is for and where to reach you. We read every application, one by one. You get an invite, with your brief already waiting. Then come mockups on real blanks, a proof to approve, and the press.',keywords:['apply','application','how','next','invite','join','brief','start','waitlist'],link:{label:'Apply',href:'../#apply'}},
@@ -1950,7 +1950,7 @@ var FALLBACK_FAQ=[
   {id:'sign-in',q:'How do members sign in?',a:'Type your email on the door. If it belongs to a member, we send a key to that inbox. Enter the key and you are in. Attempts are limited.',keywords:['sign','login','key','email','member','code','password','access','door'],link:{label:'Go to the door',href:'../'}},
   {id:'merch-studio',q:'What is Merch Studio?',a:'The app where the agent works with you. You describe the piece, bring artwork or have some made, see it on real blanks, price it, approve the proof and run your store. Members only.',keywords:['merch','studio','app','workspace','members','agent','platform','dashboard','tool']},
   {id:'agent',q:'What does the agent do?',a:'It browses the blanks, checks your artwork is ready to print, cleans or edits it, builds designs around your logo or from a brief, renders mockups, prices a run, sends proofs, quotes bulk orders and runs your store, orders and support tickets. It only states what the catalogue and your account tell it. Approving a proof, publishing your store and cancelling an order wait for your confirmation.',keywords:['agent','assistant','ai','does','tools','mockups','proof','quote','design','capabilities']},
-  {id:'two-ways',q:'Store or bulk run: how do I sell?',a:'Shop is your own store at merchfrom.com/you or your own domain. Each piece is printed as it sells: no stock, no minimums, no upfront cost. You set the retail price and keep everything above our base cost, paid with each sale. Zero upfront applies to Shop only.\n\nRun is a bulk order for a tour, festival or studio, screen printed or embroidered, folded, tagged and shipped to you, to the venue, or split ahead of time across the cities on your tour. A run is paid before it goes to press, once you have approved the proof.',keywords:['shop','store','run','bulk','sell','upfront','stock','minimum','margin','domain']},
+  {id:'two-ways',q:'Store or bulk run: how do I sell?',a:'Shop is your own store at blackoutmerch.example/you or your own domain. Each piece is printed as it sells: no stock, no minimums, no upfront cost. You set the retail price and keep everything above our base cost, paid with each sale. Zero upfront applies to Shop only.\n\nRun is a bulk order for a tour, festival or studio, screen printed or embroidered, folded, tagged and shipped to you, to the venue, or split ahead of time across the cities on your tour. A run is paid before it goes to press, once you have approved the proof.',keywords:['shop','store','run','bulk','sell','upfront','stock','minimum','margin','domain']},
   {id:'lead-time',q:'How long does a shop order take?',a:'Each piece is printed to order in Barcelona and ships within 72 hours, direct to your fan, wherever they are.',keywords:['how','long','time','lead','days','ship','shipping','delivery','production','order','shop','working']},
   {id:'blanks',q:'What are the blanks?',a:'The garments we print on: 122 blanks, from t-shirts and hoodies to tote bags. All 122 are OEKO-TEX tested, 74 are GOTS-certified, and organic cotton runs across most of the range. Weights go up to 450 gsm, and 73 blanks are 220 gsm or heavier.',keywords:['blanks','garments','catalog','cotton','organic','gots','oeko','gsm','heavyweight','certified']},
   {id:'vegan',q:'Are the garments vegan?',a:'Yes. Every blank in the catalogue is vegan.',keywords:['vegan','garments','blanks','animal','wool','leather','ethical','materials','fabric','plant']},
@@ -1960,7 +1960,7 @@ var FALLBACK_FAQ=[
   {id:'shipping',q:'Where do you ship?',a:'Worldwide, direct to your fans: Spain, Portugal, the rest of the EU, the UK, Switzerland and the rest of the world. Every shop order leaves within 72 hours.',keywords:['ship','shipping','delivery','deliver','country','countries','abroad','international','eu','uk','spain','portugal','world','send']},
   {id:'press-board',q:'What is the press board?',a:'A live board of runs in production in Barcelona: who it is for, the piece, the quantity, the ink and the status. Clients are private unless they opt in, so many rows read private. Open it from the door with On the press now.',keywords:['press','board','live','production','runs','status','private','clients','queue'],link:{label:'On the press now',href:'../#press'}},
   {id:'mcp',q:'Can I use my own AI agent?',a:'That is the plan. The tools behind Merch Studio open up as an MCP server, so Claude, ChatGPT, Gemini, Grok and other MCP clients can work with them. Members only, with your member email and key. It is not open yet. The agents page has the endpoint, the setup steps and the full list of tools.',keywords:['mcp','agents','claude','chatgpt','gemini','grok','connect','connector','own','server','integration'],link:{label:'For agents',href:'../agents/'}},
-  {id:'contact',q:'How do I contact you?',a:'Write to hello@merchfrom.com. The community is on Discord. Members can also ask in Merch Studio, where the agent can open a support ticket for you.',keywords:['contact','email','write','support','discord','community','ticket','talk','reach','hello'],link:{label:'Write to us',href:'mailto:hello@merchfrom.com'}}
+  {id:'contact',q:'How do I contact you?',a:'Write to hello@blackoutmerch.example. The community is on Discord. Members can also ask in Merch Studio, where the agent can open a support ticket for you.',keywords:['contact','email','write','support','discord','community','ticket','talk','reach','hello'],link:{label:'Write to us',href:'mailto:hello@blackoutmerch.example'}}
 ];
 var askFaq=null, askP=null, askBusy=false, askAsked={}, askInApp=false, askClosing=false, askLastFocus=null, askRun=0;
 var aLog=$('#a-log'), aIn=$('#a-in'), aGo=$('#a-go'), aSugg=$('#a-sugg');
@@ -2066,8 +2066,8 @@ function sentences(a){
   return out;
 }
 function linkify(t){
-  return esc(t).replace(/hello@merchfrom\.com/g,'<a href="mailto:hello@merchfrom.com">hello@merchfrom.com</a>')
-    .replace(/(^|[^\/\w.])mcp\.merchfrom\.com/g,'$1<a href="./agents/">mcp.merchfrom.com</a>')
+  return esc(t).replace(/hello@blackoutmerch\.example/g,'<a href="mailto:hello@blackoutmerch.example">hello@blackoutmerch.example</a>')
+    .replace(/(^|[^\/\w.])mcp\.blackoutmerch\.example/g,'$1<a href="./agents/">mcp.blackoutmerch.example</a>')
     .replace(/\b([Tt]he agents page)\b/,'<a href="./agents/">$1</a>');
 }
 function renderSugg(){
@@ -2098,7 +2098,7 @@ function ask(text,direct){
     var lines, src=null, links=null;
     var more=false;
     if(e){ var ss2=sentences(e.a); more=ss2.more; lines=ss2.map(linkify); links=e.links; askAsked[e.id]=1; src=e.id; }
-    else lines=[esc("I don't have a good answer to that yet."),'Write to <a href="mailto:hello@merchfrom.com">hello@merchfrom.com</a>.'];
+    else lines=[esc("I don't have a good answer to that yet."),'Write to <a href="mailto:hello@blackoutmerch.example">hello@blackoutmerch.example</a>.'];
     var wait=RM?0:620+Math.min(900,lines.join(' ').length*4);
     setTimeout(function(){
       if(run!==askRun) return;
@@ -2138,7 +2138,7 @@ function openAsk(){
   a.scrollTop=a.scrollHeight;
   aIn.focus({preventScroll:true});
   loadFaq().then(renderSugg);
-  say('Ask us anything. Answers by the MerchFrom agent. Press Escape to close.');
+  say('Ask us anything. Answers by the Blackout Merchandise agent. Press Escape to close.');
 }
 function closeAsk(){
   var a=$('#v-ask');

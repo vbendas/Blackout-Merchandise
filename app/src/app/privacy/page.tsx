@@ -8,7 +8,7 @@ export default function PrivacyPolicy() {
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-zinc-50">Privacy Policy</h1>
           <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
-            This Privacy Policy explains how MerchFrom Ltd. collects, uses, and protects your personal data in
+            This Privacy Policy explains how Blackout Merchandise Ltd. collects, uses, and protects your personal data in
             accordance with the General Data Protection Regulation (GDPR) and other applicable privacy laws.
           </p>
         </div>
@@ -18,16 +18,16 @@ export default function PrivacyPolicy() {
           <h2 className="text-2xl font-semibold text-zinc-50">1. Identity of Data Controller</h2>
           <div className="space-y-2 text-zinc-300">
             <p>
-              <strong>Company:</strong> MerchFrom Ltd.
+              <strong>Company:</strong> Blackout Merchandise Ltd.
             </p>
             <p>
               <strong>Registration:</strong> Registered in Portugal
             </p>
             <p>
-              <strong>Data Protection Officer:</strong> dpo@merchfrom.com
+              <strong>Data Protection Officer:</strong> dpo@blackoutmerch.example
             </p>
             <p>
-              <strong>Contact for Privacy Matters:</strong> privacy@merchfrom.com
+              <strong>Contact for Privacy Matters:</strong> privacy@blackoutmerch.example
             </p>
           </div>
         </section>
@@ -235,10 +235,10 @@ export default function PrivacyPolicy() {
           <h2 className="text-2xl font-semibold text-zinc-50">9. Contact Information</h2>
           <div className="space-y-2 text-zinc-300">
             <p>
-              <strong>Data Protection Officer:</strong> dpo@merchfrom.com
+              <strong>Data Protection Officer:</strong> dpo@blackoutmerch.example
             </p>
             <p>
-              <strong>General Privacy Inquiries:</strong> privacy@merchfrom.com
+              <strong>General Privacy Inquiries:</strong> privacy@blackoutmerch.example
             </p>
             <p>
               <strong>Physical Address:</strong> Available upon request for data subjects

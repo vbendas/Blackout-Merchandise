@@ -20,7 +20,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: 'Merch From | Premium Creator Commerce',
+  title: 'Blackout Merchandise | Premium Creator Commerce',
   description: 'Premium merchandise platform for artists who care about quality. Design, source, and sell with zero upfront costs.',
 };
 

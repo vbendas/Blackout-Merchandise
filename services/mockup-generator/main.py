@@ -1,5 +1,5 @@
 """
-Merch From - Mockup Generation Service
+Blackout Merchandise - Mockup Generation Service
 FastAPI microservice for generating realistic product mockups with halftone effects
 """
 
@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI application
 app = FastAPI(
-    title="Merch From - Mockup Generation Service",
+    title="Blackout Merchandise - Mockup Generation Service",
     description="Generate realistic product mockups with halftone effects and fabric textures",
     version="1.0.0",
     docs_url="/docs",
@@ -100,7 +100,7 @@ async def health_check():
 async def root():
     """Root endpoint with service info"""
     return {
-        "service": "Merch From - Mockup Generation Service",
+        "service": "Blackout Merchandise - Mockup Generation Service",
         "version": "1.0.0",
         "docs": "/docs",
         "health": "/health"

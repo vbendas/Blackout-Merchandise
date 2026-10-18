@@ -7,7 +7,7 @@
 ## 📋 Project Overview
 
 ### What is the Website?
-Merch-From marketing landing page showcasing the platform and collecting waitlist signups.
+Blackout Merchandise marketing landing page showcasing the platform and collecting waitlist signups.
 
 ### Current Phase
 - **Phase**: Phase 1 - MVP

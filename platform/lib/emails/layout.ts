@@ -65,7 +65,7 @@ export function renderEmail(content: EmailContent): { html: string; text: string
     ${content.preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(content.preheader)}</div>` : ''}
     <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;">
       <div style="background:${CHARCOAL};padding:22px 32px;">
-        <span style="color:${CREAM};font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;">MerchFrom</span>
+        <span style="color:${CREAM};font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;">Blackout Merchandise</span>
       </div>
       <div style="padding:32px;color:${INK};">
         <h1 style="margin:0 0 14px;font-size:19px;font-weight:700;color:${INK};">${escapeHtml(content.heading)}</h1>
@@ -74,7 +74,7 @@ export function renderEmail(content: EmailContent): { html: string; text: string
         ${buttonHtml}
       </div>
       <div style="padding:18px 32px;border-top:1px solid ${HAIRLINE};">
-        <p style="margin:0;font-size:11px;color:${DIM};">${escapeHtml(content.footerNote ?? 'MerchFrom — premium merch for artists.')}</p>
+        <p style="margin:0;font-size:11px;color:${DIM};">${escapeHtml(content.footerNote ?? 'Blackout Merchandise — premium merch for artists.')}</p>
       </div>
     </div>
   </body>
@@ -83,7 +83,7 @@ export function renderEmail(content: EmailContent): { html: string; text: string
   const textLines = [content.heading, '', ...content.paragraphs.map(stripTags)];
   if (content.rows?.length) textLines.push('', ...content.rows.map((row) => `${row.label}: ${row.value}`));
   if (content.buttonLabel && content.buttonUrl) textLines.push('', `${content.buttonLabel}: ${content.buttonUrl}`);
-  textLines.push('', content.footerNote ?? 'MerchFrom — premium merch for artists.');
+  textLines.push('', content.footerNote ?? 'Blackout Merchandise — premium merch for artists.');
 
   return { html, text: textLines.join('\n') };
 }

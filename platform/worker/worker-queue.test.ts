@@ -45,7 +45,7 @@ before(async () => {
     recoverStuck: jobs.recoverStuckPrintJobs,
   };
   const { schema } = await import('@/lib/db');
-  const { userId, storeId } = await seedUser(t.db, { email: 'worker@merchfrom.test', withStore: true });
+  const { userId, storeId } = await seedUser(t.db, { email: 'worker@blackoutmerch.test', withStore: true });
   const [design] = await t.db.insert(schema.designs).values({ storeId: storeId!, source: 'upload' }).returning();
   designId = design.id;
   const [version] = await t.db

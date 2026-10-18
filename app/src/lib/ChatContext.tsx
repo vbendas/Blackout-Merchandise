@@ -97,7 +97,7 @@ interface DesignDraft {
   timestamp: Date;
 }
 
-const DESIGN_DRAFT_KEY = 'merchfrom_design_draft';
+const DESIGN_DRAFT_KEY = 'blackoutmerch_design_draft';
 
 export interface ChatState {
   messages: Message[];
@@ -251,7 +251,7 @@ export function ChatProvider({ children, initialAgent = 'Leopoldo' }: ChatProvid
   // Load session history from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('merchfrom_chat_sessions');
+      const saved = localStorage.getItem('blackoutmerch_chat_sessions');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -271,7 +271,7 @@ export function ChatProvider({ children, initialAgent = 'Leopoldo' }: ChatProvid
   // Save session history to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined' && sessionHistory.length > 0) {
-      localStorage.setItem('merchfrom_chat_sessions', JSON.stringify(sessionHistory));
+      localStorage.setItem('blackoutmerch_chat_sessions', JSON.stringify(sessionHistory));
     }
   }, [sessionHistory]);
 

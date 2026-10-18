@@ -1,6 +1,6 @@
 # Product
 
-The Merch From product vision, business model, and user experience.
+The Blackout Merchandise product vision, business model, and user experience.
 
 ---
 

@@ -9,7 +9,7 @@ import { PreviewDoor } from '@/components/auth/PreviewDoor';
 import { firstParam, prefillEmail } from '@/components/auth/door-links';
 
 export const metadata: Metadata = {
-  title: { absolute: 'MerchFrom' },
+  title: { absolute: 'Blackout Merchandise' },
   robots: { index: false, follow: false },
 };
 

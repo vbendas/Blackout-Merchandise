@@ -16,10 +16,10 @@
 **Impact:** High — affects entire AI pipeline, voice system, cost structure
 
 #### Context
-Merch From originally selected MiniMax as the AI provider for LLM (M2-her), STT, and TTS. The decision was based on MiniMax's character-roleplay capabilities and integrated voice pipeline.
+Blackout Merchandise originally selected MiniMax as the AI provider for LLM (M2-her), STT, and TTS. The decision was based on MiniMax's character-roleplay capabilities and integrated voice pipeline.
 
 #### Trigger for Re-evaluation
-Mistral AI (Paris) released Voxtral Transcribe 2 (STT) and Voxtral TTS, completing a full voice pipeline. Combined with Mistral Large (LLM), Mistral now covers all three AI layers that Merch From needs.
+Mistral AI (Paris) released Voxtral Transcribe 2 (STT) and Voxtral TTS, completing a full voice pipeline. Combined with Mistral Large (LLM), Mistral now covers all three AI layers that Blackout Merchandise needs.
 
 #### Options Evaluated
 
@@ -72,7 +72,7 @@ Voxtral TTS was released March 2026 — very new. Mitigation:
 **Impact:** High — affects facility strategy, cost structure, crowdfunding narrative
 
 #### Context
-Merch From planned to lease industrial space in Porto (€1,000-1,200/month) with a goal to purchase property in Year 2-3 (€100-120K).
+Blackout Merchandise planned to lease industrial space in Porto (€1,000-1,200/month) with a goal to purchase property in Year 2-3 (€100-120K).
 
 #### Trigger for Re-evaluation
 Research revealed Castelo Branco offers:
@@ -110,7 +110,7 @@ Research revealed Castelo Branco offers:
 
 #### Next Steps
 1. Contact Castelo Branco municipality (Invest CB / ALECB) for land terms
-2. Identify open Portugal 2030 calls compatible with Merch From's investment
+2. Identify open Portugal 2030 calls compatible with Blackout Merchandise's investment
 3. Do NOT promise in crowdfunding until confirmed
 
 ---

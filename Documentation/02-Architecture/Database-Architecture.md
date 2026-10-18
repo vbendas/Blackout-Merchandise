@@ -2,7 +2,7 @@
 
 ## Overview
 
-Merch From uses a **dual-database architecture** by design, not by accident. This document explains why we have two separate databases, what each contains, and when to use which.
+Blackout Merchandise uses a **dual-database architecture** by design, not by accident. This document explains why we have two separate databases, what each contains, and when to use which.
 
 ---
 
@@ -66,7 +66,7 @@ waitlist               // Enhanced version (with indexes)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        MERCH FROM                               │
+│                        BLACKOUT MERCHANDISE                               │
 │                                                                 │
 │   ┌──────────────────────┐      ┌──────────────────────────┐  │
 │   │    MAINPAGE APP      │      │       APP (PWA)          │  │

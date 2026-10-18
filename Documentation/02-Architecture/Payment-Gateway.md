@@ -10,7 +10,7 @@
 
 ## 1. Overview
 
-Merch From uses a **dual-gateway payment architecture** with NexaPay as the primary processor and Stripe retained as an instant-switchover backup.
+Blackout Merchandise uses a **dual-gateway payment architecture** with NexaPay as the primary processor and Stripe retained as an instant-switchover backup.
 
 | | Primary | Backup |
 |--|---------|--------|
@@ -51,7 +51,7 @@ Merch From uses a **dual-gateway payment architecture** with NexaPay as the prim
 | **Projected Post-Promo Commission** | ~1.5% (conservative estimate) |
 | **Provider + Network Fees** | 1-4% (NexaPay does not profit from these) |
 | **Payment Providers** | All 14 (9 premium): Crypto.com, Guardarian, MoonPay, Banxa, Revolut, Unlimit, PayPal, Binance Pay, Stripe, Ramp, Transak, Sardine, UTORG, Topper |
-| **Settlement Currency** | USDC (Polygon, Ethereum, BSC) — **Polygon primary for Merch From** |
+| **Settlement Currency** | USDC (Polygon, Ethereum, BSC) — **Polygon primary for Blackout Merchandise** |
 | **Settlement Speed** | 1-2 minutes after payment confirmation |
 | **Team Members** | 5 |
 | **Support** | Priority 24/7 |
@@ -75,7 +75,7 @@ Customers see a **standard, professional checkout page** — no crypto visible t
 |-------|-------------|-----------|
 | **Customers (buyers)** | No (provider may trigger for >$700) | $700 per transaction |
 | **Artists (merchants)** | No | — |
-| **Platform (Merch From)** | Yes (merchant account) | Exceeds $750/month |
+| **Platform (Blackout Merchandise)** | Yes (merchant account) | Exceeds $750/month |
 
 Note: NexaPay's payment providers (MoonPay, Guardarian, etc.) may independently request customer identity verification for large transactions. This is standard in the industry and happens transparently during checkout.
 
@@ -161,7 +161,7 @@ NexaPay converts to USDC on Polygon: ~$34.30 USDC
 NexaPay webhook → POST /api/payment/webhook
   │
   ▼
-Merch From settlement logic:
+Blackout Merchandise settlement logic:
   │
   ├─ a. Receive $34.30 USDC in platform wallet (Polygon)
   │
@@ -193,7 +193,7 @@ Merch From settlement logic:
 | Customer pays | $35.00 | USD | Visa/MC/Apple Pay/Google Pay/PayPal |
 | Provider + network fees (1-4%) | -$1.40 | USD | Deducted by NexaPay's provider (not NexaPay) |
 | NexaPay commission (0% current / 1.5% projected) | -$0.00 / -$0.52 | USD | Launch offer / projected post-Jun 28 |
-| **Settled to Merch From** | **$33.60 / $33.08** | **USDC** | On Polygon, 1-2 min |
+| **Settled to Blackout Merchandise** | **$33.60 / $33.08** | **USDC** | On Polygon, 1-2 min |
 | Base price (platform) | $13.95 | USDC → EURC | 12 EUR at EUR/USD 1.1625 |
 | **Artist payout** | **$19.65 / $19.13** | **USDC or EURC** | Sent to artist wallet instantly |
 
@@ -324,7 +324,7 @@ Real-time EUR/USD rates fetched from:
 
 ### 6.4 Future: Brazil Launch (BRL1 on Stellar)
 
-When Merch From expands to Brazil:
+When Blackout Merchandise expands to Brazil:
 - Requires Polygon → Stellar bridge for USDC → BRL1 conversion
 - Artist wallet setup on Stellar (LOBSTR) guided by Leopoldo
 - BRL1 is a Stellar-native stablecoin pegged to Brazilian Real
@@ -378,7 +378,7 @@ When Merch From expands to Brazil:
 
 - **Platform vault**: Multi-sig wallet on Polygon (requires 2-of-3 signatures for large transfers)
 - **Artist wallets**: Artists provide their own Polygon wallet address — we never custody their funds
-- **Private keys**: Merch From never stores private keys; all payouts are send-only to artist-provided addresses
+- **Private keys**: Blackout Merchandise never stores private keys; all payouts are send-only to artist-provided addresses
 
 ### 8.2 Webhook Verification
 
@@ -395,7 +395,7 @@ When Merch From expands to Brazil:
 ### 8.4 Regulatory Posture
 
 - NexaPay handles all payment provider regulatory compliance
-- Merch From's role: receive USDC, convert to EURC, send to wallets
+- Blackout Merchandise's role: receive USDC, convert to EURC, send to wallets
 - Stablecoins (USDC, EURC) are pegged 1:1 to fiat — no volatility risk
 - MiCA compliance managed by NexaPay (payment processor) and Circle (stablecoin issuer)
 

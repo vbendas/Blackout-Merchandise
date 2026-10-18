@@ -21,11 +21,11 @@ after(() => {
 
 const ROW: OnThePressRow = { id: 'a1b2c3d4e5f6', run: 1001, client: 'Private', piece: 'Classic tee', printed: 82, total: 120, ink: '2 colours', stage: 'ON THE PRESS', updatedAt: '2026-10-16T10:00:00.000Z' };
 
-const get = (origin?: string) => new Request('https://studio.merchfrom.com/api/public/on-the-press', { headers: origin ? { origin } : {} });
+const get = (origin?: string) => new Request('https://studio.blackoutmerch.example/api/public/on-the-press', { headers: origin ? { origin } : {} });
 
 test('every caller gets the same answer: the rows, readable from any website, never with credentials', async () => {
   const answers: string[] = [];
-  for (const origin of ['https://merchfrom.com', 'https://www.merchfrom.com', 'https://evil.example', 'null', undefined]) {
+  for (const origin of ['https://blackoutmerch.example', 'https://www.blackoutmerch.example', 'https://evil.example', 'null', undefined]) {
     const res = await handleBoard(get(origin), { feed: async () => [ROW] });
     assert.equal(res.status, 200);
     assert.equal(res.headers.get('access-control-allow-origin'), '*', String(origin));
@@ -43,7 +43,7 @@ test('every caller gets the same answer: the rows, readable from any website, ne
 });
 
 test('a short public cache: 15 seconds in the browser and the CDN', async () => {
-  const res = await handleBoard(get('https://merchfrom.com'), { feed: async () => [] });
+  const res = await handleBoard(get('https://blackoutmerch.example'), { feed: async () => [] });
   assert.equal(res.headers.get('cache-control'), `public, max-age=${BOARD_MAX_AGE_SECONDS}, s-maxage=${BOARD_MAX_AGE_SECONDS}, stale-while-revalidate=${BOARD_MAX_AGE_SECONDS}`);
   assert.equal(BOARD_MAX_AGE_SECONDS, 15);
   assert.match(res.headers.get('content-type') ?? '', /^application\/json/);
@@ -51,7 +51,7 @@ test('a short public cache: 15 seconds in the browser and the CDN', async () => 
 
 test('when the board cannot be read: a 503 with a plain sentence, not cached, the reason logged and not sent', async () => {
   logged.length = 0;
-  const res = await handleBoard(get('https://merchfrom.com'), {
+  const res = await handleBoard(get('https://blackoutmerch.example'), {
     feed: async () => {
       throw new Error('connect ECONNREFUSED 10.0.0.1:5432 (orders table)');
     },

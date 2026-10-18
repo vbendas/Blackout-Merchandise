@@ -1,6 +1,6 @@
 > Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
 
-# MerchFrom: Standardized Evaluation Criteria
+# Blackout Merchandise: Standardized Evaluation Criteria
 
 > **Adopted:** February 6, 2026
 > **Version:** 2.0
@@ -468,7 +468,7 @@ Valuation factors:
 Every evaluation document MUST follow this structure:
 
 ```markdown
-# MerchFrom: [Type] Evaluation — [Date]
+# Blackout Merchandise: [Type] Evaluation — [Date]
 
 **Evaluation Date:** [date]
 **Evaluator:** [name/model]
@@ -618,4 +618,4 @@ After calculating the composite score mathematically, the evaluator should ask: 
 
 ---
 
-*This document is the canonical reference for all MerchFrom evaluations. Update the version number if criteria change.*
+*This document is the canonical reference for all Blackout Merchandise evaluations. Update the version number if criteria change.*

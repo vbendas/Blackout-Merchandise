@@ -28,7 +28,7 @@ async function main() {
 
   const user = await getOrCreateUserFromClerk({
     clerkId: 'dev-bypass',
-    email: process.env.AUTH_DEV_EMAIL ?? 'dev@merchfrom.test',
+    email: process.env.AUTH_DEV_EMAIL ?? 'dev@blackoutmerch.test',
     displayName: 'Dev Artist',
     imageUrl: null,
     publicMetadataRole: null,
@@ -55,7 +55,7 @@ async function main() {
 
   console.log('\n=== notifyFan order.confirmed ===');
   await notifyFan({
-    email: 'fan@merchfrom.test',
+    email: 'fan@blackoutmerch.test',
     event: 'order.confirmed',
     payload: { reference: 'ORD-1001', storeName: 'Iron Casket', totalCents: 7000, currency: 'EUR' },
   });

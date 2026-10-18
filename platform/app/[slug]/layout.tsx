@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const store = await getPublicStore(slug);
   if (!store) return {};
 
-  const description = store.about ?? `Shop ${store.name} on MerchFrom.`;
+  const description = store.about ?? `Shop ${store.name} on Blackout Merchandise.`;
   const ogImage = store.bannerUrl ?? store.logoUrl ?? undefined;
 
   return {

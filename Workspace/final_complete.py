@@ -63,7 +63,7 @@ def extract_complete_products():
     ]
     
     # First, let's read the previously extracted data
-    prev_file = '/Users/victorbendas/Documents/GitHub/Merch-From/Workspace/stanley_stella_all_150_products.json'
+    prev_file = str(Path(__file__).resolve().parent / 'stanley_stella_all_150_products.json')
     with open(prev_file, 'r', encoding='utf-8') as f:
         prev_data = json.load(f)
     
@@ -136,7 +136,7 @@ final_data = {
 }
 
 # Save final JSON
-output_file = Path('/Users/victorbendas/Documents/GitHub/Merch-From/Workspace/stanley_stella_complete_collection.json')
+output_file = Path(__file__).resolve().parent / 'stanley_stella_complete_collection.json'
 with open(output_file, 'w', encoding='utf-8') as f:
     json.dump(final_data, f, indent=2, ensure_ascii=False)
 

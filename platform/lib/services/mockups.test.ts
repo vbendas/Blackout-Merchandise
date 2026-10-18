@@ -61,7 +61,7 @@ before(async () => {
   } as unknown as NodeModule;
 
   t = await setupTestDb();
-  ({ storeId } = await seedUser(t.db, { email: 'mockups@merchfrom.test', withStore: true }).then((u) => ({ storeId: u.storeId! })));
+  ({ storeId } = await seedUser(t.db, { email: 'mockups@blackoutmerch.test', withStore: true }).then((u) => ({ storeId: u.storeId! })));
   await t.db.insert(schema.printServices).values({ code: 'dtg', name: 'DTG' });
   await t.db.insert(schema.colours).values([
     { code: 'C001', name: 'White', hex: '#F0F0F0', isLight: true },

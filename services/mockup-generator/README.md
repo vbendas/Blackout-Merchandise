@@ -1,4 +1,4 @@
-# Merch From - Mockup Generation Service
+# Blackout Merchandise - Mockup Generation Service
 
 Python microservice for generating realistic product mockups with halftone effects and fabric textures.
 
@@ -156,7 +156,7 @@ Environment variables (see `.env.example`):
 
 ## License
 
-Proprietary - Merch From
+Proprietary - Blackout Merchandise
 
 ## Related
 

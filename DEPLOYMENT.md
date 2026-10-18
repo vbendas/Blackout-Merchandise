@@ -2,14 +2,14 @@
 
 > **Last Updated:** October 11, 2026
 
-This guide covers deploying the MerchFrom applications to Vercel.
+This guide covers deploying the Blackout Merchandise applications to Vercel.
 
 ---
 
 ## Prerequisites
 
 - [Vercel CLI](https://vercel.com/docs/cli) installed: `bun i -g vercel`
-- Access to the MerchFrom Vercel team
+- Access to the Blackout Merchandise Vercel team
 - Environment variables ready for `/app` (see [Environment Variables](#environment-variables)); the website needs none
 
 ---
@@ -20,20 +20,20 @@ We deploy two separate projects from this monorepo:
 
 | Project | Directory | Vercel Project | Domain |
 |---------|-----------|----------------|--------|
-| Website (static) | `/mainpage` | `merch-from-mainpage` | `merchfrom.com` |
-| Main App | `/app` | `merch-from-app` | `app.merchfrom.com` |
+| Website (static) | `/mainpage` | `blackout-merchandise-mainpage` | `blackoutmerch.example` |
+| Main App | `/app` | `blackout-merchandise-app` | `app.blackoutmerch.example` |
 
-`/platform` (the agent-first Next.js 16 app, npm) is not covered by this guide yet: no Vercel project for it is documented. `Documentation/Dev/Platform-Plan.md` plans it on Vercel region `fra1` and puts fan storefronts at `merchfrom.com/[slug]` (or an artist's custom domain). That would clash with the website on `merchfrom.com` above; the domain split between the website and the platform is not decided yet.
+`/platform` (the agent-first Next.js 16 app, npm) is not covered by this guide yet: no Vercel project for it is documented. `Documentation/Dev/Platform-Plan.md` plans it on Vercel region `fra1` and puts fan storefronts at `blackoutmerch.example/[slug]` (or an artist's custom domain). That would clash with the website on `blackoutmerch.example` above; the domain split between the website and the platform is not decided yet.
 
-The root `vercel.json` (a daily cron, `0 2 * * *`, on `/cron/retention`) belongs to neither project above, and no route in `app/`, `platform/` or `mainpage/` serves `/cron/retention`. Git-integration builds read `vercel.json` from the project's Root Directory (`mainpage` for the website), and the app's CLI deploy (see [Main App](#main-app-appmerchfromcom)) runs inside `app/` and uploads only that folder, so neither picks the root file up. A CLI deploy of the website run from the repo root does: when `mainpage/` has no `vercel.json` of its own, the CLI prints a warning that the file should be inside the root directory and then applies the repo-root `vercel.json`, cron included. This is one reason the website deploys through the Git integration only (see below).
+The root `vercel.json` (a daily cron, `0 2 * * *`, on `/cron/retention`) belongs to neither project above, and no route in `app/`, `platform/` or `mainpage/` serves `/cron/retention`. Git-integration builds read `vercel.json` from the project's Root Directory (`mainpage` for the website), and the app's CLI deploy (see [Main App](#main-app-appblackoutmerchexample)) runs inside `app/` and uploads only that folder, so neither picks the root file up. A CLI deploy of the website run from the repo root does: when `mainpage/` has no `vercel.json` of its own, the CLI prints a warning that the file should be inside the root directory and then applies the repo-root `vercel.json`, cron included. This is one reason the website deploys through the Git integration only (see below).
 
 ---
 
 ## Quick Deploy
 
-### Website (merchfrom.com)
+### Website (blackoutmerch.example)
 
-`/mainpage` is plain HTML, CSS and JS: no framework, nothing to install or build, no environment variables. Set the `merch-from-mainpage` project once in **Project Settings → Build and Deployment**:
+`/mainpage` is plain HTML, CSS and JS: no framework, nothing to install or build, no environment variables. Set the `blackout-merchandise-mainpage` project once in **Project Settings → Build and Deployment**:
 
 | Setting | Value |
 |---------|-------|
@@ -46,17 +46,17 @@ The root `vercel.json` (a daily cron, `0 2 * * *`, on `/cron/retention`) belongs
 
 Do not add a `public/` folder to `mainpage`: with `Other`, Vercel would then serve only that folder.
 
-Deploy through the Git integration: connect the `merch-from-mainpage` project to the GitHub repo, and a push to the production branch deploys to production. The Git integration builds from the committed files only.
+Deploy through the Git integration: connect the `blackout-merchandise-mainpage` project to the GitHub repo, and a push to the production branch deploys to production. The Git integration builds from the committed files only.
 
 Do not deploy the website with the CLI from this repo. Because the project's Root Directory is `mainpage`, the CLI joins it to the folder it runs in: run inside `mainpage/`, it looks for `mainpage/mainpage` and stops, so it has to run from the repo root, and from there:
 
 - The CLI uploads everything in the repo root except `.vercelignore` entries and Vercel's default ignore list (`.git`, `node_modules`, `.next`, `.vercel`, `.env.local`, ...). It does not read `.gitignore`. This repo has no `.vercelignore`, so git-ignored local files (for example `.claude/settings.local.json`, `.crush/`) and the untracked `Assets/` folder (about 5 GB) would be uploaded.
 - The repo-root `vercel.json` and its cron would be applied to the website deployment (see [Project Structure](#project-structure)).
-- The repo has no `.vercel` link folder, and the project lives in the MerchFrom Vercel team, so a bare `--project` would be looked up in whatever scope is currently active unless `--scope` is passed.
+- The repo has no `.vercel` link folder, and the project lives in the Blackout Merchandise Vercel team, so a bare `--project` would be looked up in whatever scope is currently active unless `--scope` is passed.
 
 > **Sample data:** the members area, keys, the "On the press now" board and apply results run on front-end sample data inside `index.html`, not a backend. Until a backend exists, a public deploy shows the three sample members (their emails are in the page source) and sample press rows, not real orders.
 
-### Main App (app.merchfrom.com)
+### Main App (app.blackoutmerch.example)
 
 ```bash
 # From project root
@@ -127,9 +127,9 @@ bun run db:migrate
 
 ## Preview Deployments
 
-With the Git integration, every push to a branch creates a preview deployment for each connected project. That is the only way to preview the website: do not run the `vercel` CLI for it (see [Website](#website-merchfromcom)).
+With the Git integration, every push to a branch creates a preview deployment for each connected project. That is the only way to preview the website: do not run the `vercel` CLI for it (see [Website](#website-blackoutmerchexample)).
 
-For `/app`, a CLI preview runs inside `app/`, as in [Main App](#main-app-appmerchfromcom):
+For `/app`, a CLI preview runs inside `app/`, as in [Main App](#main-app-appblackoutmerchexample):
 
 ```bash
 # Deploy preview (non-production), /app only
@@ -164,9 +164,9 @@ If something goes wrong:
 
 | Domain | Project | Use |
 |--------|---------|-----|
-| `merchfrom.com` | mainpage | Website (static) |
-| `www.merchfrom.com` | mainpage | Redirect to non-www |
-| `app.merchfrom.com` | app | Application |
+| `blackoutmerch.example` | mainpage | Website (static) |
+| `www.blackoutmerch.example` | mainpage | Redirect to non-www |
+| `app.blackoutmerch.example` | app | Application |
 
 ### Setting up in Vercel
 

@@ -51,7 +51,7 @@ export default async function StaffInvitePage({ searchParams }: { searchParams: 
       <Frame title={waiting ? 'You have an invite' : 'Open your invite link'}>
         <p className="mf-dim max-w-sm text-sm">
           {waiting
-            ? `There's an invite to the MerchFrom team for ${session.user.email}. Open the link in that email to accept it.`
+            ? `There's an invite to the Blackout Merchandise team for ${session.user.email}. Open the link in that email to accept it.`
             : 'This page opens from the link in your invite email.'}
         </p>
       </Frame>
@@ -120,7 +120,7 @@ export default async function StaffInvitePage({ searchParams }: { searchParams: 
 
   const access = describeAccess(invite.permissions);
   return (
-    <Frame title="Join the MerchFrom team">
+    <Frame title="Join the Blackout Merchandise team">
       <p className="mf-dim max-w-sm text-sm">
         {invite.title ? `You're invited as ${invite.title}. ` : ''}Your access, which the owner can change later:
       </p>

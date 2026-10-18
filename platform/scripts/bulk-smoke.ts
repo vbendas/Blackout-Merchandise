@@ -2,7 +2,7 @@
  * Bulk order smoke test (wave 3 — Bulk). Calls services directly (no agent
  * loop, no HTTP), against STRIPE_MOCK=1: quote a run of 40 hoodies straight
  * off a blank (no shop product involved) -> proof -> approve -> checkout ->
- * markBulkPaid, then asserts the resulting `orders` row is 100%-to-MerchFrom
+ * markBulkPaid, then asserts the resulting `orders` row is 100%-to-Blackout Merchandise
  * with no Connect transfer, and that a duplicate markBulkPaid is a no-op.
  *
  * Run with: `STRIPE_MOCK=1 AGENT_MOCK=1 npx tsx scripts/bulk-smoke.ts`
@@ -55,7 +55,7 @@ async function main() {
     if (existing[0]) return existing[0];
     const [created] = await db
       .insert(schema.users)
-      .values({ clerkId, email: 'bulk-smoke@merchfrom.test', displayName: 'Bulk Smoke Test', role: 'artist' })
+      .values({ clerkId, email: 'bulk-smoke@blackoutmerch.test', displayName: 'Bulk Smoke Test', role: 'artist' })
       .returning();
     return created;
   }

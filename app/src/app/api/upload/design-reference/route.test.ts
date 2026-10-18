@@ -25,7 +25,7 @@ vi.mock('@clerk/nextjs/server', () => ({
 function mockUploadResult(overrides: Record<string, unknown> = {}) {
   return {
     secure_url: 'https://res.cloudinary.com/test/image/upload/v123/design.jpg',
-    public_id: 'merch-from/studio/references/test-user-id/ref_123',
+    public_id: 'blackout-merchandise/studio/references/test-user-id/ref_123',
     width: 1920,
     height: 1080,
     ...overrides,
@@ -148,7 +148,7 @@ describe('Design Reference Upload API', () => {
     expect(mockUpload).toHaveBeenCalled();
     const callArgs = mockUpload.mock.calls[0];
     expect(callArgs[1]).toMatchObject({
-      folder: 'merch-from/studio/references/test-user-id',
+      folder: 'blackout-merchandise/studio/references/test-user-id',
     });
   });
 

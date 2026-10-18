@@ -1,6 +1,6 @@
 {
   "id": "/station",
-  "name": "MerchFrom Station",
+  "name": "Blackout Merchandise Station",
   "short_name": "Station",
   "description": "Job sheets for the production stations: screens, counts and stages, live.",
   "start_url": "/station",

@@ -7,7 +7,7 @@
 :root {
   /* Black ground and white ink, shared with the website (mainpage/). This
      app is dark only — no light-mode block; shadcn/AI Elements variables
-     below map straight onto the same MerchFrom tokens instead of a separate
+     below map straight onto the same Blackout Merchandise tokens instead of a separate
      palette. Greys are white at reduced alpha, never a separate grey. */
   --paper: #000000;
   --signal: #f2efe9;

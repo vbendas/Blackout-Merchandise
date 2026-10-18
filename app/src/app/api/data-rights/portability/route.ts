@@ -89,7 +89,7 @@ async function exportUserDataHandler(request: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Content-Disposition': `attachment; filename="merchfrom-data-export-${userId}.json"`,
+        'Content-Disposition': `attachment; filename="blackoutmerch-data-export-${userId}.json"`,
       },
     });
   } catch (error) {

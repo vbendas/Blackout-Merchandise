@@ -8,7 +8,7 @@
 ## Brand Identity
 
 ### Brand Name
-**Merch From** (stylized with space, no hyphen)
+**Blackout Merchandise** (stylized with space, no hyphen)
 
 ### Brand Taglines
 
@@ -260,7 +260,7 @@ Our public homepage should create **intrigue and exclusivity**, not marketing co
 
 ## Research-Backed Messaging (May 2026)
 
-This section summarizes the key research findings that inform all Merch From messaging. For the complete analysis, see **`Brand-Messaging-Research.md`**.
+This section summarizes the key research findings that inform all Blackout Merchandise messaging. For the complete analysis, see **`Brand-Messaging-Research.md`**.
 
 ### The Five Principles
 
@@ -358,7 +358,7 @@ This section summarizes the key research findings that inform all Merch From mes
 
 **Landing Page Hero:**
 ```
-❌ "Welcome to Merch From! We help you create amazing merchandise
+❌ "Welcome to Blackout Merchandise! We help you create amazing merchandise
     with our AI-powered platform. Sign up today!"
 
 ✅ "We help artists produce premium merchandise."

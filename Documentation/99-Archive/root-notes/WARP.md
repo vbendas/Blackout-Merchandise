@@ -4,7 +4,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-MerchFrom is a merchandise platform connecting artists with e-commerce, featuring AI-driven design tools and avatar brand ambassadors (Leopoldo, Francisca, Antônia). The platform enables artists to create and sell merchandise with integrated payment processing and order fulfillment.
+Blackout Merchandise is a merchandise platform connecting artists with e-commerce, featuring AI-driven design tools and avatar brand ambassadors (Leopoldo, Francisca, Antônia). The platform enables artists to create and sell merchandise with integrated payment processing and order fulfillment.
 
 ## Repository Structure
 
@@ -159,4 +159,4 @@ Three brand ambassador characters stored in `/Assets`:
 - **Francisca** - Design & Print Strategy (The "Visionary")
 - **Antônia** - Logistics & Support (The "Hunter")
 
-Assets uploaded to Cloudinary at `merch-from/avatars/{character}/{expression}` in 4K WebP format.
+Assets uploaded to Cloudinary at `blackout-merchandise/avatars/{character}/{expression}` in 4K WebP format.

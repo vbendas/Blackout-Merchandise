@@ -3,7 +3,7 @@
 import { requireRegistered } from '@/lib/auth';
 import { setPressBoardOptIn } from '@/lib/services/stores';
 
-// The server action behind Settings > Shop's "Show my shop's name on the MerchFrom press board". Like every action it is a
+// The server action behind Settings > Shop's "Show my shop's name on the Blackout Merchandise press board". Like every action it is a
 // public POST endpoint, so it signs the caller in again and takes the shop from the session, never from the page. The
 // answer is a sentence the switch shows beside itself, not a thrown error.
 

@@ -4,7 +4,7 @@ export default function StoreNotFound() {
       className="flex min-h-screen flex-col items-center justify-center gap-3"
       style={{ background: 'var(--paper)', color: 'var(--signal)' }}
     >
-      <span className="mf-label mf-dim">MerchFrom</span>
+      <span className="mf-label mf-dim">Blackout Merchandise</span>
       <h1 className="mf-display text-2xl">No such shop.</h1>
     </div>
   );

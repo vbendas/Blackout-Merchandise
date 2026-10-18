@@ -21,7 +21,7 @@ export const DEMO_CATALOG_PRODUCTS = [
     material: '100% Organic Cotton',
     baseCostEur: 1200, // €12.00
     suggestedRetailEur: 3500, // €35.00
-    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/merch-from/catalog/sttu258-front',
+    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/blackout-merchandise/catalog/sttu258-front',
     status: 'active',
   },
   {
@@ -34,7 +34,7 @@ export const DEMO_CATALOG_PRODUCTS = [
     material: '80% Organic Cotton / 20% Recycled Polyester',
     baseCostEur: 2800,
     suggestedRetailEur: 6500,
-    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/merch-from/catalog/stho100-front',
+    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/blackout-merchandise/catalog/stho100-front',
     status: 'active',
   },
   {
@@ -47,7 +47,7 @@ export const DEMO_CATALOG_PRODUCTS = [
     material: '80% Organic Cotton / 20% Recycled Polyester',
     baseCostEur: 2200,
     suggestedRetailEur: 5500,
-    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/merch-from/catalog/stjg180-front',
+    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/blackout-merchandise/catalog/stjg180-front',
     status: 'active',
   },
   {
@@ -60,7 +60,7 @@ export const DEMO_CATALOG_PRODUCTS = [
     material: '100% Cotton',
     baseCostEur: 800,
     suggestedRetailEur: 2500,
-    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/merch-from/catalog/g500-front',
+    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/blackout-merchandise/catalog/g500-front',
     status: 'active',
   },
   {
@@ -73,7 +73,7 @@ export const DEMO_CATALOG_PRODUCTS = [
     material: '100% Organic Cotton',
     baseCostEur: 900,
     suggestedRetailEur: 2800,
-    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/merch-from/catalog/stcr40-front',
+    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/blackout-merchandise/catalog/stcr40-front',
     status: 'active',
   },
 ];
@@ -86,28 +86,28 @@ export const DEMO_SIMILAR_PRODUCTS = [
     name: 'Stanley/Stella Changer Tee',
     description: 'Similar relaxed fit organic cotton tee',
     baseCostEur: 1300,
-    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/merch-from/catalog/stch100-front',
+    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/blackout-merchandise/catalog/stch100-front',
   },
   {
     id: 'demo-sim-002',
     name: 'Stanley/Stella Unisex Slider',
     description: 'Lightweight organic cotton tee',
     baseCostEur: 1100,
-    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/merch-from/catalog/stsl100-front',
+    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/blackout-merchandise/catalog/stsl100-front',
   },
   {
     id: 'demo-sim-003',
     name: 'Gildan Softstyle T-Shirt',
     description: '100% ringspun cotton, fitted',
     baseCostEur: 750,
-    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/merch-from/catalog/g640-front',
+    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/blackout-merchandise/catalog/g640-front',
   },
   {
     id: 'demo-sim-004',
     name: 'Stanley/Stella DNA Tee',
     description: '100% Organic Cotton, 155 GSM',
     baseCostEur: 1000,
-    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/merch-from/catalog/stdn100-front',
+    imageUrl: 'https://res.cloudinary.com/drhfgth7c/image/upload/v1/blackout-merchandise/catalog/stdn100-front',
   },
 ];
 

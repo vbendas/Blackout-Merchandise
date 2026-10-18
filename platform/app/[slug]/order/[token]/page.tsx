@@ -101,7 +101,7 @@ export default async function OrderPage({
         </div>
       </div>
 
-      <p className="mf-label mf-dim mt-10">Questions? hello@merchfrom.com</p>
+      <p className="mf-label mf-dim mt-10">Questions? hello@blackoutmerch.example</p>
     </div>
   );
 }

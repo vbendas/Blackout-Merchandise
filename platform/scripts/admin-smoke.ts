@@ -26,7 +26,7 @@ process.env.STRIPE_MOCK = process.env.STRIPE_MOCK ?? '1';
 const HOODIE_BLANK = 'STSU177'; // 'Cruiser 2.0' — dtg, C002, sizes S-XXL in the seed
 const PRINT_SERVICE = 'dtg'; // shop products print DTG/DTF only (screen print is for runs)
 const COLOUR = 'C002';
-const FAN_EMAIL = 'admin-smoke-fan@merchfrom.test';
+const FAN_EMAIL = 'admin-smoke-fan@blackoutmerch.test';
 
 function eur(cents: number | null | undefined): string {
   return cents == null ? 'n/a' : `€${(cents / 100).toFixed(2)}`;
@@ -79,8 +79,8 @@ async function main() {
     return created;
   }
 
-  const artist = await ensureUser('admin-smoke-artist', 'admin-smoke-artist@merchfrom.test', 'artist');
-  const admin = await ensureUser('smoke-admin', 'smoke-admin@merchfrom.test', 'admin');
+  const artist = await ensureUser('admin-smoke-artist', 'admin-smoke-artist@blackoutmerch.test', 'artist');
+  const admin = await ensureUser('smoke-admin', 'smoke-admin@blackoutmerch.test', 'admin');
   const store = await ensureStore(artist.id, 'admin-smoke-shop', 'Admin Smoke Shop');
   console.log(`Artist store: ${store.name} (${store.id}); admin user: ${admin.email} (${admin.id})`);
 
@@ -141,7 +141,7 @@ async function main() {
     storeSlug: store.slug,
     lines: [{ productId: product.id, colourCode: COLOUR, size: 'L', qty: 1 }],
     country: 'ES',
-    email: 'admin-smoke-fan-2@merchfrom.test',
+    email: 'admin-smoke-fan-2@blackoutmerch.test',
   });
   if (!checkoutB.ok) throw new Error(`buildCheckout(B) failed: ${checkoutB.error}`);
   const snapshotB = await getStripeGateway().retrieveCheckoutSession(checkoutB.value.sessionId);

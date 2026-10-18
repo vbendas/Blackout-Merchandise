@@ -22,7 +22,7 @@ The creator merchandise market is at an inflection point. The global POD market 
 
 ### The Strategic Imperative
 
-Merch From's messaging must shift from **feature-forward** to **outcome-forward**. The research is unambiguous: creators don't care about our AI stack — they care about keeping margins, finding buyers, and building sustainable income. Fans don't care about our technology — they care about supporting artists they love, wearing identity, and verified ethical production.
+Blackout Merchandise's messaging must shift from **feature-forward** to **outcome-forward**. The research is unambiguous: creators don't care about our AI stack — they care about keeping margins, finding buyers, and building sustainable income. Fans don't care about our technology — they care about supporting artists they love, wearing identity, and verified ethical production.
 
 ---
 
@@ -227,7 +227,7 @@ Speak to the creators doing the real work — not the top 5%, not the hobbyists.
 ```
 Hook:    "You made the art. You keep the margin."
 Problem: "Society6 pays 5%. Redbubble takes 50%. You do the work — they keep the money."
-Solution: "Merch From: Zero upfront costs. Premium quality. You keep 50%+."
+Solution: "Blackout Merchandise: Zero upfront costs. Premium quality. You keep 50%+."
 Proof:   "One t-shirt sale = 8,750 Spotify streams. We're fixing the math."
 Action:  "Describe your vision. Get your store in minutes."
 ```
@@ -262,7 +262,7 @@ Action:  "Describe your vision. Get your store in minutes."
 ```
 Hook:    "Wear your identity. Support real artists."
 Problem: "Most 'artist merch' is mass-produced in anonymous factories. The artist sees pennies."
-Solution: "Merch From: Every item made on-demand in Portugal. GOTS-certified. Artist keeps 50%+."
+Solution: "Blackout Merchandise: Every item made on-demand in Portugal. GOTS-certified. Artist keeps 50%+."
 Proof:   "Zero overstock. Zero landfill. 100% artist support."
 Action:  "Find your artist. Wear your identity."
 ```
@@ -296,7 +296,7 @@ Action:  "Find your artist. Wear your identity."
 ```
 Hook:    "The $13.4B creator merchandise market is collapsing — and rebuilding around artists."
 Problem: "POD platforms extract 50-95% of creator revenue. AI is commoditizing. No one owns the workflow layer."
-Solution: "Merch From: Proprietary AI workflow + zero upfront costs + traffic generation. We own the experience layer."
+Solution: "Blackout Merchandise: Proprietary AI workflow + zero upfront costs + traffic generation. We own the experience layer."
 Proof:   "12-month AI differentiation window. Marketplace exodus underway. Displate proved premium art niche generates $264M."
 Action:  "€300K seed. 16-18% equity. 24-month runway to profitability."
 ```
@@ -351,7 +351,7 @@ Action:  "€300K seed. 16-18% equity. 24-month runway to profitability."
 
 ## 7. Tone Adjustments by Channel
 
-### Landing Page (merchfrom.com)
+### Landing Page (blackoutmerch.example)
 
 **Current**: "We don't work with everyone. But if you care about craft, we want to talk."
 

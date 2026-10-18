@@ -19,7 +19,7 @@ from halftone_generator import HalftoneGenerator
 from preview_compositor import PreviewCompositor
 
 app = FastAPI(
-    title="MerchFrom Print Engine",
+    title="Blackout Merchandise Print Engine",
     description="Image processing service for screen printing preview",
     version="1.0.0",
 )

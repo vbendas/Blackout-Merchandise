@@ -25,7 +25,7 @@
 
 ## Overview
 
-Build the core of MerchStation TUI (product catalog management) and a Knowledge Base layer that stops AI agents from hallucinating about MerchFrom policies, pricing, and operations.
+Build the core of MerchStation TUI (product catalog management) and a Knowledge Base layer that stops AI agents from hallucinating about Blackout Merchandise policies, pricing, and operations.
 
 ### Scope
 
@@ -205,7 +205,7 @@ Build the core of MerchStation TUI (product catalog management) and a Knowledge 
 #### T5: Image Import & Cloudinary Upload (1.5h)
 **Goal**: Import local images → upload to Cloudinary → link to product.
 
-- **T5.1**: Prompt for local folder path (e.g., `~/merchfrom-assets/products/hypster-tee/`)
+- **T5.1**: Prompt for local folder path (e.g., `~/blackoutmerch-assets/products/hypster-tee/`)
 - **T5.2**: Scan folder for image files (.jpg, .png, .webp)
 - **T5.3**: Display found images in list, let user select which to upload
 - **T5.4**: Upload each selected image to Cloudinary
@@ -242,7 +242,7 @@ Build the core of MerchStation TUI (product catalog management) and a Knowledge 
 ### Phase 2: Knowledge Base (~6 hours)
 
 #### T7: Knowledge Base Schema & Seed Data (1.5h)
-**Goal**: Structured facts about MerchFrom stored in `appSettings` table only. **Single source of truth. No JSON files.**
+**Goal**: Structured facts about Blackout Merchandise stored in `appSettings` table only. **Single source of truth. No JSON files.**
 
 - **T7.1**: Add `valueJson` JSONB column to `appSettings` table (for structured data like shipping matrices, pricing tiers)
 - **T7.2**: Create seed script (`src/db/seed-knowledge.ts`) that populates `appSettings` with placeholder test data:
@@ -301,9 +301,9 @@ Build the core of MerchStation TUI (product catalog management) and a Knowledge 
 #### T9: Agent Integration — Both Apps (2h)
 **Goal**: Wire knowledge base into Mistral system prompts for both `/app` and `/mainpage`.
 
-- **T9.1**: In `app/src/lib/ai/mistral-chat.ts`, update `getSystemPrompt()` to call `getKnowledgeForPrompt()` and inject a "VERIFIED FACTS ABOUT MERCHFROM" section
+- **T9.1**: In `app/src/lib/ai/mistral-chat.ts`, update `getSystemPrompt()` to call `getKnowledgeForPrompt()` and inject a "VERIFIED FACTS ABOUT BLACKOUT MERCHANDISE" section
 - **T9.2**: Do the SAME in `mainpage/src/lib/ai/mistral-chat.ts`
-- **T9.3**: Add anti-hallucination constraint to system prompt: "For any question about MerchFrom policies, pricing, shipping, or operations, use ONLY the verified facts below. If the answer is not in the verified facts, say you don't know and offer to connect with a human."
+- **T9.3**: Add anti-hallucination constraint to system prompt: "For any question about Blackout Merchandise policies, pricing, shipping, or operations, use ONLY the verified facts below. If the answer is not in the verified facts, say you don't know and offer to connect with a human."
 - **T9.4**: Test both apps: ask agents about shipping times, pricing, return policy — verify they use verified facts
 - **T9.5**: Verify chat still works when knowledge DB is empty (graceful fallback — no facts section injected)
 

@@ -15,7 +15,7 @@ from typing import List, Optional
 from src.spot_color_separator import SpotColorSeparator, SeparationConfig, PrintMethod, ColorMode
 
 app = FastAPI(
-    title="Merch From Color Separation API",
+    title="Blackout Merchandise Color Separation API",
     description="Spot color separation service for screen printing",
     version="1.0.0"
 )
@@ -32,7 +32,7 @@ separator = SpotColorSeparator()
 
 @app.get("/")
 async def root():
-    return {"message": "Merch From Color Separation API", "version": "1.0.0"}
+    return {"message": "Blackout Merchandise Color Separation API", "version": "1.0.0"}
 
 @app.get("/health")
 async def health_check():

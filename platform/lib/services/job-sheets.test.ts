@@ -83,7 +83,7 @@ async function seedOrder(
 ): Promise<string> {
   const [order] = await db
     .insert(schema.orders)
-    .values({ storeId: h.artist.storeId, orderType: 'pod', status: input.status ?? 'paid', totalAmount: 2500, productionStatus: input.productionStatus ?? 'queued', fanEmail: 'fan@merchfrom.test' })
+    .values({ storeId: h.artist.storeId, orderType: 'pod', status: input.status ?? 'paid', totalAmount: 2500, productionStatus: input.productionStatus ?? 'queued', fanEmail: 'fan@blackoutmerch.test' })
     .returning({ id: schema.orders.id });
   await db.insert(schema.orderItems).values(input.items.map((i) => ({ orderId: order.id, productId: i.productId, quantity: i.qty, priceAtPurchase: 2500, colourCode: i.colourCode, size: i.size })));
   return order.id;
@@ -620,7 +620,7 @@ test('an order links to the sheet of each design it prints, by the design’s na
 
   // The order card's "Job sheet" buttons: staff who may open sheets get one per design, artists none.
   const { jobSheetActions } = await import('@/lib/tools/job-sheet-actions');
-  const base = 'https://merchfrom.com/api/job-sheets';
+  const base = 'https://blackoutmerch.example/api/job-sheets';
   const worker = await h.staff({ production: 'view' });
   assert.deepEqual(await jobSheetActions(worker, both), [
     { label: 'Job sheet · Anchor tee', href: `${base}/${one.designId}` },
@@ -637,7 +637,7 @@ test('the order card of get_order and the production tools carries the job sheet
   const adminTools = await import('@/lib/tools/admin');
   const { designId, productId } = await liveDesign({ colours: ['C002'] });
   const orderId = await seedOrder(h.db, { items: [{ productId, colourCode: 'C002', size: 'M', qty: 1 }] });
-  const link = `https://merchfrom.com/api/job-sheets/${designId}`;
+  const link = `https://blackoutmerch.example/api/job-sheets/${designId}`;
   let counter = 0;
   const ctx = (role: 'artist' | 'staff' | 'admin', opts: { permissions?: Actor['permissions']; storeId?: string | null } = {}): ToolContext => ({
     userId: h.artist.userId,

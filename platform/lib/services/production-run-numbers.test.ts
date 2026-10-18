@@ -278,7 +278,7 @@ test('migration 0007 numbers the jobs that exist from 1001, oldest first, and th
 
     // Jobs as they stood: made at different times, written in no particular order, two at the very same moment.
     await client.exec(`
-      insert into users (id, clerk_id, email, role) values ('${id(1)}', 'm', 'm@merchfrom.test', 'artist');
+      insert into users (id, clerk_id, email, role) values ('${id(1)}', 'm', 'm@blackoutmerch.test', 'artist');
       insert into artist_stores (id, artist_id, slug, name) values ('${id(2)}', '${id(1)}', 'm', 'm');
     `);
     for (let i = 0; i < 7; i++) await client.exec(`insert into designs (id, store_id, source) values ('${id(100 + i)}', '${id(2)}', 'upload');`);
@@ -354,7 +354,7 @@ test('migration 0007 on an empty table starts the first job at 1001, and repairs
     const db = drizzle(client, { schema });
     await migrate(db, { migrationsFolder: before });
     await client.exec(`
-      insert into users (id, clerk_id, email, role) values ('${id(1)}', 'm', 'm@merchfrom.test', 'artist');
+      insert into users (id, clerk_id, email, role) values ('${id(1)}', 'm', 'm@blackoutmerch.test', 'artist');
       insert into artist_stores (id, artist_id, slug, name) values ('${id(2)}', '${id(1)}', 'm', 'm');
     `);
     for (let i = 0; i < 3; i++) await client.exec(`insert into designs (id, store_id, source) values ('${id(100 + i)}', '${id(2)}', 'upload');`);

@@ -1,6 +1,6 @@
 # Confidential Appendix: The "Cat-Suite" System Prompts
 
-> **WARNING:** This document contains proprietary IP regarding the personality engines of the Merch From platform. Do not share externally.
+> **WARNING:** This document contains proprietary IP regarding the personality engines of the Blackout Merchandise platform. Do not share externally.
 
 ---
 

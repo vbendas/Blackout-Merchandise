@@ -87,7 +87,7 @@ async function approveScreenPack(pack: PackRow): Promise<void> {
 async function shopOrder(productId: string, items: { colour: string; size: string; qty: number }[]): Promise<string> {
   const [order] = await h.db
     .insert(schema.orders)
-    .values({ storeId: h.artist.storeId, orderType: 'pod', status: 'paid', totalAmount: 2500, productionStatus: 'queued', fanEmail: 'fan@merchfrom.test', shippingAddress: { line1: '12 Carrer de Mallorca', city: 'Barcelona', postcode: '08013', country: 'ES' } })
+    .values({ storeId: h.artist.storeId, orderType: 'pod', status: 'paid', totalAmount: 2500, productionStatus: 'queued', fanEmail: 'fan@blackoutmerch.test', shippingAddress: { line1: '12 Carrer de Mallorca', city: 'Barcelona', postcode: '08013', country: 'ES' } })
     .returning({ id: schema.orders.id });
   await h.db.insert(schema.orderItems).values(items.map((i) => ({ orderId: order.id, productId, quantity: i.qty, priceAtPurchase: 2500, colourCode: i.colour, size: i.size })));
   await h.prepress.markPacksNeededForOrder(order.id);

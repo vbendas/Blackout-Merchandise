@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MerchFrom, one run</title>
+<title>Blackout Merchandise, one run</title>
 <meta name="description" content="One run, from brief to doorstep. A 90 second film that follows a single run of tour shirts.">
 <meta name="theme-color" content="#000000">
 <link rel="stylesheet" href="../fonts/fonts.css">
@@ -253,7 +253,7 @@ html.rm *,html.rm *::before,html.rm *::after{animation:none!important;transition
           <div class="bx b2"></div><div class="bx b3"></div>
           <div class="bx b1">
             <span class="seam"></span>
-            <span class="tape" aria-hidden="true"><em>MERCHFROM &middot; MERCHFROM &middot; MERCHFROM &middot; MERCHFROM &middot; MERCHFROM &middot; MERCHFROM</em></span>
+            <span class="tape" aria-hidden="true"><em>BLACKOUT MERCHANDISE &middot; BLACKOUT MERCHANDISE &middot; BLACKOUT MERCHANDISE &middot; BLACKOUT MERCHANDISE &middot; BLACKOUT MERCHANDISE &middot; BLACKOUT MERCHANDISE</em></span>
             <div class="lbl cue" data-c="6" data-at="1.2" aria-hidden="true">
               <div class="r1"><span class="label">Run 2844</span><span class="label">Box 1 / 3</span></div>
               <div class="bc"></div>
@@ -282,7 +282,7 @@ html.rm *,html.rm *::before,html.rm *::after{animation:none!important;transition
 
   <header class="top">
     <div class="l">
-      <a class="wm" href="../" target="_top"><img src="../img/logo.png" alt="MerchFrom" width="360" height="271"></a>
+      <a class="wm" href="../" target="_top"><img src="../img/logo.png" alt="Blackout Merchandise" width="360" height="271"></a>
       <p class="label a"><span class="dot pulse" id="dot" aria-hidden="true"></span><span>One run</span><span class="dim" id="state">Playing</span></p>
       <p class="label b">Run 2844 &middot; Grave Lanterns</p>
     </div>
@@ -615,15 +615,15 @@ document.addEventListener("keydown",function(e){
   else if(k==="ArrowRight"){e.preventDefault();goto(Math.min(N-1,Math.max(cur,0)+1))}
   else if(k==="ArrowLeft"){e.preventDefault();var l=t-starts[Math.max(cur,0)];goto(l>2?cur:Math.max(0,cur-1))}
   else if(k==="Home"){e.preventDefault();goto(0)}
-  else if(k==="Escape"){if(window.parent!==window){try{window.parent.postMessage({type:"merchfrom:watch",action:"close"},"*")}catch(_){}}else location.href="../"}
+  else if(k==="Escape"){if(window.parent!==window){try{window.parent.postMessage({type:"blackoutmerch:watch",action:"close"},"*")}catch(_){}}else location.href="../"}
 });
 filmEl.addEventListener("click",function(e){
   if(e.target.closest("button,a"))return;
   toggle();
 });
 $("#play").addEventListener("click",function(e){e.stopPropagation();toggle();this.blur()});
-$("#apply").addEventListener("click",function(){try{window.parent.postMessage({type:"merchfrom:watch",action:"apply"},"*")}catch(_){}});
-$("#close").addEventListener("click",function(){try{window.parent.postMessage({type:"merchfrom:watch",action:"close"},"*")}catch(_){}});
+$("#apply").addEventListener("click",function(){try{window.parent.postMessage({type:"blackoutmerch:watch",action:"apply"},"*")}catch(_){}});
+$("#close").addEventListener("click",function(){try{window.parent.postMessage({type:"blackoutmerch:watch",action:"close"},"*")}catch(_){}});
 document.addEventListener("visibilitychange",function(){lastNow=performance.now()});
 
 /* ---------- the packshot with the logo, composited on canvas ---------- */

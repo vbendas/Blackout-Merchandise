@@ -1,7 +1,7 @@
 # Website v3 Redesign — Build Plan
 
 > Status: **built** (WP1–WP5) · 27 Sep 2026 · uncommitted on `feat/mainpage-redesign`
-> Source of truth for the look: canvas "Merch From v3 Home Mocks", artboards **A — Scenes (desktop)** and **A — Scenes (mobile)**.
+> Source of truth for the look: canvas "Blackout Merchandise v3 Home Mocks", artboards **A — Scenes (desktop)** and **A — Scenes (mobile)**.
 > Scope: `website-v3/` (public site) and a font/palette alignment in `platform/`.
 
 ## 1. Decisions (locked)
@@ -15,7 +15,7 @@
 | Catalog | Dark. The light/charcoal mode switching is removed. |
 | Hero | Split: copy + prompt left, photo right (slow push-in, off under reduced motion). No video, no animation background. |
 | Hero prompt | Honest: "Start" opens a brief card (the brief + what happens next) and hands the brief to the application. No fake mockups or prices. |
-| MCP | Shown as **Soon**. Endpoint text `https://mcp.merchfrom.com` is a placeholder. |
+| MCP | Shown as **Soon**. Endpoint text `https://mcp.blackoutmerch.example` is a placeholder. |
 | Missing facts | Never render placeholders like `[€X]` on the live site: facts come from `lib/site.ts` constants and are hidden when unset. |
 
 ## 2. Design tokens
@@ -39,12 +39,12 @@ Type scale: H1 80/1.0 (mobile 40), H2 56/1.05 (mobile 36), H3 32, body 17–20/1
 
 ## 3. Information architecture
 
-Header (all routes): mark + `MERCHFROM®` left; right: How it works · Shop & Run · Catalog · Agents | Sign in · **Apply**. Mobile: mark, Apply, menu button → full-screen menu. Current page = `aria-current` + full-opacity/underline (**no blur**).
+Header (all routes): mark + `BLACKOUT MERCHANDISE®` left; right: How it works · Shop & Run · Catalog · Agents | Sign in · **Apply**. Mobile: mark, Apply, menu button → full-screen menu. Current page = `aria-current` + full-opacity/underline (**no blur**).
 `Sign in` links to `NEXT_PUBLIC_PLATFORM_URL` and is hidden when that env var is unset.
 
 Home (`/`) sections, in order: Hero → Printed for → 01 One assistant → 02 Shop & Run → Catalog teaser → Studio → 03 Bring your own agent → Apply → Footer.
 Other routes keep their URLs: `/catalog`, `/gallery`, `/about`, `/contact`, `/waitlist`, 404. The old roster wall (`ListView`) and the intro animation leave the home page.
-Footer: wordmark + tagline, links (Catalog, Shop & Run, Agents, Gallery, About, Contact), language switcher, `© {year} MerchFrom`.
+Footer: wordmark + tagline, links (Catalog, Shop & Run, Agents, Gallery, About, Contact), language switcher, `© {year} Blackout Merchandise`.
 
 ## 4. Work packages
 
@@ -67,7 +67,7 @@ Files: `app/page.tsx`, `components/home/*` (new). Must not edit WP1/WP3 files; r
 - `Paths`: Shop and Run cards (image, title, mono meta, body). Link targets: `/waitlist` for now.
 - `CatalogTeaser`: `{n} blanks.` + four real products from `lib/products` (reuse the catalog card image paths), link to `/catalog`.
 - `Studio`: full-bleed photo band with the Barcelona line.
-- `Agents`: "Soon" badge, copy, code block (`claude mcp add merchfrom https://mcp.merchfrom.com` + connector URL), "Claude · ChatGPT · Cursor", link to `/llms.txt`.
+- `Agents`: "Soon" badge, copy, code block (`claude mcp add blackoutmerch https://mcp.blackoutmerch.example` + connector URL), "Claude · ChatGPT · Cursor", link to `/llms.txt`.
 - `ApplySection`: role select + email + Apply, calling the existing `submitWaitlist` action; success/error states reuse `waitlist.*` strings.
 Match the mock's spacing: sections 120px vertical padding desktop / 96px mobile, 12-column grid with 24px gaps, 64px gutters.
 
@@ -78,7 +78,7 @@ Files: `components/GridView.tsx`, `ProductModal.tsx`, `ViewShell.tsx`, `GalleryV
 3. Waitlist: read `brief` from the URL and show "Brief attached"; send it to `submitWaitlist`; the action trims it to 500 chars, adds `ALTER TABLE waitlist_signups ADD COLUMN IF NOT EXISTS brief text` (same pattern as `role`/`favourites`) and includes it in the JSONL fallback. Add role "Festival or promoter" to both option lists; relabel "Tattoo artist" as "Tattoo artist or studio" (keep the canonical value). Add page metadata (`title: 'Waitlist'`).
 4. `lib/clients.ts`: remove "Metallica" and "Feel Like Shit" (still placeholder, fictional names only).
 5. Delete `ListView`, `Intro` and `Cursor` if nothing uses them any more.
-6. `/llms.txt`: plain-text route describing MerchFrom, key pages and "MCP server: coming soon".
+6. `/llms.txt`: plain-text route describing Blackout Merchandise, key pages and "MCP server: coming soon".
 7. `npm run lint && npm run build` pass.
 
 ### WP4 — Platform alignment
@@ -104,7 +104,7 @@ nav.apply             Apply
 nav.menu              Menu
 nav.close             Close
 corners.tagline       Merch for artists — Barcelona, ES      (changed)
-footer.rights         © {year} MerchFrom
+footer.rights         © {year} Blackout Merchandise
 
 home.hero.title       Merch, made properly.
 home.hero.subline     Describe the piece. Approve the proof. We print, pack and ship it from Barcelona — you keep the margin.
@@ -148,7 +148,7 @@ home.paths.label      02 — Two ways to sell
 home.paths.title      Sell as you go, or order a run.
 home.paths.shop.title Shop
 home.paths.shop.meta  No stock · No upfront cost
-home.paths.shop.body  Your store at merchfrom.com/you or your own domain. Each order is printed as it sells, and your share lands with the sale.
+home.paths.shop.body  Your store at blackoutmerch.example/you or your own domain. Each order is printed as it sells, and your share lands with the sale.
 home.paths.shop.link  How Shop works
 home.paths.run.title  Run
 home.paths.run.meta   Bulk runs
@@ -318,7 +318,7 @@ Dark accent blocks inside the vintage pages use `#1A1714` with bone `#EDE4DD` te
 # Round 6 — Premium editorial home + scroll presentation (28 Sep 2026)
 
 Approved mock: canvas artboard "Round 5 — Premium editorial" (`…/scratchpad/mocks/project/Editorial.dc.html`, paper ground), with the owner's changes:
-- The masthead **MERCHFROM** is fitted exactly to the full content width (edge to edge within the gutter), recomputed on resize/font load. Kept as one word.
+- The masthead **BLACKOUT MERCHANDISE** is fitted exactly to the full content width (edge to edge within the gutter), recomputed on resize/font load. Kept as one word.
 - No ® after the masthead, and no crosshair mark in the home header: the masthead is the logo on `/`.
 - Scroll effects that "lock the content in the centre" to create a presentation feel — pinned scenes on native scroll, never scroll-hijacking.
 
@@ -330,7 +330,7 @@ Approved mock: canvas artboard "Round 5 — Premium editorial" (`…/scratchpad/
 
 ## Home structure (top → bottom)
 1. **Issue line + nav** (home variant of SiteHeader): mono "Issue 01 — Autumn/Winter 2026 — Barcelona" left, small-caps nav right (Cloth · Shop & Run · Blanks · Agents · Apply). No crosshair.
-2. **Masthead + cover**: fitted MERCHFROM, hairline facts row (Merch for bands, tattoo artists & festivals · Heavyweight organic · Printed in Barcelona · Zero upfront · By application), halftone B&W cover photo (fine dot screen via CSS), caption + "Heavy cloth, honest labels." + the brief input (existing brief-card behaviour → `/waitlist?brief=`).
+2. **Masthead + cover**: fitted BLACKOUT MERCHANDISE, hairline facts row (Merch for bands, tattoo artists & festivals · Heavyweight organic · Printed in Barcelona · Zero upfront · By application), halftone B&W cover photo (fine dot screen via CSS), caption + "Heavy cloth, honest labels." + the brief input (existing brief-card behaviour → `/waitlist?brief=`).
 3. **Statement**: one centred light paragraph.
 4. **CLOTH**: giant outlined word, four light stats, three black packshots with MF codes.
 5. **Plates**: two halftone photos offset as a spread with captions.
@@ -366,7 +366,7 @@ Rules: `prefers-reduced-motion` → no pins, no scrub, everything static and vis
 Approved mock: canvas artboard "Round 6 — Waitlist + signature footer" (`…/scratchpad/mocks/project/WaitlistEditorial.dc.html`; screenshots `.playwright-mcp/preview/wl-a.png`, `wl-b.png`). Goal from the final review: the premium editorial language (paper, condensed caps display, outlined words, halftone plates, hairlines, mono index labels) must run through every page, with one button system and one brand mark.
 
 ## Rules
-- Brand mark: no crosshair, no ® anywhere in the UI (keep ® only in metadata/title). Home header = issue line (existing). Inner pages header = small condensed **MERCHFROM** wordmark left, same small-caps nav + ink Apply right.
+- Brand mark: no crosshair, no ® anywhere in the UI (keep ® only in metadata/title). Home header = issue line (existing). Inner pages header = small condensed **BLACKOUT MERCHANDISE** wordmark left, same small-caps nav + ink Apply right.
 - Paper (`data-theme="vintage"`) on every page now: home, catalog, gallery, waitlist, about, contact, 404. Footer is the only dark band.
 - Buttons: one primary = ink block (`--signal` on paper), Barlow Condensed caps 600, letter-spacing .04em, height 52–64px, square corners; one text link = small-caps 12px, .16em tracking, hairline underline. No other button styles.
 - Photography: halftone B&W in editorial moments (home plates/shop & run, page plates); colour only inside the gallery (with captions).
@@ -377,7 +377,7 @@ Approved mock: canvas artboard "Round 6 — Waitlist + signature footer" (`…/s
 - `components/editorial/Halftone.tsx`: next/image wrapper with the grayscale+contrast filter and dot overlay (move the CSS into globals as `.halftone`).
 - `app/globals.css`: `.btn-ink`, `.link-ink` classes (+ focus rings); vintage theme defaults to paper for all pages.
 - `components/SiteHeader.tsx`: inner-page variant (wordmark, no RegisterMark), vintage theme on all routes; mobile menu unchanged in behaviour.
-- `components/SiteFooter.tsx`: signature footer per mock — mono column labels (Index / Studio / Elsewhere / Language), one-line tagline, full-width fitted **MERCHFROM** in bone on #141414 (FittedWord), bottom mono row (© 2026 MerchFrom — Barcelona, ES · Issue 01 · Autumn/Winter 2026 · Privacy · Terms · llms.txt — only link routes that exist).
+- `components/SiteFooter.tsx`: signature footer per mock — mono column labels (Index / Studio / Elsewhere / Language), one-line tagline, full-width fitted **BLACKOUT MERCHANDISE** in bone on #141414 (FittedWord), bottom mono row (© 2026 Blackout Merchandise — Barcelona, ES · Issue 01 · Autumn/Winter 2026 · Privacy · Terms · llms.txt — only link routes that exist).
 - Fonts: load Barlow (300/400/500/600) + Barlow Condensed (500/600/700) + IBM Plex Mono once in `app/layout.tsx`; remove the page-level loaders in `app/page.tsx`.
 - Bug: catalog zero-upfront band must span the full row (`col-span-full`) in `components/GridView.tsx`.
 - i18n: add footer keys (all six locales).
@@ -422,8 +422,8 @@ Claims still to verify with the owner (do not invent): origin story (2017 / city
 
 ## R8-B — Mobile menu + share image + icons (owns components/SiteHeader.tsx, app/opengraph-image.*, app/icon.* / favicon)
 - Mobile menu: full-screen ink band, big numbered condensed caps index (01 Cloth, 02 Shop & Run, 03 Blanks → /catalog, 04 Gallery, 05 Agents, 06 About, 07 Contact) + language switcher + `.btn-ink` Apply; focus trap/Escape kept.
-- OG image (1200×630): black ground, fitted bone MERCHFROM, a halftone crop of the cover photo, signature line in mono. Prefer `app/opengraph-image.tsx` with `next/og` and local Barlow Condensed font files; otherwise a generated PNG.
-- Favicon/app icon: bone condensed "M" (or "MF") on #141414, square; replace favicon.ico + add icon.png/apple-icon.
+- OG image (1200×630): black ground, fitted bone BLACKOUT MERCHANDISE, a halftone crop of the cover photo, signature line in mono. Prefer `app/opengraph-image.tsx` with `next/og` and local Barlow Condensed font files; otherwise a generated PNG.
+- Favicon/app icon: bone condensed "B" on #141414, square; replace favicon.ico + add icon.png/apple-icon.
 - If new i18n keys are needed, report them (R8-A owns i18n).
 
 ## R8-C — Motion pack (after R8-A; owns components/home/ScrollScenes.tsx, app/template.tsx, components/motion/*, motion-only edits elsewhere, app/globals.css motion rules)
@@ -434,6 +434,6 @@ Claims still to verify with the owner (do not invent): origin story (2017 / city
 5. Page transitions: a panel in the destination ground colour sweeps up and away (~450ms) between routes; no flash; respects reduced motion.
 6. Squeegee hover: `.btn-ink` fill pulls left→right; `.link-ink` underline draws from the left.
 7. Set list: halftone image per step crossfading inside the pinned scene.
-8. Footer echo: MERCHFROM letters rise as the footer enters.
+8. Footer echo: BLACKOUT MERCHANDISE letters rise as the footer enters.
 9. Rotating brief placeholder: real example briefs type in, stop on focus.
 Rules: transforms/opacity/clip-path only; everything static and visible under reduced motion; mobile keeps it light; no CLS; kill triggers on unmount.

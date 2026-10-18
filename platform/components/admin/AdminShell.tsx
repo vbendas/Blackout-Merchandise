@@ -44,7 +44,7 @@ export function AdminShell({
           href="/admin"
           className="hidden px-2.5 pt-1.5 pb-[18px] font-mono text-[13px] font-medium tracking-[0.2em] md:block"
         >
-          MERCHFROM
+          BLACKOUT MERCHANDISE
         </Link>
         <p className="hidden px-2.5 pt-1 pb-1.5 font-mono text-[11px] tracking-[0.2em] opacity-50 md:block">
           ADMIN

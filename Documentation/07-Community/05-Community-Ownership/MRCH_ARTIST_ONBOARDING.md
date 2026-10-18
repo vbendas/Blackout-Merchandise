@@ -20,16 +20,16 @@
 
 ## 1. What is MRCH? (Plain Language)
 
-MRCH is how artists become co-owners of MerchFrom.
+MRCH is how artists become co-owners of Blackout Merchandise.
 
-Every time you hit a sales milestone on MerchFrom, you earn MRCH tokens. These tokens represent a real ownership stake in the company — not a discount, not a points balance, but actual equity.
+Every time you hit a sales milestone on Blackout Merchandise, you earn MRCH tokens. These tokens represent a real ownership stake in the company — not a discount, not a points balance, but actual equity.
 
-When MerchFrom makes a profit, 30% goes directly to MRCH token holders. Automatically. Every quarter. In euros.
+When Blackout Merchandise makes a profit, 30% goes directly to MRCH token holders. Automatically. Every quarter. In euros.
 
-Think of it this way: you don't just *use* MerchFrom — you're building it with us. The more you sell, the more you own. The more the platform earns, the more you get paid.
+Think of it this way: you don't just *use* Blackout Merchandise — you're building it with us. The more you sell, the more you own. The more the platform earns, the more you get paid.
 
 **Three things MRCH does:**
-1. Gives you ownership (a percentage of MerchFrom)
+1. Gives you ownership (a percentage of Blackout Merchandise)
 2. Pays you quarterly profit distributions in euros (EURC)
 3. Gives you a vote in how the platform evolves (Artist DAO)
 
@@ -83,12 +83,12 @@ MRCH tokens live on the Stellar blockchain. To hold them, you need a Stellar wal
 
 **Step 3: Find and save your Stellar address**
 - Your address looks like: `GABC1234DEFG5678...`
-- Go to your MerchFrom account settings → "Ownership" → paste your Stellar address
+- Go to your Blackout Merchandise account settings → "Ownership" → paste your Stellar address
 - This is where your MRCH tokens and EURC distributions will be sent automatically
 
 **Step 4: Add MRCH as a trusted asset (trustline)**
 - In LOBSTR: tap Assets → Add Asset → search "MRCH"
-- Select MRCH issued by the official MerchFrom issuer address
+- Select MRCH issued by the official Blackout Merchandise issuer address
 - This creates a "trustline" — Stellar requires this before any token can be sent to you
 - Leopoldo will walk you through this step inside the platform if needed
 
@@ -101,18 +101,18 @@ Your 12-word phrase **is** your wallet. Anyone with this phrase can access and m
 
 - Write it on paper — do not save it digitally
 - Store it somewhere secure offline (not in your phone, not in email)
-- Never share it with anyone — including MerchFrom support
+- Never share it with anyone — including Blackout Merchandise support
 - If you lose it and lose your phone, there is no recovery option
 
 ---
 
 ## 4. Receiving Quarterly Profit Distributions
 
-Every quarter, MerchFrom runs a profit distribution. 30% of net profit goes to all MRCH holders, split proportionally by token holdings.
+Every quarter, Blackout Merchandise runs a profit distribution. 30% of net profit goes to all MRCH holders, split proportionally by token holdings.
 
 **How it works:**
 
-1. MerchFrom calculates quarterly net profit
+1. Blackout Merchandise calculates quarterly net profit
 2. 30% is allocated to the MRCH profit pool
 3. A Soroban smart contract divides the pool proportionally across all MRCH holders
 4. EURC (Euro stablecoin) is sent automatically to every holder's Stellar wallet
@@ -143,10 +143,10 @@ These are Leopoldo's dialogue scripts for each stage of the MRCH onboarding flow
 
 ### Trigger: Artist's store goes live (first onboarding milestone)
 
-> **Leopoldo:** "Your store is live. Sales can start today. But before you do anything else — I need to tell you something. You don't just *use* MerchFrom. You *own* it. I've just allocated 5,000 MRCH tokens to your account. That's a real ownership stake in this company. Want to understand what that means?"
+> **Leopoldo:** "Your store is live. Sales can start today. But before you do anything else — I need to tell you something. You don't just *use* Blackout Merchandise. You *own* it. I've just allocated 5,000 MRCH tokens to your account. That's a real ownership stake in this company. Want to understand what that means?"
 
 *[If Yes]:*
-> **Leopoldo:** "Good. Short version: MRCH tokens are equity. When MerchFrom profits, token holders get a cut. Automatically. In euros. Every quarter. To receive yours, you need a free Stellar wallet — takes about 3 minutes. Want me to walk you through it?"
+> **Leopoldo:** "Good. Short version: MRCH tokens are equity. When Blackout Merchandise profits, token holders get a cut. Automatically. In euros. Every quarter. To receive yours, you need a free Stellar wallet — takes about 3 minutes. Want me to walk you through it?"
 
 *[If No / Later]:*
 > **Leopoldo:** "Fair enough. When you're ready, find me in the 'Ownership' tab. Your tokens aren't going anywhere."
@@ -155,7 +155,7 @@ These are Leopoldo's dialogue scripts for each stage of the MRCH onboarding flow
 
 ### Trigger: Artist reaches €5K lifetime sales
 
-> **Leopoldo:** "€5,000 in lifetime sales. That's a real business. I've just sent 5,000 more MRCH tokens to your wallet. You now hold [X total] MRCH — that's [Y]% of MerchFrom. Keep selling. Each milestone, your stake grows."
+> **Leopoldo:** "€5,000 in lifetime sales. That's a real business. I've just sent 5,000 more MRCH tokens to your wallet. You now hold [X total] MRCH — that's [Y]% of Blackout Merchandise. Keep selling. Each milestone, your stake grows."
 
 ---
 
@@ -167,13 +167,13 @@ These are Leopoldo's dialogue scripts for each stage of the MRCH onboarding flow
 
 ### Trigger: Quarterly distribution sent
 
-> **Leopoldo:** "Good news. Your Q[X] [Year] profit distribution just processed. €[amount] in EURC is in your Stellar wallet right now. That's your share of MerchFrom's revenue — automatic, on-chain, no trust required. Open LOBSTR and you'll see it."
+> **Leopoldo:** "Good news. Your Q[X] [Year] profit distribution just processed. €[amount] in EURC is in your Stellar wallet right now. That's your share of Blackout Merchandise's revenue — automatic, on-chain, no trust required. Open LOBSTR and you'll see it."
 
 ---
 
 ### Trigger: Artist asks "what are MRCH tokens?"
 
-> **Leopoldo:** "MRCH tokens are ownership in MerchFrom. Not loyalty points — actual equity. 30% of this company is tokenized and distributed to artists, employees, and early supporters. You earn them through sales milestones. When MerchFrom profits, every token holder gets a quarterly payout in euros. It's profit-sharing, enforced by smart contract. No middleman. No trust required. The blockchain just does it."
+> **Leopoldo:** "MRCH tokens are ownership in Blackout Merchandise. Not loyalty points — actual equity. 30% of this company is tokenized and distributed to artists, employees, and early supporters. You earn them through sales milestones. When Blackout Merchandise profits, every token holder gets a quarterly payout in euros. It's profit-sharing, enforced by smart contract. No middleman. No trust required. The blockchain just does it."
 
 ---
 
@@ -207,16 +207,16 @@ These are Leopoldo's dialogue scripts for each stage of the MRCH onboarding flow
 No. You earn them through sales milestones. They are never for sale.
 
 **Q: Is MRCH a speculative cryptocurrency?**
-No. MRCH represents equity in MerchFrom, not a speculative asset. Your profit distributions are paid in EURC (stable euros), so you never need to care about the MRCH market price to benefit from holding it.
+No. MRCH represents equity in Blackout Merchandise, not a speculative asset. Your profit distributions are paid in EURC (stable euros), so you never need to care about the MRCH market price to benefit from holding it.
 
-**Q: What happens to my MRCH if MerchFrom is acquired?**
+**Q: What happens to my MRCH if Blackout Merchandise is acquired?**
 MRCH tokens represent real equity. In an acquisition, MRCH holders receive their proportional share of the acquisition price — same as any equity holder.
 
-**Q: Can MerchFrom take my tokens back?**
+**Q: Can Blackout Merchandise take my tokens back?**
 The token has a clawback capability for legal or compliance reasons (e.g. fraud, court order). Under normal circumstances, your tokens are yours. The vesting contract enforces the unlock schedule, but once unlocked, tokens are fully held by you.
 
 **Q: What if I lose access to my LOBSTR wallet?**
-Your 12-word recovery phrase restores your wallet on any device. If you lose the phrase, tokens cannot be recovered by anyone — not MerchFrom, not LOBSTR. This is a fundamental property of the Stellar blockchain. Keep your phrase safe.
+Your 12-word recovery phrase restores your wallet on any device. If you lose the phrase, tokens cannot be recovered by anyone — not Blackout Merchandise, not LOBSTR. This is a fundamental property of the Stellar blockchain. Keep your phrase safe.
 
 **Q: How much is my MRCH worth right now?**
 MRCH value = (your token count / 30,000,000) × current company valuation. Leopoldo can give an indicative estimate based on the most recent valuation data. The practical value is in the quarterly EURC distributions you receive while holding.
@@ -231,7 +231,7 @@ Completely different systems. Merch Coins are loyalty discount vouchers (off-cha
 ```
 MRCH Tokens — Quick Facts
 
-What:     Equity in MerchFrom (real ownership, not a discount)
+What:     Equity in Blackout Merchandise (real ownership, not a discount)
 Earn:     Sales milestones — automatic, no claiming needed
 Wallet:   LOBSTR app (free, iOS + Android, 3 min setup)
 Payout:   Quarterly, in EURC (euros, stable, direct to wallet)

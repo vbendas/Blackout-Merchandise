@@ -56,7 +56,7 @@ async function devUser(): Promise<SessionUser> {
   }
   return getOrCreateUserFromClerk({
     clerkId: 'dev-bypass',
-    email: process.env.AUTH_DEV_EMAIL ?? 'dev@merchfrom.test',
+    email: process.env.AUTH_DEV_EMAIL ?? 'dev@blackoutmerch.test',
     displayName: DEV_DISPLAY_NAME,
     imageUrl: null,
     devRole: parseUserRole(process.env.AUTH_DEV_ROLE),

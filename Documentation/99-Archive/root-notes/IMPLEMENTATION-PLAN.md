@@ -1,4 +1,4 @@
-# Merch From - Complete Implementation Plan
+# Blackout Merchandise - Complete Implementation Plan
 
 ## Executive Summary
 - **Timeline**: Single day execution (aggressive)
@@ -541,7 +541,7 @@ export async function POST(req: NextRequest) {
       `Q: ${r.question}\nA: ${r.response}`
     ).join('\n\n');
 
-    const prompt = `You are Leopoldo, the onboarding agent for Merch From - an AI-powered premium merchandise platform for artists.
+    const prompt = `You are Leopoldo, the onboarding agent for Blackout Merchandise - an AI-powered premium merchandise platform for artists.
 
 Context from previous conversation:
 ${context}
@@ -888,9 +888,9 @@ export async function POST(req: NextRequest) {
   const { email, name, position } = await req.json();
 
   await resend.emails.send({
-    from: 'Leopoldo@merchfrom.com',
+    from: 'Leopoldo@blackoutmerch.example',
     to: email,
-    subject: 'Welcome to the Merch From waitlist! 🎉',
+    subject: 'Welcome to the Blackout Merchandise waitlist! 🎉',
     html: generateConfirmationEmail({ name, position }),
   });
 
@@ -1471,7 +1471,7 @@ opencode --session="backend-api" \
 ```typescript
 export async function sendOrderConfirmation(order: Order, user: User) {
   await resend.emails.send({
-    from: 'Merch From <orders@merchfrom.com>',
+    from: 'Blackout Merchandise <orders@blackoutmerch.example>',
     to: user.email,
     subject: `Order #${order.id} confirmed`,
     html: orderConfirmationTemplate(order),

@@ -68,7 +68,7 @@ export function viewTexts(view: JobSheetView): string[] {
 
 /** What the paper adds that is not in the view: the page's own furniture and its fixed words. */
 const PAPER_ONLY = [
-  'MERCHFROM · JOB SHEET',
+  'BLACKOUT MERCHANDISE · JOB SHEET',
   // section headings
   'SCREEN SETS',
   'DTG/DTF FILES',

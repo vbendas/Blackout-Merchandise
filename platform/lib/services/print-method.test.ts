@@ -51,9 +51,9 @@ before(async () => {
   bulk = await import('@/lib/services/bulk');
   productTools = await import('@/lib/tools/products');
   catalogTools = await import('@/lib/tools/catalog');
-  ownerId = (await seedUser(t.db, { email: 'owner@merchfrom.test', role: 'admin' })).userId;
+  ownerId = (await seedUser(t.db, { email: 'owner@blackoutmerch.test', role: 'admin' })).userId;
   owner = { userId: ownerId, role: 'admin' };
-  const artist = await seedUser(t.db, { email: 'artist@merchfrom.test', withStore: true });
+  const artist = await seedUser(t.db, { email: 'artist@blackoutmerch.test', withStore: true });
   storeId = artist.storeId!;
   ctx = { userId: artist.userId, clerkId: 'clerk-artist', role: 'artist', storeId, conversationId: randomUUID(), idempotencyKey: 'k', locale: 'en' };
 });

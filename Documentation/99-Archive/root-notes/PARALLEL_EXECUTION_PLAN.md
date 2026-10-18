@@ -1,4 +1,4 @@
-# MerchFrom - Parallel Execution Plan
+# Blackout Merchandise - Parallel Execution Plan
 
 > **Goal**: Mitigate timeline risk through parallel workstreams  
 > **Duration**: 2 weeks (Feb 3 - Feb 16, 2026)  
@@ -110,7 +110,7 @@ Build a production-ready, conversion-optimized waitlist landing page that makes 
 
 ## Technical Requirements
 1. **4-Step Interview Flow**:
-   - Step 1: Leopoldo welcomes artist, explains what MerchFrom is
+   - Step 1: Leopoldo welcomes artist, explains what Blackout Merchandise is
    - Step 2: Capture name, email, artist type (musician, designer, etc.)
    - Step 3: Social validation - follower count, portfolio links (Instagram, TikTok, etc.)
    - Step 4: Qualifying questions + GDPR consent checkbox

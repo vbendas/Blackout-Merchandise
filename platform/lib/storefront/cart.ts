@@ -25,7 +25,7 @@ export interface CartState {
 const EMPTY: CartState = { lines: [] };
 
 function storageKey(slug: string): string {
-  return `merchfrom:cart:${slug}`;
+  return `blackoutmerch:cart:${slug}`;
 }
 
 function lineKey(l: Pick<CartLine, 'productId' | 'colourCode' | 'size'>): string {

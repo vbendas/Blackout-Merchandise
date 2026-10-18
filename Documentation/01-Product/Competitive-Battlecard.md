@@ -14,8 +14,8 @@ This battlecard provides **one-page-per-competitor** profiles for rapid referenc
 - **At a Glance** — Key metrics in scannable table format
 - **Strengths** — What they do well (acknowledge honestly)
 - **Weaknesses** — Where they fall short
-- **How Merch From Wins** — Specific differentiators with data
-- **How They Could Threaten Merch From** — Realistic scenarios to watch
+- **How Blackout Merchandise Wins** — Specific differentiators with data
+- **How They Could Threaten Blackout Merchandise** — Realistic scenarios to watch
 - **Key Talking Point** — One-liner for investor conversations
 
 **Time-to-scan per competitor**: <30 seconds
@@ -24,7 +24,7 @@ This battlecard provides **one-page-per-competitor** profiles for rapid referenc
 
 ## Summary Positioning Statement
 
-> **Merch From occupies the intersection of three underserved segments:** (1) AI-native design that no fulfillment platform offers, (2) premium art merchandise that no AI platform targets, and (3) artist-first economics that no marketplace delivers. The closest competitor, Fourthwall, serves 200K+ creators without AI design tools. The largest AI threat, Canva, produces generic output unsuited for premium merchandise. The market leader, Fyul (Printful+Printify), is distracted by a 12-24 month post-merger integration.
+> **Blackout Merchandise occupies the intersection of three underserved segments:** (1) AI-native design that no fulfillment platform offers, (2) premium art merchandise that no AI platform targets, and (3) artist-first economics that no marketplace delivers. The closest competitor, Fourthwall, serves 200K+ creators without AI design tools. The largest AI threat, Canva, produces generic output unsuited for premium merchandise. The market leader, Fyul (Printful+Printify), is distracted by a 12-24 month post-merger integration.
 
 ---
 
@@ -42,18 +42,18 @@ The single most powerful data point in any investor conversation:
 | Displate | $7.50 | 25% | Marketplace |
 | Printful Free | $10.00 | 33.3% | Fulfillment |
 | Printify Free | $12.00 | 40% | Fulfillment |
-| **Merch From (est.)** | **~$15.00** | **~50%** | **Hybrid** |
+| **Blackout Merchandise (est.)** | **~$15.00** | **~50%** | **Hybrid** |
 | CustomCat Pro | $17.53 | 58.4% | Fulfillment |
 
 **Source**: Michael Essek, CheckThat.ai, PodVector — May 2026
 
-**Key insight**: An 11.7x differential exists between the worst (Society6) and best (CustomCat) platforms. Merch From targets the high-retention tier while solving the traffic problem that pure fulfillment platforms ignore.
+**Key insight**: An 11.7x differential exists between the worst (Society6) and best (CustomCat) platforms. Blackout Merchandise targets the high-retention tier while solving the traffic problem that pure fulfillment platforms ignore.
 
 ---
 
 ## AI Capabilities Comparison Matrix
 
-| Capability | Printful | Printify | Gelato | Fourthwall | Canva | **Merch From** |
+| Capability | Printful | Printify | Gelato | Fourthwall | Canva | **Blackout Merchandise** |
 |-----------|----------|----------|--------|------------|-------|----------------|
 | Text-to-image | No | Yes (15/day) | Yes (CreateAI) | No | Yes | **Yes (FLUX 2)** |
 | Background removal | Yes | Yes | No | No | Yes | **Yes** |
@@ -102,13 +102,13 @@ The single most powerful data point in any investor conversation:
 2. **No native AI design tools** — only background removal and pattern tools, no generative AI
 3. **Support quality deterioration** — 15–45 minute chat waits, 2–3 day email response times post-merger
 
-#### How Merch From Wins Against Them
+#### How Blackout Merchandise Wins Against Them
 
-Printful's biggest weakness is also Merch From's biggest opening: **they have no generative AI at all**. While Printful offers background removal and pattern tools, Merch From's FLUX 2 pipeline with voice-driven design is something Printful simply doesn't have — and can't build quickly without diverting resources from their $1.5B merger integration.
+Printful's biggest weakness is also Blackout Merchandise's biggest opening: **they have no generative AI at all**. While Printful offers background removal and pattern tools, Blackout Merchandise's FLUX 2 pipeline with voice-driven design is something Printful simply doesn't have — and can't build quickly without diverting resources from their $1.5B merger integration.
 
-On economics, Printful Free keeps $10 of a $30 sale. Merch From targets ~$15 while solving the traffic problem that pure fulfillment platforms leave entirely to the creator. And where Printful sells to SMBs and Fortune 500 brands, Merch From is built for individual visual artists who need premium art merchandise, not corporate swag.
+On economics, Printful Free keeps $10 of a $30 sale. Blackout Merchandise targets ~$15 while solving the traffic problem that pure fulfillment platforms leave entirely to the creator. And where Printful sells to SMBs and Fortune 500 brands, Blackout Merchandise is built for individual visual artists who need premium art merchandise, not corporate swag.
 
-#### How They Could Threaten Merch From
+#### How They Could Threaten Blackout Merchandise
 
 - **Acquisition response**: Fyul could acquire an AI design startup and integrate it within 12–18 months
 - **Price war**: Printful could launch an "artist tier" with reduced margins to compete directly
@@ -150,16 +150,16 @@ On economics, Printful Free keeps $10 of a $30 sale. Merch From targets ~$15 whi
 2. **34% Premium price increase** (Feb 2026) — from $29 to $39/month signals margin pressure and merchant vulnerability
 3. **Limited branding** — custom packaging depends on individual provider availability
 
-#### How Merch From Wins Against Them
+#### How Blackout Merchandise Wins Against Them
 
-- **Quality premium**: Printify's network model can't guarantee consistency. Merch From targets best-in-class quality through rigorous partner vetting and quality protocols (note: Printful's 0.19% requires vertical integration; our curated model aims for industry-leading consistency, not identical rates).
-- **AI differentiation**: Printify offers basic text-to-image but lacks voice, multi-modal workflow, and conversational design. Merch From's Cat-Suite is the only voice-driven AI art director in POD.
-- **Creator economics**: Printify Premium jumped to $39/mo in February 2026. Merch From charges no subscription — the same as Printify's free tier, but with AI design tools bundled in.
+- **Quality premium**: Printify's network model can't guarantee consistency. Blackout Merchandise targets best-in-class quality through rigorous partner vetting and quality protocols (note: Printful's 0.19% requires vertical integration; our curated model aims for industry-leading consistency, not identical rates).
+- **AI differentiation**: Printify offers basic text-to-image but lacks voice, multi-modal workflow, and conversational design. Blackout Merchandise's Cat-Suite is the only voice-driven AI art director in POD.
+- **Creator economics**: Printify Premium jumped to $39/mo in February 2026. Blackout Merchandise charges no subscription — the same as Printify's free tier, but with AI design tools bundled in.
 
-#### How They Could Threaten Merch From
+#### How They Could Threaten Blackout Merchandise
 
 - **Rapid AI catch-up**: Printify's OpenAI partnership could expand to voice and multi-modal within 12 months
-- **Aggressive pricing**: Could undercut Merch From on base costs due to network scale
+- **Aggressive pricing**: Could undercut Blackout Merchandise on base costs due to network scale
 
 #### Key Talking Point
 
@@ -199,16 +199,16 @@ On economics, Printful Free keeps $10 of a $30 sale. Merch From targets ~$15 whi
 2. **Limited art positioning** — targets general creators (gamers, podcasters, YouTubers), not visual artists
 3. **No premium merchandise focus** — standard POD products, no fine art prints or premium formats
 
-#### How Merch From Wins Against Them
+#### How Blackout Merchandise Wins Against Them
 
-- **AI moat**: Fourthwall relies on Canva integration and a designer network — no generative AI at all. Merch From's FLUX 2 pipeline with voice input fills this gap completely.
-- **Art specialization**: Fourthwall is for creators. Merch From is for artists — with premium art merchandise, fine art prints, and art-specific workflows.
-- **Voice interface**: Fourthwall requires typing and clicking. Merch From allows artists to describe designs conversationally.
+- **AI moat**: Fourthwall relies on Canva integration and a designer network — no generative AI at all. Blackout Merchandise's FLUX 2 pipeline with voice input fills this gap completely.
+- **Art specialization**: Fourthwall is for creators. Blackout Merchandise is for artists — with premium art merchandise, fine art prints, and art-specific workflows.
+- **Voice interface**: Fourthwall requires typing and clicking. Blackout Merchandise allows artists to describe designs conversationally.
 
-#### How They Could Threaten Merch From
+#### How They Could Threaten Blackout Merchandise
 
 - **AI acquisition**: Could acquire an AI design startup (e.g., Kittl, MyDesigns) and integrate within 6–12 months
-- **Art vertical**: Could launch an "artists" category with premium prints, competing directly for Merch From's core segment
+- **Art vertical**: Could launch an "artists" category with premium prints, competing directly for Blackout Merchandise's core segment
 
 #### Key Talking Point
 
@@ -249,13 +249,13 @@ On economics, Printful Free keeps $10 of a $30 sale. Merch From targets ~$15 whi
 3. **No artist economics** — no creator commission structure; targets consumers, not artists
 4. **No voice interface** — despite scale, no STT/TTS integration in design workflow
 
-#### How Merch From Wins Against Them
+#### How Blackout Merchandise Wins Against Them
 
-Canva's AI produces generic, mass-market designs. Merch From trains FLUX 2 on artist-style datasets for gallery-worthy output that actually works on merchandise. 
+Canva's AI produces generic, mass-market designs. Blackout Merchandise trains FLUX 2 on artist-style datasets for gallery-worthy output that actually works on merchandise. 
 
-Where Canva targets 170M casual users, Merch From serves visual artists who need print-ready files, color-separated output, and merchandise-specific workflows. And while Canva requires clicking through design tools, Merch From lets artists describe what they want by voice — a genuine accessibility advantage, not just a feature.
+Where Canva targets 170M casual users, Blackout Merchandise serves visual artists who need print-ready files, color-separated output, and merchandise-specific workflows. And while Canva requires clicking through design tools, Blackout Merchandise lets artists describe what they want by voice — a genuine accessibility advantage, not just a feature.
 
-#### How They Could Threaten Merch From
+#### How They Could Threaten Blackout Merchandise
 
 - **Rapid POD scaling**: Could acquire a fulfillment partner and launch artist marketplace within 12–18 months
 - **AI quality leap**: Leonardo.ai integration could produce higher-quality art-specific output
@@ -299,13 +299,13 @@ Where Canva targets 170M casual users, Merch From serves visual artists who need
 2. **Limited art positioning** — general merchandise focus, no premium art specialization
 3. **Smaller scale** — $52.7M revenue vs. Fyul's $400–500M; fewer integrations (7–8 vs. Printful's 22+)
 
-#### How Merch From Wins Against Them
+#### How Blackout Merchandise Wins Against Them
 
-- **Voice gap**: Gelato's CreateAI covers mockups, collections, and personalization — but nothing for voice. Merch From's Voxtral integration is the only speech-to-design pipeline in the industry.
-- **Art specialization**: Gelato does everything well but nothing exceptionally for artists. Merch From is art-first.
-- **Portugal facility**: Merch From's in-house Portugal facility + Gelato API partnership gives us EU speed with art-specific quality control.
+- **Voice gap**: Gelato's CreateAI covers mockups, collections, and personalization — but nothing for voice. Blackout Merchandise's Voxtral integration is the only speech-to-design pipeline in the industry.
+- **Art specialization**: Gelato does everything well but nothing exceptionally for artists. Blackout Merchandise is art-first.
+- **Portugal facility**: Blackout Merchandise's in-house Portugal facility + Gelato API partnership gives us EU speed with art-specific quality control.
 
-#### How They Could Threaten Merch From
+#### How They Could Threaten Blackout Merchandise
 
 - **Art vertical launch**: Could partner with fine art printers (like Prodigi) to offer premium art prints
 - **Voice acquisition**: Could acquire a voice AI startup and integrate into CreateAI within 12 months
@@ -347,13 +347,13 @@ Where Canva targets 170M casual users, Merch From serves visual artists who need
 2. **Creator earnings collapse** — $1.50 on a $30 tee; one artist earned $0.57 per design per year
 3. **Structural decline** — revenue down 19% YoY, traffic eroding, artist exodus accelerating
 
-#### How Merch From Wins Against Them
+#### How Blackout Merchandise Wins Against Them
 
-- **Economics**: Redbubble takes 50% of artist earnings. Merch From targets ~50% to the artist — a 10x improvement on the same sale.
-- **AI advantage**: Redbubble has no AI tools whatsoever. Merch From generates designs from voice descriptions in under 90 seconds.
-- **Artist migration**: Redbubble's fee restructuring triggered the largest artist exodus in POD history. Those displaced creators are Merch From's ideal early adopters.
+- **Economics**: Redbubble takes 50% of artist earnings. Blackout Merchandise targets ~50% to the artist — a 10x improvement on the same sale.
+- **AI advantage**: Redbubble has no AI tools whatsoever. Blackout Merchandise generates designs from voice descriptions in under 90 seconds.
+- **Artist migration**: Redbubble's fee restructuring triggered the largest artist exodus in POD history. Those displaced creators are Blackout Merchandise's ideal early adopters.
 
-#### How They Could Threaten Merch From
+#### How They Could Threaten Blackout Merchandise
 
 - **Radical pivot**: Could slash fees to 10% and relaunch as artist-friendly platform
 - **Acquisition target**: Could be acquired by a well-funded player seeking instant traffic
@@ -396,15 +396,15 @@ Where Canva targets 170M casual users, Merch From serves visual artists who need
 2. **No AI tools** — artists must upload finished designs; no generative assistance
 3. **Limited creator tools** — no storefront builder, no marketing automation, no analytics
 
-#### How Merch From Wins Against Them
+#### How Blackout Merchandise Wins Against Them
 
-- **Category expansion**: Displate does one thing. Merch From does apparel, prints, home décor, accessories — all with AI.
-- **AI design**: Displate requires finished artwork. Merch From generates designs from voice descriptions.
-- **Artist ownership**: Displate is a marketplace. Merch From gives artists their own branded storefront.
+- **Category expansion**: Displate does one thing. Blackout Merchandise does apparel, prints, home décor, accessories — all with AI.
+- **AI design**: Displate requires finished artwork. Blackout Merchandise generates designs from voice descriptions.
+- **Artist ownership**: Displate is a marketplace. Blackout Merchandise gives artists their own branded storefront.
 
-#### How They Could Threaten Merch From
+#### How They Could Threaten Blackout Merchandise
 
-- **Category expansion**: Could launch apparel or home décor lines, competing in Merch From's core segments
+- **Category expansion**: Could launch apparel or home décor lines, competing in Blackout Merchandise's core segments
 - **AI acquisition**: Could acquire AI design capabilities to lower barrier for new artists
 
 #### Key Talking Point
@@ -445,16 +445,16 @@ Where Canva targets 170M casual users, Merch From serves visual artists who need
 3. **Traffic collapse** — down two-thirds from peak; no longer a viable sales channel
 4. **Product elimination** — removed all apparel in October 2025
 
-#### How Merch From Wins Against Them
+#### How Blackout Merchandise Wins Against Them
 
-- **Economic contrast**: Society6 pays 5%. Merch From targets ~50%. Artists fleeing Society6 are Merch From's ideal early adopters.
-- **Technology**: Society6 has no AI, no generative tools, no design assistance. Merch From ships with voice-driven AI design on launch day.
-- **Artist respect**: Society6 purged artists without warning. Merch From is built by artists, for artists.
+- **Economic contrast**: Society6 pays 5%. Blackout Merchandise targets ~50%. Artists fleeing Society6 are Blackout Merchandise's ideal early adopters.
+- **Technology**: Society6 has no AI, no generative tools, no design assistance. Blackout Merchandise ships with voice-driven AI design on launch day.
+- **Artist respect**: Society6 purged artists without warning. Blackout Merchandise is built by artists, for artists.
 
-#### How They Could Threaten Merch From
+#### How They Could Threaten Blackout Merchandise
 
 - **Turnaround**: Graham Holdings could invest heavily in relaunch with competitive economics
-- **Art focus**: Could double down on wall art, competing with Merch From's print offerings
+- **Art focus**: Could double down on wall art, competing with Blackout Merchandise's print offerings
 
 #### Key Talking Point
 
@@ -480,21 +480,21 @@ Where Canva targets 170M casual users, Merch From serves visual artists who need
 ## Investor FAQ: The Five Questions You'll Always Get
 
 ### Q1: "Why not just use Printful?"
-**Short answer**: Printful has the best fulfillment in POD — and charges 15–35% more for it, with no AI design at all. Merch From gives artists AI-generated designs from voice commands, plus comparable quality at better margins.
+**Short answer**: Printful has the best fulfillment in POD — and charges 15–35% more for it, with no AI design at all. Blackout Merchandise gives artists AI-generated designs from voice commands, plus comparable quality at better margins.
 
-**Data**: Printful Free keeps $10 of a $30 sale; Merch From targets ~$15. Printful's 0.19% reshipment rate is the gold standard, but it requires $83.8M in owned equipment. Merch From matches quality through curated partner vetting, not vertical integration.
+**Data**: Printful Free keeps $10 of a $30 sale; Blackout Merchandise targets ~$15. Printful's 0.19% reshipment rate is the gold standard, but it requires $83.8M in owned equipment. Blackout Merchandise matches quality through curated partner vetting, not vertical integration.
 
 ---
 
 ### Q2: "Can't Canva just add this?"
-**Short answer**: Canva serves 170M casual users with generic design tools. Merch From serves visual artists with print-ready, merchandise-specific AI that understands color separation, DPI, and garment constraints.
+**Short answer**: Canva serves 170M casual users with generic design tools. Blackout Merchandise serves visual artists with print-ready, merchandise-specific AI that understands color separation, DPI, and garment constraints.
 
-**Data**: Canva produces mass-market output. Merch From trains FLUX 2 on artist-style datasets for gallery-worthy results. Canva has no voice interface, no fulfillment expertise, and no artist commission structure. The "Canva threat" is real on distribution, but not on art quality.
+**Data**: Canva produces mass-market output. Blackout Merchandise trains FLUX 2 on artist-style datasets for gallery-worthy results. Canva has no voice interface, no fulfillment expertise, and no artist commission structure. The "Canva threat" is real on distribution, but not on art quality.
 
 ---
 
 ### Q3: "What happens when Fyul finishes integrating?"
-**Short answer**: Fyul's post-merger innovation slowdown typically lasts 18–24 months. By then, Merch From needs 1,000 active artists or $100K monthly GMV to justify a $2–5M seed round.
+**Short answer**: Fyul's post-merger innovation slowdown typically lasts 18–24 months. By then, Blackout Merchandise needs 1,000 active artists or $100K monthly GMV to justify a $2–5M seed round.
 
 **Data**: Historical precedent (Salesforce/Demandware, eBay/PayPal) shows 30–50% innovation velocity decline for 12–24 months post-merger. Printify already raised prices 34% in February 2026 — a sign of margin pressure, not competitive aggression. The window is open now.
 
@@ -503,7 +503,7 @@ Where Canva targets 170M casual users, Merch From serves visual artists who need
 ### Q4: "How do you get your first 1,000 artists?"
 **Short answer**: Three channels: (1) displaced artists from Redbubble/Society6/Zazzle fee hikes, (2) indie artists on TikTok/Instagram seeking monetization, (3) AI-curious creators who can't afford design tools.
 
-**Data**: Redbubble's 50% fee + Society6's 5% fixed commission triggered the largest artist migration in POD history. 65% of POD creators earn under $100/year (Precedence Research) — they're not loyal to platforms, they're loyal to margins. Merch From's ~50% artist share is a 10x improvement over marketplaces.
+**Data**: Redbubble's 50% fee + Society6's 5% fixed commission triggered the largest artist migration in POD history. 65% of POD creators earn under $100/year (Precedence Research) — they're not loyal to platforms, they're loyal to margins. Blackout Merchandise's ~50% artist share is a 10x improvement over marketplaces.
 
 ---
 

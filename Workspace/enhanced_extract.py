@@ -223,7 +223,7 @@ aw25_count = sum(1 for p in products if p['is_aw25'])
 print(f"\nAW25 Products: {aw25_count}/{len(products)}")
 
 # Save enhanced JSON
-output_file = Path('/Users/victorbendas/Documents/GitHub/Merch-From/Workspace/stanley_stella_complete_enhanced.json')
+output_file = Path(__file__).resolve().parent / 'stanley_stella_complete_enhanced.json'
 with open(output_file, 'w', encoding='utf-8') as f:
     json.dump({
         'total_products': len(products),

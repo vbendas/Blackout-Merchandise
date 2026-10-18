@@ -9,7 +9,7 @@ import { SHARD_C } from './details/shard-c';
 export interface ProductDetails {
   /** Supplier's commercial style name, e.g. 'Creator 2.0' */
   name: string;
-  /** One-line description in MerchFrom's own words */
+  /** One-line description in Blackout Merchandise's own words */
   description: string;
   /** e.g. '100% organic ring-spun cotton' */
   composition: string;
@@ -29,7 +29,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetails> = {
   ...SHARD_C,
 };
 
-// MerchFrom's own print offering, mapped by garment family (the letter
+// Blackout Merchandise's own print offering, mapped by garment family (the letter
 // after the ST prefix). Curate per product later if needed. DTF is offered on
 // every garment, so a shop product can always print DTF; DTG only where it was
 // already offered (owner's decision; Print-Prep-Plan section 1).

@@ -15,11 +15,11 @@ export function storeCard(published: boolean, stripeReady: boolean): Card {
     storeId: 'store_1',
     name: published ? 'Your Shop' : 'Unnamed shop',
     slug: 'your-shop',
-    url: 'https://your-shop.merchfrom.com',
+    url: 'https://your-shop.blackoutmerch.example',
     isPublished: published,
     stripeReady,
     liveProducts: published ? 1 : 0,
-    actions: [{ label: 'Open storefront', href: 'https://merchfrom.com' }],
+    actions: [{ label: 'Open storefront', href: 'https://blackoutmerch.example' }],
   };
 }
 
@@ -97,7 +97,7 @@ export function inboxCard(): Card {
         prompt: 'Show me the Stripe requirement',
       },
       { id: 'msg2', at: 'Yesterday', text: 'Proof approved for Heavyweight Tee.', unread: false },
-      { id: 'msg3', at: '3 days ago', text: 'Welcome to MerchFrom.', unread: false },
+      { id: 'msg3', at: '3 days ago', text: 'Welcome to Blackout Merchandise.', unread: false },
     ],
   };
 }

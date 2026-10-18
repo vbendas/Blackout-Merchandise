@@ -24,7 +24,7 @@ export function TopBar({ onHistoryClick, onListClick, onNotificationsClick, noti
           animate={{ opacity: 1, y: 0 }}
           className="relative h-8 w-28 md:h-9 md:w-32"
         >
-          <Image src="/logo/short.png" alt="MerchFrom" fill className="object-contain" priority />
+          <Image src="/logo/short.png" alt="Blackout Merchandise" fill className="object-contain" priority />
         </motion.div>
       </div>
 

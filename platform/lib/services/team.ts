@@ -388,7 +388,7 @@ export async function inviteStaff(
     .returning();
 
   const inviter = await userRow(actor.userId);
-  const sent = await sendInvite(invite, token, inviter ? displayName(inviter) : 'MerchFrom');
+  const sent = await sendInvite(invite, token, inviter ? displayName(inviter) : 'Blackout Merchandise');
   await recordStaffActivity(actor, { area: 'team', action: 'team.invite', itemType: 'staff_invite', itemId: invite.id, detail: { email, permissions } });
   return ok({ inviteId: invite.id, ...sent });
 }
@@ -405,7 +405,7 @@ export async function resendInvite(actor: Actor, inviteId: string): Promise<Serv
     .returning();
   if (!invite) return fail('not_found', 'That invite was used or withdrawn. Send a new one.');
   const inviter = await userRow(actor.userId);
-  const sent = await sendInvite(invite, token, inviter ? displayName(inviter) : 'MerchFrom');
+  const sent = await sendInvite(invite, token, inviter ? displayName(inviter) : 'Blackout Merchandise');
   await recordStaffActivity(actor, { area: 'team', action: 'team.invite_resend', itemType: 'staff_invite', itemId: invite.id, detail: { email: invite.email } });
   return ok(sent);
 }

@@ -50,7 +50,7 @@ Smart redundancy. Push can fail (permissions denied, device offline). Having a p
 
 ---
 
-## 4. "Merch From Merchandise Studio" Positioning
+## 4. "Blackout Merchandise Studio" Positioning
 
 This is the **premium differentiation** angle. You're selling:
 - Not "another Shopify plugin"

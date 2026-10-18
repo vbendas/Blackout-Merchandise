@@ -6,12 +6,12 @@
 **Pre-requisites:** Phase 0.0.1 & 0.0.2 complete (User accounts & Local tools).
 
 **Agent Prompt:**
-You are the **Lead Infrastructure Agent** for the Merch From project. 
+You are the **Lead Infrastructure Agent** for the Blackout Merchandise project. 
 Your goal is to execute **Phase 0.1: Project Initialization** of the MVP Roadmap.
 
 **Current State:**
 - Phase 0.0.2 (Local Tools) is complete.
-- The directory `/Users/victorbendas/Documents/GitHub/Merch-From` contains documentation and an initialized git repo, but NO source code (no `package.json`).
+- The directory `/path/to/blackout-merchandise` contains documentation and an initialized git repo, but NO source code (no `package.json`).
 
 **Objectives:**
 1.  **Verify Git Status (Phase 0.0.3/0.0.4):** 
@@ -37,25 +37,25 @@ Your goal is to execute **Phase 0.1: Project Initialization** of the MVP Roadmap
     -   Commit all changes with message: "🎉 Initial Next.js setup with shadcn/ui".
 
 **References:**
--   [MVP Roadmap](file:///Users/victorbendas/Documents/GitHub/Merch-From/Documentation/dev/MVP%20Roadmap.md) (Strictly follow Phase 0.1 steps)
+-   [MVP Roadmap](file:///path/to/blackout-merchandise/Documentation/dev/MVP%20Roadmap.md) (Strictly follow Phase 0.1 steps)
 
 ## Entry 2: Phase 0.0.3 Git Verification
 **Date:** 2025-12-14
 **Status:** Generating Prompt for Phase 0.0.3 (Git Check)
 
 **Agent Prompt:**
-You are the **DevOps Specialist (Git)** for the Merch From project.
+You are the **DevOps Specialist (Git)** for the Blackout Merchandise project.
 Your goal is to execute **Phase 0.0.3: GitHub Repository Setup** of the MVP Roadmap.
 
 **Objective:**
-Verify git remote configuration (`https://github.com/vbendas/Merch-From.git`) and ensure the repository is clean and functional before project initialization.
+Verify git remote configuration (`https://github.com/vbendas/blackout-merchandise.git`) and ensure the repository is clean and functional before project initialization.
 
 **Task List:**
 1. Verify `git remote -v`.
 2. Verify `git status` (clean state, do not delete Documentation).
 3. Verify push access (create dummy commit if needed, or just confirm configuration).
 
-**Reference:** [MVP Roadmap Phase 0.0.3](file:///Users/victorbendas/Documents/GitHub/Merch-From/Documentation/dev/MVP%20Roadmap.md)
+**Reference:** [MVP Roadmap Phase 0.0.3](file:///path/to/blackout-merchandise/Documentation/dev/MVP%20Roadmap.md)
 
 ## Entry 3: Phase 0.0.4 Vercel Connection
 **Date:** 2025-12-14
@@ -71,13 +71,13 @@ This is a **Manual Step** performed in the browser.
 **Instructions (Manual):**
 1.  Go to [vercel.com/new](https://vercel.com/new).
 2.  Click **"Import Git Repository"**.
-3.  Select the `merch-from` repository (vbendas/Merch-From).
+3.  Select the `blackout-merchandise` repository (vbendas/blackout-merchandise).
 4.  Click **Import**.
 5.  **CRITICAL:** When the project settings appear, **Click "Skip for now"**.
     -   *Do NOT deploy yet.* We need to initialize the Next.js app in Phase 0.1 first.
     -   Just ensure the Vercel project is created and linked to the repo.
 
-**Reference:** [MVP Roadmap Phase 0.0.4](file:///Users/victorbendas/Documents/GitHub/Merch-From/Documentation/dev/MVP%20Roadmap.md)
+**Reference:** [MVP Roadmap Phase 0.0.4](file:///path/to/blackout-merchandise/Documentation/dev/MVP%20Roadmap.md)
 
 ## Entry 4: Phase 0.0.4 Outcome
 **Date:** 2025-12-14
@@ -95,7 +95,7 @@ User reported Vercel did not allow "Skip for now" and forced a deployment.
 **Status:** Skipped (Already Completed)
 
 **Notes:**
-Inspection of `GitHub/Merch-From/app` confirms Phase 0.1 is effectively complete:
+Inspection of `GitHub/blackout-merchandise/app` confirms Phase 0.1 is effectively complete:
 - `package.json` exists with installed dependencies.
 - `src/lib/ai`, `src/lib/demo` directories exist.
 - `public/rive` exists.
@@ -124,7 +124,7 @@ You are the **Frontend Engineer**.
 Your goal is to execute **Phase 1: Demo MVP – Core Shell** of the MVP Roadmap.
 
 **Current State:**
-- Working directory: `GitHub/Merch-From/app` (ALL commands must be run here).
+- Working directory: `GitHub/blackout-merchandise/app` (ALL commands must be run here).
 - Phase 0.2 Design System components exist in `src/components` and `src/components/ui`.
 - **Missing:** The Route Structure (`/app`) and Core Shell Components (`AvatarContainer`, `ChatPanel` integration).
 
@@ -152,4 +152,4 @@ Your goal is to execute **Phase 1: Demo MVP – Core Shell** of the MVP Roadmap.
     -   Create `src/components/TransitionLayout.tsx` (Wraps the AvatarContainer with Framer Motion LayoutGroup).
     -   Integrate this into `src/app/app/layout.tsx`.
 
-**Reference:** [MVP Roadmap Phase 1](file:///Users/victorbendas/Documents/GitHub/Merch-From/Documentation/dev/MVP%20Roadmap.md)
+**Reference:** [MVP Roadmap Phase 1](file:///path/to/blackout-merchandise/Documentation/dev/MVP%20Roadmap.md)

@@ -1,9 +1,9 @@
-# Merch From - Master Context File for OpenCode CLI
+# Blackout Merchandise - Master Context File for OpenCode CLI
 
-> **Purpose**: This is the primary context file for OpenCode CLI. OpenCode will use this to understand the entire Merch From project structure, goals, and development strategy before starting any work session.
+> **Purpose**: This is the primary context file for OpenCode CLI. OpenCode will use this to understand the entire Blackout Merchandise project structure, goals, and development strategy before starting any work session.
 
 > **Project State**: P0 Demo Hardening (Crowdfunding Sprint) - Day 1-2 Complete, May 9-10, 2026
-> **Working Directory**: `/Users/victorbendas/Documents/GitHub/Merch-From`
+> **Working Directory**: `/path/to/blackout-merchandise`
 > **Last Updated**: October 11, 2026
 
 ---
@@ -223,7 +223,7 @@ T3: Main session (needs build verification)
 
 ## Project Overview
 
-**Merch From** is an AI-powered premium merchandise platform for artists who care about quality.
+**Blackout Merchandise** is an AI-powered premium merchandise platform for artists who care about quality.
 
 ### Key Differentiators
 1. **In-House Production** — Own facility in Portugal, €113K equipment, quality control
@@ -251,7 +251,7 @@ T3: Main session (needs build verification)
 ## Monorepo Structure
 
 ```
-/Merch-From (Git root)
+/blackout-merchandise (Git root)
 ├── /app                    # Main application (Cat-Suite, AI chat, PWA features)
 │   ├── src/
 │   │   ├── app/            # Next.js App Router routes
@@ -312,7 +312,7 @@ T3: Main session (needs build verification)
 └── docs/                  # Strategy documents
 ```
 
-Retired site versions (website-v2, website-v3, the old Next.js mainpage) live outside the repo in `~/Documents/GitHub/_archive/merch-from-2026-10-11/` (website-v3 is also in git history).
+Retired site versions (website-v2, website-v3, the old Next.js mainpage) live outside the repo in `~/Documents/GitHub/_archive/blackout-merchandise-2026-10-11/` (website-v3 is also in git history).
 
 ---
 
@@ -521,7 +521,7 @@ Three dedicated team members with distinct roles:
 **Expression System**: 20 expressions per character (60 total)
 - neutral, speaking_a, speaking_b, happy, excited, thinking, confused, shocked, sad, angry_annoyed, wink, love, sleepy, mischievous, proud, mouth_closed, mouth_o_shape, mouth_wide_open, mouth_teeth_showing, blep
 
-**Cloudinary Asset Path**: `merch-from/avatars/[character]/[expression]`
+**Cloudinary Asset Path**: `blackout-merchandise/avatars/[character]/[expression]`
 
 ---
 

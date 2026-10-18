@@ -12,7 +12,7 @@
 
 1. [Hero Section](#1-hero-section)
 2. [Problem Section — "The System Is Broken"](#2-problem-section)
-3. [Solution Section — "Merch From Changes Everything"](#3-solution-section)
+3. [Solution Section — "Blackout Merchandise Changes Everything"](#3-solution-section)
 4. [How It Works](#4-how-it-works)
 5. [Reward Tiers](#5-reward-tiers)
 6. [Team & Credibility](#6-team--credibility)
@@ -82,10 +82,10 @@ Four data cards, each with a statistic and brief explanation:
 |----------|------------------------|
 | Society6 | $1.50 |
 | Redbubble | $3.00-6.00 |
-| Merch From | $15.00+ |
+| Blackout Merchandise | $15.00+ |
 
 **Copy**:
-> On a $30 t-shirt, Society6 artists keep $1.50. Redbubble's new 50% platform fee crushed earnings further. These aren't business models — they're extraction machines. We built Merch From because watching artists get exploited makes us angry.
+> On a $30 t-shirt, Society6 artists keep $1.50. Redbubble's new 50% platform fee crushed earnings further. These aren't business models — they're extraction machines. We built Blackout Merchandise because watching artists get exploited makes us angry.
 
 **Source**: Society6.com, Redbubble Blog, Michael Essek
 
@@ -550,11 +550,11 @@ $4.5B               Superfan monetization TAM (Goldman Sachs)
 **Secondary**: "Join 500+ Artists on the Waitlist"
 
 ### Footer Copy
-> Merch From — Castelo Branco, Portugal
+> Blackout Merchandise — Castelo Branco, Portugal
 > 
 > European-built. Artist-owned. Grant-funded. Zero rent.
 > 
-> © 2026 Merch From. All rights reserved.
+> © 2026 Blackout Merchandise. All rights reserved.
 
 ---
 

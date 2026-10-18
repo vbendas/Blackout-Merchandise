@@ -10,7 +10,7 @@ export function MerchShopsNavbar() {
         <div className="flex-1">{/* Left side - can be used for back button or shop name */}</div>
 
         <Link href="/merchshops" className="text-xl font-bold text-white">
-          Merch From
+          Blackout Merchandise
         </Link>
 
         <div className="flex-1 flex justify-end">

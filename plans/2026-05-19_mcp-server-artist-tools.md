@@ -1,4 +1,4 @@
-# Plan: Merch From MCP Server — Artist-Focused Phase 1
+# Plan: Blackout Merchandise MCP Server — Artist-Focused Phase 1
 
 > Created: 2026-05-19
 > Branch: feat/crowdfunding-demo
@@ -42,7 +42,7 @@ This is the **crowdfunding demo hero feature**: no competitor in the POD industr
 
 ## Acceptance Criteria
 
-1. Claude Desktop connects to Merch From MCP server via SSE transport
+1. Claude Desktop connects to Blackout Merchandise MCP server via SSE transport
 2. Artist authenticates via Clerk OAuth (browser popup → sign in → token)
 3. Complete 8-step workflow succeeds:
    - "Show me t-shirt blanks" → catalog results
@@ -146,7 +146,7 @@ Create the MCP server scaffolding with SSE transport, session management, and a 
   - Initialize server with:
     ```ts
     const server = new Server(
-      { name: 'merch-from', version: '0.1.0' },
+      { name: 'blackout-merchandise', version: '0.1.0' },
       { capabilities: { tools: {} } }
     );
     ```
@@ -170,7 +170,7 @@ Create the MCP server scaffolding with SSE transport, session management, and a 
   const PORT = parseInt(process.env.MCP_PORT || '4000');
   const app = createApp();
   app.listen(PORT, () => {
-    console.log(`Merch From MCP server listening on port ${PORT}`);
+    console.log(`Blackout Merchandise MCP server listening on port ${PORT}`);
     console.log(`SSE endpoint: http://localhost:${PORT}/sse`);
   });
   ```
@@ -189,7 +189,7 @@ Create the MCP server scaffolding with SSE transport, session management, and a 
 **Verification:**
 ```bash
 cd /app && bun mcp
-# Should print: "Merch From MCP server listening on port 4000"
+# Should print: "Blackout Merchandise MCP server listening on port 4000"
 # Should print: "SSE endpoint: http://localhost:4000/sse"
 # curl http://localhost:4000/sse should open SSE connection
 ```
@@ -213,7 +213,7 @@ Implement the 3 tools that work immediately with existing backend services. No f
     ```json
     {
       "name": "search_catalog",
-      "description": "Search the Merch From blank garment catalog. Find t-shirts, hoodies, tote bags and other products by name, brand, material, or category. Use this to help artists find the right blank for their design.",
+      "description": "Search the Blackout Merchandise blank garment catalog. Find t-shirts, hoodies, tote bags and other products by name, brand, material, or category. Use this to help artists find the right blank for their design.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -477,8 +477,8 @@ Register the 4 design tools in the MCP server. These call the fal.ai functions f
   - Each tool handler wraps in try/catch
   - If fal.ai is not configured (FAL_KEY missing), return:
     ```
-    "Design generation is not yet configured. The Merch From team is setting up the AI design pipeline. 
-     Please try again later or contact support@merchfrom.com."
+    "Design generation is not yet configured. The Blackout Merchandise team is setting up the AI design pipeline. 
+     Please try again later or contact support@blackoutmerch.example."
     ```
   - `[GOTCHA]` The fal.ai functions currently throw with specific messages. Check for these and return user-friendly messages.
 
@@ -591,8 +591,8 @@ Add authentication to the MCP server. Without this, anyone can connect and gener
   - `/.well-known/oauth-protected-resource` — RFC 9728 metadata:
     ```json
     {
-      "resource": "https://mcp.merchfrom.com",
-      "authorization_servers": ["https://clerk.merchfrom.com"]
+      "resource": "https://mcp.blackoutmerch.example",
+      "authorization_servers": ["https://clerk.blackoutmerch.example"]
     }
     ```
   - `/.well-known/oauth-authorization-server` — Points to Clerk's OAuth endpoints
@@ -605,7 +605,7 @@ Add authentication to the MCP server. Without this, anyone can connect and gener
   - `[GOTCHA]` The SSE transport creates the connection on GET /sse. Auth must happen before the transport is created, not after.
 
 - **T6.5** Clerk dashboard configuration
-  - Add MCP server URL (e.g., `https://mcp.merchfrom.com`) as a permitted origin in Clerk
+  - Add MCP server URL (e.g., `https://mcp.blackoutmerch.example`) as a permitted origin in Clerk
   - Configure OAuth redirect URLs
   - `[DEP]` This is a manual step in the Clerk dashboard, not code.
 
@@ -670,7 +670,7 @@ Full pipeline verification with Claude Desktop.
     ```json
     {
       "mcpServers": {
-        "merch-from": {
+        "blackout-merchandise": {
           "url": "http://localhost:4000/sse"
         }
       }
@@ -803,7 +803,7 @@ Group C (sequential, after Groups A + B):
 // ~/Library/Application Support/Claude/claude_desktop_config.json
 {
   "mcpServers": {
-    "merch-from": {
+    "blackout-merchandise": {
       "url": "http://localhost:4000/sse"
     }
   }

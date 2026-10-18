@@ -143,9 +143,9 @@ Run `bunx tsgo --noEmit app/src/app/layout.tsx` - no import errors.
 1. Create `Documentation/DPIA.md`
 2. Write header section with:
    - Date: January 21, 2026
-   - Project: MerchFrom - AI-Powered Merchandise Platform
-   - Controller: MerchFrom Ltd, Portugal
-   - DPO: dpo@merchfrom.com (Victor)
+   - Project: Blackout Merchandise - AI-Powered Merchandise Platform
+   - Controller: Blackout Merchandise Ltd, Portugal
+   - DPO: dpo@blackoutmerch.example (Victor)
 3. Section 1: Processing Overview
    - Purpose: Explain AI-powered merch platform
    - Data Types: List all 5 categories
@@ -196,7 +196,7 @@ Open file - all sections should be present.
 **Subtasks:**
 1. Create `Documentation/PRIVACY.md`
 2. Write Overview section:
-   - MerchFrom implements full GDPR compliance
+   - Blackout Merchandise implements full GDPR compliance
    - Purpose: AI-powered merch platform
 3. Section: Data Subject Rights
    - Access: `/data-rights` → Request data access
@@ -212,7 +212,7 @@ Open file - all sections should be present.
    - Consents: Until withdrawn + 30 days
    - Analytics: 26 months then anonymized
 6. Section: Data Protection Officer
-   - Email: dpo@merchfrom.com
+   - Email: dpo@blackoutmerch.example
 7. Section: Testing Procedures
    - Consent flow test scenarios
    - Data rights API test scenarios

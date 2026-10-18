@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
     // Upload to Cloudinary with optimized settings for hero images
     const uploadResult = await cloudinary.uploader.upload(base64, {
-      folder: `merch-from/shops/${store[0].slug}/slider`,
+      folder: `blackout-merchandise/shops/${store[0].slug}/slider`,
       transformation: [
         { width: 1920, height: 1080, crop: 'fill', aspect_ratio: '16:9' },
         { quality: 'auto:good', fetch_format: 'auto' },

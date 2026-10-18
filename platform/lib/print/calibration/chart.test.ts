@@ -212,7 +212,7 @@ test('settings: the house screen by default, anything else checked in words', ()
 
 test('the PSD has one layer per film, named like production layers, and the films read back exactly', async () => {
   const psd = await renderChartPsd(FAST);
-  assert.equal(psd.name, 'MerchFrom-dot-gain-chart-40lpi-22.5deg-300ppi.psd');
+  assert.equal(psd.name, 'BlackoutMerch-dot-gain-chart-40lpi-22.5deg-300ppi.psd');
   assert.equal(psd.bytes.subarray(0, 4).toString('latin1'), '8BPS');
   const parsed = await readScreenPsdDetail(psd.bytes);
   const canvas = chartCanvas(300);

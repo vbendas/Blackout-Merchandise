@@ -9,13 +9,13 @@
 
   We practice what we preach. Our equal wage model extends beyond compensation to **ownership structure**. Just as we reject ego-driven salary hierarchies, we reject traditional equity concentration.
 
-  **Core Principle:** 30% of Merch From will be owned by the people building, using, and supporting it—artists, employees, customers, and community. This isn't a marketing gimmick. It's hardcoded into our cap table and, ultimately, into blockchain smart contracts.
+  **Core Principle:** 30% of Blackout Merchandise will be owned by the people building, using, and supporting it—artists, employees, customers, and community. This isn't a marketing gimmick. It's hardcoded into our cap table and, ultimately, into blockchain smart contracts.
 
   > *"We're not just ethical about what we print on. We're ethical about who owns us. Our employees, artists, and community hold real equity—not just promises. If you know, you know."*
 
   ### 20.2 Why Tokenization Aligns with Our Brand
 
-  | Traditional Company | Tokenized Merch From |
+  | Traditional Company | Tokenized Blackout Merchandise |
   |---------------------|----------------------|
   | Founder: 60-70%, Employees: 0.5-2% each | Founder: 60%+, Community: 30%, balanced distribution |
   | Cap table is secret | Ownership visible on blockchain |
@@ -47,7 +47,7 @@
   - **Apply for SCF Instaward** — initial grant funds the MiCA legal consultation
 
   **Crowdfunding Message:**
-  > *"Founding Owners — You don't just back us. You own us. Right now. We're issuing real MRCH founding tokens on the Stellar blockchain to top-tier backers at campaign close. No promises. No IOUs. Real tokens in your Stellar wallet, visible on stellarexpert.io. When MerchFrom profits, 30% goes to MRCH holders — automatically, every quarter, in euros. And from day one, your tokens vote on how this platform evolves. This founding cohort closes when the campaign ends."*
+  > *"Founding Owners — You don't just back us. You own us. Right now. We're issuing real MRCH founding tokens on the Stellar blockchain to top-tier backers at campaign close. No promises. No IOUs. Real tokens in your Stellar wallet, visible on stellarexpert.io. When Blackout Merchandise profits, 30% goes to MRCH holders — automatically, every quarter, in euros. And from day one, your tokens vote on how this platform evolves. This founding cohort closes when the campaign ends."*
 
   **This creates:**
   - Real on-chain tokens from day one — backers check their wallet, not a spreadsheet
@@ -190,14 +190,14 @@
 
   - [ ] Commission MiCA legal opinion on MRCH token classification
   - [ ] Draft crypto-asset whitepaper (TOKENIZATION_VISION.md is already most of it)
-  - [ ] Join Stellar Developer Discord — introduce MerchFrom in `#projects` channel
+  - [ ] Join Stellar Developer Discord — introduce Blackout Merchandise in `#projects` channel
   - [ ] Find Portugal/EU Stellar Ambassador — accelerates Build Award processing
   - [ ] SCF Build Award application — with live token + verified founding holder count
 
   #### MiCA Is Our Grant Superpower
 
   Every SCF application leads with:
-  > *"MerchFrom is the first MiCA-compliant, equity-backed creator economy RWA on Stellar — a real company, real artists, real euros distributed on-chain."*
+  > *"Blackout Merchandise is the first MiCA-compliant, equity-backed creator economy RWA on Stellar — a real company, real artists, real euros distributed on-chain."*
 
   This positions us as a reference case for SDF's EU institutional roadmap, not just another grant applicant. Portugal/EU jurisdiction + EURC distributions + Stellar native compliance controls (freeze/clawback) = a project SDF needs to exist.
 

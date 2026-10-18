@@ -56,7 +56,7 @@ async function main() {
     if (existing[0]) return existing[0];
     const [created] = await db
       .insert(schema.users)
-      .values({ clerkId, email: 'commerce-smoke@merchfrom.test', displayName: 'Commerce Smoke Test', role: 'artist' })
+      .values({ clerkId, email: 'commerce-smoke@blackoutmerch.test', displayName: 'Commerce Smoke Test', role: 'artist' })
       .returning();
     return created;
   }

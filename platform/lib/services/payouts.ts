@@ -24,7 +24,7 @@ export async function anomalyFlags(input: AnomalyInput): Promise<AnomalyFlag[]> 
 
   if (input.applicationFeeCents < input.baseCostTotalCents) flags.push('fee_below_cost');
 
-  // transfer should equal what's left after MerchFrom's fee and the tax
+  // transfer should equal what's left after Blackout Merchandise's fee and the tax
   // Stripe collected — see stripe.ts's transferAmountCents doc. 1-cent slack
   // for rounding.
   const expectedTransfer = input.grossCents - input.applicationFeeCents - input.taxCents;

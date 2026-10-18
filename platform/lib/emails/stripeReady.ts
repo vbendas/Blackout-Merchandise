@@ -10,7 +10,7 @@ export function stripeReadyEmail(payload: StripeReadyPayload) {
     paragraphs: [
       `${payload.storeName ?? 'Your shop'} can now receive sale payouts. You can publish products whenever you are ready.`,
     ],
-    buttonLabel: 'Open MerchFrom',
+    buttonLabel: 'Open Blackout Merchandise',
     buttonUrl: appUrl('/studio'),
   });
   return { subject: 'Payouts connected', html, text };

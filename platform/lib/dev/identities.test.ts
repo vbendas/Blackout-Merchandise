@@ -24,7 +24,7 @@ test('the owner is the fixed dev user lib/auth.ts has always signed in (clerk id
   const owner = devIdentityByKey('owner');
   assert.ok(owner);
   assert.equal(owner.clerkId, 'dev-bypass');
-  assert.equal(owner.email, 'dev@merchfrom.test');
+  assert.equal(owner.email, 'dev@blackoutmerch.test');
   assert.equal(owner.role, 'admin');
   // every other identity has a clerk id of its own, never the fixed user's
   for (const other of DEV_IDENTITIES.filter((i) => i.key !== 'owner')) {
@@ -49,9 +49,9 @@ test('employees are on a real preset with a job title, and nobody else is', () =
 });
 
 test('a cookie value is an identity only when it is one of the keys', () => {
-  assert.equal(devIdentityByKey('artist')?.email, 'nova@merchfrom.test');
+  assert.equal(devIdentityByKey('artist')?.email, 'nova@blackoutmerch.test');
   assert.equal(devIdentityByKey('prepress')?.role, 'staff');
-  for (const value of [undefined, null, '', 'nobody', 'ARTIST', ' artist', 'artist ', 'dev-bypass', 'dev@merchfrom.test', '__proto__', 'constructor', 'toString']) {
+  for (const value of [undefined, null, '', 'nobody', 'ARTIST', ' artist', 'artist ', 'dev-bypass', 'dev@blackoutmerch.test', '__proto__', 'constructor', 'toString']) {
     assert.equal(devIdentityByKey(value), null, JSON.stringify(value));
   }
 });

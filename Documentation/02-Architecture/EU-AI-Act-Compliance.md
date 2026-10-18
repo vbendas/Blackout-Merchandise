@@ -9,7 +9,7 @@ p# EU AI Act Compliance Strategy
 
 ## Executive Summary
 
-Merch From is building an AI-native merchandise platform that uses conversational AI agents (the Cat-Suite) to guide artists through design, production, and sales. This document defines our proactive compliance strategy with the **EU AI Act (Regulation (EU) 2024/1689)**, which entered into force on August 1, 2024.
+Blackout Merchandise is building an AI-native merchandise platform that uses conversational AI agents (the Cat-Suite) to guide artists through design, production, and sales. This document defines our proactive compliance strategy with the **EU AI Act (Regulation (EU) 2024/1689)**, which entered into force on August 1, 2024.
 
 **Key Position:** We treat the EU AI Act not as a compliance burden, but as a **competitive differentiator**. Being "AI Act-ready from day one" signals to artists, investors, and regulators that we build responsibly.
 
@@ -19,7 +19,7 @@ Merch From is building an AI-native merchandise platform that uses conversationa
 
 ### Determination: Limited Risk System
 
-Under Article 52 of the EU AI Act, Merch From's Cat-Suite AI agents fall under **"limited risk"** systems — specifically, AI systems that interact with humans (chatbots) and must comply with transparency obligations.
+Under Article 52 of the EU AI Act, Blackout Merchandise's Cat-Suite AI agents fall under **"limited risk"** systems — specifically, AI systems that interact with humans (chatbots) and must comply with transparency obligations.
 
 | Factor | Assessment | Risk Level |
 |--------|-----------|------------|
@@ -61,7 +61,7 @@ Under Article 52 of the EU AI Act, Merch From's Cat-Suite AI agents fall under *
 **Implementation:**
 - All AI-generated mockups include subtle watermark: "AI-generated preview — final print approved by human"
 - AI-suggested product descriptions tagged with an icon in the artist dashboard
-- Order confirmations sent by Antonia clearly state: "This message was sent on behalf of [Artist Name] by MerchFrom's AI support agent"
+- Order confirmations sent by Antonia clearly state: "This message was sent on behalf of [Artist Name] by Blackout Merchandise's AI support agent"
 
 ---
 
@@ -220,7 +220,7 @@ We will publish and maintain:
 
 ### Marketing Copy
 
-> "While other platforms outsource your data to US cloud providers and black-box AI models, MerchFrom runs on European infrastructure with European AI. We're building AI Act compliance into our DNA — not because we have to, but because artists deserve to know exactly how their data and designs are handled."
+> "While other platforms outsource your data to US cloud providers and black-box AI models, Blackout Merchandise runs on European infrastructure with European AI. We're building AI Act compliance into our DNA — not because we have to, but because artists deserve to know exactly how their data and designs are handled."
 
 ### Investor Pitch Point
 

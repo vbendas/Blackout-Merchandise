@@ -185,7 +185,7 @@ export function SupportState({ activeAgent: _activeAgent, onSelectPrompt }: Supp
               </div>
               <div>
                 <p className="text-sm font-medium text-zinc-200">Email</p>
-                <p className="text-xs text-zinc-500">support@merchfrom.com</p>
+                <p className="text-xs text-zinc-500">support@blackoutmerch.example</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg">
@@ -194,7 +194,7 @@ export function SupportState({ activeAgent: _activeAgent, onSelectPrompt }: Supp
               </div>
               <div>
                 <p className="text-sm font-medium text-zinc-200">Phone</p>
-                <p className="text-xs text-zinc-500">1-800-MERCH-FROM</p>
+                <p className="text-xs text-zinc-500">1-800-BLACKOUT</p>
               </div>
             </div>
           </div>

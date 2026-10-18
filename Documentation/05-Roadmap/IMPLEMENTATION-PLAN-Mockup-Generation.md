@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-Build a production-ready mockup generation service based on CTDave001's `automated_mockups` foundation, extended with Merch From's unique requirements:
+Build a production-ready mockup generation service based on CTDave001's `automated_mockups` foundation, extended with Blackout Merchandise's unique requirements:
 - **Halftone integration** (show actual dot patterns, not smooth designs)
 - **Dual-resolution output** (300 DPI for print files, 72 DPI for web)
 - **Fabric texture overlays** (cotton, polyester, canvas, tri-blend)
@@ -18,7 +18,7 @@ Build a production-ready mockup generation service based on CTDave001's `automat
 - **Full Stanley Stella catalog support**
 
 ### Key Differentiators
-Unlike generic mockup generators, Merch From's system shows **authentic halftone patterns** - the same dots that will appear on the actual printed product. This creates perfect expectation alignment between mockup and reality.
+Unlike generic mockup generators, Blackout Merchandise's system shows **authentic halftone patterns** - the same dots that will appear on the actual printed product. This creates perfect expectation alignment between mockup and reality.
 
 ---
 
@@ -368,7 +368,7 @@ Artist Design (PNG/PSD)
 
 **Subtasks:**
 1. T5.1: Port core compositing logic from CTDave001's `generator.py`
-2. T5.2: Enhance with Merch From requirements:
+2. T5.2: Enhance with Blackout Merchandise requirements:
    - Support multiple blend modes (multiply, overlay, normal)
    - Add rotation handling
    - Add scaling modes (fit, fill, stretch)
@@ -557,8 +557,8 @@ Artist Design (PNG/PSD)
    ```
 
 3. T8.3: Configure upload folders:
-   - `merch-from/mockups/{mockup_id}/high_res.jpg`
-   - `merch-from/mockups/{mockup_id}/web_res.webp`
+   - `blackout-merchandise/mockups/{mockup_id}/high_res.jpg`
+   - `blackout-merchandise/mockups/{mockup_id}/web_res.webp`
 
 4. T8.4: Implement image optimization:
    - High-res: JPEG quality 95

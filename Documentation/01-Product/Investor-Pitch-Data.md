@@ -1,4 +1,4 @@
-# Merch From — Investor Pitch Intelligence
+# Blackout Merchandise — Investor Pitch Intelligence
 
 > **Classification**: Investor Confidential
 > **Last Updated**: May 10, 2026
@@ -27,7 +27,7 @@
 
 ### The Investor Hook
 
-**"Merch From is capturing a $13.4B market growing at 24% CAGR during a major artist migration from marketplace platforms, with a 12-month AI lead, targeting a premium niche that Displate proved is worth $264M."**
+**"Blackout Merchandise is capturing a $13.4B market growing at 24% CAGR during a major artist migration from marketplace platforms, with a 12-month AI lead, targeting a premium niche that Displate proved is worth $264M."**
 
 ### The Five Forces Creating This Opportunity
 
@@ -92,9 +92,9 @@ Artists who wait to build merch infrastructure will miss the best entry window i
 | Digital Fashion | $1.9B | $6.3B (2030) | 22.4% | Market research |
 | Superfan Monetization | — | $4.5B TAM | Emerging | Goldman Sachs |
 
-### Segment Breakdown: Where Merch From Plays
+### Segment Breakdown: Where Blackout Merchandise Plays
 
-| Segment | Market Share (2025) | CAGR (2026-2034) | Merch From Position |
+| Segment | Market Share (2025) | CAGR (2026-2034) | Blackout Merchandise Position |
 |---------|-------------------|-------------------|---------------------|
 | Apparel | 38.5% | 6.9% | Entry point, high volume |
 | Accessories | 19.4% | 7.4% | Mid-priority |
@@ -179,9 +179,9 @@ The marketplace POD model is collapsing, not experiencing a temporary downturn:
 
 ### Force 3: AI Differentiation Window (~12 Months)
 
-Merch From's multi-modal AI stack is category-exclusive today:
+Blackout Merchandise's multi-modal AI stack is category-exclusive today:
 
-| AI Capability | Printful | Printify | Gelato | Fourthwall | Canva | **Merch From** |
+| AI Capability | Printful | Printify | Gelato | Fourthwall | Canva | **Blackout Merchandise** |
 |--------------|----------|----------|--------|------------|-------|----------------|
 | Native text-to-image | No | Yes (15/day) | Yes | No | Yes | **Yes (FLUX 2)** |
 | Voice/STT/TTS | No | No | No | No | No | **Yes (Voxtral)** |
@@ -220,7 +220,7 @@ Ongoing:    Sustainability Compliance Moat (EU EPR, certified supply chain)
 
 ### Competitive Positioning Matrix
 
-| Dimension | Merch From | Fyul (Printful/Printify) | Fourthwall | Canva | Gelato |
+| Dimension | Blackout Merchandise | Fyul (Printful/Printify) | Fourthwall | Canva | Gelato |
 |-----------|-----------|--------------------------|------------|-------|--------|
 | **AI-native design** | **WIN** — Multi-modal, FLUX 2 4MP | LOSE — No native AI image gen | LOSE — No native AI | DRAW — 100+ AI researchers, generic output | LOSE — Basic CreateAI |
 | **Voice interface** | **WIN** — Category-exclusive Voxtral | LOSE — Not offered | LOSE — Not offered | LOSE — Not offered | LOSE — Not offered |
@@ -230,19 +230,19 @@ Ongoing:    Sustainability Compliance Moat (EU EPR, certified supply chain)
 | **Zero upfront cost** | DRAW — Free entry | DRAW — Free plan, pay-per-order | DRAW — No fees on physical | DRAW — Free tier | DRAW — Free plan |
 | **Product range** | LOSE — MVP catalog | **WIN** — ~498 products | DRAW — 370+ products | DRAW — Broad, not POD-specialized | DRAW — Competitive range |
 
-### Where Merch From Wins
+### Where Blackout Merchandise Wins
 
 1. **AI Design Stack**: Estimated 12-month lead. No competitor combines text, image, and voice into a merchandise-specific pipeline.
 2. **Voice Interface**: Genuinely category-exclusive. No major POD platform offers STT/TTS integration.
 3. **Premium Art Focus**: Targets an unserved market. While Displate generated $264M from metal prints alone, no platform offers premium art-specific products + AI-assisted design + zero upfront costs.
 
-### Where Merch From Draws
+### Where Blackout Merchandise Draws
 
 - **Zero upfront costs**: Table stakes. All 16 platforms analyzed offer free entry.
 - **Mockup generation**: Functional parity with competitors
-- The draw means Merch From must win elsewhere to justify switching costs
+- The draw means Blackout Merchandise must win elsewhere to justify switching costs
 
-### Where Merch From Loses (And Strategy)
+### Where Blackout Merchandise Loses (And Strategy)
 
 - **Fulfillment network**: Requires years and tens of millions to build. Printful invested $83.7M in Kornit equipment alone.
 - **Brand awareness**: Redbubble's 16-25M monthly visits represent a decade of SEO investment
@@ -291,9 +291,9 @@ Ongoing:    Sustainability Compliance Moat (EU EPR, certified supply chain)
 - **Structural weakness**: No native AI design tools
 - Estimated valuation: **$80-100M**
 
-### Merch From Positioning
+### Blackout Merchandise Positioning
 
-| Metric | Merch From (Current) | Seed Target | Series A Target |
+| Metric | Blackout Merchandise (Current) | Seed Target | Series A Target |
 |--------|---------------------|-------------|-----------------|
 | **Pre-money valuation** | €1.4-1.6M | — | €8-12M |
 | **Raise amount** | €300K | — | $2-5M |
@@ -303,7 +303,7 @@ Ongoing:    Sustainability Compliance Moat (EU EPR, certified supply chain)
 
 ### Exit Strategy Framework
 
-Investors need to know the destination. Merch From is positioned as a strategic acquisition target for three distinct buyer categories:
+Investors need to know the destination. Blackout Merchandise is positioned as a strategic acquisition target for three distinct buyer categories:
 
 **1. The Technology Acquisition (Target: $50M - $100M)**
 - **Potential Acquirers**: Printful, Redbubble, Gelato
@@ -331,7 +331,7 @@ Investors need to know the destination. Merch From is positioned as a strategic 
 
 ### The $30 T-Shirt Earnings Comparison
 
-What Merch From pays artists compared to existing platforms:
+What Blackout Merchandise pays artists compared to existing platforms:
 
 | Platform | Model | Creator Net Earnings | % of Sale | Source |
 |----------|-------|---------------------|-----------|--------|
@@ -344,17 +344,17 @@ What Merch From pays artists compared to existing platforms:
 | Printful (Free plan) | Fulfillment | **$10.00** | 33.3% | CheckThat.ai |
 | Printify (Free plan) | Fulfillment | **$12.00** | 40.0% | Printify |
 | CustomCat Pro ($30/mo) | Fulfillment | **$17.53** | 58.4% | CheckThat.ai |
-| **Merch From (target)** | **AI + Fulfillment** | **~$15.00** | **~50%** | **Internal estimate** |
+| **Blackout Merchandise (target)** | **AI + Fulfillment** | **~$15.00** | **~50%** | **Internal estimate** |
 
 **The range spans from $1.50 to $17.53. That is an 11.7x differential in creator earnings for the same retail transaction.**
 
-### Merch From's Value Proposition
+### Blackout Merchandise's Value Proposition
 
 **"8x better than marketplace, within 15% of best fulfillment platform"**
 
-- **Society6**: $1.50 → **Merch From: ~$15.00** = **10x improvement**
-- **Redbubble**: $3.75 → **Merch From: ~$15.00** = **4x improvement**
-- **Printify**: $12.00 → **Merch From: ~$15.00** = **25% improvement** with added AI + traffic
+- **Society6**: $1.50 → **Blackout Merchandise: ~$15.00** = **10x improvement**
+- **Redbubble**: $3.75 → **Blackout Merchandise: ~$15.00** = **4x improvement**
+- **Printify**: $12.00 → **Blackout Merchandise: ~$15.00** = **25% improvement** with added AI + traffic
 
 ### The Streaming vs. Merch Revenue Gap
 
@@ -370,7 +370,7 @@ What Merch From pays artists compared to existing platforms:
 
 1,000 artists × $100/month average = $1.2M annual GMV
 
-This is Merch From's first milestone. At this scale:
+This is Blackout Merchandise's first milestone. At this scale:
 - Platform revenue (15% take rate): **$180K/year**
 - Artist earnings (50% retention): **$600K/year**
 - Demonstrates product-market fit for Series A
@@ -507,9 +507,9 @@ Three factors make Europe the optimal beachhead:
 | Printful | $130M | $1B+ | $289M | 1,600+ |
 | Gelato | $269M | $1B | $52.7M | ~500 |
 | Fourthwall | $20M | ~$80-100M | Not disclosed | ~100 |
-| **Merch From** | **€300K** | **€1.4-1.6M** | **Pre-revenue** | **1 (founder)** |
+| **Blackout Merchandise** | **€300K** | **€1.4-1.6M** | **Pre-revenue** | **1 (founder)** |
 
-**Merch From's €300K is 433x smaller than Printful's raise and 67x smaller than Fourthwall's**, but targets a specific niche with a capital-light model.
+**Blackout Merchandise's €300K is 433x smaller than Printful's raise and 67x smaller than Fourthwall's**, but targets a specific niche with a capital-light model.
 
 ### Revenue Model
 
@@ -610,13 +610,13 @@ Printful Reshipment Rate:    0.19% (industry best)
 ```
 Marketplace Artist Earnings: $1.50 - $7.50 per $30 t-shirt
 Fulfillment Artist Earnings: $10.00 - $17.53 per $30 t-shirt
-Merch From Target:           ~$15.00 per $30 t-shirt
+Blackout Merchandise Target:           ~$15.00 per $30 t-shirt
 Creator Survival (3-year):   24%
 Casual Creators (<$100/yr):  65%
 Full-time Creators:          5%
 ```
 
-### Merch From KPIs
+### Blackout Merchandise KPIs
 
 | Metric | Current | Month 6 | Month 12 | Month 18 |
 |--------|---------|---------|----------|----------|
@@ -725,7 +725,7 @@ All financial projections represent analyst consensus estimates, not guarantees 
 
 ---
 
-**Document prepared by**: Merch From Founding Team
+**Document prepared by**: Blackout Merchandise Founding Team
 **Last updated**: May 10, 2026
 **Classification**: Investor Confidential — Not for distribution
 

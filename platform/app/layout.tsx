@@ -12,8 +12,8 @@ import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: {
-    default: 'MerchFrom',
-    template: '%s · MerchFrom',
+    default: 'Blackout Merchandise',
+    template: '%s · Blackout Merchandise',
   },
 };
 

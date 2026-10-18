@@ -6,8 +6,8 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#000000">
 <meta name="robots" content="noindex">
-<title>For agents · MerchFrom</title>
-<meta name="description" content="How to connect your own AI agent to MerchFrom over MCP, and what it can do. Members only.">
+<title>For agents · Blackout Merchandise</title>
+<meta name="description" content="How to connect your own AI agent to Blackout Merchandise over MCP, and what it can do. Members only.">
 <link rel="stylesheet" href="../fonts/fonts.css">
 <link rel="icon" href="../favicon.ico">
 <script>document.documentElement.classList.add('js')</script>
@@ -202,7 +202,7 @@ pre.code .k{color:var(--a5)}
 <body>
 <a class="skip label" href="#spec">Skip to the spec</a>
 <header class="top">
-  <a href="../" class="label wm"><img src="../img/logo.png" alt="MerchFrom" width="360" height="271"></a>
+  <a href="../" class="label wm"><img src="../img/logo.png" alt="Blackout Merchandise" width="360" height="271"></a>
   <div class="top-r">
     <span class="label clk" id="top-clock" aria-hidden="true"><span class="where">Barcelona</span><span class="v">--:--</span></span>
     <a href="../" class="ulink" id="top-close">Close<span class="xesc"> &middot; Esc</span></a>
@@ -223,7 +223,7 @@ pre.code .k{color:var(--a5)}
     <section class="sec r" aria-labelledby="s1">
       <div class="label k"><span class="no" aria-hidden="true">01</span><h2 id="s1">Endpoint</h2><span class="tag">Not live yet</span></div>
       <div class="c">
-        <div class="ep"><code id="ep">https://mcp.merchfrom.com</code><button type="button" class="cp" data-copy="https://mcp.merchfrom.com" aria-label="Copy the endpoint URL">Copy</button></div>
+        <div class="ep"><code id="ep">https://mcp.blackoutmerch.example</code><button type="button" class="cp" data-copy="https://mcp.blackoutmerch.example" aria-label="Copy the endpoint URL">Copy</button></div>
         <dl class="kv">
           <div><dt>Protocol</dt><dd>MCP</dd></div>
           <div><dt>Transport</dt><dd>HTTP</dd></div>
@@ -237,41 +237,41 @@ pre.code .k{color:var(--a5)}
       <div class="label k"><span class="no" aria-hidden="true">02</span><h2 id="s2">Connect</h2><span class="tag">Not live yet</span></div>
       <div class="c">
         <div class="blk">
-          <div class="blk-h"><span class="label">Claude</span><button type="button" class="cp" data-copy="https://mcp.merchfrom.com" aria-label="Copy the connector URL for Claude">Copy URL</button></div>
+          <div class="blk-h"><span class="label">Claude</span><button type="button" class="cp" data-copy="https://mcp.blackoutmerch.example" aria-label="Copy the connector URL for Claude">Copy URL</button></div>
           <pre class="code"><span class="k">Settings &rsaquo; Connectors &rsaquo; Add custom connector</span>
-Name  MerchFrom
-URL   https://mcp.merchfrom.com</pre>
+Name  Blackout Merchandise
+URL   https://mcp.blackoutmerch.example</pre>
           <p class="note">On claude.ai and in the Claude desktop app.</p>
         </div>
         <div class="blk">
-          <div class="blk-h"><span class="label">Claude Code</span><button type="button" class="cp" data-copy="claude mcp add --transport http merchfrom https://mcp.merchfrom.com" aria-label="Copy the Claude Code command">Copy</button></div>
-          <pre class="code"><span class="p">$ </span>claude mcp add --transport http merchfrom https://mcp.merchfrom.com</pre>
+          <div class="blk-h"><span class="label">Claude Code</span><button type="button" class="cp" data-copy="claude mcp add --transport http blackoutmerch https://mcp.blackoutmerch.example" aria-label="Copy the Claude Code command">Copy</button></div>
+          <pre class="code"><span class="p">$ </span>claude mcp add --transport http blackoutmerch https://mcp.blackoutmerch.example</pre>
           <p class="note">Then run /mcp inside Claude Code to check the connection.</p>
         </div>
         <div class="blk">
-          <div class="blk-h"><span class="label">ChatGPT</span><button type="button" class="cp" data-copy="https://mcp.merchfrom.com" aria-label="Copy the connector URL for ChatGPT">Copy URL</button></div>
+          <div class="blk-h"><span class="label">ChatGPT</span><button type="button" class="cp" data-copy="https://mcp.blackoutmerch.example" aria-label="Copy the connector URL for ChatGPT">Copy URL</button></div>
           <pre class="code"><span class="k">Settings &rsaquo; Connectors &rsaquo; Developer mode &rsaquo; Add connector</span>
-Name  MerchFrom
-URL   https://mcp.merchfrom.com</pre>
+Name  Blackout Merchandise
+URL   https://mcp.blackoutmerch.example</pre>
           <p class="note">Developer mode is needed, where your plan offers it.</p>
         </div>
         <div class="blk">
-          <div class="blk-h"><span class="label">Gemini</span><button type="button" class="cp" data-copy="gemini mcp add --transport http merchfrom https://mcp.merchfrom.com" aria-label="Copy the Gemini CLI command">Copy</button></div>
-          <pre class="code"><span class="p">$ </span>gemini mcp add --transport http merchfrom https://mcp.merchfrom.com</pre>
+          <div class="blk-h"><span class="label">Gemini</span><button type="button" class="cp" data-copy="gemini mcp add --transport http blackoutmerch https://mcp.blackoutmerch.example" aria-label="Copy the Gemini CLI command">Copy</button></div>
+          <pre class="code"><span class="p">$ </span>gemini mcp add --transport http blackoutmerch https://mcp.blackoutmerch.example</pre>
           <p class="note">In the Gemini CLI. Add -s user to keep it for every project, then run /mcp to check the connection.</p>
         </div>
         <div class="blk">
-          <div class="blk-h"><span class="label">Grok</span><button type="button" class="cp" data-copy="https://mcp.merchfrom.com" aria-label="Copy the connector URL for Grok">Copy URL</button></div>
+          <div class="blk-h"><span class="label">Grok</span><button type="button" class="cp" data-copy="https://mcp.blackoutmerch.example" aria-label="Copy the connector URL for Grok">Copy URL</button></div>
           <pre class="code"><span class="k">grok.com &rsaquo; Connectors &rsaquo; New connector &rsaquo; Custom</span>
-Name  MerchFrom
-URL   https://mcp.merchfrom.com</pre>
+Name  Blackout Merchandise
+URL   https://mcp.blackoutmerch.example</pre>
           <p class="note">Where your plan offers custom connectors.</p>
         </div>
         <div class="blk">
-          <div class="blk-h"><span class="label">Any other MCP client</span><button type="button" class="cp" data-copy="{&quot;mcpServers&quot;:{&quot;merchfrom&quot;:{&quot;url&quot;:&quot;https://mcp.merchfrom.com&quot;}}}" aria-label="Copy the MCP config snippet">Copy</button></div>
+          <div class="blk-h"><span class="label">Any other MCP client</span><button type="button" class="cp" data-copy="{&quot;mcpServers&quot;:{&quot;blackoutmerch&quot;:{&quot;url&quot;:&quot;https://mcp.blackoutmerch.example&quot;}}}" aria-label="Copy the MCP config snippet">Copy</button></div>
           <pre class="code">{
   "mcpServers": {
-    "merchfrom": { "url": "https://mcp.merchfrom.com" }
+    "blackoutmerch": { "url": "https://mcp.blackoutmerch.example" }
   }
 }</pre>
           <p class="note">Look for remote servers, connectors or custom tools in the client&rsquo;s settings. Add the URL above as a remote server over Streamable HTTP; clients that take a config file use the snippet. On first use, sign in with your member email and key.</p>
@@ -402,8 +402,8 @@ URL   https://mcp.merchfrom.com</pre>
     <section class="sec r" aria-labelledby="s6">
       <div class="label k"><span class="no" aria-hidden="true">06</span><h2 id="s6">For crawlers</h2></div>
       <div class="c">
-        <div class="llms"><code id="llms">merchfrom.com/llms.txt</code><button type="button" class="cp" data-copy="merchfrom.com/llms.txt" aria-label="Copy the llms.txt address">Copy</button></div>
-        <p class="note">A plain-text primer on MerchFrom for LLM agents and crawlers.</p>
+        <div class="llms"><code id="llms">blackoutmerch.example/llms.txt</code><button type="button" class="cp" data-copy="blackoutmerch.example/llms.txt" aria-label="Copy the llms.txt address">Copy</button></div>
+        <p class="note">A plain-text primer on Blackout Merchandise for LLM agents and crawlers.</p>
       </div>
     </section>
   </div>
@@ -412,8 +412,8 @@ URL   https://mcp.merchfrom.com</pre>
 <footer class="cfoot" aria-label="Contact">
   <span class="fi f-ask"><a class="flink" href="../#ask">Ask</a></span>
   <span class="fi faq"><a class="flink" href="../faq/">FAQ</a></span>
-  <span class="fi write"><span class="label">Write</span><a class="flink lc" href="mailto:hello@merchfrom.com">hello@merchfrom.com</a></span>
-  <span class="fi agents"><span class="label">For agents</span><a class="flink lc" href="./" aria-current="page">mcp.merchfrom.com</a><button type="button" class="fcopy" data-copy="mcp.merchfrom.com" aria-label="Copy mcp.merchfrom.com to the clipboard">Copy</button></span>
+  <span class="fi write"><span class="label">Write</span><a class="flink lc" href="mailto:hello@blackoutmerch.example">hello@blackoutmerch.example</a></span>
+  <span class="fi agents"><span class="label">For agents</span><a class="flink lc" href="./" aria-current="page">mcp.blackoutmerch.example</a><button type="button" class="fcopy" data-copy="mcp.blackoutmerch.example" aria-label="Copy mcp.blackoutmerch.example to the clipboard">Copy</button></span>
   <span class="fi place label">Barcelona, ES</span>
 </footer>
 </div>

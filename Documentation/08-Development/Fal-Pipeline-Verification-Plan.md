@@ -88,7 +88,7 @@ The August 2026 provider-docs review of `Documentation/05-Shared/Image-Generatio
 
 - `FAL_API_KEY` present in `app/.env.local`.
 - Budget approval: expect **under $15 total** — ~$8 if a test LoRA must be trained + ~$2-4 of generation/edit calls. Confirm with Victor before the first paid call.
-- A style LoRA to test with. Preference order: (a) an already-trained MerchFrom LoRA if one exists by then, (b) train `american-traditional-v1` for ~$8 using 20-30 reference images Victor provides, (c) a public FLUX.2 LoRA from fal's gallery as a stand-in (zero training cost; acceptable for the degradation comparison, note the substitution in the report).
+- A style LoRA to test with. Preference order: (a) an already-trained Blackout Merchandise LoRA if one exists by then, (b) train `american-traditional-v1` for ~$8 using 20-30 reference images Victor provides, (c) a public FLUX.2 LoRA from fal's gallery as a stand-in (zero training cost; acceptable for the degradation comparison, note the substitution in the report).
 
 ### Steps
 

@@ -99,7 +99,7 @@ function drawFilm(canvas: CanvasSpec, settings: ChartSettings, kind: InkKind, or
   // Registration targets and the label strip, as on a production film.
   drawTargets(data, canvas);
   drawLabelStrip(data, canvas, {
-    left: 'MERCHFROM DOT GAIN CHART',
+    left: 'BLACKOUT MERCHANDISE DOT GAIN CHART',
     right: `${order.index}/${order.total} ${INK_KIND_LABELS[kind]} · ${formatNumber(settings.lpi)} lpi ${degrees(settings.angleDeg)}`,
     topLeft: `Mesh ${settings.mesh}`,
     topRight: `${ppi} ppi`,
@@ -188,7 +188,7 @@ async function chartMapPng(canvas: CanvasSpec, films: ChartFilm[]): Promise<{ pn
       grey[by * w + bx] = 255 - Math.round((255 * on) / (block * block));
     }
   }
-  const png = await encodePng({ width: w, height: h, channels: 1, data: grey, text: { Title: 'MerchFrom dot gain chart' } });
+  const png = await encodePng({ width: w, height: h, channels: 1, data: grey, text: { Title: 'Blackout Merchandise dot gain chart' } });
   return { png, width: w, height: h };
 }
 
@@ -211,9 +211,9 @@ function inkPlateFor(film: ChartFilm, index: number, settings: ChartSettings, in
   };
 }
 
-/** 'MerchFrom-dot-gain-chart-55lpi-22.5deg-600ppi' */
+/** 'BlackoutMerch-dot-gain-chart-55lpi-22.5deg-600ppi' */
 export function chartFileStem(settings: ChartSettings): string {
-  return `MerchFrom-dot-gain-chart-${formatNumber(settings.lpi)}lpi-${formatNumber(settings.angleDeg)}deg-${settings.ppi}ppi`;
+  return `BlackoutMerch-dot-gain-chart-${formatNumber(settings.lpi)}lpi-${formatNumber(settings.angleDeg)}deg-${settings.ppi}ppi`;
 }
 
 export interface ChartPsd {
@@ -307,7 +307,7 @@ export async function renderChartPdf(settings: ChartSettings, inks: InkSystemPro
   const doc = new PDFDocument({
     size: 'A4',
     margin: PAGE.margin,
-    info: { Title: 'MerchFrom dot gain test chart', Author: 'MerchFrom', Subject: 'Instructions for the dot gain test chart', CreationDate: now },
+    info: { Title: 'Blackout Merchandise dot gain test chart', Author: 'Blackout Merchandise', Subject: 'Instructions for the dot gain test chart', CreationDate: now },
   });
   const chunks: Buffer[] = [];
   doc.on('data', (c: Buffer) => chunks.push(c));
@@ -317,7 +317,7 @@ export async function renderChartPdf(settings: ChartSettings, inks: InkSystemPro
   });
 
   let y = PAGE.margin;
-  doc.font('Courier').fontSize(7).fillColor(GREY).text('MERCHFROM · DOT GAIN TEST CHART', PAGE.margin, y, { lineBreak: false });
+  doc.font('Courier').fontSize(7).fillColor(GREY).text('BLACKOUT MERCHANDISE · DOT GAIN TEST CHART', PAGE.margin, y, { lineBreak: false });
   y += 14;
   doc.font('Helvetica-Bold').fontSize(20).fillColor('#000000').text('Dot gain test chart', PAGE.margin, y, { lineBreak: false });
   y += 28;

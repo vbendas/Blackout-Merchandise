@@ -64,38 +64,38 @@ async function signedInAs(cookie: string) {
 }
 
 test('each identity key signs in as that demo user, with their own role, shop and access', async () => {
-  assert.deepEqual(await signedInAs('mf_dev_as=owner'), { email: 'dev@merchfrom.test', role: 'admin', store: null, areas: null });
-  assert.deepEqual(await signedInAs('mf_dev_as=artist'), { email: 'nova@merchfrom.test', role: 'artist', store: 'underwriter', areas: null });
+  assert.deepEqual(await signedInAs('mf_dev_as=owner'), { email: 'dev@blackoutmerch.test', role: 'admin', store: null, areas: null });
+  assert.deepEqual(await signedInAs('mf_dev_as=artist'), { email: 'nova@blackoutmerch.test', role: 'artist', store: 'underwriter', areas: null });
 
   const prepress = await signedInAs('mf_dev_as=prepress');
-  assert.equal(prepress.email, 'ines@merchfrom.test');
+  assert.equal(prepress.email, 'ines@blackoutmerch.test');
   assert.equal(prepress.role, 'staff');
   assert.deepEqual(prepress.areas, { prepress: 'work', production: 'view', runs: 'view' });
 
   const production = await signedInAs('mf_dev_as=production');
-  assert.equal(production.email, 'marc@merchfrom.test');
+  assert.equal(production.email, 'marc@blackoutmerch.test');
   assert.deepEqual(production.areas, { production: 'work', prepress: 'view', shop_orders: 'view', runs: 'view' });
 
   const support = await signedInAs('mf_dev_as=support');
-  assert.equal(support.email, 'laia@merchfrom.test');
+  assert.equal(support.email, 'laia@blackoutmerch.test');
   assert.equal(support.areas?.support, 'work');
 });
 
-test('no cookie, an unknown key or an empty one is the fixed dev user (AUTH_DEV_EMAIL, default dev@merchfrom.test)', async () => {
-  for (const cookie of ['', 'other=1', 'mf_dev_as=', 'mf_dev_as=nobody', 'mf_dev_as=ARTIST', 'mf_dev_as=nova@merchfrom.test', 'mf_dev_as=dev-bypass:artist']) {
-    assert.equal((await signedInAs(cookie)).email, 'dev@merchfrom.test', cookie || '(no cookie)');
+test('no cookie, an unknown key or an empty one is the fixed dev user (AUTH_DEV_EMAIL, default dev@blackoutmerch.test)', async () => {
+  for (const cookie of ['', 'other=1', 'mf_dev_as=', 'mf_dev_as=nobody', 'mf_dev_as=ARTIST', 'mf_dev_as=nova@blackoutmerch.test', 'mf_dev_as=dev-bypass:artist']) {
+    assert.equal((await signedInAs(cookie)).email, 'dev@blackoutmerch.test', cookie || '(no cookie)');
   }
 });
 
 test('outside a request (no cookies to read) it is the fixed dev user too, as in the other tests', async () => {
   const session = await auth.requireUser();
-  assert.equal(session.user.email, 'dev@merchfrom.test');
+  assert.equal(session.user.email, 'dev@blackoutmerch.test');
 });
 
 test('a key whose user the demo never made falls back to the fixed dev user, and nothing is created', async () => {
   await t.db.delete(schema.users).where(eq(schema.users.clerkId, 'dev-bypass:support'));
   const before = (await t.db.select().from(schema.users)).length;
-  assert.equal((await signedInAs('mf_dev_as=support')).email, 'dev@merchfrom.test');
+  assert.equal((await signedInAs('mf_dev_as=support')).email, 'dev@blackoutmerch.test');
   assert.equal((await t.db.select().from(schema.users)).length, before, 'a cookie never creates a user');
 });
 

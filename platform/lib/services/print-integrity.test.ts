@@ -295,7 +295,7 @@ test('an embroidered shop product, or an order naming another shop’s art, need
   await h.prepress.markPacksNeededForOrder(sale);
   assert.deepEqual(await h.prepress.assertPacksApprovedForOrder(sale), { ok: true, value: null });
 
-  const other = await seedUser(h.db, { email: 'other-art@merchfrom.test', withStore: true });
+  const other = await seedUser(h.db, { email: 'other-art@blackoutmerch.test', withStore: true });
   const theirs = await seedDesign(h.db, other.storeId!);
   const run = await seedRun(h.db, { storeId: h.artist.storeId, designId: theirs, lines: [{ colourCode: black.code, qty: 30, printServiceCode: 'screen_2c' }] });
   await h.prepress.markPacksNeededForOrder(run.orderId);

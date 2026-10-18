@@ -95,7 +95,7 @@ export interface CatalogueDetail {
   code: string;
   name: string;
   category: string;
-  /** one plain sentence or two, in MerchFrom's words; '' when there is none */
+  /** one plain sentence or two, in Blackout Merchandise's words; '' when there is none */
   description: string;
   composition: string;
   weightGsm: number | null;

@@ -1,4 +1,4 @@
-# MerchFrom Mainpage — Comprehensive Evaluation & Improvement Plan
+# Blackout Merchandise Mainpage — Comprehensive Evaluation & Improvement Plan
 
 > **Goal**: Prepare the marketing website for crowdfunding success  
 > **Date**: May 7, 2026  
@@ -75,7 +75,7 @@ The gray rectangle placeholders inside the mock UI look unfinished. Replace with
 **Priority: HIGH**
 
 This is a **massive** crowdfunding differentiator. Add after the Marquee:
-- Before/after slider: "Standard print shop" vs "MerchFrom"
+- Before/after slider: "Standard print shop" vs "Blackout Merchandise"
 - Side-by-side zoom on print detail, fabric weight, stitching
 - Interactive: drag to reveal the difference
 
@@ -118,7 +118,7 @@ Crowdfunding pages need FAQs. Common questions:
 - Add OpenGraph image (`og:image`) — currently missing
 - Add FAQ schema JSON-LD for rich snippets
 - Add `twitter:card` meta tags
-- The title says "AI-Powered Premium Merchandise" — good, but consider "MerchFrom | Premium Merch for Artists — Zero Upfront, Zero Commission"
+- The title says "AI-Powered Premium Merchandise" — good, but consider "Blackout Merchandise | Premium Merch for Artists — Zero Upfront, Zero Commission"
 
 ### 10. Performance Cleanup
 **Priority: LOW**

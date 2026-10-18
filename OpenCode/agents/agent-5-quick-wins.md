@@ -54,7 +54,7 @@ Open CLAUDE.md and confirm new section is present and formatted correctly.
 
 **Subtasks:**
 1. Create `Documentation/TRACKS.md`
-2. Write header: `# MerchFrom Track Management`
+2. Write header: `# Blackout Merchandise Track Management`
 3. Write description: Active work items tracked as "Tracks"
 4. Section: Active Tracks
    - Track 1: Code Verification Stack
@@ -246,19 +246,19 @@ Open roadmap and confirm new section is present with all skills mapped.
 
 ```bash
 # Copy agent 1 instructions
-cat /Merch-From/Opencode/agents/agent-1-code-verification.md
+cat /blackout-merchandise/Opencode/agents/agent-1-code-verification.md
 
 # Copy agent 2 instructions
-cat /Merch-From/Opencode/agents/agent-2-gdpr-database-api.md
+cat /blackout-merchandise/Opencode/agents/agent-2-gdpr-database-api.md
 
 # Copy agent 3 instructions
-cat /Merch-From/Opencode/agents/agent-3-gdpr-frontend.md
+cat /blackout-merchandise/Opencode/agents/agent-3-gdpr-frontend.md
 
 # Copy agent 4 instructions
-cat /Merch-From/Opencode/agents/agent-4-gdpr-automation-docs.md
+cat /blackout-merchandise/Opencode/agents/agent-4-gdpr-automation-docs.md
 
 # Copy agent 5 instructions
-cat /Merch-From/Opencode/agents/agent-5-quick-wins.md
+cat /blackout-merchandise/Opencode/agents/agent-5-quick-wins.md
 ```
 
 ### Next Steps for Victor

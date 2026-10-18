@@ -33,7 +33,7 @@ export function createConversation(id: string): ConversationState {
       {
         id: 'm-welcome',
         role: 'assistant',
-        text: 'Welcome to MerchFrom. Let’s get your shop set up.',
+        text: 'Welcome to Blackout Merchandise. Let’s get your shop set up.',
         cards: [
           {
             id: 'card-onboarding-0',

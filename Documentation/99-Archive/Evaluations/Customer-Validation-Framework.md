@@ -192,7 +192,7 @@ This document provides:
 "[Platform name] takes X%, I keep Y% per €30 sale"
 
 **Switch Threshold:**
-"I'd switch to Merch From if I could keep..."
+"I'd switch to Blackout Merchandise if I could keep..."
 
 **Quality Premium:**
 "My fans would pay €[X] more for quality because..."
@@ -226,7 +226,7 @@ This document provides:
 
 **Trigger:** Sent 24-48 hours after voice interview completion
 
-**Email Subject:** "One more thing about your Merch From application"
+**Email Subject:** "One more thing about your Blackout Merchandise application"
 
 **Survey Questions:**
 
@@ -252,7 +252,7 @@ This document provides:
    - [ ] Zero upfront costs
 
 6. **Demo Willingness:**
-   "Would you be willing to try a demo of Merch From in February if invited? (Yes / No / Maybe)"
+   "Would you be willing to try a demo of Blackout Merchandise in February if invited? (Yes / No / Maybe)"
 
 **Data Capture:**
 Store responses in `waiting_list_surveys` table with:
@@ -293,7 +293,7 @@ Store responses in `waiting_list_surveys` table with:
 **Strongest Quotes to Front-Page Investor Deck:**
 
 ### Margins
-> "I make €2 per €25 shirt on Redbubble. That's criminal. Merch From offered me €14 for the same sale." — [Artist Name], Existing POD Artist
+> "I make €2 per €25 shirt on Redbubble. That's criminal. Blackout Merchandise offered me €14 for the same sale." — [Artist Name], Existing POD Artist
 
 ### Quality
 > "Fans constantly tell me my Redbubble shirts feel cheap. I'd pay €5 more for premium quality." — [Artist Name], Touring Band
@@ -356,7 +356,7 @@ When quotes are collected, add to PRD:
 - "What stops me from selling is..." — [Artist Name], Digital Artist
 
 ### Pricing Validation
-- "I'd switch to Merch From if margins were..." — [Artist Name], Pricing sensitivity
+- "I'd switch to Blackout Merchandise if margins were..." — [Artist Name], Pricing sensitivity
 - "My fans would pay more for..." — [Artist Name], Quality premium
 
 ### Feature Prioritization

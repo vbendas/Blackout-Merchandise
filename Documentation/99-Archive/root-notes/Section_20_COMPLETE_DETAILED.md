@@ -6,13 +6,13 @@
 
 We practice what we preach. Our equal wage model (Section 12) extends beyond compensation to **ownership structure**. Just as we reject ego-driven salary hierarchies, we reject traditional equity concentration.
 
-**Core Principle:** 30% of Merch From will be owned by the people building, using, and supporting it—artists, employees, customers, and community. This isn't a marketing gimmick. It's hardcoded into our cap table and, ultimately, into blockchain smart contracts.
+**Core Principle:** 30% of Blackout Merchandise will be owned by the people building, using, and supporting it—artists, employees, customers, and community. This isn't a marketing gimmick. It's hardcoded into our cap table and, ultimately, into blockchain smart contracts.
 
 > *"We're not just ethical about what we print on. We're ethical about who owns us. Our employees, artists, and community hold real equity—not just promises. You can verify it on the blockchain. If you know, you know."*
 
 ### Why Tokenization Aligns with Our Brand
 
-| Traditional Company | Tokenized Merch From |
+| Traditional Company | Tokenized Blackout Merchandise |
 |---------------------|----------------------|
 | Founder: 60-70%, Employees: 0.5-2% each | Founder: 40-50%, Community: 30%, balanced distribution |
 | Cap table is secret | Ownership visible on blockchain |
@@ -177,7 +177,7 @@ The 30% pool is **hard-capped**:
 - Customers become unpaid marketing team (they have financial incentive)
 - Token appreciation aligns their interests with platform success
 - Word-of-mouth from stakeholders > paid advertising
-- Creates "insider" community ("I own part of Merch From")
+- Creates "insider" community ("I own part of Blackout Merchandise")
 - Referrals from owners = higher quality leads than cold ads
 
 **Example customer journey:**
@@ -262,7 +262,7 @@ The 30% pool is **hard-capped**:
 
 **Why this is powerful:**
 - True community ownership, not performative ("Our artists literally govern us")
-- Generates organic content: "Merch From artists voted to donate €10,000 to ocean cleanup"
+- Generates organic content: "Blackout Merchandise artists voted to donate €10,000 to ocean cleanup"
 - Reinforces "Ethical First" positioning (community decides ethical choices, not founder)
 - Creates emotional connection (artists govern their own platform)
 - Differentiates from competitors (Printful doesn't let creators vote on suppliers)
@@ -459,7 +459,7 @@ At this scale, token distribution becomes more selective to prevent over-concent
 - Community status (early backer, meaningful ownership)
 
 **His behavior:**
-- Tells everyone about Merch From (word-of-mouth marketing)
+- Tells everyone about Blackout Merchandise (word-of-mouth marketing)
 - Defends brand online (organic reputation management)
 - Provides feedback (invested in platform success)
 - Recruits artists (increases his token value)
@@ -476,7 +476,7 @@ At this scale, token distribution becomes more selective to prevent over-concent
 
 ```solidity
 // Simplified smart contract logic
-contract MerchFromProfitSharing {
+contract BlackoutMerchProfitSharing {
     uint256 public constant TOTAL_TOKENS = 30000000; // 30M tokens
     uint256 public constant PROFIT_SHARE_PERCENTAGE = 30; // 30%
 
@@ -651,7 +651,7 @@ contract MerchFromProfitSharing {
 - **Transaction fee share:** 7.5% of all secondary market token trading fees → CHZ buyback
 - **Right of first refusal:** Chiliz gets first look at Series A participation
 - **Co-marketing agreement:** Joint case study, conference presentations, PR
-- **Technical integration:** Socios.com marketplace lists Merch From tokens
+- **Technical integration:** Socios.com marketplace lists Blackout Merchandise tokens
 
 **Why This is Better Than Traditional €300K Raise:**
 - **Better valuation:** €220K value for 6-7% vs. €300K for 16-18% equity
@@ -709,7 +709,7 @@ contract MerchFromProfitSharing {
 - We have €113K in owned equipment (zero debt), 9 years of operational expertise, and corporate validation (we sold you an AI system).
 - This isn't R&D funding—it's **scaling proven infrastructure**. By the time we close this deal, we'll have processed dozens of real orders."
 
-**Objection 2: "What if Merch From fails? We lose our investment"**
+**Objection 2: "What if Blackout Merchandise fails? We lose our investment"**
 
 **Response:**
 - "Even if we fail (unlikely given our capital efficiency), you spent €150K to **learn what works in creator tokenization** before competitors.
@@ -990,7 +990,7 @@ contract MerchFromProfitSharing {
 > "Printful and Redbubble are corporations extracting value from creators. We're a **community-owned collective** where creators literally own the platform. Check our token distribution on the blockchain—it's all public. We practice what we preach."
 
 **"If You Know, You Know"** (Reinforced)
-> "If you understand why decentralized ownership matters, you get why Merch From is different. We're not asking you to trust us—our ownership structure is **enforced by immutable code**. Zero trust required. Verify, don't trust."
+> "If you understand why decentralized ownership matters, you get why Blackout Merchandise is different. We're not asking you to trust us—our ownership structure is **enforced by immutable code**. Zero trust required. Verify, don't trust."
 
 **"Aligned Incentives"**
 > "Every artist who joins doesn't just get better margins—they get **ownership**. Every employee doesn't just get equal wages—they get equal equity. Every customer can own part of what they're buying from. When we win, everyone wins. Literally. Check the smart contract."
@@ -1003,17 +1003,17 @@ contract MerchFromProfitSharing {
 **Transparency Reports (Quarterly):**
 - Publish on-chain data: Total tokens distributed, holder count, profit distributions sent
 - "This quarter we distributed €9,600 to 247 token holders—here's the transaction hash"
-- Show artist success stories: "Maria owns 0.2% of Merch From and earned €8,200 this quarter (tokens + margins)"
+- Show artist success stories: "Maria owns 0.2% of Blackout Merchandise and earned €8,200 this quarter (tokens + margins)"
 - Compare to competitors: "Our artists own us. Printful artists own... nothing."
 
 **Behind-the-Scenes:**
 - Video series: "How our DAO voted on [charitable donation / supplier choice / feature priority]"
-- Artist interviews: "Why I chose Merch From" → "Because I can own part of it. I'm not just a user."
+- Artist interviews: "Why I chose Blackout Merchandise" → "Because I can own part of it. I'm not just a user."
 - Employee testimonials: "Equal wages + ownership = why I left [Google/Meta] for a startup earning €1,400/month"
 
 **Educational Content:**
 - "What is tokenized equity?" explainer for artists (many won't understand initially)
-- "How to use your Merch From tokens" tutorials (wallet setup, viewing distributions)
+- "How to use your Blackout Merchandise tokens" tutorials (wallet setup, viewing distributions)
 - "Community ownership vs. corporate extraction" thought leadership (Medium, LinkedIn)
 - "Why we chose Chiliz blockchain" technical deep-dive
 
@@ -1056,7 +1056,7 @@ contract MerchFromProfitSharing {
 | **Smart contracts** | Drafted & reviewed | Ready for Year 2 deployment |
 | **Artist satisfaction** | >80% "tokens are valuable incentive" | Validates mechanism |
 
-**Success indicator:** Artists cite tokens as reason for choosing Merch From over competitors.
+**Success indicator:** Artists cite tokens as reason for choosing Blackout Merchandise over competitors.
 
 #### Year 2: Growth
 
@@ -1092,7 +1092,7 @@ contract MerchFromProfitSharing {
 | **Governance** | Fully autonomous DAO | Community self-governs |
 | **Distributions** | €50-500+ per holder/quarter | Life-changing passive income |
 
-**Success indicator:** "Merch From token holder" becomes a meaningful financial status (like early Shopify employee).
+**Success indicator:** "Blackout Merchandise token holder" becomes a meaningful financial status (like early Shopify employee).
 
 ### Conclusion: Why This Matters
 
@@ -1146,6 +1146,6 @@ This isn't for everyone. It's for people who believe:
 - Customers should share in value they help create
 - Code can enforce fairness better than promises
 
-**If that's you, welcome to Merch From. You're not just joining a platform—you're becoming an owner.**
+**If that's you, welcome to Blackout Merchandise. You're not just joining a platform—you're becoming an owner.**
 
 ---

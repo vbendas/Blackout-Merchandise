@@ -36,7 +36,7 @@
 
   ## 1. Project Overview
 
-  **Merch From** is a conversational commerce platform that empowers artists, bands, and creators to manage their merchandise business through natural conversation with their dedicated team. While the **Visual Editor** handles the store's aesthetic customization, Leopoldo, Francisca, and Antonia actively manage operations, product creation, and sales strategy.
+  **Blackout Merchandise** is a conversational commerce platform that empowers artists, bands, and creators to manage their merchandise business through natural conversation with their dedicated team. While the **Visual Editor** handles the store's aesthetic customization, Leopoldo, Francisca, and Antonia actively manage operations, product creation, and sales strategy.
 
   **Mission:** Help artists, brands, and companies design, source, and sell premium quality merchandise with expert guidance and professional visual tools. Creates focus on the product, while the artist controls the brand experience.
 
@@ -99,7 +99,7 @@
   - **Largest artist migration in POD history** — creators seeking alternatives
 
   **AI Differentiation Window:**
-  - Merch From's multi-modal AI (text + image + voice) is **category-exclusive today**
+  - Blackout Merchandise's multi-modal AI (text + image + voice) is **category-exclusive today**
   - 12-month head start before incumbents close the gap
   - Sustainable moat: print-production workflow (color separation, print prep) + artist workflow integration, not just image generation
 
@@ -118,7 +118,7 @@
 
    ### Direct Competitors (Print-on-Demand Platforms)
    
-   | Feature | **Merch From** | Fyul (Printful+Printify) | Redbubble | Spring (Teespring) | SPOD |
+   | Feature | **Blackout Merchandise** | Fyul (Printful+Printify) | Redbubble | Spring (Teespring) | SPOD |
    |---------|----------------|-------------------------|-----------|-------------------|------|
    | **Store Builder** | ✅ **Visual Editor** (Manual Drag & Drop) | ❌ Complex dashboard | ❌ Complex dashboard | ⚠️ Basic templates | ⚠️ Limited | ❌ Complex |
    | **AI Merch Design** | ✅ Full Cat-Suite (Francisca) | ❌ 3D Design Maker (not AI) | ❌ None | ❌ None | ❌ None | ❌ None |
@@ -157,7 +157,7 @@
    - No ethical/vegan focus
    - Limited customization
 
-  ### Merch From's Unfair Advantages
+  ### Blackout Merchandise's Unfair Advantages
 
   | Advantage | Why Competitors Can't Replicate |
   |-----------|--------------------------------|
@@ -182,7 +182,7 @@
 
   ### Positioning Statement
 
-  > **For independent artists and ethical brands** who want premium merchandise without the complexity, **Merch From** is the **premium merchandise platform** that **designs, produces, and fulfills in-house with zero upfront cost**. Unlike Printful or Redbubble which outsource production and offer generic quality, **we combine owned manufacturing, expert screen printing, and a unique brand narrative to deliver merch that actually matches your brand's values.**
+  > **For independent artists and ethical brands** who want premium merchandise without the complexity, **Blackout Merchandise** is the **premium merchandise platform** that **designs, produces, and fulfills in-house with zero upfront cost**. Unlike Printful or Redbubble which outsource production and offer generic quality, **we combine owned manufacturing, expert screen printing, and a unique brand narrative to deliver merch that actually matches your brand's values.**
 
    ### AI Safety Nets (Hallucination Mitigation)
    We prioritize customer satisfaction over AI autonomy. To mitigate "hallucinations" or unprintable designs:
@@ -237,11 +237,11 @@
    
    1. **Touring Bands** - Need bulk orders + quick turnaround
       - Fyul outsources: 10-14 days production
-      - Merch From in-house: 3-5 days shipping
+      - Blackout Merchandise in-house: 3-5 days shipping
    
    2. **Pantone Precision** - Brand-conscious artists
       - Fyul/Gelato: Digital approximation ("closest match")
-      - Merch From: Exact Magna IM6 ink mixing OR calibrated DTG
+      - Blackout Merchandise: Exact Magna IM6 ink mixing OR calibrated DTG
    
    3. **Metal/Punk Network** - Victor's 9-year relationships
       - Blackout client portfolio: Meta, Google, Sepultura, Electric Picnic
@@ -249,11 +249,11 @@
    
    4. **Artist Education** - AI helps beginners
       - Fyul/Gelato: Expects existing design assets
-      - Merch From: AI-assisted creation from scratch
+      - Blackout Merchandise: AI-assisted creation from scratch
    
    5. **Ethical Certification Path** - B-Corp trajectory
       - Fyul/Gelato: Ethical as add-on tier
-      - Merch From: Ethical as core DNA (equal wages, vegan/fair-trade standard)
+      - Blackout Merchandise: Ethical as core DNA (equal wages, vegan/fair-trade standard)
    
    ### Moat Defense Strategy
    
@@ -273,7 +273,7 @@
   ## 16. Defensibility & Moats (The "Anti-Copy" Strategy)
 
   **The Scenario:** A major incumbent (Printful/Printify) launches an AI Design tool in 6 months.
-  **The Defense:** Why Merch From wins.
+  **The Defense:** Why Blackout Merchandise wins.
 
   ### 16.1 The Curation Moat: Curation > Volume
   **Them:** Generic text-to-image output that regresses to the "average."
@@ -285,7 +285,7 @@
   **Them:** A utility tool. Cold, efficient, silent.
   **Us:** A **Relationship**.
   - Users bond with Leopoldo & Francisca. The "Cat-Suite" has personality, humor, and opinions.
-  - **Switching Cost:** Leaving Merch From feels like "firing your manager," not just canceling a subscription.
+  - **Switching Cost:** Leaving Blackout Merchandise feels like "firing your manager," not just canceling a subscription.
   - **Narrative:** "We are the Anti-Corporate Merch Partner."
 
   ### 16.3 The Vertical Integrity Moat: "Printers who Code"

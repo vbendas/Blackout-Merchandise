@@ -9,7 +9,7 @@
 # hand back the PSD decoder's memory, and after a job that times out.
 #
 # Build from the REPOSITORY ROOT, because the worker imports ../src/db/schema.ts:
-#   docker build -f platform/worker/Dockerfile -t merchfrom-print-worker .
+#   docker build -f platform/worker/Dockerfile -t blackoutmerch-print-worker .
 # (platform/worker/Dockerfile.dockerignore keeps the context to the sources.)
 #
 # Environment the container needs:

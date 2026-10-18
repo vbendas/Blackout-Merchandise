@@ -21,7 +21,7 @@ export function configureCloudinary(cloudName: string, apiKey: string, apiSecret
 
 export async function uploadImage(
   filePath: string,
-  folder: string = 'merch-from/products'
+  folder: string = 'blackout-merchandise/products'
 ): Promise<UploadResult> {
   const result = await cloudinary.uploader.upload(filePath, {
     folder,

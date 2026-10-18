@@ -12,7 +12,7 @@
 
 ## Executive Summary
 
-This is the most comprehensive evaluation in the project's history, covering 76 days of evolution since the last formal assessment (Feb 24). In that time, the project has undergone a fundamental strategic pivot — from "build production backend first" to "build polished demo → crowdfund → build production with validated demand." This pivot, combined with an extraordinary 11-day sprint (May 9-11, 2026), has transformed Merch From from a well-documented prototype with a simulation stack into a **genuinely functional AI-powered product** approaching crowdfunding readiness.
+This is the most comprehensive evaluation in the project's history, covering 76 days of evolution since the last formal assessment (Feb 24). In that time, the project has undergone a fundamental strategic pivot — from "build production backend first" to "build polished demo → crowdfund → build production with validated demand." This pivot, combined with an extraordinary 11-day sprint (May 9-11, 2026), has transformed Blackout Merchandise from a well-documented prototype with a simulation stack into a **genuinely functional AI-powered product** approaching crowdfunding readiness.
 
 **The core finding: Victor has matured from a founder who documented his vision to one who ships it.**
 
@@ -473,7 +473,7 @@ May 11:  "75,317 lines of code, 59 API routes, 19 pages, working AI chat, voice 
 | **Investor Readiness** | 6/10 | 8.5/10 | +2.5 |
 | **Overall Score** | 7.2/10 | 9.0/10 | +1.8 |
 
-> **Merch From has crossed the threshold from "well-documented idea" to "functional product with market timing."** The next 7 weeks will determine whether it crosses from "functional product" to "funded startup." The crowdfunding strategy is sound. The market timing is validated. The execution capability is proven.
+> **Blackout Merchandise has crossed the threshold from "well-documented idea" to "functional product with market timing."** The next 7 weeks will determine whether it crosses from "functional product" to "funded startup." The crowdfunding strategy is sound. The market timing is validated. The execution capability is proven.
 >
 > The only missing piece is the simplest one: talk to customers. Launch the waitlist. Hit record on the demo video. Everything else is in place.
 

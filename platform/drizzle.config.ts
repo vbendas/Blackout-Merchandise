@@ -4,7 +4,7 @@ import { defineConfig } from 'drizzle-kit';
 config({ path: '.env.local', quiet: true });
 
 // The platform app owns a fresh migration history against the clean
-// `merchfrom_platform` database; the legacy /drizzle folder belongs to /app.
+// `blackoutmerch_platform` database; the legacy /drizzle folder belongs to /app.
 export default defineConfig({
   schema: '../src/db/schema.ts',
   out: './drizzle',

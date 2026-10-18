@@ -1,6 +1,6 @@
 /**
  * Custom-domain service (Platform-Plan §7): an artist points their own
- * domain at MerchFrom, we register it on the Vercel project, hand back the
+ * domain at Blackout Merchandise, we register it on the Vercel project, hand back the
  * DNS records to add, poll until Vercel reports it verified + configured,
  * then flip `artistStores.customDomain` so the proxy (see proxy.ts) starts
  * rewriting requests for that host to the store's storefront.
@@ -44,7 +44,7 @@ function configuredPlatformHosts(): Set<string> {
   );
 }
 
-/** True for MerchFrom's own hosts, localhost, and *.vercel.app preview
+/** True for Blackout Merchandise's own hosts, localhost, and *.vercel.app preview
  * deployments — none of these can be claimed as an artist's custom domain,
  * and none should be looked up in the custom-domains table by the proxy. */
 export function isPlatformHost(hostnameRaw: string): boolean {
@@ -109,7 +109,7 @@ export async function addCustomDomain(storeId: string, hostnameInput: string): P
     return { ok: false, error: 'invalid_hostname', message: `"${hostnameInput}" doesn't look like a valid domain.` };
   }
   if (isPlatformHost(hostname)) {
-    return { ok: false, error: 'platform_host', message: `${hostname} is a MerchFrom platform host and can't be used as a custom domain.` };
+    return { ok: false, error: 'platform_host', message: `${hostname} is a Blackout Merchandise platform host and can't be used as a custom domain.` };
   }
 
   const existingRows = await db.select().from(schema.customDomains).where(eq(schema.customDomains.hostname, hostname)).limit(1);
@@ -185,7 +185,7 @@ export async function checkDomain(hostname: string, opts: { storeId?: string } =
       ok: true,
       status: 'error',
       hostname,
-      message: 'This domain is no longer registered with MerchFrom — try adding it again.',
+      message: 'This domain is no longer registered with Blackout Merchandise — try adding it again.',
       records: storedRecords,
     };
   }

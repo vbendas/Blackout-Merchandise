@@ -32,7 +32,7 @@ before(async () => {
   bulk = await import('@/lib/services/bulk');
   quotes = await import('@/lib/services/quotes');
   products = await import('@/lib/services/products');
-  const user = await seedUser(t.db, { email: 'artist@merchfrom.test', withStore: true });
+  const user = await seedUser(t.db, { email: 'artist@blackoutmerch.test', withStore: true });
   storeId = user.storeId!;
   userId = user.userId;
 
@@ -358,7 +358,7 @@ test('techniqueOfService names the technique print prep works by', () => {
 });
 
 test("a run only prints its own shop's art: another shop's design is refused on any line", async () => {
-  const other = await seedUser(t.db, { email: 'other-shop@merchfrom.test', withStore: true });
+  const other = await seedUser(t.db, { email: 'other-shop@blackoutmerch.test', withStore: true });
   const [theirs] = await t.db.insert(schema.designs).values({ storeId: other.storeId!, source: 'upload' }).returning();
 
   // The shop's product has no design of its own, so the line's design would be the one printed.

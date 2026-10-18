@@ -9,7 +9,7 @@ export function configureCloudinary(cloudName, apiKey, apiSecret) {
         secure: true,
     });
 }
-export async function uploadImage(filePath, folder = 'merch-from/products') {
+export async function uploadImage(filePath, folder = 'blackout-merchandise/products') {
     const result = await cloudinary.uploader.upload(filePath, {
         folder,
         use_filename: true,

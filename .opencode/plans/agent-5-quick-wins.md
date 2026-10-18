@@ -54,7 +54,7 @@ Open CLAUDE.md and confirm new section is present and formatted correctly.
 
 **Subtasks:**
 1. Create `Documentation/TRACKS.md`
-2. Write header: `# MerchFrom Track Management`
+2. Write header: `# Blackout Merchandise Track Management`
 3. Write description: Active work items tracked as "Tracks"
 4. Section: Active Tracks
    - Track 1: Code Verification Stack

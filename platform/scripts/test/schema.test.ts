@@ -16,7 +16,7 @@ after(async () => {
 });
 
 test('the staff role and per-area permissions round-trip', async () => {
-  const { userId } = await seedUser(t.db, { email: 'printer@merchfrom.test', role: 'staff' });
+  const { userId } = await seedUser(t.db, { email: 'printer@blackoutmerch.test', role: 'staff' });
   await t.db.insert(schema.staffPermissions).values([
     { userId, area: 'prepress', level: 'work' },
     { userId, area: 'production', level: 'view' },
@@ -29,7 +29,7 @@ test('the staff role and per-area permissions round-trip', async () => {
 });
 
 test('a design version, a print job and a pack link up', async () => {
-  const { userId, storeId } = await seedUser(t.db, { email: 'artist@merchfrom.test', withStore: true });
+  const { userId, storeId } = await seedUser(t.db, { email: 'artist@blackoutmerch.test', withStore: true });
   const [design] = await t.db.insert(schema.designs).values({ storeId: storeId!, source: 'upload' }).returning();
   const [version] = await t.db
     .insert(schema.designVersions)
@@ -69,7 +69,7 @@ test('print services carry the shop flag, defaulting to true', async () => {
 });
 
 test('one live print job per input: a second queued or running twin is refused, finished ones are not', async () => {
-  const { storeId } = await seedUser(t.db, { email: 'queue@merchfrom.test', withStore: true });
+  const { storeId } = await seedUser(t.db, { email: 'queue@blackoutmerch.test', withStore: true });
   const [design] = await t.db.insert(schema.designs).values({ storeId: storeId!, source: 'upload' }).returning();
   const [version] = await t.db
     .insert(schema.designVersions)

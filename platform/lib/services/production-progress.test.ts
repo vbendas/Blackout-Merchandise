@@ -89,7 +89,7 @@ async function shopOrder(productId: string, items: { colour: string; size: strin
       status: 'paid',
       totalAmount: 2500,
       productionStatus: 'queued',
-      fanEmail: opts.email === undefined ? 'fan@merchfrom.test' : opts.email,
+      fanEmail: opts.email === undefined ? 'fan@blackoutmerch.test' : opts.email,
       shippingAddress: { line1: '12 Carrer de Mallorca', city: 'Barcelona', postcode: '08013', country: 'ES' },
     })
     .returning({ id: schema.orders.id });
@@ -135,7 +135,7 @@ test('migration 0006 is additive and runs again without failing or touching what
   const [store] = await h.db.select().from(schema.artistStores).where(eq(schema.artistStores.id, h.artist.storeId));
   assert.equal(store.showOnPressBoard, true, 'a value set since stays');
   await h.db.update(schema.artistStores).set({ showOnPressBoard: false }).where(eq(schema.artistStores.id, h.artist.storeId));
-  const [fresh] = await h.db.insert(schema.users).values({ clerkId: 'test-optin', email: 'optin@merchfrom.test' }).returning();
+  const [fresh] = await h.db.insert(schema.users).values({ clerkId: 'test-optin', email: 'optin@blackoutmerch.test' }).returning();
   const [shop] = await h.db.insert(schema.artistStores).values({ artistId: fresh.id, slug: 'optin-shop', name: 'Optin' }).returning();
   assert.equal(shop.showOnPressBoard, false, 'a shop is off the board by default');
 });
@@ -558,7 +558,7 @@ test('the board shows "Private" until the shop opts in, the stage words, and not
 
   // Nothing personal, whatever the shop chose: no email, no order, no address, no internal id.
   const everything = JSON.stringify(await pp.onThePressFeed());
-  for (const secret of ['private.fan@example.com', 'artist@merchfrom.test', '@', sale, sale.slice(0, 8).toUpperCase(), 'ORD-', run.orderId, run.bulkOrderId, 'Mallorca', '08013', job.jobId, screenJob.jobId, designId, h.artist.storeId]) {
+  for (const secret of ['private.fan@example.com', 'artist@blackoutmerch.test', '@', sale, sale.slice(0, 8).toUpperCase(), 'ORD-', run.orderId, run.bulkOrderId, 'Mallorca', '08013', job.jobId, screenJob.jobId, designId, h.artist.storeId]) {
     assert.ok(!everything.includes(secret), `the board leaks ${secret}`);
   }
   for (const r of await pp.onThePressFeed()) assert.deepEqual(Object.keys(r).sort(), ['client', 'id', 'ink', 'piece', 'printed', 'run', 'stage', 'total', 'updatedAt']);

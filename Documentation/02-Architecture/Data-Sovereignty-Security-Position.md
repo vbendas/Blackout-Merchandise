@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Merch From processes artist designs, customer data, and AI-generated content. Our position is simple: **all data stays in Europe, all AI processing runs on European infrastructure, and artists retain full ownership of their creative work.**
+Blackout Merchandise processes artist designs, customer data, and AI-generated content. Our position is simple: **all data stays in Europe, all AI processing runs on European infrastructure, and artists retain full ownership of their creative work.**
 
 This document defines our security posture for the pre-certification phase. We will not pursue ISO 27001 or SOC 2 until revenue justifies the cost (estimated: post-€100K/month). Until then, we meet trust requirements through **transparency, technical controls, and public documentation**.
 
@@ -87,7 +87,7 @@ This document defines our security posture for the pre-certification phase. We w
 | **Export** | One-click ZIP download of all assets + data |
 | **Deletion** | Soft delete (30-day grace) → hard delete → purge from backups (90 days) |
 | **Opt-in for training** | Explicit checkbox during onboarding; revocable anytime |
-| **License terms** | Artist grants MerchFrom only a production/fulfillment license; all other rights retained |
+| **License terms** | Artist grants Blackout Merchandise only a production/fulfillment license; all other rights retained |
 
 ---
 
@@ -118,7 +118,7 @@ Responsible Disclosure Policy
 
 We welcome security researchers to report vulnerabilities.
 
-- Email: security@merchfrom.com
+- Email: security@blackoutmerch.example
 - PGP key: [published on website]
 - Response time: < 48 hours for critical issues
 - Bounty: €50-500 for valid reports (depending on severity)
@@ -176,7 +176,7 @@ If a personal data breach occurs:
 
 ## Comparison: Our Approach vs. Typical SaaS
 
-| Aspect | Typical US SaaS | MerchFrom |
+| Aspect | Typical US SaaS | Blackout Merchandise |
 |--------|----------------|-----------|
 | **Data residency** | US default, EU option | EU mandatory |
 | **AI processing** | OpenAI (US) | Mistral (France) + BFL (Germany) |

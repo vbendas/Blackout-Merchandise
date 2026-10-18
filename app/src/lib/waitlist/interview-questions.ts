@@ -32,7 +32,7 @@ export const interviewQuestions: InterviewQuestion[] = [
   },
   {
     id: 5,
-    question: 'Why do you want to join MerchFrom?',
+    question: 'Why do you want to join Blackout Merchandise?',
     placeholder: 'Tell us what excites you about our platform...',
     required: true,
   },

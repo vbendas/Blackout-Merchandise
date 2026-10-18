@@ -35,7 +35,7 @@ export async function getKnowledgeForPrompt() {
         return '';
     }
     const lines = [
-        '--- VERIFIED FACTS ABOUT MERCHFROM ---',
+        '--- VERIFIED FACTS ABOUT BLACKOUT MERCHANDISE ---',
     ];
     for (const s of settings) {
         if (s.valueJson != null) {

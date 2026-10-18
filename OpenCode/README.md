@@ -46,9 +46,9 @@ git checkout -b feature/agent-5-quick-wins
 Open the agent file you want to work on:
 
 ```bash
-cat /Users/victorbendas/Documents/GitHub/Merch-From/Opencode/agent-1-code-verification.md
+cat /path/to/blackout-merchandise/Opencode/agent-1-code-verification.md
 # OR
-cat /Users/victorbendas/Documents/GitHub/Merch-From/Opencode/agent-2-gdpr-database-api.md
+cat /path/to/blackout-merchandise/Opencode/agent-2-gdpr-database-api.md
 # etc.
 ```
 

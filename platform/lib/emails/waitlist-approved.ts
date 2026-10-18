@@ -8,7 +8,7 @@ export interface WaitlistApprovedPayload {
 export function waitlistApprovedEmail(payload: WaitlistApprovedPayload) {
   const inviteUrl = appUrl(payload.inviteToken ? `/sign-up?invite=${payload.inviteToken}` : '/sign-up');
   const { html, text } = renderEmail({
-    heading: "You're in. Create your MerchFrom shop",
+    heading: "You're in. Create your Blackout Merchandise shop",
     paragraphs: [
       payload.product
         ? `Your spot is confirmed — set up your shop and start selling your ${payload.product} merch.`
@@ -17,5 +17,5 @@ export function waitlistApprovedEmail(payload: WaitlistApprovedPayload) {
     buttonLabel: 'Create your shop',
     buttonUrl: inviteUrl,
   });
-  return { subject: "You're in. Create your MerchFrom shop", html, text };
+  return { subject: "You're in. Create your Blackout Merchandise shop", html, text };
 }

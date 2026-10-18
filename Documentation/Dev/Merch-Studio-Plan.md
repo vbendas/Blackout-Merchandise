@@ -15,7 +15,7 @@ The audience is artists, bands, labels and creators buying premium merch. Every 
 |---|---|
 | Greeting says "What are we making, Dev?" (dev-bypass user is "Dev Artist") | Dev user gets a realistic artist name (`AUTH_DEV_NAME`, default "Nova Halo"); the internal word "Dev" never renders in the UI |
 | Raw enums on screen ("AWAITING_PAYMENT") | One `humanStatus()` helper maps every status to plain words ("Awaiting payment") |
-| Composer placeholder "Message MerchFrom..." | "Describe a piece, a drop or a run" (from the Studio mock) |
+| Composer placeholder "Message Blackout Merchandise..." | "Describe a piece, a drop or a run" (from the Studio mock) |
 | Rail of icon shortcuts that only fire prompts ("Shop", "Inbox"...) felt arbitrary | Replaced by a session history sidebar (B3) |
 
 ### A2. Navigation and information architecture
@@ -116,7 +116,7 @@ Title rules: trimmed, 1 to 80 characters. Collection name: trimmed, 1 to 60 char
 - **WP4:** `platform/app/(chat)/studio/settings/page.tsx`, `platform/app/(chat)/studio/billing/page.tsx`, `platform/components/studio/settings/**`, `platform/components/studio/billing/**`, `platform/app/api/studio/profile/route.ts`, `platform/lib/services/billing.ts` (new, read-only queries).
 
 ### WP3 detail: sidebar behaviour
-- Width 272px desktop, fixed left, hairline right border, black ground. Top: wordmark "MERCHFROM" (uppercase label) and a **New session** button (links to `/studio`).
+- Width 272px desktop, fixed left, hairline right border, black ground. Top: wordmark "BLACKOUT MERCHANDISE" (uppercase label) and a **New session** button (links to `/studio`).
 - **Collections** section (hidden when the user has no store): header row with label "COLLECTIONS" and a `+` button that turns into an inline name input (Enter creates, Escape cancels). Each collection row is expandable and lists its sessions; row menu (`...`): Rename, Delete (shows the API error inline when it still has products).
 - **Sessions** section: ungrouped sessions, newest first. Active session highlighted (white text, 8% white ground). Row menu (`...`): Rename (inline input), Move to collection (submenu listing collections + "No collection"), plus "New collection..." which creates and moves in one step.
 - **Account footer:** avatar (Clerk image, else initials on a hairline square), display name, shop name underneath in 50% white. Click opens a drop-up: Settings, Billing, divider, Sign out (Clerk `signOut`, hidden in dev bypass). Closes on Escape and outside click.

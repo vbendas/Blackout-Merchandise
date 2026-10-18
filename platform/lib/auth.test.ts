@@ -142,24 +142,24 @@ test('a change of access counts from the next request, and removal ends access',
 test('ADMIN_EMAILS only bootstraps the first owner', async () => {
   const saved = await t.db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.role, 'admin'));
   await t.db.update(schema.users).set({ role: 'artist' }).where(eq(schema.users.role, 'admin'));
-  process.env.ADMIN_EMAILS = 'boss@merchfrom.test, second@merchfrom.test';
+  process.env.ADMIN_EMAILS = 'boss@blackoutmerch.test, second@blackoutmerch.test';
   try {
-    const boss = await users.getOrCreateUserFromClerk({ clerkId: 'test-boot-1', email: 'Boss@merchfrom.test', displayName: null, imageUrl: null });
+    const boss = await users.getOrCreateUserFromClerk({ clerkId: 'test-boot-1', email: 'Boss@blackoutmerch.test', displayName: null, imageUrl: null });
     assert.equal(boss.role, 'admin', 'no owner yet: the listed address becomes the owner');
 
-    const second = await users.getOrCreateUserFromClerk({ clerkId: 'test-boot-2', email: 'second@merchfrom.test', displayName: null, imageUrl: null });
+    const second = await users.getOrCreateUserFromClerk({ clerkId: 'test-boot-2', email: 'second@blackoutmerch.test', displayName: null, imageUrl: null });
     assert.equal(second.role, 'artist', 'an owner exists: the list promotes no one else');
 
-    const viaMetadata = await users.getOrCreateUserFromClerk({ clerkId: 'test-boot-3', email: 'meta@merchfrom.test', displayName: null, imageUrl: null, publicMetadataRole: 'admin' });
+    const viaMetadata = await users.getOrCreateUserFromClerk({ clerkId: 'test-boot-3', email: 'meta@blackoutmerch.test', displayName: null, imageUrl: null, publicMetadataRole: 'admin' });
     assert.equal(viaMetadata.role, 'artist');
 
     // A sync never changes a team role: a demoted owner stays demoted.
     await t.db.update(schema.users).set({ role: 'staff' }).where(eq(schema.users.id, boss.id));
-    const synced = await users.getOrCreateUserFromClerk({ clerkId: 'test-boot-1', email: 'boss@merchfrom.test', displayName: null, imageUrl: null });
+    const synced = await users.getOrCreateUserFromClerk({ clerkId: 'test-boot-1', email: 'boss@blackoutmerch.test', displayName: null, imageUrl: null });
     assert.equal(synced.role, 'staff');
 
     // The dev bypass's own role setting is applied as it is.
-    const dev = await users.getOrCreateUserFromClerk({ clerkId: 'test-boot-4', email: 'devrole@merchfrom.test', displayName: null, imageUrl: null, devRole: 'staff' });
+    const dev = await users.getOrCreateUserFromClerk({ clerkId: 'test-boot-4', email: 'devrole@blackoutmerch.test', displayName: null, imageUrl: null, devRole: 'staff' });
     assert.equal(dev.role, 'staff');
   } finally {
     delete process.env.ADMIN_EMAILS;

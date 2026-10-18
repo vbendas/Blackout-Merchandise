@@ -607,7 +607,7 @@ const imageUrl = design.transformations?.length
 
 ### 9.2 Build Verification
 ```bash
-cd /Users/victorbendas/Documents/GitHub/Merch-From/app
+cd /path/to/blackout-merchandise/app
 bun tsc --noEmit
 bun run build
 ```

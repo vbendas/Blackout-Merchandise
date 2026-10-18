@@ -30,7 +30,7 @@
 
 ## Vision
 
-Expand Merch From from garments into **3D-printed jewelry accessories** — pendants, rings, bracelets, earrings, and custom pieces. Artists use the same Cat-Suite AI workflow they know: describe what they want, iterate with Francisca on design, approve a 3D preview, and receive a premium metal accessory produced at our Portugal facility.
+Expand Blackout Merchandise from garments into **3D-printed jewelry accessories** — pendants, rings, bracelets, earrings, and custom pieces. Artists use the same Cat-Suite AI workflow they know: describe what they want, iterate with Francisca on design, approve a 3D preview, and receive a premium metal accessory produced at our Portugal facility.
 
 **The pitch to investors:** "We don't just print t-shirts. Our AI can design and produce custom jewelry — from artist conversation to finished brass pendant in 72 hours."
 
@@ -73,7 +73,7 @@ Quality check → Ship to customer
 - Gold plating: ~€2-3
 - Labor (automated + finishing): ~€5-8
 - **Total production cost: ~€10-15**
-- **Retail price: €45-80** (artist sets price, Merch From takes base cost + margin)
+- **Retail price: €45-80** (artist sets price, Blackout Merchandise takes base cost + margin)
 
 ---
 
@@ -123,7 +123,7 @@ Quality check → Ship to customer
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Merch From App (/app)                  │
+│                    Blackout Merchandise App (/app)                  │
 │                                                          │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
 │  │  Cat-Suite    │  │  3D Viewer   │  │  Material    │  │
@@ -591,7 +591,7 @@ export const accessoryDesigns = pgTable('accessory_designs', {
 
 ### Artist Selection Criteria
 
-- Already active on Merch From (garment sales)
+- Already active on Blackout Merchandise (garment sales)
 - Existing audience that would buy accessories
 - Willing to provide feedback on AI design flow
 - Mix of art styles (realistic, abstract, typography, illustrative)

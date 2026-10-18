@@ -1,6 +1,6 @@
 > Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
 
-# MerchFrom: Comprehensive Codebase Audit & Evaluation
+# Blackout Merchandise: Comprehensive Codebase Audit & Evaluation
 
 **Evaluation Date:** February 1, 2026  
 **Evaluator:** Claude Code (Opus 4.5) — Full Codebase Audit  
@@ -155,7 +155,7 @@ Feb 1:   ████████▓░ 8.5/10 (Codebase audit: reality check, d
 7. **E-shop dashboard shows hardcoded mock metrics** — not connected to any data source.
 8. **Session history and notifications use hardcoded mock data** — no real persistence.
 9. **`onLoadingComplete` deprecated** in `AvatarContainer.tsx` (Next.js Image API change).
-10. **Social links point to generic URLs** (instagram.com, tiktok.com) — not MerchFrom accounts.
+10. **Social links point to generic URLs** (instagram.com, tiktok.com) — not Blackout Merchandise accounts.
 
 **Verdict:** Infrastructure layer is excellent. Application layer has significant gaps. The middleware misconfiguration alone is a security concern. **Score: 8.0/10**
 

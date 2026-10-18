@@ -1,6 +1,6 @@
 # Print prep build: status (production stations, A2 film, collar and per-position pricing integrated, 17 Oct 2026)
 
-Worktree: `/Users/victorbendas/Documents/GitHub/Merch-From-print-prep`, branch `feat/print-prep` (from `22678b3`). Phases 0 to 2, shop pricing and print areas are in local commits (not pushed); the production stations round (PS-A to PS-E) is uncommitted. Migrations `0003` to `0006` have run only on PGlite (the tests and the local demo database), never on Neon.
+Worktree: `/path/to/blackout-merchandise-print-prep`, branch `feat/print-prep` (from `22678b3`). Phases 0 to 2, shop pricing and print areas are in local commits (not pushed); the production stations round (PS-A to PS-E) is uncommitted. Migrations `0003` to `0006` have run only on PGlite (the tests and the local demo database), never on Neon.
 
 ## Work packages
 
@@ -46,7 +46,7 @@ Plan section 1 (Decisions: "Production stations", "Film and design size", "Colla
   - A count is one atomic UPDATE, clamped to 0..total in the database, and a CHECK constraint keeps printed at or below the total, so iPads counting the same line all land.
   - Guards: Screens is for screen print only; printing waits for every screen to be ready, Curing and Folding for every piece (both can be forced, and the activity log says so); Shipped is not a station's step; moving back is allowed unless another batch of the design took the place.
   - The order follows: its first printed piece moves it to printing, and it is packed once every piece is printed and every job it is in has reached Folding, through the production gate. Shipping stays the Production page's step, with tracking.
-  - `GET /api/public/on-the-press`, the website's board, and Settings → "Show my shop's name on the MerchFrom press board".
+  - `GET /api/public/on-the-press`, the website's board, and Settings → "Show my shop's name on the Blackout Merchandise press board".
 - **Stations (PS-B).** `app/station` and `components/station`: an iPad app of its own (home-screen manifest, icons, wake lock, safe areas, targets of 56 px or more).
   - The queue: jobs by stage, for this iPad's station (screen print, DTG, DTF or all), with their proofs, refreshed every 10 s.
   - A job: a stepper with one big next-step button ("Job done" is the step into Folding); tabs for Screens, Pieces, Proofs and the Job sheet; counters (-1, +1, +5, +10, All and a keypad), shown at once and corrected by the server's numbers; held moves ask first and are then forced; hide from the board.
@@ -542,14 +542,14 @@ npm run demo:local -- --reset    # wipes it and builds again
 **Run:**
 
 ```
-cd /Users/victorbendas/Documents/GitHub/Merch-From-print-prep/platform
+cd /path/to/blackout-merchandise-print-prep/platform
 LOCAL_DB_DIR=$PWD/.local-demo/db PRINT_STORAGE_DRIVER=local PRINT_STORAGE_DIR=$PWD/.local-demo/print-storage \
   AUTH_DEV_BYPASS=1 NEXT_PUBLIC_APP_URL=http://localhost:3030 npx next dev --webpack -p 3030
 ```
 
 Open http://localhost:3030 (it goes to `/dev`). `NEXT_PUBLIC_APP_URL` makes the shop links and the mock checkout's return page point here, not at the port in `.env.local`.
 
-**People** (`lib/dev/identities.ts`; `/dev` lists them and its links sign in as the right one first, through the `mf_dev_as` cookie; the account menu and the admin sidebar have "Switch identity (dev)"): Owner (`dev@merchfrom.test`, the fixed dev user), Artist (Nova Halo, the Underwriter shop), and employees on the Pre-press (Ines Vidal), Production (Marc Soler) and Support (Laia Ferrer) presets. No cookie, an unknown key or a user the demo never made is the fixed dev user.
+**People** (`lib/dev/identities.ts`; `/dev` lists them and its links sign in as the right one first, through the `mf_dev_as` cookie; the account menu and the admin sidebar have "Switch identity (dev)"): Owner (`dev@blackoutmerch.test`, the fixed dev user), Artist (Nova Halo, the Underwriter shop), and employees on the Pre-press (Ines Vidal), Production (Marc Soler) and Support (Laia Ferrer) presets. No cookie, an unknown key or a user the demo never made is the fixed dev user.
 
 **What the build leaves** (two designs, T-shirt on black, French Navy and white, front chest 28 cm, through the real pipeline and services):
 - *Underwriter* (`test_design.png`): approved by the artist, every pack approved by pre-press with Pantone codes, two live shop products with the engine's proofs as their pictures, a shipped shop order, a queued one, a screen-printed run on the press, and its job sheet.

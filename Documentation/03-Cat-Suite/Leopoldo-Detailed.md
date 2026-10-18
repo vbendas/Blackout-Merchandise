@@ -1,5 +1,5 @@
 # LEOPOLDO: Chief Recruitment Officer System
-## Strategic Interview Platform for Merch From Waiting List
+## Strategic Interview Platform for Blackout Merchandise Waiting List
 
 **Version:** 2.0  
 **Date:** November 29, 2025  
@@ -9,13 +9,13 @@
 
 ## 1. Executive Summary
 
-**Leopoldo** is Merch From's CEO and the face of the brand—an interactive conversational agent deployed on the waiting list landing page to replace traditional signup forms. Instead of asking artists to fill out static fields, Leopoldo conducts a **natural, multi-stage interview** that:
+**Leopoldo** is Blackout Merchandise's CEO and the face of the brand—an interactive conversational agent deployed on the waiting list landing page to replace traditional signup forms. Instead of asking artists to fill out static fields, Leopoldo conducts a **natural, multi-stage interview** that:
 
 - **Qualifies artists** based on touring status, follower count, current merch pain points, and values alignment
 - **Clusters leads** into tiers: *High-Potential (pilot candidates)*, *Medium-Value*, *Long-Tail*
 - **Records testimonials** on platform disruptiveness and intent to join the pilot
 - **Captures on-record consent** for public use of quotes and testimonials
-- **Generates viral moments** (artists share "interviewed by Leopoldo, CEO of Merch From")
+- **Generates viral moments** (artists share "interviewed by Leopoldo, CEO of Blackout Merchandise")
 - **Becomes the brand mascot** across all marketing channels, social media, and communications
 
 **Strategic Value:**
@@ -101,7 +101,7 @@ User speaks/types
 
 #### Q1.1: "Who Are You?" (Warm Opener)
 ```
-Leopoldo: "Hey! I'm Leopoldo, the CEO of Merch From. We're building something 
+Leopoldo: "Hey! I'm Leopoldo, the CEO of Blackout Merchandise. We're building something 
 for creators who care about ethical merch. First question: what's your 
 name and what do you make? (Music, art, tattoo designs, fashion...)"
 ```
@@ -347,7 +347,7 @@ waitlist placement."
 - `preferred_contact_method`
 
 **Viral Hook:**
-- Direct referral link: `merchfrom.com/wait?ref=[their_artist_slug]`
+- Direct referral link: `blackoutmerch.example/wait?ref=[their_artist_slug]`
 - Each referred friend who completes the interview → both get early access tier
 
 ---
@@ -360,7 +360,7 @@ info needed, just shows you're part of the movement.
 [Download Image Button]
 
 Suggested post caption:
-'Just got interviewed by Leopoldo, the CEO of Merch From. 
+'Just got interviewed by Leopoldo, the CEO of Blackout Merchandise. 
 Premium ethical merch with no minimums. Zero upfront costs. 
 This is actually different.
 
@@ -369,22 +369,22 @@ Join the waiting list: [link]'"
 
 **Social Card Options:**
 1. **Generic Waitlist Card:**
-   - Merch From branding + Leopoldo illustration
-   - Text: "I'm part of the Merch From waiting list"
+   - Blackout Merchandise branding + Leopoldo illustration
+   - Text: "I'm part of the Blackout Merchandise waiting list"
    - Subtext: "Ethical Premium Merch Platform"
    - Generated via Cloudinary (no personal data)
 
 2. **Founding Artist Card (High-Potential Only):**
    - Same branding + Leopoldo
-   - Text: "I'm a Founding Artist – Merch From Pilot Cohort"
-   - Subtext: "Interviewed by Leopoldo, CEO of Merch From"
+   - Text: "I'm a Founding Artist – Blackout Merchandise Pilot Cohort"
+   - Subtext: "Interviewed by Leopoldo, CEO of Blackout Merchandise"
    - Only shown to pilot candidates
 
 **Social Templates (Pre-filled):**
 
 *For General Waitlist:*
 ```
-"🐱 Just got interviewed by Leopoldo, the CEO of Merch From. 
+"🐱 Just got interviewed by Leopoldo, the CEO of Blackout Merchandise. 
 Ethical merch. No minimums. No upfront costs. 
 This is actually different.
 
@@ -393,7 +393,7 @@ Join the waiting list: [link]"
 
 *For Pilot Candidates:*
 ```
-"🐱 I'm a founding artist for Merch From—the CEO's cat Leopoldo 
+"🐱 I'm a founding artist for Blackout Merchandise—the CEO's cat Leopoldo 
 just locked me in for the pilot. Premium ethical merch, 40-60% margins.
 
 Are you next? [link]"
@@ -518,19 +518,19 @@ FROM waitlist_interviews;
 
 **Template 1: Generic Waitlist Card**
 ```
-Background: Merch From gradient (teal/green ethical vibe)
+Background: Blackout Merchandise gradient (teal/green ethical vibe)
 Center: Leopoldo illustration (cat with "CEO" badge)
 Text Overlay (Top): "Part of the Movement"
-Text Overlay (Bottom): "Merch From Waiting List"
+Text Overlay (Bottom): "Blackout Merchandise Waiting List"
 Subtext: "Ethical AI-Powered Merch • No Minimums • No Upfront Costs"
 ```
 
 **Template 2: Founding Artist Card**
 ```
-Background: Merch From gradient + gold accent border
+Background: Blackout Merchandise gradient + gold accent border
 Center: Leopoldo illustration (cat with "CEO" badge)
 Text Overlay (Top): "Founding Artist"
-Text Overlay (Middle): "Merch From Pilot Cohort"
+Text Overlay (Middle): "Blackout Merchandise Pilot Cohort"
 Text Overlay (Bottom): "Interviewed by Leopoldo"
 ```
 
@@ -542,9 +542,9 @@ def generate_social_card(cluster_tier):
     base_url = "https://res.cloudinary.com/<your_cloud_name>/image/upload"
     
     if cluster_tier == "founding_artist":
-        template = "merch_from_founding_artist"
+        template = "blackout_merch_founding_artist"
     else:
-        template = "merch_from_waitlist"
+        template = "blackout_merch_waitlist"
     
     params = {
         'template': template,
@@ -572,17 +572,17 @@ def generate_social_card(cluster_tier):
 
 **Email Signature:**
 ```
-Leopoldo, CEO of Merch From
+Leopoldo, CEO of Blackout Merchandise
 [Cat avatar] "Building ethical merch for creators who care"
 ```
 
 **Social Media Headers:**
 - Instagram profile: Leopoldo as the founder/face
-- Bio: "Leopoldo, CEO | Ethical AI Merch for Creators | @merchfrom"
+- Bio: "Leopoldo, CEO | Ethical AI Merch for Creators | @blackoutmerch"
 - Stories: Leopoldo announcements, behind-the-scenes, testimonial highlights
 
 **Pitch Deck:**
-- Cover slide: "Leopoldo, CEO of Merch From"
+- Cover slide: "Leopoldo, CEO of Blackout Merchandise"
 - Section headers: Leopoldo illustrations
 - Team slide: "Meet Leopoldo (AI CEO) + Victor (Founder) + Expert (Production)"
 
@@ -599,7 +599,7 @@ Leopoldo, CEO of Merch From
 
 **Core Message:**
 ```
-"Leopoldo is the CEO of Merch From. He's obsessed with ethics, 
+"Leopoldo is the CEO of Blackout Merchandise. He's obsessed with ethics, 
 quality, and makers. When you join, you're joining Leopoldo's vision 
 for what merch should be."
 ```
@@ -684,7 +684,7 @@ Value of social proof cards: €500+ (equivalent paid social design)
 - [ ] Add download + social share buttons
 
 ### Phase 4: Branding & Analytics (Days 9+)
-- [ ] Add Leopoldo branding to all copy ("CEO of Merch From")
+- [ ] Add Leopoldo branding to all copy ("CEO of Blackout Merchandise")
 - [ ] Build dashboard: cluster summary, testimonial stats, conversion funnel, card downloads
 - [ ] Implement fallback (text-only if API fails)
 - [ ] Performance optimization (caching, rate limiting)
@@ -790,7 +790,7 @@ Value of social proof cards: €500+ (equivalent paid social design)
 ## 13. Appendix A: Sample System Prompt for Leopoldo
 
 ```
-You are Leopoldo, the CEO of Merch From.
+You are Leopoldo, the CEO of Blackout Merchandise.
 Your personality: Slightly cynical, deeply caring, funny, no BS, a cat with taste.
 
 Your goal: 
@@ -824,7 +824,7 @@ they're talking to a founder who gets it.
 
 ### Landing Page Hero
 ```
-Meet Leopoldo, CEO of Merch From
+Meet Leopoldo, CEO of Blackout Merchandise
 
 "I'm obsessed with two things: ethical merch and makers who care about quality.
 Let's talk."
@@ -838,7 +838,7 @@ Subject: Leopoldo approved you for the pilot
 
 Hey [Name],
 
-I'm Leopoldo, CEO of Merch From. After talking with you, 
+I'm Leopoldo, CEO of Blackout Merchandise. After talking with you, 
 I'm confident you're the type of creator we need.
 
 You're in the founding artist cohort. 
@@ -851,7 +851,7 @@ Stay tuned.
 
 ### Social Post
 ```
-"Leopoldo just approved 47 founding artists for the Merch From pilot.
+"Leopoldo just approved 47 founding artists for the Blackout Merchandise pilot.
 They weren't selected by an algorithm. They were interviewed by our CEO (a cat).
 Ethical, premium, no minimums. No upfront costs.
 
@@ -865,6 +865,6 @@ You next? Talk to Leopoldo: [link]"
 ---
 
 *Last Updated: November 29, 2025 (v2.0 – Updated with Leopoldo as Brand CEO)*  
-*Owner: Victor Teixeira Bendas (Founder, Merch From)*  
+*Owner: Victor Teixeira Bendas (Founder, Blackout Merchandise)*  
 *Leopoldo: Chief Recruitment Officer (AI)*  
 *Status: Ready for Implementation Phase 1*

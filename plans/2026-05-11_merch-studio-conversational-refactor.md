@@ -273,7 +273,7 @@ When the chat API receives a request from the studio (detect via `agent === 'fra
 Copy the structure from `app/src/app/api/upload/slider/route.ts` (Cloudinary pattern).
 
 Differences from slider upload:
-- Cloudinary folder: `merch-from/studio/references/[userId]`
+- Cloudinary folder: `blackout-merchandise/studio/references/[userId]`
 - Max size: 10MB (design files can be larger)
 - No resize transform — preserve original dimensions for design work
 - Add `auto:good` quality and `f_auto` format

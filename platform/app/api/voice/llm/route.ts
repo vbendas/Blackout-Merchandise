@@ -19,7 +19,7 @@
  *    (see ensureAgent) and checked against `Authorization: Bearer <secret>`
  *    below, in constant time.
  *
- * 3. *Which* MerchFrom user is talking is a separate problem from bridge
+ * 3. *Which* Blackout Merchandise user is talking is a separate problem from bridge
  *    auth. The secret only proves the request came from ElevenLabs; the rest
  *    of it was set by the browser that started the conversation, so a bare
  *    `user_id` on it could be anyone's (the owner's included) and is never
@@ -177,7 +177,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     suspended: actor.suspended ?? false,
   };
 
-  const modelName = body.model || 'merchfrom-agent';
+  const modelName = body.model || 'blackoutmerch-agent';
   const completionId = `chatcmpl-${randomUUID()}`;
   const created = Math.floor(Date.now() / 1000);
   const encoder = new TextEncoder();

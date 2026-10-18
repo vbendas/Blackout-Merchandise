@@ -1,4 +1,4 @@
-# Merch From: Product Requirements Document
+# Blackout Merchandise: Product Requirements Document
 
 > **Version**: v3.5  
 > **Last Updated**: October 17, 2026  
@@ -8,7 +8,7 @@
 
 ## What This Document Is
 
-This is the **master navigation document** for the Merch From Product Requirements. The full PRD was split into focused documents for easier maintenance and navigation.
+This is the **master navigation document** for the Blackout Merchandise Product Requirements. The full PRD was split into focused documents for easier maintenance and navigation.
 
 ---
 

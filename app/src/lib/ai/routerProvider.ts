@@ -1,6 +1,6 @@
 import { mistralClient } from './mistral-client';
 
-const ROUTER_SYSTEM_PROMPT = `You are an intelligent routing system for a merchandise platform called MerchFrom.
+const ROUTER_SYSTEM_PROMPT = `You are an intelligent routing system for a merchandise platform called Blackout Merchandise.
 
 Your job is to analyze user messages and route them to the appropriate AI agent:
 - Leopoldo: Business, pricing, onboarding, waitlist, bulk orders, store setup

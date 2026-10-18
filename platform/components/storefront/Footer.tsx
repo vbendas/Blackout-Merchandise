@@ -19,7 +19,7 @@ export function Footer({ store }: { store: PublicStore }) {
   return (
     <footer className="sf-footer">
       <div className="sf-wrap sf-footer-in">
-        <p className="mf-label mf-dim">Merch by MerchFrom · printed in Barcelona</p>
+        <p className="mf-label mf-dim">Merch by Blackout Merchandise · printed in Barcelona</p>
 
         {socials.length > 0 && (
           <ul role="list" className="sf-socials">

@@ -4,11 +4,11 @@
 import { createRequire } from 'module';
 import fs from 'fs';
 import path from 'path';
-const require = createRequire('/Users/victorbendas/Documents/GitHub/Merch-From/platform/package.json');
+const require = createRequire('/path/to/blackout-merchandise/platform/package.json');
 const sharp = require('sharp');
 sharp.cache(false);
 
-const ROOT = '/Users/victorbendas/Documents/GitHub/Merch-From';
+const ROOT = '/path/to/blackout-merchandise';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const OUT = path.join(HERE, 'img');
 fs.mkdirSync(OUT, { recursive: true });
@@ -424,7 +424,7 @@ for (const kind of ['darks', 'lights']) {
     for (let y = BB3.y0; y < BB3.y1; y++) { const fy = y - BB3.y0 + MARGIN; for (let x = BB3.x0; x < BB3.x1; x++) if (p.bin[y * W3 + x]) g[fy * FW + (x - BB3.x0 + MARGIN)] = 0; }
     const what = p.role === 'underbase' ? 'UNDERBASE · AQUAFLEX V2 WHITE' : p.role === 'highlight' ? 'HIGHLIGHT WHITE' : p.role === 'black' ? 'BLACK' : `INK ${p.ink.hex} · ${p.base.toUpperCase()}`;
     const file = `film-${kind}-${j + 1}.png`;
-    const svg = marksSvg(`UNDERWRITER v3 · FRONT · ${kind.toUpperCase()} ${j + 1}/${plates.length}`, `${what} · ${LPI} LPI ${ANGLE}°`, 'TOP ↑  MERCHFROM FILM', 'PRINT AS IS · NO SCALING');
+    const svg = marksSvg(`UNDERWRITER v3 · FRONT · ${kind.toUpperCase()} ${j + 1}/${plates.length}`, `${what} · ${LPI} LPI ${ANGLE}°`, 'TOP ↑  BLACKOUT MERCHANDISE FILM', 'PRINT AS IS · NO SCALING');
     const full = await sharp(Buffer.from(g), { raw: { width: FW, height: FH, channels: 1 } }).composite([{ input: svg }]).png().toBuffer();
     await sharp(full).resize({ height: 560, kernel: 'lanczos3' }).greyscale().png().toFile(path.join(OUT, file));
     filmIndex[kind].push(file);

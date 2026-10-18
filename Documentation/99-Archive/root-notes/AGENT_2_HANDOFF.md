@@ -304,25 +304,25 @@ useSentimentDetection()
 
 ### Build
 ```bash
-cd /Users/victorbendas/Documents/GitHub/Merch-From/app
+cd /path/to/blackout-merchandise/app
 bun run build
 ```
 
 ### Dev Server
 ```bash
-cd /Users/victorbendas/Documents/GitHub/Merch-From/app
+cd /path/to/blackout-merchandise/app
 bun run dev
 ```
 
 ### Lint
 ```bash
-cd /Users/victorbendas/Documents/GitHub/Merch-From/app
+cd /path/to/blackout-merchandise/app
 bun run lint
 ```
 
 ### Type Check
 ```bash
-cd /Users/victorbendas/Documents/GitHub/Merch-From/app
+cd /path/to/blackout-merchandise/app
 npx tsc --noEmit
 ```
 

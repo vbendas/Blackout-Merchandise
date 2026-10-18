@@ -5,7 +5,7 @@
 **Deciders:** Victor Bendas
 
 ## Context
-Merch From needs an industrial facility for screen printing production. Original plan was Porto (rent €1,000-1,200/month, purchase €100-120K in Year 2-3).
+Blackout Merchandise needs an industrial facility for screen printing production. Original plan was Porto (rent €1,000-1,200/month, purchase €100-120K in Year 2-3).
 
 ## Decision
 Relocate facility to Castelo Branco, Portugal (interior region):

@@ -1,7 +1,7 @@
 # Phase 5: Mobile Touch Optimization - Implementation Summary
 
 ## Overview
-This document summarizes the mobile-first touch optimization changes made to the Merch-From /app components as part of Phase 5 of the Kimi Design Migration.
+This document summarizes the mobile-first touch optimization changes made to the Blackout Merchandise /app components as part of Phase 5 of the Kimi Design Migration.
 
 ## Files Created
 

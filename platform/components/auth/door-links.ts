@@ -8,7 +8,7 @@
 
 const DEV_SITE_ORIGIN = 'http://localhost:3000';
 
-export const CONTACT_EMAIL = 'hello@merchfrom.com';
+export const CONTACT_EMAIL = 'hello@blackoutmerch.example';
 
 function siteOrigin(): string {
   const first = (process.env.NEXT_PUBLIC_SITE_URL ?? '').split(',')[0]?.trim() ?? '';

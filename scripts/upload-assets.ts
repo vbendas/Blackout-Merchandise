@@ -66,7 +66,7 @@ async function uploadAssets() {
             const filePath = path.join(sourceDir, file);
             // Clean filename for ID: "1. Neutral.png" -> "neutral"
             const cleanName = file.replace(/^\d+\.\s*/, '').replace(/\.png$/i, '').toLowerCase().replace(/\s+/g, '_');
-            const publicId = `merch-from/avatars/${character.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}/${cleanName}`;
+            const publicId = `blackout-merchandise/avatars/${character.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}/${cleanName}`;
 
             console.log(`   Processing: ${file} -> ${publicId}`);
 

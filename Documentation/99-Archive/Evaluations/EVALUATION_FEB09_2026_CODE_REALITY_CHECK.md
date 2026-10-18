@@ -1,6 +1,6 @@
 > Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
 
-# MerchFrom: Code Reality Check Evaluation — February 9, 2026
+# Blackout Merchandise: Code Reality Check Evaluation — February 9, 2026
 
 **Evaluation Date:** February 9, 2026
 **Evaluator:** Claude Code (DeepSeek-V3.2)
@@ -13,7 +13,7 @@
 
 ## Executive Summary
 
-MerchFrom has delivered impressive UI polish in the last 10 commits — a beautiful eShop Dashboard, conversational merch studio, and unified selection system. However, **the fundamental assessment from the Feb 6 evaluation remains unchanged: the core product (AI-powered commerce) is simulated, and critical architectural issues flagged for 30+ days remain unaddressed.**
+Blackout Merchandise has delivered impressive UI polish in the last 10 commits — a beautiful eShop Dashboard, conversational merch studio, and unified selection system. However, **the fundamental assessment from the Feb 6 evaluation remains unchanged: the core product (AI-powered commerce) is simulated, and critical architectural issues flagged for 30+ days remain unaddressed.**
 
 This evaluation focuses on **code reality over documentation claims**, applying the Feb 6 audit methodology to the recent commits. The result is sobering: 78 files modified in 12 days with zero progress on P0 issues. The eShop Dashboard UI is beautiful but shows hardcoded analytics. The conversational studio has simulated AI. The database still has zero indexes. The middleware still only protects 2 routes.
 
@@ -176,7 +176,7 @@ Feb 9:   ████████▓░ 8.3/10  Code reality check: UI polish �
 
 **Score rationale:** Of 7 claimed moats, 3 are documentation-only, 3 are partially built, and 0 are fully implemented. A moat that exists only in a markdown file provides zero competitive defense.
 
-**Recent development:** The eShop Dashboard and MerchFrom Studio are visually impressive UI components built atop simulated foundations.
+**Recent development:** The eShop Dashboard and Blackout Merchandise Studio are visually impressive UI components built atop simulated foundations.
 
 ---
 
@@ -407,7 +407,7 @@ Pattern from git history:
 ### P2 (Strategic — Could Do)
 8. **Restructure homepage for SSR** — Split `page.tsx` into server + client components. (1 day)
 9. **Complete Stripe webhook** — Add failed payment, refund, dispute handling. (1 day)
-10. **Create shared DB package** — `@merchfrom/db` package to eliminate duplication. (2 days)
+10. **Create shared DB package** — `@blackoutmerch/db` package to eliminate duplication. (2 days)
 
 ### P3 (Process — How to Work)
 11. **Implement "P0 First" rule** — No UI polish commits until all P0 infrastructure issues resolved.
@@ -418,7 +418,7 @@ Pattern from git history:
 
 ## Final Assessment
 
-MerchFrom is at a critical inflection point. The **vision is exceptional**, the **founder capability is high**, the **UI is production-quality**, and the **infrastructure is sound in theory**. 
+Blackout Merchandise is at a critical inflection point. The **vision is exceptional**, the **founder capability is high**, the **UI is production-quality**, and the **infrastructure is sound in theory**. 
 
 **The single blockage is prioritization.**
 

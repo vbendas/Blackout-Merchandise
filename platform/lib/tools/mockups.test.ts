@@ -38,8 +38,8 @@ before(async () => {
   cat = await seedTestCatalogue(t.db);
   tools = await import('@/lib/tools/mockups');
 
-  Object.assign(a, await shopWithProduct('a@merchfrom.test'));
-  Object.assign(b, await shopWithProduct('b@merchfrom.test'));
+  Object.assign(a, await shopWithProduct('a@blackoutmerch.test'));
+  Object.assign(b, await shopWithProduct('b@blackoutmerch.test'));
 
   // a product of shop A whose design belongs to shop B: a state the services never create, refused anyway
   const [bound] = await t.db

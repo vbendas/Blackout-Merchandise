@@ -204,7 +204,7 @@ test('the same artwork keeps its version; new artwork makes the next one', async
 test('approving checks the design, the shop, the owner and the version again, from the ids alone', async () => {
   const { designId } = await h.newDesign();
   const { designVersionId } = await h.prepare(designId);
-  const stranger = await seedUser(h.db, { email: 'approver@merchfrom.test', withStore: true });
+  const stranger = await seedUser(h.db, { email: 'approver@blackoutmerch.test', withStore: true });
   const ask = async (patch: Partial<Parameters<typeof h.printPrep.approveDesign>[0]> = {}) => {
     const r = await h.printPrep.approveDesign({ storeId: h.artist.storeId, userId: h.artist.userId, designId, versionId: designVersionId, ...patch });
     return r.ok ? 'ok' : r.error;
@@ -288,7 +288,7 @@ test('only the shop owner can undo an approval, and only for their own design', 
   const { designVersionId } = await h.prepare(designId);
   assert.ok((await approve(designId, designVersionId)).ok);
 
-  const stranger = await seedUser(h.db, { email: 'undoer@merchfrom.test', withStore: true });
+  const stranger = await seedUser(h.db, { email: 'undoer@blackoutmerch.test', withStore: true });
   const notYours = { ok: false, error: 'Design not found for this shop.' };
   assert.deepEqual(await revoke(designId, session({ userId: stranger.userId, storeId: stranger.storeId })), notYours, 'another artist in their own shop');
   assert.deepEqual(await revoke(designId, session({ storeId: stranger.storeId })), notYours, "the owner's account with another shop");
@@ -401,7 +401,7 @@ test('the screen count must be a whole number from 1 to 15, for a design that ha
   assert.ok((await ask(15)).ok);
   assert.ok((await ask(1)).ok);
 
-  const other = await seedUser(h.db, { email: 'other@merchfrom.test', withStore: true });
+  const other = await seedUser(h.db, { email: 'other@blackoutmerch.test', withStore: true });
   const foreign = await h.printPrep.changeScreenCount({ storeId: other.storeId as string, userId: other.userId, designId, screens: 4 });
   assert.deepEqual(foreign, { ok: false, error: 'Design not found for this shop.' });
 });
@@ -428,7 +428,7 @@ test('preparePrint says what is wrong with a drop in plain words', async () => {
   assert.equal(await message({ designId: '5f6c0f0e-6f83-4c0a-9a53-1d0e1b1d6a11' }), 'Design not found for this shop.');
   assert.equal(await message({ designId: 'not-a-uuid' }), 'Design not found for this shop.');
 
-  const other = await seedUser(h.db, { email: 'someone-else@merchfrom.test', withStore: true });
+  const other = await seedUser(h.db, { email: 'someone-else@blackoutmerch.test', withStore: true });
   assert.equal(await message({ storeId: other.storeId as string }), 'Design not found for this shop.', "another shop's design is not theirs to prepare");
 
   // Nothing above queued a job or made a version.

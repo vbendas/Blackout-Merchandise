@@ -39,7 +39,7 @@ async function getSystemPrompt(
     const knowledge = await getKnowledgeForPrompt();
     if (knowledge) {
       prompt += `\n\n${knowledge}`;
-      prompt += `\n\nANTI-HALLUCINATION RULE: For any question about MerchFrom policies, pricing, shipping, or operations, use ONLY the verified facts above. If the answer is not in the verified facts, say you don't know and offer to connect with a human.`;
+      prompt += `\n\nANTI-HALLUCINATION RULE: For any question about Blackout Merchandise policies, pricing, shipping, or operations, use ONLY the verified facts above. If the answer is not in the verified facts, say you don't know and offer to connect with a human.`;
     }
   } catch (error) {
     // Graceful fallback — knowledge DB might be empty or unreachable
@@ -119,11 +119,11 @@ export class MistralChatProvider {
   private getFallbackResponse(agent: AgentId): ChatResponse {
     const fallbackResponses: Record<AgentId, string> = {
       leopoldo:
-        "Oi! I'm Leopoldo, your Store Manager at MerchFrom. I'm here to help you set up your store, manage pricing, or handle bulk orders. What would you like to work on?",
+        "Oi! I'm Leopoldo, your Store Manager at Blackout Merchandise. I'm here to help you set up your store, manage pricing, or handle bulk orders. What would you like to work on?",
       francisca:
-        "Olá! I'm Francisca, your Art Director at MerchFrom. Let's create something stunning together — designs, mockups, or catalog curation. What's your vision?",
+        "Olá! I'm Francisca, your Art Director at Blackout Merchandise. Let's create something stunning together — designs, mockups, or catalog curation. What's your vision?",
       antonia:
-        "Hey there! I'm Antônia, your Support Specialist at MerchFrom. I can help track orders, handle shipping questions, or resolve any issues. What's the craic?",
+        "Hey there! I'm Antônia, your Support Specialist at Blackout Merchandise. I can help track orders, handle shipping questions, or resolve any issues. What's the craic?",
     };
 
     return {

@@ -47,7 +47,7 @@
 - These changes are **structural, not cyclical** — the traffic-for-margin model is failing
 
 ### 3. AI Differentiation Window (12 Months)
-- Merch From's multi-modal AI stack is **category-exclusive today**
+- Blackout Merchandise's multi-modal AI stack is **category-exclusive today**
 - **12-month head start** before incumbents close the gap
 
 ### 4. EU Regulatory Tailwind

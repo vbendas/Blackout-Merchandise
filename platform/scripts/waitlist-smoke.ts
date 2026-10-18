@@ -35,7 +35,7 @@ async function main() {
 
   const startedAt = new Date();
   const stamp = Date.now();
-  const artistEmail = `smoke-artist-${stamp}@merchfrom.test`;
+  const artistEmail = `smoke-artist-${stamp}@blackoutmerch.test`;
 
   // -- the public-form INSERT shape (retired website-v3): email/product/colour/role/favourites
   // only, no approval columns. This is the compatibility contract §7 asked
@@ -59,7 +59,7 @@ async function main() {
   // of piling up one per run — support.ts's firstAdminUserId() has no
   // ordering, so more than one admin row makes "which admin got notified"
   // non-deterministic.
-  const adminEmail = (process.env.ADMIN_EMAILS ?? '').split(',')[0]?.trim() || 'admin@merchfrom.test';
+  const adminEmail = (process.env.ADMIN_EMAILS ?? '').split(',')[0]?.trim() || 'admin@blackoutmerch.test';
   const admin = await getOrCreateUserFromClerk({
     clerkId: 'waitlist-smoke-admin',
     email: adminEmail,
@@ -111,7 +111,7 @@ async function main() {
   console.log('\n=== reject_waitlist (a second signup) ===');
   const [otherSignup] = await db
     .insert(schema.waitlistSignups)
-    .values({ email: `smoke-rejected-${stamp}@merchfrom.test`, product: 'Tote' })
+    .values({ email: `smoke-rejected-${stamp}@blackoutmerch.test`, product: 'Tote' })
     .returning();
   const rejected = await rejectWaitlist(otherSignup.id, 'not a fit right now');
   check('reject ok', rejected.ok);

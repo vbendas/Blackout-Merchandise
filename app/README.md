@@ -1,4 +1,4 @@
-# MerchFrom App
+# Blackout Merchandise App
 
 Main application with AI-powered Cat-Suite brand ambassadors, e-commerce, and workspace features.
 

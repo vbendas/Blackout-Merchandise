@@ -39,7 +39,7 @@ export function ChatAvatar({ agentName, expression }: ChatAvatarProps) {
   };
 
   const expressionNumber = expressionMap[expression] || '1_-_neutral';
-  const publicId = `merch-from/avatars/${agentName.toLowerCase()}/${expressionNumber}_attr1_subject`;
+  const publicId = `blackout-merchandise/avatars/${agentName.toLowerCase()}/${expressionNumber}_attr1_subject`;
 
   // Large avatar (96px) for enhanced expression visibility
   const imageUrl = `${baseCloudinary}/f_auto,q_auto,w_256/${publicId}`;

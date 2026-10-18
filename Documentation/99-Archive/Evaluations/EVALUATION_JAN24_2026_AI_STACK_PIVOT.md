@@ -1,6 +1,6 @@
 > Archived: the LoRA plan described here was retired on 2026-08-24 in favour of hosted reference-guided generation.
 
-# MerchFrom: Strategic AI Stack Pivot Evaluation
+# Blackout Merchandise: Strategic AI Stack Pivot Evaluation
 
 **Evaluation Date:** January 24, 2026  
 **Evaluator:** Independent Technical & Business Analysis  
@@ -12,7 +12,7 @@
 
 ## Executive Summary
 
-MerchFrom has executed a **strategic AI stack pivot** that fundamentally improves the project's economics, technical defensibility, and commercial viability. This evaluation focuses on the decision to replace Flux 2 Flex ($0.06/image) with FLUX.1 [dev] fine-tuned via Replicate ($0.006/image) and the introduction of custom LoRA training for brand-consistent, print-ready designs.
+Blackout Merchandise has executed a **strategic AI stack pivot** that fundamentally improves the project's economics, technical defensibility, and commercial viability. This evaluation focuses on the decision to replace Flux 2 Flex ($0.06/image) with FLUX.1 [dev] fine-tuned via Replicate ($0.006/image) and the introduction of custom LoRA training for brand-consistent, print-ready designs.
 
 This is the **most significant technical decision** since the Convex → Drizzle migration, with projected cost savings of **92% on AI image generation** and the foundation for a proprietary visual style moat.
 
@@ -56,7 +56,7 @@ This is the **most significant technical decision** since the Convex → Drizzle
 
 **Strategic enhancement:**
 - ✅ **Visual Style Gallery** — Customer-facing LoRA selection adds premium UX layer
-- ✅ **Brand Consistency** — LoRAs ensure "the MerchFrom look" is recognizable
+- ✅ **Brand Consistency** — LoRAs ensure "the Blackout Merchandise look" is recognizable
 - ✅ **Natural language trigger words** — "American Traditional" instead of "TOK" (customer-friendly)
 
 **Verdict:** Vision remains exceptional. The LoRA strategy demonstrates strategic thinking beyond typical startup execution—recognizing that **brand consistency** is as important as cost savings.
@@ -140,7 +140,7 @@ ADVANTAGE:                250-1000× cheaper
   id: string;                    // UUID
   displayName: string;           // "American Traditional"
   slug: string;                  // "american-traditional-v1"
-  replicateModel: string;        // "merchfrom/american-traditional-v1"
+  replicateModel: string;        // "blackoutmerch/american-traditional-v1"
   replicateVersion: string;      // Replicate version ID
   triggerWord: string;           // "american traditional"
   description: string;           // "Bold lines, vintage tattoo..."
@@ -279,7 +279,7 @@ IF rating = 3/3 → Add to LoRA retraining dataset
    - **Positive feedback loop: Better LoRAs → Better U-Net → Better designs**
 
 4. **Visual Brand Consistency (NEW)**
-   - Customers recognize "the MerchFrom look"
+   - Customers recognize "the Blackout Merchandise look"
    - 4 distinct styles (American Traditional, Vintage Band, etc.)
    - Example images in Visual Style Gallery
    - **Network effect: Customers see consistent quality across platform**
@@ -505,9 +505,9 @@ SAVINGS:             $39,498 (61% reduction)
 
 ## Comparison to Competitors
 
-### MerchFrom vs. Printful/Printify (AI Stack)
+### Blackout Merchandise vs. Printful/Printify (AI Stack)
 
-| Feature | Printful/Printify | MerchFrom |
+| Feature | Printful/Printify | Blackout Merchandise |
 |---------|-------------------|-----------|
 | **AI Image Generation** | None (manual upload) | FLUX.1 [dev] LoRA ($0.006/image) |
 | **Color Separation** | None (manual Photoshop) | Attention U-Net (98%+ accuracy) |
@@ -517,7 +517,7 @@ SAVINGS:             $39,498 (61% reduction)
 | **Quality Consistency** | Variable (customer skill) | High (Expert-trained LoRAs) |
 | **Competitive Moat** | Supply chain | Proprietary AI dataset |
 
-**Verdict:** MerchFrom's AI stack is **unique in the POD industry**. No competitor offers AI-generated, print-optimized, brand-consistent designs with automated color separation.
+**Verdict:** Blackout Merchandise's AI stack is **unique in the POD industry**. No competitor offers AI-generated, print-optimized, brand-consistent designs with automated color separation.
 
 ---
 
@@ -552,16 +552,16 @@ SAVINGS:             $39,498 (61% reduction)
 ## Investment Narrative Impact
 
 ### Before This Pivot:
-"MerchFrom is an AI-powered merch platform. We use standard AI APIs like Flux 2 Flex for image generation and OpenCV for color separation. Our differentiation is the conversational UX with Cat-Suite agents and Expert's 30 years expertise."
+"Blackout Merchandise is an AI-powered merch platform. We use standard AI APIs like Flux 2 Flex for image generation and OpenCV for color separation. Our differentiation is the conversational UX with Cat-Suite agents and Expert's 30 years expertise."
 
 **Investor concern:** "Anyone can use those APIs. What's stopping Printful from adding ChatGPT?"
 
 ### After This Pivot:
-"MerchFrom builds proprietary AI assets trained on Expert's 30+ years screen printing expertise. Our custom LoRAs generate brand-consistent, print-ready designs in 4 distinct styles. Our Attention U-Net achieves 98%+ color separation accuracy. These models improve monthly with customer feedback. By Month 9, we'll have 10,000+ expert-curated training samples—impossible for competitors to replicate."
+"Blackout Merchandise builds proprietary AI assets trained on Expert's 30+ years screen printing expertise. Our custom LoRAs generate brand-consistent, print-ready designs in 4 distinct styles. Our Attention U-Net achieves 98%+ color separation accuracy. These models improve monthly with customer feedback. By Month 9, we'll have 10,000+ expert-curated training samples—impossible for competitors to replicate."
 
 **Investor response:** "That's a defensible moat. Show me the dataset growth plan and beta timeline."
 
-**Verdict:** The AI stack pivot transforms MerchFrom from **"API wrapper with nice UX"** to **"proprietary AI platform with technical defensibility"**. This is the difference between seed funding and Series A.
+**Verdict:** The AI stack pivot transforms Blackout Merchandise from **"API wrapper with nice UX"** to **"proprietary AI platform with technical defensibility"**. This is the difference between seed funding and Series A.
 
 ---
 

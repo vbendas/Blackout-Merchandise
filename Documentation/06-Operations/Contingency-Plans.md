@@ -57,7 +57,7 @@
     - *Note:* Notify customers of "Free Digital Upgrade" (often perceived as premium for detail, though slower for bulk).
   - **Layer 3: Local Offload (External):**
     - Activate the "Neighbor Network." In Barcelos, we are surrounded by industrial printers.
-    - *Protocol:* Victor personally oversees QC at partner facility to maintain the "Merch From Standard."
+    - *Protocol:* Victor personally oversees QC at partner facility to maintain the "Blackout Merchandise Standard."
 
   **Prevention Strategy:**
   - **Spare Parts Kit:** Hold critical spares (relays, sensors, print heads) on-site (Value: ~€2k investment).
@@ -67,7 +67,7 @@
   To ensure outsourced orders (Scenario 1 & 2) are indistinguishable from in-house production:
 
   1.  **The "Magna Mandate":** Partners must agree to use **Magna Colours HB** (Water-based) inks. If they don't stock it, *we supply the ink kits* for our jobs. Zero tolerance for Plastisol substitution.
-  2.  **The "First Pull" Protocol:** For any overflow batch >100 units, a Merch From Quality Manager (or Victor) must physically visit the partner facility to sign off on the first printed unit (registration, cure, hand feel) before the run proceeds.
+  2.  **The "First Pull" Protocol:** For any overflow batch >100 units, a Blackout Merchandise Quality Manager (or Victor) must physically visit the partner facility to sign off on the first printed unit (registration, cure, hand feel) before the run proceeds.
   3.  **Blind Logistics:** We supply the blanks and the shipping labels. The partner functions solely as a labor unit; they never interact with shipping software or branding.
   4.  **The "Ghost" Audit:** Twice a year, we run a test "Ghost" order (fake customer) to verify their unmonitored quality and pack presentation.
 

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     const agentConfig = AGENT_CONFIGS[agent];
 
-    const prompt = `You are ${agentConfig.name}, ${agentConfig.role} for MerchFrom.
+    const prompt = `You are ${agentConfig.name}, ${agentConfig.role} for Blackout Merchandise.
     
 Based on the conversation history below, generate 3-4 quick reply suggestions that the user might want to click. These should be natural follow-up questions or actions they might take.
 

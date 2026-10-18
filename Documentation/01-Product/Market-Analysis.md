@@ -1,4 +1,4 @@
-# Merch From — Market Analysis
+# Blackout Merchandise — Market Analysis
 
 > **Last Updated:** May 10, 2026
 > **Sources:** 550+ primary and secondary sources (see Methodology)
@@ -38,7 +38,7 @@
    - [Sustainability Regulation (EPR, ECGT, GPSR)](#82-sustainability-regulation-epr-ecgt-gpsr)
    - [Consumer Willingness to Pay](#83-consumer-willingness-to-pay)
    - [Competitive Landscape in EU](#84-competitive-landscape-in-eu)
-9. [Strategic Implications for Merch From](#9-strategic-implications-for-merch-from)
+9. [Strategic Implications for Blackout Merchandise](#9-strategic-implications-for-blackout-merchandise)
    - [Where We Win](#91-where-we-win)
    - [Where We Draw](#92-where-we-draw)
    - [Where We Lose](#93-where-we-lose)
@@ -78,13 +78,13 @@ The market is undergoing a fundamental transformation driven by five converging 
 
 However, these growth drivers coexist with significant headwinds: margin compression across all value chain nodes (UMG/Bravado EBITDA margins fell from 5.1% to 2.0%), rising venue merch cuts (20–30% standard, up to 45%), platform consolidation that threatens creator pricing power (Printful-Printify merger), and the largest artist migration in POD history as marketplace platforms collapse.
 
-**For Merch From, this convergence creates a rare entry window**: Fyul's 18–24 month merger distraction, the marketplace platform collapse, AI's temporary differentiation window, and EU regulatory tailwinds align for a new entrant that combines AI-powered design, voice interaction, premium art focus, and ethical production.
+**For Blackout Merchandise, this convergence creates a rare entry window**: Fyul's 18–24 month merger distraction, the marketplace platform collapse, AI's temporary differentiation window, and EU regulatory tailwinds align for a new entrant that combines AI-powered design, voice interaction, premium art focus, and ethical production.
 
 ---
 
 ## 2. Market Sizing (TAM/SAM/SOM)
 
-Understanding the addressable market requires distinguishing between the broad licensed merchandise universe and the specific niche Merch From targets.
+Understanding the addressable market requires distinguishing between the broad licensed merchandise universe and the specific niche Blackout Merchandise targets.
 
 ### TAM/SAM/SOM Analysis
 
@@ -92,7 +92,7 @@ Understanding the addressable market requires distinguishing between the broad l
 |-------|-----------|-------------|-----------|
 | **TAM** (Total Addressable Market) | Licensed merchandise globally (sports, fashion, corporate, entertainment) | **$351.2 billion** | Dataintelo; includes all branded physical goods |
 | **SAM** (Serviceable Addressable Market) | Entertainment + artist merch including physical music | **$13.4 billion** | Industry consensus; MIDiA Research estimates broader market at $13.4B in 2023 |
-| **SOM** (Serviceable Obtainable Market) | Premium ethical art POD (Merch From target niche) | **$500M – $1B** | Derived from Displate validation ($264M single format) + home décor growth |
+| **SOM** (Serviceable Obtainable Market) | Premium ethical art POD (Blackout Merchandise target niche) | **$500M – $1B** | Derived from Displate validation ($264M single format) + home décor growth |
 
 ### SOM Derivation
 
@@ -166,7 +166,7 @@ The POD market is structurally positioned to **double in size every 3–4 years*
 | Collectibles | 9.2% | **11.3% (fastest)** | Limited-edition scarcity, resale economy |
 | Others | 8.5% | — | Digital goods, experiences, specialty items |
 
-Home décor is the fastest-growing POD product category at **24.5–28% CAGR**, driven by remote-work investment in living spaces and social media inspiration. Wall art alone could reach **$29.7 billion by 2031**, validating Merch From's premium art focus.
+Home décor is the fastest-growing POD product category at **24.5–28% CAGR**, driven by remote-work investment in living spaces and social media inspiration. Wall art alone could reach **$29.7 billion by 2031**, validating Blackout Merchandise's premium art focus.
 
 ### 4.2 By Distribution Channel
 
@@ -200,13 +200,13 @@ Visual artists make up 16.7% of the market ($1.14B). That's a large, underserved
 | Latin America | $10.8B | Growing | 27.9% CAGR | Brazil 106M creators (50% of population) |
 | Africa | $3.1–5.1B | Emerging | 28.7% CAGR | Mobile-first, highest growth potential |
 
-Europe ($14.3B creator economy, ~25% artist merch share) is the best beachhead for Merch From: sustainability regulations favor on-demand production, Fyul's dominance is weaker than in North America, and EU consumers already pay a premium for ethical goods.
+Europe ($14.3B creator economy, ~25% artist merch share) is the best beachhead for Blackout Merchandise: sustainability regulations favor on-demand production, Fyul's dominance is weaker than in North America, and EU consumers already pay a premium for ethical goods.
 
 ---
 
 ## 5. Creator Economics Landscape
 
-This section quantifies the actual economics creators face across the market. This data is the core of Merch From's value proposition.
+This section quantifies the actual economics creators face across the market. This data is the core of Blackout Merchandise's value proposition.
 
 ### 5.1 Platform Revenue Models Compared
 
@@ -239,7 +239,7 @@ To make platform differences concrete, consider a standard unisex t-shirt sold a
 
 The earnings gap is stark: **$1.50 (Society6) to $17.53 (CustomCat Pro)**, an **11.7x differential** on the exact same retail price. Even free-tier-to-free-tier, Printify pays **8x** what Society6 pays.
 
-**Merch From Target (roadmap):** Approximately $15.00 per $30 sale (~50%). This is a target, not current performance. The platform is still in development; the $15 estimate assumes AI-assisted design commands a modest premium while keeping costs competitive with fulfillment platforms.
+**Blackout Merchandise Target (roadmap):** Approximately $15.00 per $30 sale (~50%). This is a target, not current performance. The platform is still in development; the $15 estimate assumes AI-assisted design commands a modest premium while keeping costs competitive with fulfillment platforms.
 
 ### 5.3 Streaming vs. Merch Revenue Gap
 
@@ -366,17 +366,17 @@ Gen Z simultaneously presents the most complex and valuable consumer profile:
 | 9 | Vinyl Record | 3% | $37 |
 | 10 | Stickers | 2% | $5 |
 
-T-shirts dominate at **56% of sales**, but hoodies, sweatshirts, and vinyl command higher prices and margins. Home décor (posters, prints) is underserved with better unit economics. That's where Merch From is positioning.
+T-shirts dominate at **56% of sales**, but hoodies, sweatshirts, and vinyl command higher prices and margins. Home décor (posters, prints) is underserved with better unit economics. That's where Blackout Merchandise is positioning.
 
 ### 6.4 Lessons from K-Pop Merchandising
 
 K-pop's merchandise engine generates **5x the per-head spend** of Western artists. Three tactics are partially replicable:
 
-**Multi-Version Drops:** K-pop agencies release albums in 4–30+ versions, each with exclusive collectibles. Taylor Swift adopted this with 30+ album variants, driving 1.6 million vinyl copies for a single album. Merch From can enable artists to launch limited variant drops without managing inventory.
+**Multi-Version Drops:** K-pop agencies release albums in 4–30+ versions, each with exclusive collectibles. Taylor Swift adopted this with 30+ album variants, driving 1.6 million vinyl copies for a single album. Blackout Merchandise can enable artists to launch limited variant drops without managing inventory.
 
-**Scarcity-Driven Collectibles:** Photocards, light sticks, and numbered editions create secondary markets where prices triple within hours. The top 2% of fans drive 52% of merch sales. Merch From's AI can generate limited-edition designs automatically.
+**Scarcity-Driven Collectibles:** Photocards, light sticks, and numbered editions create secondary markets where prices triple within hours. The top 2% of fans drive 52% of merch sales. Blackout Merchandise's AI can generate limited-edition designs automatically.
 
-**Fandom Platform Architecture:** Weverse (13.37M MAU) captures 100% of fan engagement data. Western artists can't replicate the agency-controlled training system, but they can adopt the data layer: Merch From stores can track which designs convert, which fans buy repeatedly, and which products are shared on social.
+**Fandom Platform Architecture:** Weverse (13.37M MAU) captures 100% of fan engagement data. Western artists can't replicate the agency-controlled training system, but they can adopt the data layer: Blackout Merchandise stores can track which designs convert, which fans buy repeatedly, and which products are shared on social.
 
 **Replicability estimate:** Western artists can capture **50–70% of K-pop's per-head economics** by adopting the merchandising tactics without the fandom infrastructure. That's still 3–4x above current Western averages.
 
@@ -403,7 +403,7 @@ In November 2024, Printful and Printify merged into **Fyul** (pronounced "fuel")
 - Historical precedent shows post-merger innovation velocity declines **30–50% for 12–24 months** as leadership focuses on systems integration.
 - Printify's **34% Premium price increase** to $39/month (February 2026) signals margin pressure and user vulnerability.
 - The planned IPO (estimated 2026–2027) introduces additional constraints prioritizing margin optimization over experimental features.
-- **This creates an 18–24 month competitive window** for Merch From to capture dissatisfied merchants.
+- **This creates an 18–24 month competitive window** for Blackout Merchandise to capture dissatisfied merchants.
 
 ### 7.2 Marketplace Collapse (Redbubble, Society6, Zazzle)
 
@@ -430,7 +430,7 @@ The three largest marketplace platforms have implemented fee increases so severe
 | **Shopify** | E-commerce infra | ~75% | $378B GMV, 30% US e-commerce share | Requires marketing expertise |
 | **Etsy** | Handmade marketplace | ~77% | $12.6B GMS, 8.1M sellers | GMS declining 3 years straight |
 
-Fourthwall is Merch From's closest direct competitor: same creator-native, zero-upfront model, but no AI design tools. If Merch From's AI workflow delivers materially better results for non-designers, Fourthwall becomes the incumbent to displace.
+Fourthwall is Blackout Merchandise's closest direct competitor: same creator-native, zero-upfront model, but no AI design tools. If Blackout Merchandise's AI workflow delivers materially better results for non-designers, Fourthwall becomes the incumbent to displace.
 
 ### 7.4 Niche Players (Displate, INPRNT)
 
@@ -444,7 +444,7 @@ Displate proved single-category premium positioning works: **$264 million** from
 
 ### 7.5 AI Capabilities by Platform
 
-| AI Capability | Printful | Printify | Gelato | MyDesigns | Merch From (Est.) |
+| AI Capability | Printful | Printify | Gelato | MyDesigns | Blackout Merchandise (Est.) |
 |--------------|----------|----------|--------|-----------|-------------------|
 | Native text-to-image | ❌ Not available | ✅ OpenAI, 15/day | ✅ CreateAI | ✅ 13+ models | ✅ FLUX 2 |
 | Background removal | ✅ Unlimited | ✅ Magic Eraser | ❌ | ✅ | ✅ |
@@ -456,7 +456,7 @@ Displate proved single-category premium positioning works: **$264 million** from
 | Print-readiness validation | Partial | ❌ | ❌ | ✅ Recraft | Planned |
 | Bulk AI generation | ❌ | ❌ | ✅ Collections | ✅ | Planned |
 
-No incumbent has combined generative AI, voice interaction, and print-readiness into one system. Merch From's **multi-modal AI stack** (Mistral + FLUX 2 + Voxtral) is **category-exclusive today**, but the advantage has a half-life of roughly **12 months**.
+No incumbent has combined generative AI, voice interaction, and print-readiness into one system. Blackout Merchandise's **multi-modal AI stack** (Mistral + FLUX 2 + Voxtral) is **category-exclusive today**, but the advantage has a half-life of roughly **12 months**.
 
 ---
 
@@ -510,11 +510,11 @@ European consumers already pay a premium for sustainable goods. The EU ECGT Dire
 | **Printful** | Riga + Barcelona facilities; 4–11 day EU delivery | 15–35% pricing premium |
 | **Printify** | 140+ third-party facilities including EU | Quality inconsistency; post-merger disruption |
 | **T-Pop** | Plastic-free packaging; carbon-neutral shipping; EU-centric | Higher base costs (organic cotton tees from €15.90) |
-| **Merch From** | EU-first launch; sustainability-native; AI-driven | New entrant; no fulfillment network yet |
+| **Blackout Merchandise** | EU-first launch; sustainability-native; AI-driven | New entrant; no fulfillment network yet |
 
 ---
 
-## 9. Strategic Implications for Merch From
+## 9. Strategic Implications for Blackout Merchandise
 
 ### 9.1 Where We Win
 
@@ -552,11 +552,11 @@ Some gaps have mitigation strategies, but the risk remains real:
 
 | Risk | Severity | Why Mitigation May Not Be Enough |
 |------|----------|--------------------------------|
-| **Fyul IPO war chest** | High | If Fyul IPOs at $2–3B, they can acquire or outspend Merch From on AI features, creator incentives, and marketing. The 18–24 month window is real but narrow. |
-| **AI commoditization** | High | Image generation is already table stakes. Within 12 months, Printify, Gelato, or Canva could add voice. Merch From's moat is workflow integration (print-ready output, color separation, in-house production), not any single AI feature. |
-| **TikTok ban / regulatory shock** | Medium | A TikTok ban would remove the highest-conversion discovery channel for creator merch. Merch From's traffic strategy assumes social commerce remains viable. |
-| **Creator acquisition costs** | Medium | Even with AI, convincing creators to switch platforms requires education, trust-building, and migration tools. The "largest artist migration in POD history" helps, but it doesn't guarantee Merch From captures those artists. |
-| **Fulfillment partner dependency** | Medium | If Printful changes API terms, raises prices, or degrades quality, Merch From has no fallback production network. Multi-provider orchestration is on the roadmap but not built yet. |
+| **Fyul IPO war chest** | High | If Fyul IPOs at $2–3B, they can acquire or outspend Blackout Merchandise on AI features, creator incentives, and marketing. The 18–24 month window is real but narrow. |
+| **AI commoditization** | High | Image generation is already table stakes. Within 12 months, Printify, Gelato, or Canva could add voice. Blackout Merchandise's moat is workflow integration (print-ready output, color separation, in-house production), not any single AI feature. |
+| **TikTok ban / regulatory shock** | Medium | A TikTok ban would remove the highest-conversion discovery channel for creator merch. Blackout Merchandise's traffic strategy assumes social commerce remains viable. |
+| **Creator acquisition costs** | Medium | Even with AI, convincing creators to switch platforms requires education, trust-building, and migration tools. The "largest artist migration in POD history" helps, but it doesn't guarantee Blackout Merchandise captures those artists. |
+| **Fulfillment partner dependency** | Medium | If Printful changes API terms, raises prices, or degrades quality, Blackout Merchandise has no fallback production network. Multi-provider orchestration is on the roadmap but not built yet. |
 
 ### 9.4 The Critical Gap (Traffic + Discovery)
 
@@ -567,7 +567,7 @@ Research across all twelve competitive dimensions confirms:
 - Marketplace platforms provide traffic but extract **50–95%** of revenue
 - **No platform offers both zero upfront cost and meaningful traffic generation**
 
-The AI stack solves creation elegantly; without distribution, it addresses only half the value chain. Merch From must treat traffic generation as a core product capability:
+The AI stack solves creation elegantly; without distribution, it addresses only half the value chain. Blackout Merchandise must treat traffic generation as a core product capability:
 
 1. **SEO-optimized storefronts** — every artist store indexed for discovery
 2. **Social media automation** — auto-generate product posts for Instagram/TikTok
@@ -585,7 +585,7 @@ The AI stack solves creation elegantly; without distribution, it addresses only 
 This market analysis synthesizes data from two primary research reports:
 
 1. **"The Creator Merchandise Market: A Comprehensive Research Report"** (May 2026) — 300+ primary and secondary sources, 12 parallel research dimensions, systematic cross-verification
-2. **"Print-on-Demand Competitive Landscape: Strategic Intelligence for Merch From"** (May 2026) — 12 dimensions, 16+ platforms, 250+ verified sources
+2. **"Print-on-Demand Competitive Landscape: Strategic Intelligence for Blackout Merchandise"** (May 2026) — 12 dimensions, 16+ platforms, 250+ verified sources
 
 Research firms cited include: Grand View Research, IMARC Group, Mordor Intelligence, Precedence Research, Dataintelo, Goldman Sachs, MIDiA Research, Future Market Insights, and others.
 

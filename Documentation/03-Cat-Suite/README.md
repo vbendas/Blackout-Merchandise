@@ -1,6 +1,6 @@
 # Cat-Suite
 
-The three dedicated team members that guide artists through the Merch From platform.
+The three dedicated team members that guide artists through the Blackout Merchandise platform.
 
 ---
 
@@ -31,7 +31,7 @@ The three dedicated team members that guide artists through the Merch From platf
 - sad, angry_annoyed, wink, love, sleepy, mischievous, proud
 - mouth_closed, mouth_o_shape, mouth_wide_open, mouth_teeth_showing, blep
 
-**Asset Path:** `merch-from/avatars/[character]/[expression]`
+**Asset Path:** `blackout-merchandise/avatars/[character]/[expression]`
 
 ---
 

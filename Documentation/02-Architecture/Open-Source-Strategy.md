@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Merch From is committed to **strategic open-sourcing** of our tooling, integration layers, and AI governance frameworks. We do not open-source our core revenue engine (the generation-to-print pipeline and proprietary color separation), but we actively contribute back to the ecosystem in ways that build trust, create network effects, and establish technical leadership.
+Blackout Merchandise is committed to **strategic open-sourcing** of our tooling, integration layers, and AI governance frameworks. We do not open-source our core revenue engine (the generation-to-print pipeline and proprietary color separation), but we actively contribute back to the ecosystem in ways that build trust, create network effects, and establish technical leadership.
 
 **Philosophy:** Open-source the *connection layer*. Keep the *production layer* proprietary.
 
@@ -41,14 +41,14 @@ Merch From is committed to **strategic open-sourcing** of our tooling, integrati
 
 ## Open-Source Projects
 
-### 1. MerchFrom CLI (`merchfrom-cli`)
+### 1. Blackout Merchandise CLI (`blackoutmerch-cli`)
 
 **Status:** Planned — MVP after platform beta
 **License:** MIT
-**Repository:** `github.com/merchfrom/cli`
+**Repository:** `github.com/blackoutmerch/cli`
 
 **What it is:**
-An open-source command-line interface for artists to manage their MerchFrom catalog, generate mockups, and track orders — without using the web dashboard.
+An open-source command-line interface for artists to manage their Blackout Merchandise catalog, generate mockups, and track orders — without using the web dashboard.
 
 **Why it works for us:**
 - Artists self-serve via CLI → still routes printing/fulfillment to us
@@ -59,42 +59,42 @@ An open-source command-line interface for artists to manage their MerchFrom cata
 **Features:**
 ```bash
 # Authentication
-merchfrom auth login
+blackoutmerch auth login
 
 # Catalog management
-merchfrom products list
-merchfrom products create --name "Luna Tee" --image ./design.png
-merchfrom products update --id prod_123 --price 34.99
+blackoutmerch products list
+blackoutmerch products create --name "Luna Tee" --image ./design.png
+blackoutmerch products update --id prod_123 --price 34.99
 
 # Mockup generation
-merchfrom mockup generate --product prod_123 --model "FLUX-2-Flex"
-merchfrom mockup list --product prod_123
+blackoutmerch mockup generate --product prod_123 --model "FLUX-2-Flex"
+blackoutmerch mockup list --product prod_123
 
 # Order tracking
-merchfrom orders list --status shipped
-merchfrom orders track --id ord_456
+blackoutmerch orders list --status shipped
+blackoutmerch orders track --id ord_456
 
 # Analytics
-merchfrom analytics sales --period 30d
-merchfrom analytics top-products
+blackoutmerch analytics sales --period 30d
+blackoutmerch analytics top-products
 ```
 
 **Architecture:**
 - TypeScript + Bun runtime
-- Wraps MerchFrom public API
+- Wraps Blackout Merchandise public API
 - Plugin system for custom integrations
 - Configurable output formats (JSON, table, CSV)
 
 ---
 
-### 2. MerchFrom SDK (`@merchfrom/sdk`)
+### 2. Blackout Merchandise SDK (`@blackoutmerch/sdk`)
 
 **Status:** Planned — parallel with CLI
 **License:** MIT
-**Repository:** `github.com/merchfrom/sdk`
+**Repository:** `github.com/blackoutmerch/sdk`
 
 **What it is:**
-A TypeScript/JavaScript SDK for developers to integrate MerchFrom into their own applications, websites, and tools.
+A TypeScript/JavaScript SDK for developers to integrate Blackout Merchandise into their own applications, websites, and tools.
 
 **Use Cases:**
 - E-commerce platforms adding print-on-demand
@@ -104,10 +104,10 @@ A TypeScript/JavaScript SDK for developers to integrate MerchFrom into their own
 
 **Example:**
 ```typescript
-import { MerchFromClient } from '@merchfrom/sdk';
+import { BlackoutMerchClient } from '@blackoutmerch/sdk';
 
-const client = new MerchFromClient({
-  apiKey: process.env.MERCHFROM_API_KEY,
+const client = new BlackoutMerchClient({
+  apiKey: process.env.BLACKOUTMERCH_API_KEY,
   environment: 'production'
 });
 
@@ -138,11 +138,11 @@ const mockup = await client.mockups.generate({
 
 ---
 
-### 3. Discord Bot Templates (`merchfrom-discord-bots`)
+### 3. Discord Bot Templates (`blackoutmerch-discord-bots`)
 
 **Status:** Planned — Phase 9 (Social Commerce Hub)
 **License:** MIT
-**Repository:** `github.com/merchfrom/discord-bots`
+**Repository:** `github.com/blackoutmerch/discord-bots`
 
 **What it is:**
 Open-source Discord bot templates that artists can self-host or invite to their own servers. Includes both artist-facing and customer-facing bot implementations.
@@ -158,10 +158,10 @@ Open-source Discord bot templates that artists can self-host or invite to their 
 **Example:**
 ```bash
 # Self-host artist support bot
-git clone github.com/merchfrom/discord-bots
+git clone github.com/blackoutmerch/discord-bots
 cd discord-bots/artist-support-bot
 cp .env.example .env
-# Edit .env with Discord token + MerchFrom API key
+# Edit .env with Discord token + Blackout Merchandise API key
 bun install
 bun run start
 ```
@@ -169,16 +169,16 @@ bun run start
 **Why it works:**
 - Artists customize their own bot experience
 - Community contributes new features and language packs
-- Bot usage drives MerchFrom API adoption
+- Bot usage drives Blackout Merchandise API adoption
 - Positions us as the open, extensible platform vs. closed competitors
 
 ---
 
-### 4. AI Transparency & Governance Toolkit (`merchfrom-ai-governance`)
+### 4. AI Transparency & Governance Toolkit (`blackoutmerch-ai-governance`)
 
 **Status:** Planned — Q3 2026
 **License:** Apache 2.0
-**Repository:** `github.com/merchfrom/ai-governance`
+**Repository:** `github.com/blackoutmerch/ai-governance`
 
 **What it is:**
 A collection of tools, templates, and documentation for AI governance compliance — starting with EU AI Act, extensible to other jurisdictions.
@@ -192,7 +192,7 @@ A collection of tools, templates, and documentation for AI governance compliance
 - Consent management utilities
 
 **Why it works:**
-- Positions MerchFrom as a thought leader in responsible AI
+- Positions Blackout Merchandise as a thought leader in responsible AI
 - Other startups use our tools → brand recognition
 - Contributes to EU AI ecosystem → regulatory goodwill
 - Meets our own transparency obligations efficiently
@@ -227,7 +227,7 @@ A collection of tools, templates, and documentation for AI governance compliance
 | **Mockup generation** | Standard quality | Premium FLUX 2 Max for subscribers |
 | **Support** | Community + Discord | Priority human support for paid tiers |
 | **Analytics** | Basic dashboard | Advanced insights, forecasting |
-| **Integrations** | Self-hosted bots | Managed bot hosting by MerchFrom |
+| **Integrations** | Self-hosted bots | Managed bot hosting by Blackout Merchandise |
 
 **Rule:** Open-source tools are free to use. Premium features, higher limits, and managed services generate revenue. The open-source layer is the top of the funnel.
 
@@ -250,9 +250,9 @@ A collection of tools, templates, and documentation for AI governance compliance
 
 | Quarter | Milestone |
 |---------|-----------|
-| **Q2 2026** | Publish `merchfrom-ai-governance` toolkit (templates + docs) |
-| **Q3 2026** | Beta `merchfrom-cli` with core catalog + mockup commands |
-| **Q4 2026** | Release `@merchfrom/sdk` v1.0 with full API coverage |
+| **Q2 2026** | Publish `blackoutmerch-ai-governance` toolkit (templates + docs) |
+| **Q3 2026** | Beta `blackoutmerch-cli` with core catalog + mockup commands |
+| **Q4 2026** | Release `@blackoutmerch/sdk` v1.0 with full API coverage |
 | **Q1 2027** | Launch Discord bot templates (artist + customer support) |
 | **Year 2+** | Community-driven plugin ecosystem, SDK v2.0 |
 

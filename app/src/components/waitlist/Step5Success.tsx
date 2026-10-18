@@ -40,7 +40,7 @@ export function Step5Success({ data }: Step5SuccessProps) {
   }, [data.email]);
 
   const copyToClipboard = () => {
-    const text = `I just joined MerchFrom waitlist! 🎉\n${window.location.origin}/waitlist`;
+    const text = `I just joined Blackout Merchandise waitlist! 🎉\n${window.location.origin}/waitlist`;
     navigator.clipboard.writeText(text);
   };
 

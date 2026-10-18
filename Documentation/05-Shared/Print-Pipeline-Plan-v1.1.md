@@ -3,7 +3,7 @@
 > **Status**: Approved for execution
 > **Date**: May 14, 2026
 > **Branch**: feat/crowdfunding-demo
-> **Test Design**: `/Users/victorbendas/Documents/GitHub/Merch-From/Assets/test_design.png`
+> **Test Design**: `/path/to/blackout-merchandise/Assets/test_design.png`
 
 ---
 
@@ -163,7 +163,7 @@
 
 ### T7 — End-to-End Testing [MAIN] [Group E] (M) ~1.5h
 
-**Test file**: `/Users/victorbendas/Documents/GitHub/Merch-From/Assets/test_design.png`
+**Test file**: `/path/to/blackout-merchandise/Assets/test_design.png`
 
 **Spot Mode (Screen Print) Tests:**
 - **T7.1**: Dark garment + Screen (`#1A1A1A`, 55 LPI, `color_mode=spot`): white base from masks, choked 2px, halftoned, trapping applied

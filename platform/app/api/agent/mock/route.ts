@@ -104,7 +104,7 @@ async function* runTurn(conversation: ConversationState, messageId: string, turn
       toolName: 'publish_store',
       summary: 'Publish your shop and make it live for fans?',
       details: [
-        { label: 'Shop', value: 'your-shop.merchfrom.com' },
+        { label: 'Shop', value: 'your-shop.blackoutmerch.example' },
         { label: 'Live products', value: '1' },
         { label: 'Stripe', value: 'Not connected yet' },
       ],

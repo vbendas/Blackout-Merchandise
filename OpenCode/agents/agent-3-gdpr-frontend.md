@@ -82,8 +82,8 @@ Review component code - all imports should resolve correctly.
 3. Page structure with main container:
    - max-w-4xl mx-auto py-16 px-4 bg-zinc-950 text-white
 4. Section 1: Identity of Controller
-   - MerchFrom Ltd., Portugal
-   - Data Protection Officer: dpo@merchfrom.com
+   - Blackout Merchandise Ltd., Portugal
+   - Data Protection Officer: dpo@blackoutmerch.example
 5. Section 2: Data We Collect
    - Account data (email, name, profile image)
    - Usage data (pages visited, features used)

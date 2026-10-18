@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     // Step 2: Get AI response using Mistral WITH agent persona
     const agentConfig = AGENT_CONFIGS[agent];
-    const systemPrompt = `${agentConfig.persona}\n\nYou are ${agentConfig.name}, ${agentConfig.role} at MerchFrom. Stay in character. Be concise (2-3 sentences max).`;
+    const systemPrompt = `${agentConfig.persona}\n\nYou are ${agentConfig.name}, ${agentConfig.role} at Blackout Merchandise. Stay in character. Be concise (2-3 sentences max).`;
 
     const formattedHistory = history.map((msg) => ({
       role: msg.role as 'user' | 'assistant',

@@ -1,8 +1,8 @@
-# Contributing to MerchFrom
+# Contributing to Blackout Merchandise
 
 > **Last Updated:** October 11, 2026
 
-Thank you for your interest in contributing to MerchFrom! This guide will help you get started.
+Thank you for your interest in contributing to Blackout Merchandise! This guide will help you get started.
 
 ---
 
@@ -20,7 +20,7 @@ Thank you for your interest in contributing to MerchFrom! This guide will help y
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd Merch-From
+cd blackout-merchandise
 
 # Install dependencies (mainpage needs no install)
 bun install                          # Root (drizzle-kit, shared src/db)
@@ -57,7 +57,7 @@ The website can also be started from the `mainpage` config in `.claude/launch.js
 ## Project Structure
 
 ```
-Merch-From/
+blackout-merchandise/
 ├── app/           # Main application (Next.js + AI)
 ├── platform/      # Agent-first platform app (Next.js 16, npm)
 ├── mainpage/      # Public website: static HTML/CSS/JS, no framework, no build step
@@ -237,7 +237,7 @@ The blank catalog lives in `platform/lib/catalog` and is seeded by `platform/scr
 
 ## Equal Wage Model
 
-MerchFrom operates on an equal wage model:
+Blackout Merchandise operates on an equal wage model:
 
 - Everyone earns the same base salary (€1,400/month)
 - 30% of net quarterly profits distributed equally

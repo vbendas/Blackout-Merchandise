@@ -46,7 +46,7 @@ beforeEach(() => {
 
 function email(prefix: string): string {
   counter += 1;
-  return `${prefix}-${counter}@merchfrom.test`;
+  return `${prefix}-${counter}@blackoutmerch.test`;
 }
 
 async function owner(): Promise<Actor> {
@@ -109,7 +109,7 @@ test('loadActor: the row decides, so someone removed since the session was read 
 test('only the owner can invite; the invite stores a hash, emails the link and records the activity', async () => {
   const boss = await owner();
   const { actor: lead } = await staffMember({ prepress: 'manage', production: 'manage', support: 'manage' });
-  await assert.rejects(() => team.inviteStaff(lead, { email: 'x@merchfrom.test', permissions: { prepress: 'work' } }), PermissionError);
+  await assert.rejects(() => team.inviteStaff(lead, { email: 'x@blackoutmerch.test', permissions: { prepress: 'work' } }), PermissionError);
 
   const address = email('New.Printer').toUpperCase();
   const result = await team.inviteStaff(boss, { email: `  ${address} `, title: 'Printer', permissions: { prepress: 'work', team: 'manage', money: 'work' } });

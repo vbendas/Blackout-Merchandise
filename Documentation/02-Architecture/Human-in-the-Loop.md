@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-**Merch From commits that AI will never replace people. Every Cat-Suite AI agent has a dedicated human lead who oversees, validates, and can override every significant interaction.**
+**Blackout Merchandise commits that AI will never replace people. Every Cat-Suite AI agent has a dedicated human lead who oversees, validates, and can override every significant interaction.**
 
 This is not a technical requirement. It is a **values-based business decision** that differentiates us from AI-native competitors who optimize for zero human involvement. We believe the future of creative commerce is **AI-amplified humans**, not human-replacing AI.
 
@@ -57,7 +57,7 @@ This principle applies to:
 **Quarterly:**
 - Strategic review: Is the AI+human model working? What needs to change?
 - Contribute to public AI Ethics Report
-- Represent MerchFrom at industry events on responsible AI
+- Represent Blackout Merchandise at industry events on responsible AI
 
 ---
 

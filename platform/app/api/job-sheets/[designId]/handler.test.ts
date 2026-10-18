@@ -27,7 +27,7 @@ function harness(actor: Actor | null, sheet: Awaited<ReturnType<JobSheetRouteDep
   return { deps, asked };
 }
 
-const get = (id: string, deps: JobSheetRouteDeps, query = '') => handleJobSheetRequest(new Request(`https://merchfrom.test/api/job-sheets/${id}${query}`), id, deps);
+const get = (id: string, deps: JobSheetRouteDeps, query = '') => handleJobSheetRequest(new Request(`https://blackoutmerch.test/api/job-sheets/${id}${query}`), id, deps);
 const json = async (res: Response) => (await res.json()) as Record<string, unknown>;
 
 test('nobody signed in gets 401, and no sheet is made', async () => {

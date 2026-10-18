@@ -19,7 +19,7 @@ import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 
 const SCRATCHPAD_DIR =
-  '/private/tmp/claude-501/-Users-victorbendas-Documents-GitHub-Merch-From/aafbb810-8b88-41f0-9749-7944de292195/scratchpad/mockups';
+  '/private/tmp/claude-501/-Users-victorbendas-Documents-GitHub-blackout-merchandise/aafbb810-8b88-41f0-9749-7944de292195/scratchpad/mockups';
 
 async function buildTestDesign(): Promise<Buffer> {
   const sharp = (await import('sharp')).default;

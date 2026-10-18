@@ -1,5 +1,5 @@
 # Kimi Design Migration Plan
-## Merch-From /app UI/UX Redesign
+## Blackout Merchandise /app UI/UX Redesign
 
 ---
 

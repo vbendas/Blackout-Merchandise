@@ -401,7 +401,7 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
       { productId: tee, colourCode: NAVY, size: 'L', qty: 1 },
       { productId: teeWhite, colourCode: WHITE, size: 'M', qty: 1 },
     ],
-    'maria@merchfrom.test',
+    'maria@blackoutmerch.test',
   );
   for (const step of ['printing', 'packed'] as const) must(await production.advance(shipped, step), `order to ${step}`);
   must(await production.advance(shipped, 'shipped', { carrier: 'Correos', code: 'PQ4829173650ES', url: 'https://www.correos.es' }), 'order to shipped');
@@ -413,7 +413,7 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
       { productId: tee, colourCode: NAVY, size: 'S', qty: 1 },
       { productId: teeWhite, colourCode: WHITE, size: 'M', qty: 1 },
     ],
-    'jordi@merchfrom.test',
+    'jordi@blackoutmerch.test',
   );
   log('Underwriter: a shipped shop order and a queued one');
 
@@ -587,7 +587,7 @@ async function build(db: import('./seed-print').SeedDb): Promise<Record<string, 
   // =========================================================================
   const [lowTideArtist] = await db
     .insert(schema.users)
-    .values({ clerkId: 'demo:low-tide', email: 'lowtide@merchfrom.test', displayName: 'Mar Puig', role: 'artist' })
+    .values({ clerkId: 'demo:low-tide', email: 'lowtide@blackoutmerch.test', displayName: 'Mar Puig', role: 'artist' })
     .returning({ id: schema.users.id });
   const [lowTide] = await db
     .insert(schema.artistStores)

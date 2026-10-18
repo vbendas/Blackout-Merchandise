@@ -40,7 +40,7 @@ export interface DemoConversationFlow {
  */
 const leopoldoDemoFlow: DemoConversationFlow = {
   greeting:
-    "Oi! Welcome to MerchFrom — I'm Leopoldo, your Store Manager. I'll help you set up your merch store, handle pricing, and get you selling. What brings you here today?",
+    "Oi! Welcome to Blackout Merchandise — I'm Leopoldo, your Store Manager. I'll help you set up your merch store, handle pricing, and get you selling. What brings you here today?",
   responses: [
     {
       content:
@@ -210,7 +210,7 @@ const antoniaDemoFlow: DemoConversationFlow = {
     },
     problem: {
       content:
-        "I'm sorry to hear that! Let me help resolve this right away. Can you tell me:\n\n1. What happened?\n2. When did you notice the issue?\n3. Do you have photos?\n\nI'll make sure this gets sorted — every issue is a chance for us to prove we care. That's the MerchFrom way! 💪",
+        "I'm sorry to hear that! Let me help resolve this right away. Can you tell me:\n\n1. What happened?\n2. When did you notice the issue?\n3. Do you have photos?\n\nI'll make sure this gets sorted — every issue is a chance for us to prove we care. That's the Blackout Merchandise way! 💪",
       delay: 800,
     },
   },

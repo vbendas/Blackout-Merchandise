@@ -84,7 +84,7 @@ Review SQL file - all CREATE TABLE statements should be present.
 
 **Subtasks:**
 1. Go to Neon dashboard (neon.tech)
-2. Sign in to merch-from project
+2. Sign in to blackout-merchandise project
 3. Click "New Database" button
 4. Set database name: `staging_neon_db` (or similar name)
 5. Choose region (default is fine)

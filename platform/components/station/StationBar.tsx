@@ -8,7 +8,7 @@ export function StationBar({ lead, title, subtitle, children }: { lead?: ReactNo
       <div className="st-bar-left">
         {lead}
         <div className="st-bar-titles">
-          <p className="st-eyebrow">MerchFrom · Station</p>
+          <p className="st-eyebrow">Blackout Merchandise · Station</p>
           <h1 className="st-title">{title}</h1>
           {subtitle ? <p className="st-subtitle">{subtitle}</p> : null}
         </div>

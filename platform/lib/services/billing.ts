@@ -9,9 +9,9 @@ import type { RunSummary } from '@/lib/services/runs';
 // artist's own purchases and never get one), and its numbers tie out like
 // this (see checkout.ts buildCheckout and orders.markPaid):
 //   gross_cents    what the fan paid, tax included
-//   fee_cents      what MerchFrom keeps: blank + print (base cost) + shipping
+//   fee_cents      what Blackout Merchandise keeps: blank + print (base cost) + shipping
 //   transfer_cents what is sent to the artist: retail price - base cost
-//   orders.tax_cents the tax collected on top, which also stays with MerchFrom
+//   orders.tax_cents the tax collected on top, which also stays with Blackout Merchandise
 // so gross = fee + transfer + tax, to the cent.
 
 export interface PayoutRow {

@@ -2,7 +2,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 BASE_URL = "http://localhost:3000"
-AUTH = HTTPBasicAuth("vbendas@merchfrom.com", "REDACTED")
+AUTH = HTTPBasicAuth("vbendas@blackoutmerch.example", "REDACTED")
 TIMEOUT = 30
 
 def test_upsert_user_from_clerk_webhook():

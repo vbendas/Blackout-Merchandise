@@ -85,7 +85,7 @@ export function Sidebar(): React.ReactElement {
           >
             <Image
               src="/logo/short.png"
-              alt="MerchFrom"
+              alt="Blackout Merchandise"
               width={175}
               height={60}
               className="object-contain opacity-90 hover:opacity-100 transition-opacity"

@@ -1,10 +1,10 @@
 [
   {
     "id": "what",
-    "q": "What is MerchFrom?",
+    "q": "What is Blackout Merchandise?",
     "a": "A merch production house in Barcelona. We help artists, brands and creators to design, source and sell premium merchandise. An assistant works with you from the first brief to the press, and we print, fold, tag and ship.",
     "keywords": [
-      "merchfrom",
+      "blackoutmerch",
       "what",
       "about",
       "merch",
@@ -140,7 +140,7 @@
   {
     "id": "two-ways",
     "q": "Store or bulk run: how do I sell?",
-    "a": "Shop is your own store at merchfrom.com/you or your own domain. Each piece is printed as it sells: no stock, no minimums, no upfront cost. You set the retail price and keep everything above our base cost, paid with each sale. Zero upfront applies to Shop only.\n\nRun is a bulk order for a tour, festival or studio, screen printed or embroidered, folded, tagged and shipped to you, to the venue, or split ahead of time across the cities on your tour. A run is paid before it goes to press, once you have approved the proof.",
+    "a": "Shop is your own store at blackoutmerch.example/you or your own domain. Each piece is printed as it sells: no stock, no minimums, no upfront cost. You set the retail price and keep everything above our base cost, paid with each sale. Zero upfront applies to Shop only.\n\nRun is a bulk order for a tour, festival or studio, screen printed or embroidered, folded, tagged and shipped to you, to the venue, or split ahead of time across the cities on your tour. A run is paid before it goes to press, once you have approved the proof.",
     "keywords": [
       "shop",
       "store",
@@ -324,7 +324,7 @@
   {
     "id": "contact",
     "q": "How do I contact you?",
-    "a": "Write to hello@merchfrom.com. The community is on Discord. Members can also ask in Merch Studio, where the agent can open a support ticket for you.",
+    "a": "Write to hello@blackoutmerch.example. The community is on Discord. Members can also ask in Merch Studio, where the agent can open a support ticket for you.",
     "keywords": [
       "contact",
       "email",
@@ -339,7 +339,7 @@
     ],
     "link": {
       "label": "Write to us",
-      "href": "mailto:hello@merchfrom.com"
+      "href": "mailto:hello@blackoutmerch.example"
     }
   }
 ]

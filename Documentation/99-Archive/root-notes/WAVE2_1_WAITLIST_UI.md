@@ -4,7 +4,7 @@
 Create the complete waitlist UI flow for Steps 1-3 and Step 5, excluding the interview component (handled in Task 2).
 
 ## Context
-This is the critical crowdfunding conversion flow. Must be pixel-perfect, mobile-responsive, and use the Merch From design system.
+This is the critical crowdfunding conversion flow. Must be pixel-perfect, mobile-responsive, and use the Blackout Merchandise design system.
 
 ## Design System
 - **Background**: zinc-950 (#09090b)
@@ -156,7 +156,7 @@ export function WaitlistLayout({ children }: WaitlistLayoutProps) {
         <header className="flex justify-center mb-8">
           <img 
             src="/logo/full.png" 
-            alt="Merch From" 
+            alt="Blackout Merchandise" 
             className="h-8 w-auto"
           />
         </header>
@@ -170,7 +170,7 @@ export function WaitlistLayout({ children }: WaitlistLayoutProps) {
             className="relative"
           >
             <Avatar
-              src="https://res.cloudinary.com/drhfgth7c/image/upload/v1738189941/merch-from/avatars/leopoldo/neutral_attr1_subject.png"
+              src="https://res.cloudinary.com/drhfgth7c/image/upload/v1738189941/blackout-merchandise/avatars/leopoldo/neutral_attr1_subject.png"
               className="w-24 h-24 border-2 border-rose-500/30"
               isBordered
               color="danger"
@@ -187,7 +187,7 @@ export function WaitlistLayout({ children }: WaitlistLayoutProps) {
 
         {/* Footer */}
         <footer className="mt-8 text-center text-zinc-500 text-sm">
-          <p>© 2026 Merch From. Premium merch for artists who care.</p>
+          <p>© 2026 Blackout Merchandise. Premium merch for artists who care.</p>
         </footer>
       </div>
     </div>
@@ -696,7 +696,7 @@ export function Step5Success({ data }: Step5SuccessProps) {
       .catch(console.error);
   }, []);
 
-  const shareUrl = 'https://merchfrom.com/waitlist?ref=' + encodeURIComponent(data.email);
+  const shareUrl = 'https://blackoutmerch.example/waitlist?ref=' + encodeURIComponent(data.email);
 
   const copyLink = () => {
     navigator.clipboard.writeText(shareUrl);
@@ -705,7 +705,7 @@ export function Step5Success({ data }: Step5SuccessProps) {
   };
 
   const shareTwitter = () => {
-    const text = encodeURIComponent(`Just joined the waitlist for @merchfrom! Premium AI-powered merch for artists. Join me: ${shareUrl}`);
+    const text = encodeURIComponent(`Just joined the waitlist for @blackoutmerch! Premium AI-powered merch for artists. Join me: ${shareUrl}`);
     window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
   };
 
@@ -934,7 +934,7 @@ export default function WaitlistPage() {
 ## Dependencies to Install
 
 ```bash
-cd /Users/victorbendas/Documents/GitHub/Merch-From/mainpage
+cd /path/to/blackout-merchandise/mainpage
 bun add framer-motion @hookform/resolvers react-hook-form zod
 ```
 

@@ -1,4 +1,4 @@
-# MerchFrom OpenCode Skill Catalog
+# Blackout Merchandise OpenCode Skill Catalog
 
 > **Purpose**: Quick reference for all 292 OpenCode skills available in `.opencode/skills/`  
 > **Usage**: Reference these skills when working on specific tasks  
@@ -326,7 +326,7 @@ cat .opencode/skills/e2e-testing-patterns/SKILL.md
 
 ---
 
-## 🎯 Top 20 Most Used Skills for MerchFrom
+## 🎯 Top 20 Most Used Skills for Blackout Merchandise
 
 Based on your tech stack, these skills will be most valuable:
 

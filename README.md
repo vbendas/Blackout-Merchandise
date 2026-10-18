@@ -1,4 +1,4 @@
-# MerchFrom
+# Blackout Merchandise
 
 AI-powered premium merchandise platform for artists and creators. Features three AI "Cat-Suite" brand ambassadors (Leopoldo, Francisca, Antonia) that guide artists through design, production, and sales.
 
@@ -57,7 +57,7 @@ AI-powered premium merchandise platform for artists and creators. Features three
 ## Project Structure
 
 ```
-/Merch-From
+/blackout-merchandise
 ├── /app              # Main application (Next.js 16, React 19)
 │   └── src/
 │       ├── app/      # API routes & protected pages

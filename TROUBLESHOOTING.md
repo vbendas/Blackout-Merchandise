@@ -2,7 +2,7 @@
 
 > **Last Updated:** January 30, 2026
 
-Common issues and solutions for MerchFrom development.
+Common issues and solutions for Blackout Merchandise development.
 
 ---
 
@@ -100,7 +100,7 @@ bun run db:seed
 
 ```bash
 # Make sure you're in project root
-cd /path/to/Merch-From
+cd /path/to/blackout-merchandise
 
 # Run with explicit config
 bunx drizzle-kit studio --config=drizzle.config.ts

@@ -28,7 +28,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
       <link
         rel="preload"
         as="image"
-        href="https://res.cloudinary.com/drhfgth7c/image/upload/f_auto,q_auto,w_400/merch-from/avatars/leopoldo/1_-_neutral_attr1_subject"
+        href="https://res.cloudinary.com/drhfgth7c/image/upload/f_auto,q_auto,w_400/blackout-merchandise/avatars/leopoldo/1_-_neutral_attr1_subject"
       />
       <div className="flex h-screen overflow-hidden bg-zinc-950 text-foreground">
         {/* Gradient Mesh Background - enables glass effect visibility */}

@@ -6,12 +6,16 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'fs';
+import { resolve } from 'path';
+
+// Repository root (this file lives in app/scripts/).
+const REPO_ROOT = resolve(__dirname, '../..');
 
 const MODEL = 'google/gemini-3.7-flash';
-const IMG_DIR = '/Users/victorbendas/Documents/GitHub/Merch-From/data/LoRAs/American Traditional/white-bg';
-const OUT_DIR = '/Users/victorbendas/Documents/GitHub/Merch-From/data/LoRAs/style-extraction/gemini-flash';
+const IMG_DIR = resolve(REPO_ROOT, 'data/LoRAs/American Traditional/white-bg');
+const OUT_DIR = resolve(REPO_ROOT, 'data/LoRAs/style-extraction/gemini-flash');
 const SCHEMA = readFileSync(
-  '/Users/victorbendas/Documents/GitHub/Merch-From/data/LoRAs/style-extraction/schema.md',
+  resolve(REPO_ROOT, 'data/LoRAs/style-extraction/schema.md'),
   'utf-8',
 );
 

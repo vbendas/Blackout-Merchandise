@@ -318,7 +318,7 @@ export function CatalogImagesScreen({ maxHeight }: { maxHeight: number }) {
             onChange={(v) => { setFolderPath(v); setError(''); }}
             onSubmit={() => {}}
             showCursor={true}
-            placeholder="~/merchfrom-assets/products/hypster-tee/"
+            placeholder="~/blackoutmerch-assets/products/hypster-tee/"
           />
         </Box>
 

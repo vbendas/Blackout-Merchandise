@@ -186,7 +186,7 @@ for g, count in sorted(gender_counts.items()):
     print(f"  {g}: {count}")
 
 # Save complete JSON
-output_file = Path('/Users/victorbendas/Documents/GitHub/Merch-From/Workspace/stanley_stella_all_150_products.json')
+output_file = Path(__file__).resolve().parent / 'stanley_stella_all_150_products.json'
 with open(output_file, 'w', encoding='utf-8') as f:
     json.dump(all_products, f, indent=2, ensure_ascii=False)
 

@@ -19,7 +19,7 @@ export function WaitlistLayout({ children }: WaitlistLayoutProps) {
             <div className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center">
               <Icon icon="lucide:sparkles" className="w-4 h-4 text-zinc-400" />
             </div>
-            <span className="font-semibold text-lg">MerchFrom</span>
+            <span className="font-semibold text-lg">Blackout Merchandise</span>
           </Link>
 
           <div className="flex items-center gap-4">
@@ -45,7 +45,7 @@ export function WaitlistLayout({ children }: WaitlistLayoutProps) {
       {/* Footer */}
       <footer className="border-t border-zinc-800 py-6">
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-zinc-500">
-          <p>© 2026 MerchFrom. All rights reserved.</p>
+          <p>© 2026 Blackout Merchandise. All rights reserved.</p>
         </div>
       </footer>
     </div>
