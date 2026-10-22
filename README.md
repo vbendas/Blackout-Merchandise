@@ -1,6 +1,6 @@
 # Blackout Merchandise
 
-Blackout Merchandise is a merchandise platform for artists and creators. An artist describes a design in a chat with one of three cat "brand ambassador" agents (Leopoldo, Francisca and Antonia), the design is generated through hosted image-generation APIs, and the platform then prepares it for print: colour separations, halftones, films, proofs and job sheets for screen printing, or print-ready files for DTG/DTF. Artists sell the result in their own shop with Stripe checkout, and the production team works the orders from station screens in the print shop.
+Blackout Merchandise is a merchandise platform for artists and creators. An artist describes a design in a chat, the design is generated through hosted image-generation APIs, and the platform then prepares it for print: colour separations, halftones, films, proofs and job sheets for screen printing, or print-ready files for DTG/DTF. Artists sell the result in their own shop with Stripe checkout, and the production team works the orders from station screens in the print shop.
 
 ## Who it is for
 
